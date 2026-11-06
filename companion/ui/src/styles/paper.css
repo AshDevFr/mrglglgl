@@ -1,75 +1,265 @@
-/* The journal's own look: slightly soggy paper, drawn entirely in CSS. No game art is used. */
+/*
+ * The journal's own materials, drawn in CSS and inline SVG: damp rag paper with a tide mark,
+ * iron-gall ink, kelp-green stamp ink. No game art is used anywhere.
+ */
 
 :root {
-  --paper: #f3ead6;
-  --paper-edge: #e6d6b4;
-  --ink: #2f2a22;
-  --ink-soft: #6b604f;
-  --water: rgba(86, 128, 140, 0.1);
-  --water-edge: rgba(86, 128, 140, 0.18);
-  --stamp: #8a3b2e;
+  --desk: #cdd3cf;
+  --page: #e3e6de;
+  --page-edge: #c9d0c8;
+  --ink: #1c2a34;
+  --ink-faded: #5d6a71;
+  --stamp: #2e6b58;
+  --tide: #a9bdb4;
+  --photo-frame: #f6f6f1;
   --reading-font: "Literata Variable", Georgia, "Times New Roman", serif;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.16 0 0 0 0 0.2 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 
 [data-mantine-color-scheme="dark"] {
-  --paper: #23201b;
-  --paper-edge: #2e2a23;
-  --ink: #e9e1cf;
-  --ink-soft: #b2a68f;
-  --water: rgba(120, 170, 180, 0.07);
-  --water-edge: rgba(120, 170, 180, 0.14);
-  --stamp: #d98b72;
+  --desk: #121819;
+  --page: #1e2628;
+  --page-edge: #283335;
+  --ink: #dce4df;
+  --ink-faded: #93a39e;
+  --stamp: #78bfa4;
+  --tide: #3a4d4c;
+  --photo-frame: #d9ddd6;
 }
 
-.paper {
+.desk {
+  background: var(--desk);
+  min-height: 100%;
+}
+
+/* The page: the one place the app allows itself some character. */
+.journal-page {
+  position: relative;
+  max-width: 44rem;
+  padding: 3.25rem 3.75rem 3rem;
   color: var(--ink);
-  background-color: var(--paper);
-  /* Two old water rings and a darker edge, like a page that has been somewhere damp. */
+  background-color: var(--page);
   background-image:
+    var(--grain),
+    /* A tide mark where the page sat in a puddle. */
     radial-gradient(
-      circle at 82% 14%,
-      transparent 38px,
-      var(--water-edge) 40px,
-      var(--water) 46px,
-      transparent 60px
+      ellipse 70% 55% at 0% 100%,
+      transparent 58%,
+      color-mix(in srgb, var(--tide) 70%, transparent) 61%,
+      color-mix(in srgb, var(--tide) 25%, transparent) 66%,
+      transparent 74%
     ),
-    radial-gradient(circle at 12% 78%, var(--water) 0, transparent 90px),
-    radial-gradient(ellipse at center, transparent 62%, var(--paper-edge) 100%);
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+    radial-gradient(
+      ellipse 70% 55% at 0% 100%,
+      color-mix(in srgb, var(--tide) 22%, transparent) 0,
+      transparent 58%
+    ),
+    radial-gradient(ellipse at center, transparent 70%, var(--page-edge) 130%);
+  border-radius: 2px;
+  box-shadow:
+    0 1px 0 var(--page-edge),
+    0 22px 40px -28px color-mix(in srgb, var(--ink) 55%, transparent);
 }
 
-.reading {
-  font-family: var(--reading-font);
-  font-size: 1.075rem;
-  line-height: 1.7;
-  max-width: 38rem;
+@media (max-width: 40rem) {
+  .journal-page {
+    padding: 2.25rem 1.5rem 2rem;
+  }
 }
 
-.reading h1,
-.reading h2,
-.reading h3 {
+.journal-page h2 {
+  margin: 0 0 1.75rem;
   font-family: var(--reading-font);
+  font-size: 2.1rem;
   font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
 }
 
-.stamp {
-  display: inline-flex;
+.journal-page .entry {
+  margin: 0;
+  max-width: 34em;
+  font-family: var(--reading-font);
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+
+.journal-page .note {
+  margin-top: 2rem;
+  max-width: 34em;
+  font-size: 0.85rem;
+  color: var(--ink-faded);
+}
+
+/* Stamps sit over the page's top-right corner, as if pressed a little carelessly. */
+.journal-page .stamps {
+  position: absolute;
+  top: -1.25rem;
+  right: -0.5rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ink-stamp {
+  color: var(--stamp);
+  opacity: 0.86;
+  mix-blend-mode: multiply;
+}
+
+[data-mantine-color-scheme="dark"] .ink-stamp {
+  mix-blend-mode: screen;
+}
+
+/* Screenshots pinned to the page. */
+.photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin-top: 2.25rem;
+}
+
+.photo {
+  position: relative;
+  padding: 6px 6px 18px;
+  background: var(--photo-frame);
+  box-shadow: 0 6px 14px -8px color-mix(in srgb, var(--ink) 70%, transparent);
+  transform: rotate(-2deg);
+  cursor: zoom-in;
+  border: 0;
+}
+
+.photo:nth-child(even) {
+  transform: rotate(1.6deg);
+}
+
+.photo::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 11px;
+  height: 11px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #fff 0 18%,
+    var(--stamp) 22% 100%
+  );
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.25);
+}
+
+.photo:focus-visible {
+  outline: 2px solid var(--stamp);
+  outline-offset: 3px;
+}
+
+.photo img {
+  display: block;
+  width: 168px;
+  height: 105px;
+  object-fit: cover;
+}
+
+/* The week: seven days, inked when something was written. */
+.week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.375rem;
+  max-width: 44rem;
+}
+
+.week-day {
+  display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.4rem 0.9rem;
-  border: 2px solid var(--stamp);
-  border-radius: 999px;
-  color: var(--stamp);
-  font-family: var(--reading-font);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  transform: rotate(-3deg);
-  opacity: 0.9;
+  padding: 0.4rem 0 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-faded);
+  font: inherit;
+  cursor: pointer;
 }
 
-.stamp small {
-  font-weight: 400;
+.week-day .date {
+  font-family: var(--reading-font);
+  font-size: 1.15rem;
+}
+
+.week-day .weekday {
   font-size: 0.75rem;
-  letter-spacing: 0;
+}
+
+.week-day.written {
+  color: var(--ink);
+}
+
+.week-day.written .date::after {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 5px;
+  margin: 0.2rem auto 0;
+  border-radius: 50%;
+  background: var(--stamp);
+}
+
+.week-day[aria-current="date"] {
+  border-color: color-mix(in srgb, var(--ink) 25%, transparent);
+}
+
+.week-day[aria-pressed="true"] {
+  background: var(--page);
+  border-color: var(--page-edge);
+  color: var(--ink);
+}
+
+.week-day:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.week-day:focus-visible {
+  outline: 2px solid var(--stamp);
+  outline-offset: 2px;
+}
+
+.character-name {
+  margin: 0;
+  font-family: var(--reading-font);
+  font-size: 2.4rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.character-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+  color: var(--ink-faded);
+  font-size: 0.9rem;
+}
+
+.murloc-mark {
+  color: var(--stamp);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .murloc-mark .bob {
+    animation: bob 3.2s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(2deg);
+  }
 }

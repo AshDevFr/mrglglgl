@@ -55,12 +55,15 @@ export interface KillLine {
 export interface DeathLine {
   killer: string | null;
   environment: string | null;
+  /** Where it happened: the subzone when there was one, else the zone. */
+  place: string | null;
 }
 
 export interface CatchLine {
   name: string | null;
   itemId: number | null;
   count: number;
+  junk: boolean;
   boot: boolean;
 }
 
@@ -70,6 +73,7 @@ export interface DayFacts {
   levelTo: number | null;
   leveledUp: boolean;
   zones: string[];
+  subzones: string[];
   discovered: string[];
   accepted: string[];
   turnedIn: string[];
@@ -105,6 +109,10 @@ function questTitle(journal: Journal, id: number): string {
   return journal.quests[id]?.title ?? `#${id}`;
 }
 
+function place(zone: string | null, subzone: string | null): string | null {
+  return subzone || zone || null;
+}
+
 /** Facts from raw events when the archive has them, from the digest otherwise. */
 export function dayFacts(journal: Journal, day: Day): DayFacts {
   const digest = day.digest;
@@ -121,7 +129,8 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
       levelFrom: d?.levelFrom ?? null,
       levelTo: d?.levelTo ?? null,
       leveledUp: (d?.counts.levels ?? 0) > 0,
-      zones: unique([...(d?.zones ?? []), ...(d?.subzones ?? [])]),
+      zones: d?.zones ?? [],
+      subzones: d?.subzones ?? [],
       discovered: d?.discovered ?? [],
       accepted: (d?.accepted ?? []).map((id) => questTitle(journal, id)),
       turnedIn: (d?.turnedIn ?? []).map((id) => questTitle(journal, id)),
@@ -132,6 +141,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
       deaths: (d?.deaths ?? []).map((death) => ({
         killer: death.killer?.name ?? null,
         environment: death.environment,
+        place: place(death.zone, death.subzone),
       })),
       fish: d?.counts.fish ?? 0,
       boots: d?.counts.boots ?? 0,
@@ -139,6 +149,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
         name: f.name,
         itemId: f.itemId,
         count: f.count,
+        junk: f.junk === true,
         boot: f.boot === true,
       })),
       loot: (d?.loot ?? []).map((l) => l.name ?? `#${l.itemId}`),
@@ -165,6 +176,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
     levelTo: null,
     leveledUp: false,
     zones: [],
+    subzones: [],
     discovered: [],
     accepted: [],
     turnedIn: [],
@@ -190,9 +202,9 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
       facts.levelFrom = Math.min(facts.levelFrom ?? event.level, event.level);
       facts.levelTo = Math.max(facts.levelTo ?? event.level, event.level);
     }
-    for (const place of [event.zone, event.subzone]) {
-      if (place) facts.zones = unique([...facts.zones, place]);
-    }
+    if (event.zone) facts.zones = unique([...facts.zones, event.zone]);
+    if (event.subzone)
+      facts.subzones = unique([...facts.subzones, event.subzone]);
     const kind = event.kind;
     switch (kind.kind) {
       case "level":
@@ -213,6 +225,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
         facts.deaths.push({
           killer: kind.killer?.name ?? null,
           environment: kind.environment,
+          place: place(event.zone, event.subzone),
         });
         break;
       case "fish": {
@@ -223,6 +236,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
           name: kind.name,
           itemId: kind.itemId,
           count: 0,
+          junk: kind.junk === true,
           boot: kind.boot === true,
         };
         line.count += 1;
@@ -272,4 +286,25 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
 /** Days, newest first. */
 export function daysNewestFirst(journal: Journal): string[] {
   return Object.keys(journal.days).sort().reverse();
+}
+
+/** The latest level and zone the journal knows, for the character header. */
+export interface Snapshot {
+  level: number | null;
+  zone: string | null;
+}
+
+export function latestSnapshot(journal: Journal): Snapshot {
+  const snapshot: Snapshot = { level: null, zone: null };
+  for (const date of daysNewestFirst(journal)) {
+    const day = journal.days[date];
+    for (const e of [...(day.events ?? [])].reverse()) {
+      snapshot.level ??= e.level;
+      snapshot.zone ??= e.zone || null;
+    }
+    snapshot.level ??= day.digest?.levelTo ?? null;
+    snapshot.zone ??= day.digest?.zones.at(-1) ?? null;
+    if (snapshot.level !== null && snapshot.zone !== null) break;
+  }
+  return snapshot;
 }

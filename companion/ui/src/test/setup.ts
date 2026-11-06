@@ -33,6 +33,9 @@ window.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 
 window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
 
+// Mantine's combobox scrolls the selected option into view on a timer after it opens.
+Element.prototype.scrollIntoView = vi.fn();
+
 // fireEvent doesn't wrap async UI-library state updates (Mantine popovers,
 // floating-ui positioning, etc.) in act(), even though the tests still await
 // the visible outcome via findBy*/waitFor. The resulting "not wrapped in

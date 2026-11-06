@@ -2,7 +2,6 @@ import {
   Alert,
   Button,
   List,
-  NumberInput,
   Select,
   Stack,
   Text,
@@ -10,6 +9,7 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import type { BackupRetention } from "@/bindings/BackupRetention";
 import type { Settings } from "@/bindings/Settings";
 import type { SettingsView } from "@/bindings/SettingsView";
 
@@ -19,11 +19,14 @@ interface Props {
 }
 
 const SYSTEM = "system";
+const RETENTIONS: BackupRetention[] = ["days30", "days90", "year", "forever"];
 
 export function SettingsForm({ view, onSave }: Props) {
   const { t } = useTranslation();
   const [folder, setFolder] = useState(view.settings.wowRootOverride ?? "");
-  const [backups, setBackups] = useState<number>(view.settings.backupCount);
+  const [retention, setRetention] = useState<BackupRetention>(
+    view.settings.backupRetention,
+  );
   const [language, setLanguage] = useState(view.settings.uiLanguage ?? SYSTEM);
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +37,7 @@ export function SettingsForm({ view, onSave }: Props) {
     try {
       await onSave({
         wowRootOverride: folder.trim() === "" ? null : folder.trim(),
-        backupCount: backups,
+        backupRetention: retention,
         uiLanguage: language === SYSTEM ? null : language,
       });
       setState("saved");
@@ -66,13 +69,18 @@ export function SettingsForm({ view, onSave }: Props) {
           </List>
         </div>
       )}
-      <NumberInput
-        label={t("settings.backupCount")}
-        description={t("settings.backupCountHelp")}
-        min={1}
-        max={500}
-        value={backups}
-        onChange={(v) => setBackups(typeof v === "number" ? v : backups)}
+      <Select
+        label={t("settings.backupRetention")}
+        description={t("settings.backupRetentionHelp")}
+        data={RETENTIONS.map((value) => ({
+          value,
+          label: t(`settings.retention.${value}`),
+        }))}
+        value={retention}
+        onChange={(v) =>
+          setRetention((v as BackupRetention | null) ?? retention)
+        }
+        allowDeselect={false}
       />
       <Select
         label={t("settings.language")}

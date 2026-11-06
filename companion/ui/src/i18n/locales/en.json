@@ -11,9 +11,9 @@
     "syncNow": "Check for new journal entries",
     "theme": "Switch between light and dark"
   },
-  "loading": "Mrgl, drying the pages…",
+  "loading": "Mrgl… drying the pages.",
   "home": {
-    "empty": "No journals yet. Mrgl, the pages are still drying.",
+    "empty": "No journals yet. The murloc is waiting by the water.",
     "emptyHelp": "Play with the Mrglglgl addon installed, then log out or type /reload: the game saves the journal at those moments, and it appears here.",
     "noInstall": "No World of Warcraft folder was found. Choose it in Settings.",
     "pick": "Choose a character on the left to read their journal."
@@ -33,6 +33,8 @@
   "character": {
     "unnamed": "Unnamed character",
     "level": "Level {{level}}",
+    "boots_one": "{{count}} boot kept",
+    "boots_other": "{{count}} boots kept",
     "remove": "Remove from app",
     "removeTitle": "Remove {{name}} from the app?",
     "removeBody": "This deletes the app's copy of this journal: its archive, backups and milestones. The game's own files are not touched, so if the character still exists, their journal is read again next time.",
@@ -41,53 +43,66 @@
     "noDays": "No days recorded yet.",
     "compacted": "Summary only: the game kept the details for a few days and the app saw only this summary."
   },
-  "day": {
-    "facts": "What happened",
+  "week": {
+    "previous": "Previous week",
+    "next": "Next week",
+    "today": "Today",
+    "range": "{{from}} to {{to}}",
+    "noEntry": "No entry",
+    "empty": "Nothing written on this page. The murloc checked twice.",
+    "emptyHelp": "Days appear here once you have played them with the addon installed."
+  },
+  "page": {
     "nothing": "Nothing to report.",
-    "levelUp": "Reached level {{to}}",
-    "levelRange": "Level {{from}} to {{to}}",
-    "levelSteady": "Level {{level}}",
-    "zones": "Places: {{list}}",
-    "discovered": "Discovered: {{list}}",
-    "accepted": "Quests accepted: {{list}}",
-    "turnedIn": "Quests turned in: {{list}}",
-    "killed": "Defeated: {{list}}",
-    "killEntry": "{{name}} ×{{count}}",
-    "unknownCreature": "unknown creature #{{id}}",
-    "anonKills_one": "{{count}} foe the game kept unnamed",
-    "anonKills_other": "{{count}} foes the game kept unnamed",
-    "notable": "Notable foes: {{list}}",
-    "classification": {
+    "stayedIn": "Spent the day in {{place}}.",
+    "travelled": "Travelled through {{list}}.",
+    "discovered": "Discovered {{list}}.",
+    "levelUp": "Reached level {{level}}.",
+    "accepted": "Took on {{list}}.",
+    "turnedIn": "Finished {{list}}.",
+    "killed": "Killed {{list}}.",
+    "unnamedKills_one": "a creature the journal never learned the name of",
+    "unnamedKills_other": "{{count}} creatures the journal never learned the names of",
+    "notable_one": "Among them was {{list}}.",
+    "notable_other": "Among them were {{list}}.",
+    "class": {
       "elite": "elite",
       "rare": "rare",
       "rareelite": "rare elite",
       "worldboss": "world boss"
     },
-    "murlocs_one": "{{count}} of them a murloc",
-    "murlocs_other": "{{count}} of them murlocs",
-    "deathBy": "Died to {{name}}",
-    "deathEnvironment": {
+    "anonKills_one": "Also defeated a foe the game kept nameless.",
+    "anonKills_other": "Also defeated {{count}} foes the game kept nameless.",
+    "diedTo": "Died to {{killer}} in {{place}}.",
+    "diedToNoPlace": "Died to {{killer}}.",
+    "died": "Died in {{place}}.",
+    "diedNoPlace": "Died.",
+    "deathEnv": "{{what}} in {{place}}.",
+    "deathEnvNoPlace": "{{what}}.",
+    "environment": {
       "Drowning": "Drowned",
-      "Falling": "Fell",
-      "Fatigue": "Died of exhaustion in deep water",
+      "Falling": "Fell to an untimely end",
+      "Fatigue": "Swam out too far and tired",
       "Fire": "Burned",
       "Lava": "Fell into lava",
-      "Slime": "Died in slime"
+      "Slime": "Sank into slime",
+      "other": "Died"
     },
-    "deathUnknown": "Died",
-    "fish_one": "Caught {{count}} fish",
-    "fish_other": "Caught {{count}} fish",
-    "fishBoots_one": "including {{count}} boot",
-    "fishBoots_other": "including {{count}} boots",
-    "fishList": "Catch: {{list}}",
-    "loot": "Notable loot: {{list}}",
-    "companions": "Grouped with {{list}}",
-    "bosses": "Bosses defeated: {{list}}",
-    "screenshots_one": "{{count}} screenshot",
-    "screenshots_other": "{{count}} screenshots",
-    "onlyFished": "A day spent fishing.",
-    "screenshotAlt": "Screenshot: {{moment}}",
-    "screenshotMoment": {
+    "fish_one": "a fish",
+    "fish_other": "{{count}} fish",
+    "junk_one": "a piece of junk",
+    "junk_other": "{{count}} pieces of junk",
+    "caught": "Caught {{list}}.",
+    "keptBoot_one": "Kept the boot.",
+    "keptBoot_other": "Kept the boots.",
+    "found": "Found {{list}}.",
+    "grouped": "Grouped with {{list}}.",
+    "defeated": "Defeated {{list}}.",
+    "onlyFished": "Spent the whole day fishing."
+  },
+  "photo": {
+    "alt": "Screenshot: {{moment}}",
+    "moment": {
       "levelUp": "level up",
       "death": "death",
       "bossKill": "boss defeated",
@@ -100,7 +115,7 @@
   "milestones": {
     "title": "Milestones",
     "earned": "Earned {{day}}",
-    "none": "No milestones yet. Mrgl. Go fish up a boot.",
+    "none": "No stamps yet. The murloc suggests fishing up a boot.",
     "kept_the_boot": {
       "name": "Kept the Boot",
       "description": "Fished up a boot. Kept it."
@@ -149,8 +164,14 @@
     "found_one": "Found {{count}} World of Warcraft folder:",
     "found_other": "Found {{count}} World of Warcraft folders:",
     "foundNone": "No World of Warcraft folder found.",
-    "backupCount": "Backups kept per character",
-    "backupCountHelp": "The app copies each journal file every time the game saves it, and keeps this many copies per character.",
+    "backupRetention": "Keep backups for",
+    "backupRetentionHelp": "Your journal's full history stays in the app whatever you choose. Backups are only a safety net: copies of the raw files the game saved. Every copy from the last week is kept; older ones are thinned to one a day.",
+    "retention": {
+      "days30": "30 days",
+      "days90": "90 days",
+      "year": "1 year",
+      "forever": "Forever"
+    },
     "language": "Language",
     "languageSystem": "Same as the system",
     "languageEnglish": "English",
@@ -158,8 +179,5 @@
     "save": "Save",
     "saved": "Settings saved.",
     "error": "The settings could not be saved: {{message}}"
-  },
-  "list": {
-    "separator": ", "
   }
 }

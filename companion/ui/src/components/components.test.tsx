@@ -64,25 +64,34 @@ describe("MilestoneList", () => {
   it("shows each stamp with the day it was earned", () => {
     renderWithProviders(<MilestoneList awards={syntheticAwards} />);
     expect(screen.getByText("Kept the Boot")).toBeInTheDocument();
-    expect(screen.getByText("Fished up a boot. Kept it.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Fished up a boot. Kept it.", { selector: "p" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", {
+        name: "Kept the Boot: Fished up a boot. Kept it.",
+      }),
+    ).toBeInTheDocument();
     expect(screen.getAllByText(/^Earned /).length).toBe(syntheticAwards.length);
   });
 
   it("has a murloc-flavoured empty state", () => {
     renderWithProviders(<MilestoneList awards={[]} />);
-    expect(screen.getByText(/No milestones yet\. Mrgl\./)).toBeInTheDocument();
+    expect(
+      screen.getByText(/No stamps yet\. The murloc suggests/),
+    ).toBeInTheDocument();
   });
 });
 
 describe("SettingsForm", () => {
-  it("saves the folder, backup count and language in plain words", async () => {
+  it("saves the folder, backup period and language in plain words", async () => {
     const onSave = vi.fn((_: Settings) => Promise.resolve());
     renderWithProviders(
       <SettingsForm
         view={{
           settings: {
             wowRootOverride: null,
-            backupCount: 30,
+            backupRetention: "days90",
             uiLanguage: null,
           },
           roots: [
@@ -111,8 +120,39 @@ describe("SettingsForm", () => {
     );
     expect(onSave).toHaveBeenCalledWith({
       wowRootOverride: "/Games/World of Warcraft",
-      backupCount: 30,
+      backupRetention: "days90",
       uiLanguage: null,
     });
+  });
+
+  it("keeps backups by age, explaining that the archive keeps full history anyway", async () => {
+    const onSave = vi.fn((_: Settings) => Promise.resolve());
+    renderWithProviders(
+      <SettingsForm
+        view={{
+          settings: {
+            wowRootOverride: null,
+            backupRetention: "days90",
+            uiLanguage: null,
+          },
+          roots: [],
+        }}
+        onSave={onSave}
+      />,
+    );
+    expect(
+      screen.getByText(/full history stays in the app whatever you choose/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/only a safety net/)).toBeInTheDocument();
+
+    const select = screen
+      .getAllByLabelText("Keep backups for")
+      .find((el) => el.tagName === "INPUT");
+    if (!select) throw new Error("no backup period input");
+    fireEvent.click(select);
+    fireEvent.click(await screen.findByRole("option", { name: "Forever" }));
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(onSave.mock.calls[0][0].backupRetention).toBe("forever");
   });
 });

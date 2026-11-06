@@ -1,22 +1,35 @@
-import { Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { Group, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { characterMilestones } from "@/api/commands";
 import type { Award } from "@/bindings/Award";
-import { MilestoneStamp } from "@/components/MilestoneStamp";
+import { EmptyState } from "@/components/EmptyState";
+import { InkStamp } from "@/components/InkStamp";
+import { formatDay } from "@/lib/format";
+
+const TILTS = [-6, 4, -2, 7, -4];
 
 export function MilestoneList({ awards }: { awards: Award[] }) {
-  const { t } = useTranslation();
-  if (awards.length === 0)
-    return <Text className="reading">{t("milestones.none")}</Text>;
+  const { t, i18n } = useTranslation();
+  if (awards.length === 0) return <EmptyState title={t("milestones.none")} />;
   return (
-    <Stack>
-      {awards.map((award) => (
-        <Group key={award.id} gap="lg" wrap="nowrap">
-          <MilestoneStamp award={award} showDay />
-          <Text className="reading">
-            {t(`milestones.${award.id}.description`)}
-          </Text>
+    <Stack gap="lg">
+      {awards.map((award, i) => (
+        <Group key={award.id} gap="xl" wrap="nowrap">
+          <InkStamp award={award} size={96} tilt={TILTS[i % TILTS.length]} />
+          <Stack gap={2}>
+            <Text className="entry" fw={600}>
+              {t(`milestones.${award.id}.name`)}
+            </Text>
+            <Text className="entry">
+              {t(`milestones.${award.id}.description`)}
+            </Text>
+            <Text size="sm" c="dimmed">
+              {t("milestones.earned", {
+                day: formatDay(award.day, i18n.language),
+              })}
+            </Text>
+          </Stack>
         </Group>
       ))}
     </Stack>
@@ -30,15 +43,15 @@ export function MilestonesPage({ characterId }: { characterId: number }) {
     queryFn: () => characterMilestones(characterId),
   });
   return (
-    <Paper className="paper" m="md" p="xl">
-      <Stack className="reading">
-        <Title order={1}>{t("milestones.title")}</Title>
+    <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
+      <article className="journal-page">
+        <h2>{t("milestones.title")}</h2>
         {awards.isPending ? (
-          <Text>{t("loading")}</Text>
+          <EmptyState title={t("loading")} />
         ) : (
           <MilestoneList awards={awards.data ?? []} />
         )}
-      </Stack>
-    </Paper>
+      </article>
+    </div>
   );
 }

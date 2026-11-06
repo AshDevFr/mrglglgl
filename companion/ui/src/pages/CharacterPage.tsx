@@ -1,15 +1,4 @@
-import {
-  Alert,
-  Button,
-  Group,
-  Modal,
-  NavLink,
-  Paper,
-  ScrollArea,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Alert, Button, Group, Modal, Stack, Text } from "@mantine/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -21,65 +10,26 @@ import {
   deleteCharacter,
   listCharacters,
 } from "@/api/commands";
-import type { Award } from "@/bindings/Award";
-import type { Journal } from "@/bindings/Journal";
-import type { Screenshot } from "@/bindings/Screenshot";
-import { DayFactsList } from "@/components/DayFactsList";
-import { MilestoneStamp } from "@/components/MilestoneStamp";
-import { ScreenshotStrip } from "@/components/ScreenshotStrip";
-import { formatDay } from "@/lib/format";
-import { dayFacts, daysNewestFirst, displayName } from "@/lib/journal";
-
-interface DayViewProps {
-  journal: Journal;
-  day: string;
-  awards: Award[];
-  screenshots?: Screenshot[];
-}
-
-/** One day: its facts, the stamps earned that day and its screenshots. */
-export function DayView({
-  journal,
-  day,
-  awards,
-  screenshots = [],
-}: DayViewProps) {
-  const { t, i18n } = useTranslation();
-  const facts = dayFacts(journal, journal.days[day]);
-  const stamps = awards.filter((a) => a.day === day);
-  return (
-    <Paper className="paper" p="xl">
-      <Stack className="reading">
-        <Title order={2}>{formatDay(day, i18n.language, true)}</Title>
-        {stamps.length > 0 && (
-          <Group>
-            {stamps.map((a) => (
-              <MilestoneStamp key={a.id} award={a} />
-            ))}
-          </Group>
-        )}
-        {screenshots.length > 0 && (
-          <ScreenshotStrip screenshots={screenshots} />
-        )}
-        <Title order={4}>{t("day.facts")}</Title>
-        <DayFactsList facts={facts} />
-        {facts.compacted && (
-          <Text size="sm" c="dimmed">
-            {t("character.compacted")}
-          </Text>
-        )}
-      </Stack>
-    </Paper>
-  );
-}
+import { CharacterHeader } from "@/components/CharacterHeader";
+import { EmptyState } from "@/components/EmptyState";
+import { JournalPage } from "@/components/JournalPage";
+import { WeekNav } from "@/components/WeekNav";
+import { daysNewestFirst, displayName } from "@/lib/journal";
+import { dayKey } from "@/lib/weeks";
 
 interface Props {
   characterId: number;
   day?: string;
+  /** Today, "YYYY-MM-DD"; injectable for tests. */
+  today?: string;
 }
 
-export function CharacterPage({ characterId, day }: Props) {
-  const { t, i18n } = useTranslation();
+export function CharacterPage({
+  characterId,
+  day,
+  today = dayKey(new Date()),
+}: Props) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
@@ -110,78 +60,76 @@ export function CharacterPage({ characterId, day }: Props) {
   });
 
   const summary = characters.data?.find((c) => c.character.id === characterId);
-  if (journal.isPending || !summary) return <Text p="xl">{t("loading")}</Text>;
+  if (journal.isPending || !summary) {
+    return (
+      <div className="desk" style={{ padding: "2rem" }}>
+        <EmptyState title={t("loading")} />
+      </div>
+    );
+  }
+  const days = journal.data ? daysNewestFirst(journal.data) : [];
+  const written = new Set(days);
+  const selected = day ?? days[0] ?? today;
   const name = displayName(summary.character);
   const status = summary.character.status;
-  const days = journal.data ? daysNewestFirst(journal.data) : [];
-  const selected = day && days.includes(day) ? day : days[0];
+
+  function show(target: string) {
+    navigate({
+      to: "/characters/$characterId",
+      params: { characterId: String(characterId) },
+      search: { day: target },
+    });
+  }
 
   return (
-    <Stack p="md" h="100%">
-      <Group justify="space-between">
-        <Title order={1} className="reading">
-          {name}
-        </Title>
-        <Group>
-          <Button
-            variant="subtle"
-            onClick={() =>
-              navigate({
-                to: "/characters/$characterId/milestones",
-                params: { characterId: String(characterId) },
-              })
-            }
-          >
-            {t("nav.milestones")}
-          </Button>
-          <Button
-            variant="subtle"
-            color="red"
-            onClick={() => setConfirming(true)}
-          >
-            {t("character.remove")}
-          </Button>
+    <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
+      <Stack gap="lg" maw="48rem">
+        <Group justify="space-between" align="flex-start" wrap="nowrap">
+          <CharacterHeader
+            character={summary.character}
+            journal={journal.data ?? null}
+          />
+          <Group gap="xs" wrap="nowrap">
+            <Button
+              variant="subtle"
+              color="gray"
+              onClick={() =>
+                navigate({
+                  to: "/characters/$characterId/milestones",
+                  params: { characterId: String(characterId) },
+                })
+              }
+            >
+              {t("nav.milestones")}
+            </Button>
+            <Button
+              variant="subtle"
+              color="red"
+              onClick={() => setConfirming(true)}
+            >
+              {t("character.remove")}
+            </Button>
+          </Group>
         </Group>
-      </Group>
-      {summary.archived && <Alert>{t("sync.archivedHelp")}</Alert>}
-      {status && <Alert color="yellow">{t(`sync.status.${status}`)}</Alert>}
-      {days.length === 0 || !journal.data ? (
-        <Text>{t("character.noDays")}</Text>
-      ) : (
-        <Group
-          align="flex-start"
-          wrap="nowrap"
-          gap="md"
-          style={{ flex: 1, minHeight: 0 }}
-        >
-          <ScrollArea w={200} h="100%">
-            {days.map((d) => (
-              <NavLink
-                key={d}
-                label={formatDay(d, i18n.language)}
-                active={d === selected}
-                onClick={() =>
-                  navigate({
-                    to: "/characters/$characterId",
-                    params: { characterId: String(characterId) },
-                    search: { day: d },
-                  })
-                }
-              />
-            ))}
-          </ScrollArea>
-          <ScrollArea style={{ flex: 1 }} h="100%">
-            {selected && (
-              <DayView
-                journal={journal.data}
-                day={selected}
-                awards={awards.data ?? []}
-                screenshots={screenshots.data?.[selected] ?? []}
-              />
-            )}
-          </ScrollArea>
-        </Group>
-      )}
+        {summary.archived && <Alert>{t("sync.archivedHelp")}</Alert>}
+        {status && <Alert color="yellow">{t(`sync.status.${status}`)}</Alert>}
+        <WeekNav
+          selected={selected}
+          written={written}
+          today={today}
+          onSelect={show}
+        />
+        {journal.data && written.has(selected) ? (
+          <JournalPage
+            journal={journal.data}
+            day={selected}
+            awards={awards.data ?? []}
+            screenshots={screenshots.data?.[selected] ?? []}
+          />
+        ) : (
+          <EmptyState title={t("week.empty")}>{t("week.emptyHelp")}</EmptyState>
+        )}
+      </Stack>
       <Modal
         opened={confirming}
         onClose={() => setConfirming(false)}
@@ -203,6 +151,6 @@ export function CharacterPage({ characterId, day }: Props) {
           </Group>
         </Stack>
       </Modal>
-    </Stack>
+    </div>
   );
 }

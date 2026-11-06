@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use mrglglgl_core::db::{
-    CURRENT_VERSION, DATABASE_FILE, DEFAULT_BACKUP_COUNT, Database, DbError, Settings,
+    BackupRetention, CURRENT_VERSION, DATABASE_FILE, Database, DbError, Settings,
 };
 use mrglglgl_core::discovery::CharacterSource;
 use mrglglgl_core::schema::Character;
@@ -76,10 +76,13 @@ fn settings_default_until_saved_and_survive_a_restart() {
     {
         let db = Database::open(dir.path()).unwrap();
         assert_eq!(db.settings().unwrap(), Settings::default());
-        assert_eq!(db.settings().unwrap().backup_count, DEFAULT_BACKUP_COUNT);
+        assert_eq!(
+            db.settings().unwrap().backup_retention,
+            BackupRetention::Days90
+        );
         db.save_settings(&Settings {
             wow_root_override: Some(PathBuf::from("/Games/World of Warcraft")),
-            backup_count: 10,
+            backup_retention: BackupRetention::Forever,
             ui_language: Some("fr".into()),
         })
         .unwrap();
@@ -90,7 +93,7 @@ fn settings_default_until_saved_and_survive_a_restart() {
         settings.wow_root_override,
         Some(PathBuf::from("/Games/World of Warcraft"))
     );
-    assert_eq!(settings.backup_count, 10);
+    assert_eq!(settings.backup_retention, BackupRetention::Forever);
     assert_eq!(settings.ui_language.as_deref(), Some("fr"));
 
     db.save_settings(&Settings::default()).unwrap();
@@ -124,4 +127,46 @@ fn keeps_one_row_per_journal_location_and_keeps_known_names() {
     assert_eq!(stored.surname.as_deref(), Some("Hollowbrook"));
     assert_eq!(stored.last_synced, Some(100));
     assert_eq!(stored.realm_folder, "93");
+}
+
+/// A database from before backups were kept by age, holding the old copy count.
+fn database_with_backup_count(dir: &std::path::Path, count: &str) {
+    drop(Database::open(dir).unwrap());
+    let conn = rusqlite::Connection::open(dir.join(DATABASE_FILE)).unwrap();
+    conn.execute("DELETE FROM settings", []).unwrap();
+    conn.execute(
+        "INSERT INTO settings (key, value) VALUES ('backup_count', ?1)",
+        [count],
+    )
+    .unwrap();
+    conn.pragma_update(None, "user_version", CURRENT_VERSION - 1)
+        .unwrap();
+}
+
+#[test]
+fn migrates_the_old_backup_count_to_a_retention_period() {
+    for (count, expected) in [
+        ("30", BackupRetention::Days90),
+        ("10", BackupRetention::Days30),
+        ("100", BackupRetention::Year),
+    ] {
+        let dir = tempfile::tempdir().unwrap();
+        database_with_backup_count(dir.path(), count);
+        let db = Database::open(dir.path()).unwrap();
+        assert_eq!(db.version().unwrap(), CURRENT_VERSION);
+        assert_eq!(
+            db.settings().unwrap().backup_retention,
+            expected,
+            "count {count}"
+        );
+        let conn = rusqlite::Connection::open(dir.path().join(DATABASE_FILE)).unwrap();
+        let left: i64 = conn
+            .query_row(
+                "SELECT count(*) FROM settings WHERE key = 'backup_count'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(left, 0, "the old setting is gone");
+    }
 }

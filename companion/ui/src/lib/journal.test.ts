@@ -80,6 +80,7 @@ describe("dayFacts", () => {
     expect(facts.deaths).toContainEqual({
       killer: "Murloc Streamrunner",
       environment: null,
+      place: "Red Rocks",
     });
     expect(facts.companions).toEqual(["Tamsin Reedwater"]);
     expect(facts.bosses.length).toBeGreaterThan(0);
@@ -92,7 +93,9 @@ describe("dayFacts", () => {
     );
     expect(facts.compacted).toBe(true);
     expect(facts.boots).toBe(1);
-    expect(facts.deaths).toEqual([{ killer: null, environment: "Drowning" }]);
+    expect(facts.deaths).toEqual([
+      { killer: null, environment: "Drowning", place: "Red Cloud Mesa" },
+    ]);
     expect(facts.catches.find((c) => c.boot)?.name).toBe("Old Boot");
   });
 

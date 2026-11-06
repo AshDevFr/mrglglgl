@@ -2,10 +2,11 @@ use std::fs::{self, File};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use chrono::{Days, Local, NaiveDate, TimeZone};
 use mrglglgl_core::archive::{
-    self, ImportOutcome, backup_folder, backup_journal, backups, merge_snapshot,
+    self, ImportOutcome, backup_folder, backup_journal, backups, backups_to_remove, merge_snapshot,
 };
-use mrglglgl_core::db::Database;
+use mrglglgl_core::db::{BackupRetention, Database};
 use mrglglgl_core::discovery::CharacterSource;
 use mrglglgl_core::schema::{self, Journal, JournalError};
 
@@ -65,39 +66,153 @@ fn synthetic() -> Journal {
     schema::journal_from_text(&shared("synthetic-character.lua")).unwrap()
 }
 
+/// Noon on 2026-11-06, local time: the fake "now" for retention tests.
+fn now() -> i64 {
+    Local
+        .with_ymd_and_hms(2026, 11, 6, 12, 0, 0)
+        .unwrap()
+        .timestamp()
+}
+
+/// A local time `days` days before 2026-11-06, at `hour`:00.
+fn days_ago(days: u64, hour: u32) -> i64 {
+    let date = NaiveDate::from_ymd_opt(2026, 11, 6).unwrap() - Days::new(days);
+    Local
+        .from_local_datetime(&date.and_hms_opt(hour, 0, 0).unwrap())
+        .earliest()
+        .unwrap()
+        .timestamp()
+}
+
+/// The game's journal history: three saves a day over the last week, and two saves a day on
+/// every tenth day going back more than a year.
+fn history() -> Vec<i64> {
+    let mut times = Vec::new();
+    let older: Vec<u64> = (7..=397).step_by(10).collect();
+    for &days in older.iter().rev() {
+        times.push(days_ago(days, 9));
+        times.push(days_ago(days, 21));
+    }
+    for days in (0..7).rev() {
+        for hour in [9, 11, 13] {
+            if days == 0 && hour > 12 {
+                continue; // not yet "now"
+            }
+            times.push(days_ago(days, hour));
+        }
+    }
+    times
+}
+
+fn names(times: &[i64]) -> Vec<PathBuf> {
+    times
+        .iter()
+        .map(|t| PathBuf::from(format!("{t:012}.lua")))
+        .collect()
+}
+
+/// What should survive: every copy from the last week, the last copy of each older day, and
+/// nothing older than the period.
+fn expected_kept(period_days: Option<u64>) -> Vec<i64> {
+    let mut kept: Vec<i64> = (7..=397)
+        .step_by(10)
+        .filter(|days| period_days.is_none_or(|p| *days <= p))
+        .map(|days| days_ago(days, 21))
+        .collect();
+    for days in 0..7 {
+        for hour in [9, 11, 13] {
+            if days == 0 && hour > 12 {
+                continue;
+            }
+            kept.push(days_ago(days, hour));
+        }
+    }
+    kept.sort();
+    kept
+}
+
+fn stamp(path: &Path) -> i64 {
+    path.file_stem().unwrap().to_str().unwrap().parse().unwrap()
+}
+
+fn kept_after_thinning(retention: BackupRetention) -> Vec<i64> {
+    let all = names(&history());
+    let removed = backups_to_remove(&all, now(), retention);
+    let mut kept: Vec<i64> = all
+        .iter()
+        .filter(|p| !removed.contains(p))
+        .map(|p| stamp(p))
+        .collect();
+    kept.sort();
+    kept
+}
+
 #[test]
-fn keeps_the_newest_backups_and_never_touches_the_game_folder() {
+fn keeps_thirty_days_of_backups() {
+    assert_eq!(
+        kept_after_thinning(BackupRetention::Days30),
+        expected_kept(Some(30))
+    );
+}
+
+#[test]
+fn keeps_ninety_days_of_backups_by_default() {
+    assert_eq!(BackupRetention::default(), BackupRetention::Days90);
+    assert_eq!(
+        kept_after_thinning(BackupRetention::Days90),
+        expected_kept(Some(90))
+    );
+}
+
+#[test]
+fn keeps_a_year_of_backups() {
+    assert_eq!(
+        kept_after_thinning(BackupRetention::Year),
+        expected_kept(Some(365))
+    );
+}
+
+#[test]
+fn keeps_backups_forever_but_still_thins_older_days() {
+    let kept = kept_after_thinning(BackupRetention::Forever);
+    assert_eq!(kept, expected_kept(None));
+    // One copy per older day: the 09:00 save of each of those days is gone.
+    assert!(!kept.contains(&days_ago(397, 9)));
+    assert!(kept.contains(&days_ago(397, 21)));
+}
+
+#[test]
+fn never_removes_the_newest_copy_however_old() {
+    let all = names(&[days_ago(800, 9), days_ago(700, 9)]);
+    let removed = backups_to_remove(&all, now(), BackupRetention::Days30);
+    assert_eq!(removed, names(&[days_ago(800, 9)]));
+}
+
+#[test]
+fn thins_real_backups_and_never_touches_the_game_folder() {
     let wow = tempfile::tempdir().unwrap();
     let data = tempfile::tempdir().unwrap();
     let wren = source(wow.path(), "Wren-Hollowbrook");
-    let base = 1_794_000_000;
     let mut game_state = Vec::new();
-    for i in 0..35 {
+    for (i, time) in history().into_iter().enumerate() {
         game_writes(
             &wren.journal_path,
             &format!("MrglglglCharDB = {{ [\"schema\"] = 1, [\"change\"] = {i} }}"),
-            base + i,
+            time as u64,
         );
         game_state = snapshot(wow.path());
-        backup_journal(data.path(), &wren, 30).unwrap();
+        // Each save is backed up at the moment the game writes it.
+        backup_journal(data.path(), &wren, BackupRetention::Days90, time).unwrap();
         assert_eq!(snapshot(wow.path()), game_state, "the game folder changed");
     }
-    let kept = backups(&backup_folder(data.path(), &wren));
-    assert_eq!(kept.len(), 30);
-    assert!(
-        kept.first()
-            .unwrap()
-            .ends_with(format!("{:012}.lua", base + 5))
-    );
-    assert!(
-        kept.last()
-            .unwrap()
-            .ends_with(format!("{:012}.lua", base + 34))
-    );
-    assert_eq!(
-        fs::read_to_string(kept.last().unwrap()).unwrap(),
-        "MrglglglCharDB = { [\"schema\"] = 1, [\"change\"] = 34 }"
-    );
+    // Opening the app at "now" thins what aged since.
+    backup_journal(data.path(), &wren, BackupRetention::Days90, now()).unwrap();
+
+    let kept: Vec<i64> = backups(&backup_folder(data.path(), &wren))
+        .iter()
+        .map(|p| stamp(p))
+        .collect();
+    assert_eq!(kept, expected_kept(Some(90)));
     assert_eq!(snapshot(wow.path()), game_state);
 }
 
@@ -111,13 +226,13 @@ fn skips_a_backup_identical_to_the_newest() {
         &shared("real-session.lua"),
         1_794_000_000,
     );
-    let first = backup_journal(data.path(), &wren, 30).unwrap();
+    let first = backup_journal(data.path(), &wren, BackupRetention::Days90, now()).unwrap();
     game_writes(
         &wren.journal_path,
         &shared("real-session.lua"),
         1_794_000_500,
     );
-    let second = backup_journal(data.path(), &wren, 30).unwrap();
+    let second = backup_journal(data.path(), &wren, BackupRetention::Days90, now()).unwrap();
     assert_eq!(first, second);
     assert_eq!(backups(&backup_folder(data.path(), &wren)).len(), 1);
 }
@@ -217,7 +332,7 @@ fn imports_from_the_backup_and_records_the_character() {
     );
     let before = snapshot(wow.path());
 
-    let outcome = archive::import(&db, data.path(), &wren, 30).unwrap();
+    let outcome = archive::import(&db, data.path(), &wren, BackupRetention::Days90).unwrap();
     let ImportOutcome::Imported { character_id } = outcome else {
         panic!("not imported: {outcome:?}");
     };
@@ -248,7 +363,7 @@ fn keeps_a_character_whose_journal_is_too_new_and_still_backs_it_up() {
     );
     game_writes(&tamsin.journal_path, &shared("real-session.lua"), 2);
 
-    let outcome = archive::import(&db, data.path(), &wren, 30).unwrap();
+    let outcome = archive::import(&db, data.path(), &wren, BackupRetention::Days90).unwrap();
     assert!(matches!(
         outcome,
         ImportOutcome::Unreadable {
@@ -257,7 +372,7 @@ fn keeps_a_character_whose_journal_is_too_new_and_still_backs_it_up() {
         }
     ));
     assert!(matches!(
-        archive::import(&db, data.path(), &tamsin, 30).unwrap(),
+        archive::import(&db, data.path(), &tamsin, BackupRetention::Days90).unwrap(),
         ImportOutcome::Imported { .. }
     ));
     let characters = db.characters().unwrap();
@@ -275,7 +390,7 @@ fn deleting_a_character_removes_its_archive_and_backups_but_not_the_game_file() 
     let wren = source(wow.path(), "Wren-Hollowbrook");
     game_writes(&wren.journal_path, &shared("real-session.lua"), 1);
     let ImportOutcome::Imported { character_id } =
-        archive::import(&db, data.path(), &wren, 30).unwrap()
+        archive::import(&db, data.path(), &wren, BackupRetention::Days90).unwrap()
     else {
         panic!("not imported");
     };
@@ -295,7 +410,7 @@ fn a_character_whose_game_files_are_gone_stays_readable() {
     let wren = source(wow.path(), "Wren-Hollowbrook");
     game_writes(&wren.journal_path, &shared("synthetic-character.lua"), 1);
     let ImportOutcome::Imported { character_id } =
-        archive::import(&db, data.path(), &wren, 30).unwrap()
+        archive::import(&db, data.path(), &wren, BackupRetention::Days90).unwrap()
     else {
         panic!("not imported");
     };
