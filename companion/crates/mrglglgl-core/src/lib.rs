@@ -5,3 +5,5 @@
 pub mod sv;
 
 pub mod schema;
+
+pub mod discovery;
