@@ -110,6 +110,7 @@ Event kinds and their extra fields:
 | `quest_turnin` | `q` int, `xp` int, `money` int | Turned in quest `q`, with the XP and copper it rewarded |
 | `fish` | `item` int, `name` string?, `junk` bool?, `boot` bool? | A fishing catch. `name`, `junk` (poor quality) and `boot` are filled once the client has the item's data; a catch whose data never arrived has only `item` |
 | `loot` | `item` int, `name` string, `ql` int, `qty` int? | Received an item at or above `settings.lootQuality`; `qty` is absent when read from the loot window rather than the loot message |
+| `group_join` | `who` string | Grouped with `who` (`"Firstname-Surname"`) for the first time that day; see `companions[who]` |
 
 ### Kill aggregate (`days[key].kills[npcID]`)
 

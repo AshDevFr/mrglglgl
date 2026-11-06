@@ -158,6 +158,7 @@ function Mock.install()
 	_G.GetLootSlotLink = function(slot) return Mock.loot[slot] end
 	_G.IsFishingLoot = function() return Mock.fishing end
 	_G.C_ChatInfo = { InChatMessagingLockdown = function() return Mock.chatLockdown end }
+	_G.UnitIsUnit = function(a, b) return a == b or (Mock.units[a] ~= nil and Mock.units[a] == Mock.units[b]) end
 	_G.Screenshot = function() Mock.screenshots = Mock.screenshots + 1 end
 	_G.Settings = {
 		RegisterCanvasLayoutCategory = function(frame, name) return { frame = frame, name = name } end,

@@ -23,3 +23,4 @@ Quests.lua
 data\Junk.lua
 Fishing.lua
 Loot.lua
+Group.lua

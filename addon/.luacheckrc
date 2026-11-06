@@ -12,7 +12,7 @@ read_globals = {
 	"CreateFrame", "GetBuildInfo", "GetLocale", "GetLootSlotLink", "GetNumGroupMembers", "GetNumLootItems",
 	"GetItemInfo", "GetQuestID", "GetQuestText", "GetRealmID", "GetRealmName", "GetSubZoneText", "GetTime", "GetTitleText",
 	"GetZoneText", "IsFishingLoot", "IsInGroup", "IsInRaid", "Screenshot", "Settings", "SlashCmdList",
-	"UnitClass", "UnitClassification", "UnitFactionGroup", "UnitFullName", "UnitGUID", "UnitLevel",
+	"UnitClass", "UnitClassification", "UnitFactionGroup", "UnitFullName", "UnitGUID", "UnitIsUnit", "UnitLevel",
 	"UnitName", "UnitRace", "_G", "date", "issecretvalue", "time",
 	"COMBATLOG_XPGAIN_FIRSTPERSON", "ERR_ZONE_EXPLORED", "ERR_ZONE_EXPLORED_XP", "LOOT_ITEM_PUSHED_SELF",
 	"LOOT_ITEM_PUSHED_SELF_MULTIPLE", "LOOT_ITEM_SELF", "LOOT_ITEM_SELF_MULTIPLE",
