@@ -16,8 +16,9 @@ reads them. The client writes them to disk on logout and `/reload`:
   comes with a migration in the addon (`addon/Migrate.lua`).
 - The addon never rewrites a journal whose schema is newer than its own: it leaves it untouched and
   records nothing.
-- The app reads every schema up to the one it supports and refuses a newer one with a message,
-  per character.
+- The app reads the schema it supports. An older journal is upgraded by the addon the next time
+  that character logs in, so the app asks for that instead of reading old shapes; a newer journal
+  needs an app update. Both are reported per character and never block the others.
 
 Keys are short because SavedVariables size counts. Types: `int` and `number` are Lua numbers,
 `string` is a Lua string, `bool` is `true` / `false`, `?` marks a field that may be absent.
