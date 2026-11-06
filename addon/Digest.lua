@@ -32,12 +32,13 @@ function Digest.build(day)
 	local counts = {
 		sessions = 0, levels = 0, accepted = 0, turnedIn = 0, deaths = 0, fish = 0, junk = 0, boots = 0,
 		loot = 0, discoveries = 0, bosses = 0, group = 0, screenshots = 0,
-		kills = 0, murlocs = 0, anonKills = day.anonKills or 0,
+		kills = 0, murlocs = 0, anonKills = day.anonKills or 0, skillUps = 0, crafted = 0, gathered = 0,
 	}
 	local digest = {
 		v = Digest.VERSION, counts = counts,
 		zones = {}, subzones = {}, discovered = {}, deaths = {}, accepted = {}, turnedIn = {},
 		fish = {}, loot = {}, companions = {}, bosses = {}, kills = {}, notableKills = {},
+		skills = {}, crafted = {}, gathered = {},
 	}
 	local zonesSeen, subzonesSeen, fishByItem = {}, {}, {}
 	local lowLevel, highLevel
@@ -117,10 +118,37 @@ function Digest.build(day)
 	end
 	counts.kills = counts.kills + counts.anonKills
 
+	-- Professions, ordered by ID so the same day always gives the same digest.
+	local function sortedIds(t)
+		local ids = {}
+		for id in pairs(t or {}) do
+			ids[#ids + 1] = id
+		end
+		table.sort(ids)
+		return ids
+	end
+	for _, id in ipairs(sortedIds(day.skills)) do
+		local s = day.skills[id]
+		counts.skillUps = counts.skillUps + (s.to - s.from)
+		push(digest.skills, { skill = id, name = s.name, cat = s.cat, from = s.from, to = s.to })
+	end
+	for _, id in ipairs(sortedIds(day.crafted)) do
+		local c = day.crafted[id]
+		counts.crafted = counts.crafted + c.n
+		push(digest.crafted, { item = id, name = c.name, n = c.n })
+	end
+	for _, id in ipairs(sortedIds(day.gathered)) do
+		local g = day.gathered[id]
+		counts.gathered = counts.gathered + g.n
+		push(digest.gathered, { item = id, name = g.name, n = g.n, via = g.via })
+	end
+
 	digest.levelFrom, digest.levelTo = lowLevel, highLevel
 	local busy = counts.kills + counts.deaths + counts.accepted + counts.turnedIn + counts.loot
 		+ counts.levels + counts.discoveries + counts.bosses + counts.group
+		+ counts.skillUps + counts.crafted + counts.gathered
 	digest.onlyFished = counts.fish > 0 and counts.kills == 0 and counts.accepted == 0 and counts.turnedIn == 0
+		and counts.crafted == 0 and counts.gathered == 0
 	digest.nothingHappened = busy + counts.fish == 0
 	return digest
 end

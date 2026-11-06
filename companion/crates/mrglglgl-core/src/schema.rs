@@ -113,7 +113,35 @@ pub struct Day {
     pub events: Option<Vec<Event>>,
     pub kills: BTreeMap<i64, KillAggregate>,
     pub anon_kills: i64,
+    /// Profession skills that rose that day, by skill ID.
+    pub skills: BTreeMap<i64, SkillRecord>,
+    /// Items crafted that day, by item ID.
+    pub crafted: BTreeMap<i64, ItemCount>,
+    /// Items gathered from nodes and corpses that day, by item ID.
+    pub gathered: BTreeMap<i64, ItemCount>,
     pub digest: Option<Digest>,
+}
+
+/// A skill's rise over one day: the first rank seen and the last.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct SkillRecord {
+    pub name: Option<String>,
+    /// The heading the skill sits under in the game's skills list, e.g. "Professions".
+    pub category: Option<String>,
+    pub from: i64,
+    pub to: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct ItemCount {
+    pub name: Option<String>,
+    pub count: i64,
+    /// For gathered items: the gathering skill used, e.g. "Mining".
+    pub via: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -246,6 +274,9 @@ pub struct Digest {
     pub loot: Vec<DigestLoot>,
     pub companions: Vec<String>,
     pub bosses: Vec<String>,
+    pub skills: Vec<DigestSkill>,
+    pub crafted: Vec<DigestItem>,
+    pub gathered: Vec<DigestItem>,
     pub only_fished: bool,
     pub nothing_happened: bool,
 }
@@ -271,6 +302,31 @@ pub struct DigestCounts {
     pub kills: i64,
     pub murlocs: i64,
     pub anon_kills: i64,
+    /// Ranks gained across all skills.
+    pub skill_ups: i64,
+    pub crafted: i64,
+    pub gathered: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct DigestSkill {
+    pub skill_id: Option<i64>,
+    pub name: Option<String>,
+    pub category: Option<String>,
+    pub from: i64,
+    pub to: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct DigestItem {
+    pub item_id: Option<i64>,
+    pub name: Option<String>,
+    pub count: i64,
+    pub via: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -503,6 +559,9 @@ fn digest(t: &Table) -> Digest {
             kills: count("kills"),
             murlocs: count("murlocs"),
             anon_kills: count("anonKills"),
+            skill_ups: count("skillUps"),
+            crafted: count("crafted"),
+            gathered: count("gathered"),
         },
         level_from: int(t, "levelFrom"),
         level_to: int(t, "levelTo"),
@@ -534,8 +593,45 @@ fn digest(t: &Table) -> Digest {
         }),
         companions: strings(t, "companions"),
         bosses: strings(t, "bosses"),
+        skills: records(t, "skills", |r| DigestSkill {
+            skill_id: int(r, "skill"),
+            name: string(r, "name"),
+            category: string(r, "cat"),
+            from: int(r, "from").unwrap_or(0),
+            to: int(r, "to").unwrap_or(0),
+        }),
+        crafted: records(t, "crafted", digest_item),
+        gathered: records(t, "gathered", digest_item),
         only_fished: boolean(t, "onlyFished").unwrap_or(false),
         nothing_happened: boolean(t, "nothingHappened").unwrap_or(false),
+    }
+}
+
+fn digest_item(t: &Table) -> DigestItem {
+    DigestItem {
+        item_id: int(t, "item"),
+        name: string(t, "name"),
+        count: int(t, "n").unwrap_or(0),
+        via: string(t, "via"),
+    }
+}
+
+/// Reads a per-day map keyed by numeric ID, such as `skills` or `crafted`.
+fn by_id<T>(t: &Table, key: &str, read: impl Fn(&Table) -> T) -> BTreeMap<i64, T> {
+    table(t, key)
+        .map(|m| {
+            m.iter()
+                .filter_map(|(k, v)| Some((int_key(k)?, read(v.as_table()?))))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn item_count(t: &Table) -> ItemCount {
+    ItemCount {
+        name: string(t, "name"),
+        count: int(t, "n").unwrap_or(0),
+        via: string(t, "via"),
     }
 }
 
@@ -556,6 +652,14 @@ fn day(t: &Table) -> Day {
             })
             .unwrap_or_default(),
         anon_kills: int(t, "anonKills").unwrap_or(0),
+        skills: by_id(t, "skills", |s| SkillRecord {
+            name: string(s, "name"),
+            category: string(s, "cat"),
+            from: int(s, "from").unwrap_or(0),
+            to: int(s, "to").unwrap_or(0),
+        }),
+        crafted: by_id(t, "crafted", item_count),
+        gathered: by_id(t, "gathered", item_count),
         digest: table(t, "digest").map(digest),
     }
 }

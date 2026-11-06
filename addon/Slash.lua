@@ -17,6 +17,7 @@ local STATUS = {
 	{ "kills", function(c) return L.STATUS_KILLS:format(c.kills, c.murlocs, c.anonKills) end },
 	{ "deaths", function(c) return L.STATUS_DEATHS:format(c.deaths) end },
 	{ "fishing", function(c) return L.STATUS_FISHING:format(c.fish, c.junk, c.boots) end },
+	{ "professions", function(c) return L.STATUS_PROFESSIONS:format(c.skillUps, c.crafted, c.gathered) end },
 	{ "loot", function(c) return L.STATUS_LOOT:format(c.loot) end },
 	{ "group", function(c) return L.STATUS_GROUP:format(c.group) end },
 }

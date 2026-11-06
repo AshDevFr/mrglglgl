@@ -19,18 +19,32 @@ local function cutoffKey(now, keepDays)
 	return Day.key(time(today) - (keepDays - 1) * SECONDS_PER_DAY)
 end
 
+-- Per-day fields that hold raw data: dropped when a day is compacted.
+local RAW_FIELDS = { "ev", "kills", "anonKills", "skills", "crafted", "gathered" }
+
+function Compact.hasRaw(day)
+	for _, field in ipairs(RAW_FIELDS) do
+		if day[field] ~= nil then
+			return true
+		end
+	end
+	return false
+end
+
 -- Rebuilds digests and compacts days before the retention window. Returns the number of days
 -- compacted.
 function Compact.run(journal, now, keepDays)
 	local cutoff = cutoffKey(now, keepDays)
 	local compacted = 0
 	for key, day in pairs(journal.days) do
-		local hasRaw = day.ev ~= nil or day.kills ~= nil or day.anonKills ~= nil
+		local hasRaw = Compact.hasRaw(day)
 		if hasRaw then
 			day.digest = Digest.build(day)
 		end
 		if key < cutoff and hasRaw then
-			day.ev, day.kills, day.anonKills = nil, nil, nil
+			for _, field in ipairs(RAW_FIELDS) do
+				day[field] = nil
+			end
 			compacted = compacted + 1
 		end
 	end

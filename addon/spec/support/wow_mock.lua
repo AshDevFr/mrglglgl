@@ -160,6 +160,14 @@ function Mock.install()
 	_G.C_ChatInfo = { InChatMessagingLockdown = function() return Mock.chatLockdown end }
 	_G.UnitIsUnit = function(a, b) return a == b or (Mock.units[a] ~= nil and Mock.units[a] == Mock.units[b]) end
 	_G.SlashCmdList = {}
+	Mock.skills, Mock.spells = {}, {}
+	_G.C_SkillInfo = {
+		GetNumSkillLines = function() return #Mock.skills end,
+		GetSkillLineInfo = function(index) return Mock.skills[index] end,
+	}
+	_G.C_Spell = { GetSpellName = function(id) return Mock.spells[id] end }
+	_G.LOOT_ITEM_CREATED_SELF = "You create: %s."
+	_G.LOOT_ITEM_CREATED_SELF_MULTIPLE = "You create: %sx%d."
 	_G.Screenshot = function() Mock.screenshots = Mock.screenshots + 1 end
 	-- The client's vertical settings layout, recording what the addon builds. Mock.controls maps
 	-- each setting's variable name to { kind, setting, options? }.

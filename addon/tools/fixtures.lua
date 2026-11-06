@@ -38,6 +38,17 @@ local function session(saved, start, play)
 		[6303] = { name = "Raw Slitherskin Mackerel", quality = 1 },
 		[6150] = { name = "Old Boot", quality = 0 },
 		[2140] = { name = "Carving Knife", quality = 3 },
+		[2770] = { name = "Copper Ore", quality = 1 },
+		[2835] = { name = "Rough Stone", quality = 1 },
+		[1251] = { name = "Linen Bandage", quality = 1 },
+	}
+	Mock.spells = { [2575] = "Mining" }
+	Mock.skills = {
+		{ isHeader = true, name = "Professions" },
+		{ skillID = 186, name = "Mining", rank = 40 },
+		{ skillID = 393, name = "Skinning", rank = 75 },
+		{ isHeader = true, name = "Secondary Skills" },
+		{ skillID = 129, name = "First Aid", rank = 30 },
 	}
 	Mock.zone, Mock.subzone = "Mulgore", "Bloodhoof Village"
 	Mock.fire("ADDON_LOADED", "Mrglglgl")
@@ -112,6 +123,17 @@ local function play()
 		Mock.fire("PLAYER_DEAD")
 		Mock.advance(2)
 		Mock.recap, Mock.groupSize = nil, 0
+		-- Professions: a node mined, bandages made, two skill-ups.
+		Mock.fire("UNIT_SPELLCAST_SUCCEEDED", "player", "Cast-1", 2575)
+		Mock.loot = { itemLink(2770, "Copper Ore"), itemLink(2835, "Rough Stone") }
+		Mock.fire("LOOT_OPENED", false, false)
+		Mock.fire("LOOT_CLOSED")
+		Mock.loot = {}
+		Mock.fire("TRADE_SKILL_ITEM_CRAFTED_RESULT", { itemID = 1251, quantity = 5,
+			hyperlink = itemLink(1251, "Linen Bandage") })
+		Mock.fire("CHAT_MSG_LOOT", "You create: " .. itemLink(1251, "Linen Bandage") .. "x5.", "Wren")
+		Mock.skills[2].rank, Mock.skills[5].rank = 41, 35
+		Mock.fire("SKILL_LINES_CHANGED")
 	end)
 
 	-- Nothing but fishing.

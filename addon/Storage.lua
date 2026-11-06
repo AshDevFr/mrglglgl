@@ -10,7 +10,7 @@ local SETTINGS_SCHEMA = 1
 local DEFAULT_SETTINGS = {
 	record = {
 		sessions = true, levels = true, quests = true, questText = true, zones = true,
-		kills = true, deaths = true, fishing = true, loot = true, group = true,
+		kills = true, deaths = true, fishing = true, loot = true, group = true, professions = true,
 	},
 	lootQuality = 3,
 	retentionDays = 14,

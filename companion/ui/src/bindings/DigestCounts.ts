@@ -4,4 +4,8 @@ export type DigestCounts = { sessions: number, levels: number, accepted: number,
 /**
  * All kills that day, anonymous ones included.
  */
-kills: number, murlocs: number, anonKills: number, };
+kills: number, murlocs: number, anonKills: number, 
+/**
+ * Ranks gained across all skills.
+ */
+skillUps: number, crafted: number, gathered: number, };

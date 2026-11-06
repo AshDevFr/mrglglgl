@@ -15,6 +15,9 @@
       "events": null,
       "kills": {},
       "anonKills": 0,
+      "skills": {},
+      "crafted": {},
+      "gathered": {},
       "digest": {
         "version": 1,
         "counts": {
@@ -33,7 +36,10 @@
           "screenshots": 0,
           "kills": 1,
           "murlocs": 0,
-          "anonKills": 0
+          "anonKills": 0,
+          "skillUps": 0,
+          "crafted": 0,
+          "gathered": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -86,6 +92,9 @@
         "loot": [],
         "companions": [],
         "bosses": [],
+        "skills": [],
+        "crafted": [],
+        "gathered": [],
         "onlyFished": false,
         "nothingHappened": false
       }
@@ -276,6 +285,39 @@
         }
       },
       "anonKills": 1,
+      "skills": {
+        "129": {
+          "name": "First Aid",
+          "category": "Secondary Skills",
+          "from": 30,
+          "to": 35
+        },
+        "186": {
+          "name": "Mining",
+          "category": "Professions",
+          "from": 40,
+          "to": 41
+        }
+      },
+      "crafted": {
+        "1251": {
+          "name": "Linen Bandage",
+          "count": 5,
+          "via": null
+        }
+      },
+      "gathered": {
+        "2770": {
+          "name": "Copper Ore",
+          "count": 1,
+          "via": "Mining"
+        },
+        "2835": {
+          "name": "Rough Stone",
+          "count": 1,
+          "via": "Mining"
+        }
+      },
       "digest": {
         "version": 1,
         "counts": {
@@ -294,7 +336,10 @@
           "screenshots": 1,
           "kills": 26,
           "murlocs": 1,
-          "anonKills": 1
+          "anonKills": 1,
+          "skillUps": 6,
+          "crafted": 5,
+          "gathered": 2
         },
         "levelFrom": 5,
         "levelTo": 6,
@@ -373,6 +418,44 @@
         "bosses": [
           "Hogger"
         ],
+        "skills": [
+          {
+            "skillId": 129,
+            "name": "First Aid",
+            "category": "Secondary Skills",
+            "from": 30,
+            "to": 35
+          },
+          {
+            "skillId": 186,
+            "name": "Mining",
+            "category": "Professions",
+            "from": 40,
+            "to": 41
+          }
+        ],
+        "crafted": [
+          {
+            "itemId": 1251,
+            "name": "Linen Bandage",
+            "count": 5,
+            "via": null
+          }
+        ],
+        "gathered": [
+          {
+            "itemId": 2770,
+            "name": "Copper Ore",
+            "count": 1,
+            "via": "Mining"
+          },
+          {
+            "itemId": 2835,
+            "name": "Rough Stone",
+            "count": 1,
+            "via": "Mining"
+          }
+        ],
         "onlyFished": false,
         "nothingHappened": false
       }
@@ -430,6 +513,9 @@
       ],
       "kills": {},
       "anonKills": 0,
+      "skills": {},
+      "crafted": {},
+      "gathered": {},
       "digest": {
         "version": 1,
         "counts": {
@@ -448,7 +534,10 @@
           "screenshots": 0,
           "kills": 0,
           "murlocs": 0,
-          "anonKills": 0
+          "anonKills": 0,
+          "skillUps": 0,
+          "crafted": 0,
+          "gathered": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -474,6 +563,9 @@
         "loot": [],
         "companions": [],
         "bosses": [],
+        "skills": [],
+        "crafted": [],
+        "gathered": [],
         "onlyFished": true,
         "nothingHappened": false
       }
@@ -503,6 +595,9 @@
       ],
       "kills": {},
       "anonKills": 0,
+      "skills": {},
+      "crafted": {},
+      "gathered": {},
       "digest": {
         "version": 1,
         "counts": {
@@ -521,7 +616,10 @@
           "screenshots": 0,
           "kills": 0,
           "murlocs": 0,
-          "anonKills": 0
+          "anonKills": 0,
+          "skillUps": 0,
+          "crafted": 0,
+          "gathered": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -539,6 +637,9 @@
         "loot": [],
         "companions": [],
         "bosses": [],
+        "skills": [],
+        "crafted": [],
+        "gathered": [],
         "onlyFished": false,
         "nothingHappened": true
       }

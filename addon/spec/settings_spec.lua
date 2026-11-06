@@ -14,7 +14,7 @@ describe("Settings panel", function()
 	it("registers a panel with a toggle for every recording category", function()
 		assert.is_true(Mock.registered)
 		for _, label in ipairs({ "SESSIONS", "LEVELS", "QUESTS", "QUEST_TEXT", "ZONES", "KILLS", "DEATHS", "FISHING",
-			"LOOT", "GROUP" }) do
+			"PROFESSIONS", "LOOT", "GROUP" }) do
 			local control = Mock.controls["MRGLGLGL_RECORD_" .. label]
 			assert.is_table(control, label)
 			assert.equals("checkbox", control.kind)

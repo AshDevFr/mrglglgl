@@ -2,7 +2,9 @@
 import type { DigestCounts } from "./DigestCounts";
 import type { DigestDeath } from "./DigestDeath";
 import type { DigestFish } from "./DigestFish";
+import type { DigestItem } from "./DigestItem";
 import type { DigestKill } from "./DigestKill";
 import type { DigestLoot } from "./DigestLoot";
+import type { DigestSkill } from "./DigestSkill";
 
-export type Digest = { version: number, counts: DigestCounts, levelFrom: number | null, levelTo: number | null, zones: Array<string>, subzones: Array<string>, discovered: Array<string>, accepted: Array<number>, turnedIn: Array<number>, deaths: Array<DigestDeath>, kills: Array<DigestKill>, notableKills: Array<DigestKill>, fish: Array<DigestFish>, loot: Array<DigestLoot>, companions: Array<string>, bosses: Array<string>, onlyFished: boolean, nothingHappened: boolean, };
+export type Digest = { version: number, counts: DigestCounts, levelFrom: number | null, levelTo: number | null, zones: Array<string>, subzones: Array<string>, discovered: Array<string>, accepted: Array<number>, turnedIn: Array<number>, deaths: Array<DigestDeath>, kills: Array<DigestKill>, notableKills: Array<DigestKill>, fish: Array<DigestFish>, loot: Array<DigestLoot>, companions: Array<string>, bosses: Array<string>, skills: Array<DigestSkill>, crafted: Array<DigestItem>, gathered: Array<DigestItem>, onlyFished: boolean, nothingHappened: boolean, };

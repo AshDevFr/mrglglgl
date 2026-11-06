@@ -139,6 +139,31 @@ function Compat.ParseLootMessage(text)
 	return nil
 end
 
+-- Returns itemLink, quantity for a "You create" message about the player, or nil.
+function Compat.ParseCreateMessage(text)
+	if text == nil or Compat.IsSecret(text) then
+		return nil
+	end
+	for _, name in ipairs({ "LOOT_ITEM_CREATED_SELF_MULTIPLE", "LOOT_ITEM_CREATED_SELF" }) do
+		local format = _G[name]
+		if type(format) == "string" then
+			local link, count = text:match(patternFromGlobalString(format))
+			if link then
+				return link, tonumber(count) or 1
+			end
+		end
+	end
+	return nil
+end
+
+-- Gathering spells are recognised by localized name: their spell IDs on Forever are unconfirmed.
+function Compat.IsGatheringSpell(name)
+	if name == nil or Compat.IsSecret(name) then
+		return false
+	end
+	return nameMatches(name, "GATHER_SPELL_HINTS")
+end
+
 -- Returns the discovered area's name for a discovery message, or nil.
 function Compat.IsDiscoveryMessage(text)
 	if text == nil or Compat.IsSecret(text) then

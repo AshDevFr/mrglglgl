@@ -13,6 +13,7 @@ ns.RegisterLocale("enUS", {
 	CATEGORY_FISHING = "Fishing",
 	CATEGORY_LOOT = "Notable loot",
 	CATEGORY_GROUP = "Group members",
+	CATEGORY_PROFESSIONS = "Professions",
 
 	STATUS_HEADER = "Recorded today (%s):",
 	STATUS_SESSIONS = "Sessions: %d",
@@ -24,6 +25,7 @@ ns.RegisterLocale("enUS", {
 	STATUS_FISHING = "Fishing: %d catches, %d junk, %d boots",
 	STATUS_LOOT = "Notable loot: %d",
 	STATUS_GROUP = "Group members met: %d",
+	STATUS_PROFESSIONS = "Professions: %d skills raised, %d items crafted, %d gathered",
 	STATUS_NOT_RECORDED = "%s: not recorded (turned off in settings)",
 	STATUS_BOOTS_TOTAL = "Boots kept, all time: %d",
 	STATUS_UNAVAILABLE = "The journal is not available: it was saved by a newer version of the addon.",
@@ -43,6 +45,7 @@ ns.RegisterLocale("enUS", {
 	TIP_FISHING = "Everything you fish up, junk and boots included.",
 	TIP_LOOT = "Items you receive at or above the quality below.",
 	TIP_GROUP = "The names of players you group with. These are other people's names.",
+	TIP_PROFESSIONS = "Skill-ups in every profession, items you craft, and what you mine, pick or skin.",
 	SETTINGS_LOOT_QUALITY = "Notable loot quality",
 	TIP_LOOT_QUALITY = "The lowest item quality recorded as notable loot.",
 	QUALITY_UNCOMMON = "Uncommon and better",
@@ -81,4 +84,6 @@ ns.RegisterLocale("enUS", {
 	MURLOC_NAME_HINTS = "murloc|mrgl",
 	-- Item names that count as a boot when fished up as junk. Lowercase, "|"-separated.
 	BOOT_NAME_HINTS = "boot",
+	-- Spell names that gather from a node or a corpse. Lowercase, "|"-separated.
+	GATHER_SPELL_HINTS = "mining|herb gathering|skinning",
 })

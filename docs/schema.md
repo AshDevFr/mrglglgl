@@ -38,6 +38,7 @@ Keys are short because SavedVariables size counts. Types: `int` and `number` are
 | `settings.record.fishing` | bool | Record fishing catches |
 | `settings.record.loot` | bool | Record notable loot |
 | `settings.record.group` | bool | Record group members met |
+| `settings.record.professions` | bool | Record profession skill-ups, crafting and gathering |
 | `settings.lootQuality` | int | Minimum item quality counted as notable loot (3 = rare) |
 | `settings.retentionDays` | int | Days of raw events kept before compaction: 7, 14 or 30 |
 | `settings.screenshots.levelUp` | bool | Take a screenshot on level-up |
@@ -80,6 +81,9 @@ A day is a local calendar date. Each event belongs to the day of its own timesta
 | `ev` | array? | Raw events in time order; absent once the day is compacted |
 | `kills` | table? | Kill aggregates keyed by NPC ID |
 | `anonKills` | int? | Kills whose target the client withheld (dungeons, raids, encounters, PvP) |
+| `skills` | table? | Skills that rose that day, keyed by skill ID |
+| `crafted` | table? | Items crafted that day, keyed by item ID |
+| `gathered` | table? | Items mined, picked or skinned that day, keyed by item ID |
 | `digest` | table? | The day's summary; kept after compaction |
 
 ### Event (`days[key].ev[i]`)
@@ -128,6 +132,20 @@ sixth field of the creature GUID), so it does not depend on the client's languag
 
 `anonKills` counts kills whose target the client withheld from addons; they have no aggregate.
 
+### Professions (`days[key].skills`, `.crafted`, `.gathered`)
+
+Aggregated per day, because weapon skills rise every few hits and a crafting session makes dozens
+of items. Skill IDs and item IDs do not depend on the client's language; names do.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `skills[id].name` | string | Skill name |
+| `skills[id].cat` | string? | Heading the skill sits under in the game's skills list (e.g. "Professions", "Weapon Skills") |
+| `skills[id].from`, `skills[id].to` | int | First and last rank seen that day |
+| `crafted[id].n`, `gathered[id].n` | int | Items made, or loot slots gathered |
+| `crafted[id].name`, `gathered[id].name` | string? | Item name |
+| `gathered[id].via` | string | The gathering skill used, e.g. "Mining", "Herb Gathering", "Skinning" |
+
 ### Digest (`days[key].digest`)
 
 The day's summary, rebuilt at every login and logout while the day still has raw events. Once a
@@ -138,7 +156,7 @@ digest is all that remains. Lists are capped at 20 entries and `kills` at the 15
 | Field | Type | Meaning |
 |---|---|---|
 | `v` | int | Digest version. Days rebuilt from raw events get the current version; compacted days keep theirs |
-| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills` |
+| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered` |
 | `levelFrom`, `levelTo` | int? | Lowest and highest level seen that day |
 | `zones` | array | Zones in the order first seen |
 | `subzones` | array | Subzones in the order first seen |
@@ -151,8 +169,10 @@ digest is all that remains. Lists are capped at 20 entries and `kills` at the 15
 | `loot` | array | `{ item, name, ql, qty? }` |
 | `companions` | array | `"Firstname-Surname"` of members met that day |
 | `bosses` | array | Encounter names won |
-| `onlyFished` | bool | Caught fish, and no kills or quest activity |
-| `nothingHappened` | bool | No kills, deaths, quests, fishing, loot, levels, discoveries, bosses or companions |
+| `skills` | array | `{ skill, name, cat?, from, to }` per skill that rose |
+| `crafted`, `gathered` | array | `{ item, name?, n, via? }` per item |
+| `onlyFished` | bool | Caught fish, and no kills, quest activity, crafting or gathering |
+| `nothingHappened` | bool | No kills, deaths, quests, fishing, loot, levels, discoveries, bosses, companions or profession activity |
 
 Fields added by later work are documented here as they land.
 

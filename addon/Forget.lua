@@ -47,6 +47,10 @@ local CATEGORIES = {
 		journal = function(journal) journal.stats.boots = 0 end,
 	},
 	loot = { kinds = { loot = true }, counts = { "loot" }, lists = { "loot" } },
+	professions = {
+		raw = { "skills", "crafted", "gathered" },
+		counts = { "skillUps", "crafted", "gathered" }, lists = { "skills", "crafted", "gathered" },
+	},
 	group = {
 		kinds = { group_join = true }, counts = { "group" }, lists = { "companions" },
 		journal = function(journal) journal.companions = {} end,
@@ -74,7 +78,7 @@ function Forget.category(journal, category)
 		error("unknown category " .. tostring(category), 2)
 	end
 	for _, day in pairs(journal.days) do
-		local hasRaw = day.ev ~= nil or day.kills ~= nil or day.anonKills ~= nil
+		local hasRaw = ns.Compact.hasRaw(day)
 		if spec.kinds and day.ev then
 			local kept = {}
 			for _, event in ipairs(day.ev) do

@@ -218,6 +218,33 @@ fn supports_exactly_the_documented_schema() {
     const { assert!(OLDEST_SCHEMA <= SUPPORTED_SCHEMA) };
 }
 
+#[test]
+fn reads_profession_skill_ups_crafting_and_gathering() {
+    let journal = schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
+    let day = &journal.days["2026-11-08"];
+    let mining = &day.skills[&186];
+    assert_eq!(
+        (mining.name.as_deref(), mining.from, mining.to),
+        (Some("Mining"), 40, 41)
+    );
+    assert_eq!(mining.category.as_deref(), Some("Professions"));
+    assert_eq!(
+        day.crafted[&1251].count, 5,
+        "a craft reported twice counts once"
+    );
+    assert_eq!(day.gathered[&2770].via.as_deref(), Some("Mining"));
+    let digest = day.digest.as_ref().unwrap();
+    assert_eq!(
+        (
+            digest.counts.skill_ups,
+            digest.counts.crafted,
+            digest.counts.gathered
+        ),
+        (6, 5, 2)
+    );
+    assert_eq!(digest.gathered.len(), 2);
+}
+
 /// Every field and event kind `docs/schema.md` documents must be read by the model, or listed
 /// here as deliberately skipped. A field added to the doc fails this test until it is handled.
 #[test]
@@ -235,6 +262,7 @@ fn reads_every_documented_field() {
         "settings.record.fishing",
         "settings.record.loot",
         "settings.record.group",
+        "settings.record.professions",
         "settings.lootQuality",
         "settings.retentionDays",
         "settings.screenshots.levelUp",
@@ -264,6 +292,9 @@ fn reads_every_documented_field() {
         "ev",
         "kills",
         "anonKills",
+        "skills",
+        "crafted",
+        "gathered",
         "digest",
         "t",
         "k",
@@ -294,6 +325,16 @@ fn reads_every_documented_field() {
         "text",
         "first",
         "last",
+        // Professions
+        "skills[id].name",
+        "skills[id].cat",
+        "skills[id].from",
+        "skills[id].to",
+        "crafted[id].n",
+        "gathered[id].n",
+        "crafted[id].name",
+        "gathered[id].name",
+        "gathered[id].via",
         // Event kinds
         "session_start",
         "session_end",

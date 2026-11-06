@@ -10,6 +10,7 @@ MrglglglDB = {
 ["kills"] = true,
 ["levels"] = true,
 ["loot"] = true,
+["professions"] = true,
 ["questText"] = true,
 ["quests"] = true,
 ["sessions"] = true,

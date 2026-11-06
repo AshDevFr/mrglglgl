@@ -31,9 +31,11 @@ MrglglglCharDB = {
 ["anonKills"] = 0,
 ["boots"] = 1,
 ["bosses"] = 0,
+["crafted"] = 0,
 ["deaths"] = 1,
 ["discoveries"] = 2,
 ["fish"] = 2,
+["gathered"] = 0,
 ["group"] = 0,
 ["junk"] = 1,
 ["kills"] = 1,
@@ -42,7 +44,10 @@ MrglglglCharDB = {
 ["murlocs"] = 0,
 ["screenshots"] = 0,
 ["sessions"] = 1,
+["skillUps"] = 0,
 ["turnedIn"] = 0,
+},
+["crafted"] = {
 },
 ["deaths"] = {
 {
@@ -70,6 +75,8 @@ MrglglglCharDB = {
 ["name"] = "Old Boot",
 },
 },
+["gathered"] = {
+},
 ["kills"] = {
 {
 ["cls"] = "unknown",
@@ -86,6 +93,8 @@ MrglglglCharDB = {
 },
 ["nothingHappened"] = false,
 ["onlyFished"] = false,
+["skills"] = {
+},
 ["subzones"] = {
 "Red Cloud Mesa",
 },
@@ -99,6 +108,12 @@ MrglglglCharDB = {
 },
 ["2026-11-08"] = {
 ["anonKills"] = 1,
+["crafted"] = {
+[1251] = {
+["n"] = 5,
+["name"] = "Linen Bandage",
+},
+},
 ["digest"] = {
 ["accepted"] = {
 749,
@@ -114,9 +129,11 @@ MrglglglCharDB = {
 ["anonKills"] = 1,
 ["boots"] = 0,
 ["bosses"] = 1,
+["crafted"] = 5,
 ["deaths"] = 1,
 ["discoveries"] = 2,
 ["fish"] = 0,
+["gathered"] = 2,
 ["group"] = 1,
 ["junk"] = 0,
 ["kills"] = 26,
@@ -125,7 +142,15 @@ MrglglglCharDB = {
 ["murlocs"] = 1,
 ["screenshots"] = 1,
 ["sessions"] = 1,
+["skillUps"] = 6,
 ["turnedIn"] = 1,
+},
+["crafted"] = {
+{
+["item"] = 1251,
+["n"] = 5,
+["name"] = "Linen Bandage",
+},
 },
 ["deaths"] = {
 {
@@ -143,6 +168,20 @@ MrglglglCharDB = {
 "Thunder Bluff",
 },
 ["fish"] = {
+},
+["gathered"] = {
+{
+["item"] = 2770,
+["n"] = 1,
+["name"] = "Copper Ore",
+["via"] = "Mining",
+},
+{
+["item"] = 2835,
+["n"] = 1,
+["name"] = "Rough Stone",
+["via"] = "Mining",
+},
 },
 ["kills"] = {
 {
@@ -188,6 +227,22 @@ MrglglglCharDB = {
 },
 ["nothingHappened"] = false,
 ["onlyFished"] = false,
+["skills"] = {
+{
+["cat"] = "Secondary Skills",
+["from"] = 30,
+["name"] = "First Aid",
+["skill"] = 129,
+["to"] = 35,
+},
+{
+["cat"] = "Professions",
+["from"] = 40,
+["name"] = "Mining",
+["skill"] = 186,
+["to"] = 41,
+},
+},
 ["subzones"] = {
 "Red Rocks",
 },
@@ -334,6 +389,18 @@ MrglglglCharDB = {
 ["z"] = "Mulgore",
 },
 },
+["gathered"] = {
+[2770] = {
+["n"] = 1,
+["name"] = "Copper Ore",
+["via"] = "Mining",
+},
+[2835] = {
+["n"] = 1,
+["name"] = "Rough Stone",
+["via"] = "Mining",
+},
+},
 ["kills"] = {
 [732] = {
 ["cls"] = "unknown",
@@ -354,6 +421,20 @@ MrglglglCharDB = {
 ["name"] = "Flatland Cougar",
 },
 },
+["skills"] = {
+[129] = {
+["cat"] = "Secondary Skills",
+["from"] = 30,
+["name"] = "First Aid",
+["to"] = 35,
+},
+[186] = {
+["cat"] = "Professions",
+["from"] = 40,
+["name"] = "Mining",
+["to"] = 41,
+},
+},
 },
 ["2026-11-09"] = {
 ["digest"] = {
@@ -368,9 +449,11 @@ MrglglglCharDB = {
 ["anonKills"] = 0,
 ["boots"] = 0,
 ["bosses"] = 0,
+["crafted"] = 0,
 ["deaths"] = 0,
 ["discoveries"] = 0,
 ["fish"] = 2,
+["gathered"] = 0,
 ["group"] = 0,
 ["junk"] = 0,
 ["kills"] = 0,
@@ -379,7 +462,10 @@ MrglglglCharDB = {
 ["murlocs"] = 0,
 ["screenshots"] = 0,
 ["sessions"] = 1,
+["skillUps"] = 0,
 ["turnedIn"] = 0,
+},
+["crafted"] = {
 },
 ["deaths"] = {
 },
@@ -393,6 +479,8 @@ MrglglglCharDB = {
 ["name"] = "Raw Slitherskin Mackerel",
 },
 },
+["gathered"] = {
+},
 ["kills"] = {
 },
 ["levelFrom"] = 5,
@@ -403,6 +491,8 @@ MrglglglCharDB = {
 },
 ["nothingHappened"] = false,
 ["onlyFished"] = true,
+["skills"] = {
+},
 ["subzones"] = {
 },
 ["turnedIn"] = {
@@ -466,9 +556,11 @@ MrglglglCharDB = {
 ["anonKills"] = 0,
 ["boots"] = 0,
 ["bosses"] = 0,
+["crafted"] = 0,
 ["deaths"] = 0,
 ["discoveries"] = 0,
 ["fish"] = 0,
+["gathered"] = 0,
 ["group"] = 0,
 ["junk"] = 0,
 ["kills"] = 0,
@@ -477,13 +569,18 @@ MrglglglCharDB = {
 ["murlocs"] = 0,
 ["screenshots"] = 0,
 ["sessions"] = 1,
+["skillUps"] = 0,
 ["turnedIn"] = 0,
+},
+["crafted"] = {
 },
 ["deaths"] = {
 },
 ["discovered"] = {
 },
 ["fish"] = {
+},
+["gathered"] = {
 },
 ["kills"] = {
 },
@@ -495,6 +592,8 @@ MrglglglCharDB = {
 },
 ["nothingHappened"] = true,
 ["onlyFished"] = false,
+["skills"] = {
+},
 ["subzones"] = {
 },
 ["turnedIn"] = {
