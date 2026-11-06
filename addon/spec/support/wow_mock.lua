@@ -146,6 +146,13 @@ function Mock.install()
 		HasRecapEvents = function() return Mock.recap ~= nil and Mock.recap[1] ~= nil end,
 		GetRecapEvents = function() return Mock.recap or {} end,
 	}
+	Mock.questDetail, Mock.questTitles, Mock.questLogSelections = nil, {}, 0
+	_G.GetQuestID = function() return Mock.questDetail and Mock.questDetail.id end
+	_G.GetTitleText = function() return Mock.questDetail and Mock.questDetail.title end
+	_G.GetQuestText = function() return Mock.questDetail and Mock.questDetail.text end
+	_G.C_QuestLog = { GetTitleForQuestID = function(id) return Mock.questTitles[id] end }
+	_G.SelectQuestLogEntry = function() Mock.questLogSelections = Mock.questLogSelections + 1 end
+	_G.C_QuestLog.SetSelectedQuest = _G.SelectQuestLogEntry
 	_G.Screenshot = function() Mock.screenshots = Mock.screenshots + 1 end
 	_G.Settings = {
 		RegisterCanvasLayoutCategory = function(frame, name) return { frame = frame, name = name } end,

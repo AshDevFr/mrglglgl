@@ -19,3 +19,4 @@ Zones.lua
 data\Murlocs.lua
 Kills.lua
 Deaths.lua
+Quests.lua
