@@ -45,6 +45,16 @@ describe("Day", function()
 		assert.equals(7, days["2026-11-06"].ev[1].lv)
 	end)
 
+	it("never stamps a level lower than one already seen, as the client reports at logout", function()
+		Mock.fire("PLAYER_LEVEL_UP", 6)
+		-- At logout the client can report the level from before the session's level-ups.
+		Mock.units.player.level = 5
+		Mock.fire("PLAYER_LOGOUT")
+		local events = _G.MrglglglCharDB.days["2026-11-05"].ev
+		assert.equals("session_end", events[#events].k)
+		assert.equals(6, events[#events].lv)
+	end)
+
 	it("stamps every event with time, zone, subzone, map and level", function()
 		Mock.zone, Mock.subzone, Mock.mapId = "Mulgore", "Red Rocks", 7
 		Mock.fire("PLAYER_LEVEL_UP", 6)

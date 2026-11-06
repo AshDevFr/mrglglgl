@@ -339,7 +339,7 @@ MrglglglCharDB = {
 },
 {
 ["k"] = "screenshot",
-["lv"] = 5,
+["lv"] = 6,
 ["m"] = 7,
 ["moment"] = "levelUp",
 ["sz"] = "Red Rocks",
@@ -349,7 +349,7 @@ MrglglglCharDB = {
 {
 ["item"] = 2140,
 ["k"] = "loot",
-["lv"] = 5,
+["lv"] = 6,
 ["m"] = 7,
 ["name"] = "Carving Knife",
 ["ql"] = 3,
@@ -360,7 +360,7 @@ MrglglglCharDB = {
 },
 {
 ["k"] = "group_join",
-["lv"] = 5,
+["lv"] = 6,
 ["m"] = 7,
 ["sz"] = "Red Rocks",
 ["t"] = 1794164491,
@@ -374,7 +374,7 @@ MrglglglCharDB = {
 ["name"] = "Murloc Streamrunner",
 ["npc"] = 732,
 },
-["lv"] = 5,
+["lv"] = 6,
 ["m"] = 7,
 ["sz"] = "Red Rocks",
 ["t"] = 1794164491.5,
@@ -382,7 +382,7 @@ MrglglglCharDB = {
 },
 {
 ["k"] = "session_end",
-["lv"] = 5,
+["lv"] = 6,
 ["m"] = 7,
 ["sz"] = "Red Rocks",
 ["t"] = 1794164553,

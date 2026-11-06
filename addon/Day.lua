@@ -20,16 +20,24 @@ function Day.get(journal, key)
 	return day
 end
 
+-- The highest level seen this session. A level never goes down, but at logout the client can
+-- report the level from before the session's level-ups.
+local highestLevel = 0
+
 -- Where and when the player is now: the stamp every event carries. Taken early for an event that
 -- can only be appended later, so it records where it happened rather than where the player is
 -- by then.
 function Day.snapshot()
+	local level = UnitLevel("player")
+	if level and level < highestLevel then
+		level = highestLevel
+	end
 	return {
 		t = time(),
 		z = GetZoneText(),
 		sz = GetSubZoneText(),
 		m = C_Map.GetBestMapForUnit("player"),
-		lv = UnitLevel("player"),
+		lv = level,
 	}
 end
 
@@ -43,6 +51,9 @@ function Day.append(kind, fields)
 		for key, value in pairs(fields) do
 			event[key] = value
 		end
+	end
+	if type(event.lv) == "number" and event.lv > highestLevel then
+		highestLevel = event.lv
 	end
 	local events = Day.get(ns.Storage.journal(), Day.key(event.t)).ev
 	events[#events + 1] = event
