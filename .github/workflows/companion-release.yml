@@ -87,5 +87,11 @@ jobs:
           } > notes.md
           prerelease=""
           case "$TAG" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$TAG" installers/* --title "Mrglglgl app ${TAG#companion-v}" \
+          # The artifacts keep their bundle folders (dmg/, nsis/): publish the installers in them.
+          mapfile -t files < <(find installers -type f \( -name '*.dmg' -o -name '*.exe' \))
+          if (( ${#files[@]} < 2 )); then
+            echo "expected a .dmg and an .exe, found: ${files[*]}" >&2
+            exit 1
+          fi
+          gh release create "$TAG" "${files[@]}" --title "Mrglglgl app ${TAG#companion-v}" \
             --notes-file notes.md $prerelease
