@@ -13,7 +13,7 @@ use crate::beats::{self, Thresholds};
 use crate::milestones::{self, Award};
 use crate::prompt;
 use crate::schema::Journal;
-use crate::stories::{Story, StoryKind};
+use crate::stories::{Story, StoryKind, StoryStatus};
 use crate::writer::CheckStatus;
 
 /// The one-line footer "Copy entry" adds unless turned off in the settings.
@@ -171,7 +171,12 @@ fn usable(story: &Story) -> bool {
 
 fn parts(input: &ExportInput) -> Vec<WeekPart> {
     let mut latest: BTreeMap<(StoryKind, &str), &Story> = BTreeMap::new();
-    for s in input.stories {
+    // Only accepted entries are part of the journal; drafts wait for the player.
+    for s in input
+        .stories
+        .iter()
+        .filter(|s| s.status == StoryStatus::Accepted)
+    {
         let slot = (s.kind, s.start_day.as_str());
         if latest.get(&slot).is_none_or(|old| old.id < s.id) {
             latest.insert(slot, s);

@@ -155,6 +155,14 @@ const MIGRATIONS: &[&str] = &[
         narrator TEXT,
         PRIMARY KEY (character_id, kind, start_day)
     );",
+    // Draft review: a story is accepted (in the journal), a draft waiting for the player, or a
+    // draft the player threw away. Stories written before review existed were all accepted. A
+    // job knows whether its result is a draft and carries the player's note for a rewrite.
+    "ALTER TABLE stories ADD COLUMN status TEXT NOT NULL DEFAULT 'accepted'
+        CHECK (status IN ('accepted', 'draft', 'discarded'));
+    ALTER TABLE stories ADD COLUMN note TEXT;
+    ALTER TABLE write_queue ADD COLUMN draft INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE write_queue ADD COLUMN note TEXT;",
 ];
 
 /// The schema version this build creates and understands.
@@ -211,6 +219,9 @@ pub struct WritingSettings {
     pub write_on_battery: bool,
     /// The background queue is paused.
     pub paused: bool,
+    /// Entries written in the background wait as drafts for the player to accept. Off by
+    /// default: opening the app finds the finished days already written.
+    pub review: bool,
     /// "Copy entry" adds a one-line "via Mrglglgl" footer.
     pub copy_footer: bool,
 }
@@ -229,6 +240,7 @@ impl Default for WritingSettings {
             write_while_playing: false,
             write_on_battery: false,
             paused: false,
+            review: false,
             copy_footer: true,
         }
     }

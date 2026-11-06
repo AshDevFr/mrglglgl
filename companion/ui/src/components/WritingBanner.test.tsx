@@ -14,6 +14,8 @@ function job(startDay: string, state: Job["state"]): Job {
     attempts: 0,
     lastError: null,
     narrator: null,
+    draft: false,
+    note: null,
     position: state === "pending" ? 1 : null,
   };
 }

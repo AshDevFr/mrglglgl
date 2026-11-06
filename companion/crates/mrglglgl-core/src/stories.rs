@@ -1,7 +1,8 @@
-//! Written entries. Every version is kept; the newest is the one shown, older ones are one
-//! click away.
+//! Written entries. Every version is kept; the newest accepted one is the one shown, older ones
+//! are one click away. A draft waits for the player to accept or discard it, and only accepted
+//! entries reach the journal, copies, exports and weekly chapters.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use rusqlite::params;
 use serde::{Deserialize, Serialize};
@@ -35,6 +36,37 @@ impl StoryKind {
     }
 }
 
+/// Where a story stands with the player.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub enum StoryStatus {
+    /// In the journal.
+    Accepted,
+    /// Written, waiting for the player to accept or discard it.
+    Draft,
+    /// A draft the player threw away; kept so the day is not silently written again.
+    Discarded,
+}
+
+impl StoryStatus {
+    pub fn key(self) -> &'static str {
+        match self {
+            StoryStatus::Accepted => "accepted",
+            StoryStatus::Draft => "draft",
+            StoryStatus::Discarded => "discarded",
+        }
+    }
+
+    pub fn from_key(key: &str) -> Self {
+        match key {
+            "draft" => StoryStatus::Draft,
+            "discarded" => StoryStatus::Discarded,
+            _ => StoryStatus::Accepted,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
@@ -57,6 +89,9 @@ pub struct Story {
     pub check: CheckStatus,
     /// Why the entry was set aside, when the fact check failed; the day then shows its facts.
     pub check_reason: Option<String>,
+    pub status: StoryStatus,
+    /// What the player asked of this version when they asked for a rewrite.
+    pub note: Option<String>,
 }
 
 /// A story about to be stored.
@@ -74,14 +109,17 @@ pub struct NewStory {
     pub text: String,
     pub check: CheckStatus,
     pub check_reason: Option<String>,
+    pub status: StoryStatus,
+    pub note: Option<String>,
 }
 
 /// Stores a new version and returns its id.
 pub fn save(db: &Database, story: &NewStory) -> Result<i64, DbError> {
     Ok(db.conn().query_row(
         "INSERT INTO stories (character_id, kind, start_day, end_day, narrator, language,
-             provider, model, prompt_hash, text, created_at, check_status, check_reason)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)
+             provider, model, prompt_hash, text, created_at, check_status, check_reason, status,
+             note)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
          RETURNING id",
         params![
             story.character_id,
@@ -97,13 +135,15 @@ pub fn save(db: &Database, story: &NewStory) -> Result<i64, DbError> {
             chrono::Utc::now().timestamp(),
             story.check.key(),
             story.check_reason,
+            story.status.key(),
+            story.note,
         ],
         |row| row.get(0),
     )?)
 }
 
 const COLUMNS: &str = "id, character_id, kind, start_day, end_day, narrator, language, provider,
-     model, prompt_hash, text, created_at, check_status, check_reason";
+     model, prompt_hash, text, created_at, check_status, check_reason, status, note";
 
 fn read(row: &rusqlite::Row) -> rusqlite::Result<Story> {
     Ok(Story {
@@ -121,6 +161,8 @@ fn read(row: &rusqlite::Row) -> rusqlite::Result<Story> {
         created_at: row.get(11)?,
         check: CheckStatus::from_key(&row.get::<_, String>(12)?).unwrap_or(CheckStatus::Passed),
         check_reason: row.get(13)?,
+        status: StoryStatus::from_key(&row.get::<_, String>(14)?),
+        note: row.get(15)?,
     })
 }
 
@@ -140,7 +182,8 @@ pub fn versions(
     Ok(rows.collect::<Result<_, _>>()?)
 }
 
-/// Every version of a character's stories, newest first within each day or week.
+/// Every version of a character's stories, drafts and discarded ones included, newest first
+/// within each day or week.
 pub fn all(db: &Database, character_id: i64) -> Result<Vec<Story>, DbError> {
     let mut stmt = db.conn().prepare(&format!(
         "SELECT {COLUMNS} FROM stories WHERE character_id = ?1
@@ -150,14 +193,23 @@ pub fn all(db: &Database, character_id: i64) -> Result<Vec<Story>, DbError> {
     Ok(rows.collect::<Result<_, _>>()?)
 }
 
-/// The newest version of each day or week of `kind`, by start day.
+/// Every accepted version of a character's stories, newest first within each day or week: what
+/// the journal, copies and exports show.
+pub fn accepted(db: &Database, character_id: i64) -> Result<Vec<Story>, DbError> {
+    Ok(all(db, character_id)?
+        .into_iter()
+        .filter(|s| s.status == StoryStatus::Accepted)
+        .collect())
+}
+
+/// The newest accepted version of each day or week of `kind`, by start day.
 pub fn latest(
     db: &Database,
     character_id: i64,
     kind: StoryKind,
 ) -> Result<BTreeMap<String, Story>, DbError> {
     let mut latest = BTreeMap::new();
-    for story in all(db, character_id)?
+    for story in accepted(db, character_id)?
         .into_iter()
         .filter(|s| s.kind == kind)
     {
@@ -173,4 +225,45 @@ pub fn day_entries(db: &Database, character_id: i64) -> Result<BTreeMap<String, 
         .filter(|(_, s)| s.check != CheckStatus::Failed)
         .map(|(day, s)| (day, s.text))
         .collect())
+}
+
+/// Every day and week with a story of any status: the background writer leaves these alone, so a
+/// draft is not written twice and a discarded day is only written again when the player asks.
+pub fn slots(db: &Database, character_id: i64) -> Result<BTreeSet<(StoryKind, String)>, DbError> {
+    Ok(all(db, character_id)?
+        .into_iter()
+        .map(|s| (s.kind, s.start_day))
+        .collect())
+}
+
+/// Accepts a draft into the journal and discards the other drafts for the same day or week.
+/// Returns false when `story_id` is not a draft of this character.
+pub fn accept(db: &Database, character_id: i64, story_id: i64) -> Result<bool, DbError> {
+    let conn = db.conn();
+    let tx = conn.unchecked_transaction()?;
+    let accepted = tx.execute(
+        "UPDATE stories SET status = 'accepted'
+         WHERE id = ?1 AND character_id = ?2 AND status = 'draft'",
+        params![story_id, character_id],
+    )? > 0;
+    if accepted {
+        tx.execute(
+            "UPDATE stories SET status = 'discarded'
+             WHERE status = 'draft' AND id != ?1 AND (character_id, kind, start_day) =
+                 (SELECT character_id, kind, start_day FROM stories WHERE id = ?1)",
+            [story_id],
+        )?;
+    }
+    tx.commit()?;
+    Ok(accepted)
+}
+
+/// Throws a draft away. Returns false when `story_id` is not a draft of this character: an
+/// accepted entry is never discarded.
+pub fn discard(db: &Database, character_id: i64, story_id: i64) -> Result<bool, DbError> {
+    Ok(db.conn().execute(
+        "UPDATE stories SET status = 'discarded'
+         WHERE id = ?1 AND character_id = ?2 AND status = 'draft'",
+        params![story_id, character_id],
+    )? > 0)
 }

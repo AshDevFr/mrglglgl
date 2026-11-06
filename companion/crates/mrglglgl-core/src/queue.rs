@@ -27,7 +27,7 @@ use crate::milestones;
 use crate::narrators;
 use crate::prompt::{self, DayRequest, WeekRequest};
 use crate::schema::Journal;
-use crate::stories::{self, NewStory, StoryKind};
+use crate::stories::{self, NewStory, StoryKind, StoryStatus};
 use crate::writer::{self, StreamEvent, WriteOptions, WriteResult};
 
 /// Attempts before a job is marked failed.
@@ -85,6 +85,10 @@ pub struct Job {
     pub last_error: Option<String>,
     /// A one-off narrator for this entry.
     pub narrator: Option<String>,
+    /// The result waits as a draft for the player instead of going into the journal.
+    pub draft: bool,
+    /// What the player asked of a rewrite.
+    pub note: Option<String>,
     /// Place in the line among the jobs waiting, from 1; `None` when failed or running.
     pub position: Option<u32>,
 }
@@ -107,11 +111,14 @@ fn read_job(row: &rusqlite::Row) -> rusqlite::Result<Job> {
         attempts: row.get(4)?,
         last_error: row.get(5)?,
         narrator: row.get(6)?,
+        draft: row.get(7)?,
+        note: row.get(8)?,
         position: None,
     })
 }
 
-const JOB_COLUMNS: &str = "character_id, kind, start_day, state, attempts, last_error, narrator";
+const JOB_COLUMNS: &str =
+    "character_id, kind, start_day, state, attempts, last_error, narrator, draft, note";
 
 /// Adds a job unless it is already queued.
 fn add(
@@ -119,29 +126,32 @@ fn add(
     character_id: i64,
     kind: StoryKind,
     start_day: &str,
+    draft: bool,
 ) -> Result<bool, DbError> {
     Ok(db.conn().execute(
-        "INSERT OR IGNORE INTO write_queue (character_id, kind, start_day, state)
-         VALUES (?1, ?2, ?3, 'pending')",
-        params![character_id, kind.key(), start_day],
+        "INSERT OR IGNORE INTO write_queue (character_id, kind, start_day, state, draft)
+         VALUES (?1, ?2, ?3, 'pending', ?4)",
+        params![character_id, kind.key(), start_day, draft],
     )? > 0)
 }
 
-/// Queues every finished day of the journal that has no entry yet, and every finished week
-/// with days in it and no chapter yet. `today` is never queued, nor is its week. Returns how
-/// many jobs were added.
+/// Queues every finished day of the journal that has no story yet, and every finished week
+/// with days in it and no chapter yet. A draft or a discarded draft counts as a story: the player
+/// decides what happens to those days. `today` is never queued, nor is its week. In review mode
+/// the jobs write drafts. Returns how many jobs were added.
 pub fn enqueue_finished(
     db: &Database,
     character_id: i64,
     journal: &Journal,
     today: &str,
 ) -> Result<usize, DbError> {
-    let written_days = stories::latest(db, character_id, StoryKind::Day)?;
-    let written_weeks = stories::latest(db, character_id, StoryKind::Week)?;
+    let written = stories::slots(db, character_id)?;
+    let has_story = |kind: StoryKind, day: &str| written.contains(&(kind, day.to_string()));
+    let draft = db.settings()?.writing.review;
     let mut added = 0;
     let mut weeks = BTreeMap::new();
     for day in journal.days.keys().filter(|d| d.as_str() < today) {
-        if !written_days.contains_key(day) && add(db, character_id, StoryKind::Day, day)? {
+        if !has_story(StoryKind::Day, day) && add(db, character_id, StoryKind::Day, day, draft)? {
             added += 1;
         }
         if let Some(monday) = prompt::week_start(day) {
@@ -151,8 +161,8 @@ pub fn enqueue_finished(
     for monday in weeks.keys() {
         let sunday = prompt::week_days(monday).pop().unwrap_or_default();
         if sunday.as_str() < today
-            && !written_weeks.contains_key(monday)
-            && add(db, character_id, StoryKind::Week, monday)?
+            && !has_story(StoryKind::Week, monday)
+            && add(db, character_id, StoryKind::Week, monday, draft)?
         {
             added += 1;
         }
@@ -160,23 +170,42 @@ pub fn enqueue_finished(
     Ok(added)
 }
 
-/// Queues a day or week to be written (again) ahead of the backlog, optionally with another
-/// narrator. A failed job is given a fresh start.
+/// How the player asks for a day or week to be written.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Ask<'a> {
+    /// A one-off narrator; `None` uses the chosen one.
+    pub narrator: Option<&'a str>,
+    /// The result waits as a draft instead of going into the journal.
+    pub draft: bool,
+    /// What the player asks of this version, for a rewrite.
+    pub note: Option<&'a str>,
+}
+
+/// Queues a day or week to be written (again) ahead of the backlog. A failed job is given a
+/// fresh start.
 pub fn request(
     db: &Database,
     character_id: i64,
     kind: StoryKind,
     start_day: &str,
-    narrator: Option<&str>,
+    ask: &Ask,
 ) -> Result<(), DbError> {
     db.conn().execute(
-        "INSERT INTO write_queue (character_id, kind, start_day, state, priority, narrator)
-         VALUES (?1, ?2, ?3, 'pending', 1, ?4)
+        "INSERT INTO write_queue
+             (character_id, kind, start_day, state, priority, narrator, draft, note)
+         VALUES (?1, ?2, ?3, 'pending', 1, ?4, ?5, ?6)
          ON CONFLICT (character_id, kind, start_day) DO UPDATE SET
              state = CASE state WHEN 'running' THEN 'running' ELSE 'pending' END,
              attempts = 0, last_error = NULL, not_before = 0, priority = 1,
-             narrator = excluded.narrator",
-        params![character_id, kind.key(), start_day, narrator],
+             narrator = excluded.narrator, draft = excluded.draft, note = excluded.note",
+        params![
+            character_id,
+            kind.key(),
+            start_day,
+            ask.narrator,
+            ask.draft,
+            ask.note
+        ],
     )?;
     Ok(())
 }
@@ -607,6 +636,12 @@ pub async fn run_next(
                     text,
                     check,
                     check_reason: reason.clone(),
+                    status: if job.draft {
+                        StoryStatus::Draft
+                    } else {
+                        StoryStatus::Accepted
+                    },
+                    note: job.note.clone(),
                 },
             )?;
             let awards = milestones::awards(&db, character_id)?;

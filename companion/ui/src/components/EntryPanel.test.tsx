@@ -28,6 +28,8 @@ function story(id: number, text: string, extra: Partial<Story> = {}): Story {
     createdAt: 1_794_200_000,
     check: "passed",
     checkReason: null,
+    status: "accepted",
+    note: null,
     ...extra,
   };
 }
@@ -41,6 +43,8 @@ function job(extra: Partial<Job>): Job {
     attempts: 0,
     lastError: null,
     narrator: null,
+    draft: false,
+    note: null,
     position: 3,
     ...extra,
   };

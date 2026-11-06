@@ -15,6 +15,14 @@ lastError: string | null,
  */
 narrator: string | null, 
 /**
+ * The result waits as a draft for the player instead of going into the journal.
+ */
+draft: boolean, 
+/**
+ * What the player asked of a rewrite.
+ */
+note: string | null, 
+/**
  * Place in the line among the jobs waiting, from 1; `None` when failed or running.
  */
 position: number | null, };

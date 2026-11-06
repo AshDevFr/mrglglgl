@@ -198,3 +198,26 @@ fn migrates_the_old_backup_count_to_a_retention_period() {
         assert_eq!(left, 0, "the old setting is gone");
     }
 }
+
+#[test]
+fn stories_from_before_draft_review_stay_in_the_journal() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = Database::open(dir.path()).unwrap();
+    let id = db
+        .upsert_character(&source("Wren-Hollowbrook"), None, None)
+        .unwrap();
+    // A row as an older build wrote it: no status, no note.
+    let older = rusqlite::Connection::open(dir.path().join(DATABASE_FILE)).unwrap();
+    older
+        .execute(
+            "INSERT INTO stories (character_id, kind, start_day, end_day, narrator, language,
+                 provider, model, prompt_hash, text, created_at)
+             VALUES (?1, 'day', '2026-11-05', '2026-11-05', 'murloc_scribe', 'en', 'local',
+                 'm', 'h', 'An entry.', 0)",
+            [id],
+        )
+        .unwrap();
+    let story = &mrglglgl_core::stories::all(&db, id).unwrap()[0];
+    assert_eq!(story.status, mrglglgl_core::stories::StoryStatus::Accepted);
+    assert_eq!(story.note, None);
+}

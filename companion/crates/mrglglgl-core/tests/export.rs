@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use mrglglgl_core::export::{self, ExportError, ExportInput, FOOTER};
 use mrglglgl_core::milestones;
 use mrglglgl_core::schema::{Journal, journal_from_text};
-use mrglglgl_core::stories::{Story, StoryKind};
+use mrglglgl_core::stories::{Story, StoryKind, StoryStatus};
 use mrglglgl_core::writer::CheckStatus;
 
 fn journal() -> Journal {
@@ -28,6 +28,8 @@ fn story(id: i64, kind: StoryKind, day: &str, text: &str, check: CheckStatus) ->
         created_at: 0,
         check,
         check_reason: None,
+        status: StoryStatus::Accepted,
+        note: None,
     }
 }
 
@@ -115,6 +117,37 @@ fn markdown_has_every_day_with_its_newest_entry_or_its_notes() {
             "{day} is in the export"
         );
     }
+}
+
+#[test]
+fn drafts_and_discarded_drafts_are_never_exported() {
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let mut draft = story(
+        2,
+        StoryKind::Day,
+        "2026-11-08",
+        "A draft.",
+        CheckStatus::Passed,
+    );
+    draft.status = StoryStatus::Draft;
+    let mut thrown = story(
+        3,
+        StoryKind::Day,
+        "2026-11-08",
+        "Thrown away.",
+        CheckStatus::Passed,
+    );
+    thrown.status = StoryStatus::Discarded;
+    let stories = vec![
+        story(1, StoryKind::Day, "2026-11-08", ENTRY, CheckStatus::Passed),
+        draft,
+        thrown,
+    ];
+    let md = export::markdown(&input(&j, &stories, &awards));
+    assert!(md.contains(ENTRY), "the accepted entry is exported");
+    assert!(!md.contains("A draft."));
+    assert!(!md.contains("Thrown away."));
 }
 
 #[test]

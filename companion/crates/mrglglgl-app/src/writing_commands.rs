@@ -94,8 +94,14 @@ pub fn write_now(
     narrator: Option<String>,
 ) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    queue::request(&db, character_id, kind, &start_day, narrator.as_deref())
-        .map_err(|e| e.to_string())?;
+    // In review mode a rewrite from the journal waits as a draft like every other entry.
+    let draft = db.settings().map_err(|e| e.to_string())?.writing.review;
+    let ask = queue::Ask {
+        narrator: narrator.as_deref(),
+        draft,
+        note: None,
+    };
+    queue::request(&db, character_id, kind, &start_day, &ask).map_err(|e| e.to_string())?;
     state.control.wake();
     Ok(())
 }

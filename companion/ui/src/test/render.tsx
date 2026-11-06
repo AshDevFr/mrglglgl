@@ -25,6 +25,7 @@ export const defaultWriting: WritingSettings = {
   writeWhilePlaying: false,
   writeOnBattery: false,
   paused: false,
+  review: false,
   copyFooter: true,
 };
 

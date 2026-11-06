@@ -7,10 +7,10 @@ use mrglglgl_core::db::Database;
 use mrglglgl_core::discovery::CharacterSource;
 use mrglglgl_core::game::is_game_process;
 use mrglglgl_core::queue::{
-    self, CANCELLED, Control, JobState, MAX_ATTEMPTS, QueueEvent, drain, run_next,
+    self, Ask, CANCELLED, Control, JobState, MAX_ATTEMPTS, QueueEvent, drain, run_next,
 };
 use mrglglgl_core::schema::{Character, Day, Event, EventKind, Journal};
-use mrglglgl_core::stories::{self, StoryKind};
+use mrglglgl_core::stories::{self, NewStory, StoryKind, StoryStatus};
 use mrglglgl_core::writer::CheckStatus;
 use mrglglgl_llm::ProviderError;
 use mrglglgl_llm::fake::{FakeProvider, Pace};
@@ -195,7 +195,14 @@ async fn pausing_stops_after_the_current_entry() {
 #[tokio::test]
 async fn failures_are_retried_with_a_pause_then_marked_failed_in_plain_words() {
     let (db, id) = setup();
-    queue::request(&db.lock().unwrap(), id, StoryKind::Day, DAYS[0], None).unwrap();
+    queue::request(
+        &db.lock().unwrap(),
+        id,
+        StoryKind::Day,
+        DAYS[0],
+        &Ask::default(),
+    )
+    .unwrap();
     let provider = FakeProvider::scripted([Err(ProviderError::Unreachable("gpu-box".into()))]);
     let control = Control::new(false);
     let (_, on_event) = recorder();
@@ -249,7 +256,14 @@ async fn failures_are_retried_with_a_pause_then_marked_failed_in_plain_words() {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn a_cancelled_entry_stores_nothing_and_waits_for_the_player() {
     let (db, id) = setup();
-    queue::request(&db.lock().unwrap(), id, StoryKind::Day, DAYS[0], None).unwrap();
+    queue::request(
+        &db.lock().unwrap(),
+        id,
+        StoryKind::Day,
+        DAYS[0],
+        &Ask::default(),
+    )
+    .unwrap();
     let long = "word ".repeat(200);
     let provider =
         FakeProvider::new([long.as_str()]).with_pace(Pace::PerWord(Duration::from_millis(10)));
@@ -296,7 +310,10 @@ async fn regenerating_keeps_the_old_version_and_jumps_the_line() {
         id,
         StoryKind::Day,
         DAYS[0],
-        Some("grumpy_dwarf"),
+        &Ask {
+            narrator: Some("grumpy_dwarf"),
+            ..Ask::default()
+        },
     )
     .unwrap();
     let job = run_next(&db, &provider, &control, "en", &on_event)
@@ -318,7 +335,14 @@ async fn regenerating_keeps_the_old_version_and_jumps_the_line() {
 #[tokio::test]
 async fn an_entry_that_fails_the_fact_check_is_kept_with_its_reason() {
     let (db, id) = setup();
-    queue::request(&db.lock().unwrap(), id, StoryKind::Day, DAYS[0], None).unwrap();
+    queue::request(
+        &db.lock().unwrap(),
+        id,
+        StoryKind::Day,
+        DAYS[0],
+        &Ask::default(),
+    )
+    .unwrap();
     let invented = "I sailed all the way to Booty Bay today.";
     let provider = FakeProvider::new([invented]);
     let control = Control::new(false);
@@ -373,4 +397,151 @@ fn the_game_is_recognised_by_its_process_name() {
     ] {
         assert!(!is_game_process(name), "{name}");
     }
+}
+
+fn review_mode(db: &Database) {
+    let mut settings = db.settings().unwrap();
+    settings.writing.review = true;
+    db.save_settings(&settings).unwrap();
+}
+
+#[tokio::test]
+async fn in_automatic_mode_entries_go_straight_into_the_journal() {
+    let (db, id) = setup();
+    queue::enqueue_finished(&db.lock().unwrap(), id, &journal(), TODAY).unwrap();
+    let provider = FakeProvider::new([ENTRY]);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &Control::new(false), "en", &on_event)
+        .await
+        .unwrap();
+    let db = db.lock().unwrap();
+    let story = &stories::versions(&db, id, StoryKind::Day, DAYS[0]).unwrap()[0];
+    assert_eq!(story.status, StoryStatus::Accepted);
+    assert!(
+        stories::latest(&db, id, StoryKind::Day)
+            .unwrap()
+            .contains_key(DAYS[0])
+    );
+}
+
+#[tokio::test]
+async fn in_review_mode_background_entries_are_drafts_kept_out_of_the_journal() {
+    let (db, id) = setup();
+    review_mode(&db.lock().unwrap());
+    queue::enqueue_finished(&db.lock().unwrap(), id, &journal(), TODAY).unwrap();
+    let provider = FakeProvider::new([ENTRY]);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &Control::new(false), "en", &on_event)
+        .await
+        .unwrap();
+    let db = db.lock().unwrap();
+    let story = &stories::versions(&db, id, StoryKind::Day, DAYS[0]).unwrap()[0];
+    assert_eq!(story.status, StoryStatus::Draft);
+    assert!(stories::latest(&db, id, StoryKind::Day).unwrap().is_empty());
+    assert!(stories::day_entries(&db, id).unwrap().is_empty());
+    assert!(stories::accepted(&db, id).unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn a_draft_asked_for_carries_its_note_even_in_automatic_mode() {
+    let (db, id) = setup();
+    let ask = Ask {
+        narrator: Some("grumpy_dwarf"),
+        draft: true,
+        note: Some("shorter, please"),
+    };
+    queue::request(&db.lock().unwrap(), id, StoryKind::Day, DAYS[0], &ask).unwrap();
+    let provider = FakeProvider::new([ENTRY]);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &Control::new(false), "en", &on_event)
+        .await
+        .unwrap();
+    let db = db.lock().unwrap();
+    let story = &stories::versions(&db, id, StoryKind::Day, DAYS[0]).unwrap()[0];
+    assert_eq!(story.status, StoryStatus::Draft);
+    assert_eq!(story.note.as_deref(), Some("shorter, please"));
+    assert_eq!(story.narrator, "grumpy_dwarf");
+}
+
+#[tokio::test]
+async fn a_day_with_a_draft_or_a_discarded_entry_is_never_queued_again() {
+    let (db, id) = setup();
+    review_mode(&db.lock().unwrap());
+    queue::enqueue_finished(&db.lock().unwrap(), id, &journal(), TODAY).unwrap();
+    let provider = FakeProvider::new([ENTRY, ENTRY]);
+    let control = Control::new(false);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &control, "en", &on_event)
+        .await
+        .unwrap();
+    run_next(&db, &provider, &control, "en", &on_event)
+        .await
+        .unwrap();
+    let db = db.lock().unwrap();
+    let second = stories::versions(&db, id, StoryKind::Day, DAYS[1]).unwrap()[0].id;
+    assert!(stories::discard(&db, id, second).unwrap());
+    assert_eq!(
+        queue::enqueue_finished(&db, id, &journal(), TODAY).unwrap(),
+        0,
+        "the drafted and the discarded day stay out of the queue"
+    );
+    let queued: Vec<String> = queue::jobs(&db, id)
+        .unwrap()
+        .into_iter()
+        .map(|j| j.start_day)
+        .collect();
+    assert!(!queued.contains(&DAYS[0].to_string()));
+    assert!(!queued.contains(&DAYS[1].to_string()));
+}
+
+#[test]
+fn accepting_a_draft_puts_it_in_the_journal_and_sets_its_rivals_aside() {
+    let (db, id) = setup();
+    let db = db.lock().unwrap();
+    let save = |text: &str, status| {
+        stories::save(
+            &db,
+            &NewStory {
+                character_id: id,
+                kind: StoryKind::Day,
+                start_day: DAYS[0].into(),
+                end_day: DAYS[0].into(),
+                narrator: "murloc_scribe".into(),
+                language: "en".into(),
+                provider: "fake".into(),
+                model: "fake".into(),
+                prompt_hash: "h".into(),
+                text: text.into(),
+                check: CheckStatus::Passed,
+                check_reason: None,
+                status,
+                note: None,
+            },
+        )
+        .unwrap()
+    };
+    let kept = save("The first, accepted.", StoryStatus::Accepted);
+    let one = save("A draft.", StoryStatus::Draft);
+    let other = save("Another draft.", StoryStatus::Draft);
+
+    assert!(stories::accept(&db, id, one).unwrap());
+    let status = |sid: i64| {
+        stories::all(&db, id)
+            .unwrap()
+            .into_iter()
+            .find(|s| s.id == sid)
+            .unwrap()
+            .status
+    };
+    assert_eq!(status(one), StoryStatus::Accepted);
+    assert_eq!(status(other), StoryStatus::Discarded);
+    assert_eq!(status(kept), StoryStatus::Accepted, "older versions stay");
+    assert_eq!(
+        stories::latest(&db, id, StoryKind::Day).unwrap()[DAYS[0]].id,
+        one
+    );
+    // Discarding only touches drafts: an accepted entry is not thrown away by mistake.
+    assert!(!stories::discard(&db, id, kept).unwrap());
+    // Another character's story is out of reach.
+    assert!(!stories::accept(&db, id + 1, other).unwrap());
 }

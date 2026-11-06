@@ -33,6 +33,11 @@ writeOnBattery: boolean,
  */
 paused: boolean, 
 /**
+ * Entries written in the background wait as drafts for the player to accept. Off by
+ * default: opening the app finds the finished days already written.
+ */
+review: boolean, 
+/**
  * "Copy entry" adds a one-line "via Mrglglgl" footer.
  */
 copyFooter: boolean, };
