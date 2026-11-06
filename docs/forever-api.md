@@ -52,19 +52,22 @@ Blizzard UI files the client loads for its game type, as mirrored in the `foreve
 ## Addon restrictions ("secret values")
 
 Forever inherits the modern client's addon restrictions. Some APIs return *secret values*:
-addon code can pass them back to the client but cannot read, compare or print them. The rules
-that matter here, quoted from the client's documentation of its secrecy predicates:
+addon code can pass them back to the client but cannot read, compare or print them.
 
-- **Unit identity:** "secret values when the unit isn't player-controlled or in the party/raid".
-  Applies to `UnitGUID`, the GUIDs in `PARTY_KILL` and `UNIT_DIED`, and (outside PvP) to
-  `UnitName`. Read literally, any NPC's GUID and name are secret to addons.
-- **Chat messaging lockdown:** chat event text is secret "when encounter, challenge mode, or PvP
-  match addon restrictions are in effect, and when the player is on a communication-restricted map
-  such as a dungeon or raid". Elsewhere it is readable.
 - **Combat log:** the function that reads a combat log event exists only in `C_CombatLogSecure`,
   whose environment is `SecureOnly`. The client's deprecation shims say these functions "have been
   relocated to the secure environment, for which no deprecation is (intentionally) provided".
   `COMBAT_LOG_EVENT_UNFILTERED` still fires, but addons cannot read its payload.
+- **Unit identity:** the client documents values as secret "when the unit isn't player-controlled
+  or in the party/raid". ~~Read literally, any NPC's GUID and name are secret to addons.~~
+  **Correction (S-06, in game):** in the open world, in and out of combat, `UnitGUID` and
+  `UnitName` on NPCs, and the GUIDs in `PARTY_KILL`, are readable (`issecretvalue` is false). The
+  rule applies only while addon restrictions are in effect, which the client ties to dungeons,
+  raids, encounters, challenge modes and PvP. Code must still check `issecretvalue` before using
+  these values.
+- **Chat messaging lockdown:** chat event text is secret "when encounter, challenge mode, or PvP
+  match addon restrictions are in effect, and when the player is on a communication-restricted map
+  such as a dungeon or raid". Elsewhere it is readable (S-06: XP gain text was readable).
 
 ## Collector APIs
 
@@ -77,9 +80,10 @@ that matter here, quoted from the client's documentation of its secrecy predicat
 | API-fishing-loot | `IsFishingLoot()` while a loot window is open; `LOOT_OPENED(autoLoot, isFromItem)` and `LOOT_READY(autoloot)` | verified-by-source | API docs (Loot); the mainline `LootFrame.lua` calls `IsFishingLoot()`. Whether auto-loot leaves a window to read is an in-game check |
 | API-loot-slot | `GetNumLootItems()`, `GetLootSlotLink(slot)` | verified-by-source | The mainline `LootFrame.lua` calls both |
 | API-cleu-fields | Combat log event payloads are **not readable by addons** | verified-by-source | API docs: `GetCurrentEventInfo` exists only in `C_CombatLogSecure` (`Environment = "SecureOnly"`); see Addon restrictions |
-| API-party-kill | `PARTY_KILL(attackerGUID, targetGUID)` exists as a standalone event; marked `SecretWhenUnitIdentityRestricted`, so an NPC target's GUID is secret | verified-by-source | API docs (Unit) |
+| API-party-kill | `PARTY_KILL(attackerGUID, targetGUID)` fires once per kill by the player or a party member; in the open world both GUIDs are readable | verified-in-game | S-06: `PARTY_KILL Player-... Creature-0-...-2958-...` with `issecretvalue` false. API docs (Unit) mark it `SecretWhenUnitIdentityRestricted`, so in restricted areas the target GUID can be secret |
 | API-unit-died | `UNIT_DIED(unitGUID)` exists as a standalone event; same secrecy as `PARTY_KILL` | verified-by-source | API docs (Unit) |
-| API-classification | `UnitClassification(unit)` carries no secrecy predicate | verified-by-source | API docs (Unit) |
+| API-death-recap | `C_DeathRecap.GetRecapEvents()` after a death returns the last damage events with `event`, `sourceName`, `sourceGUID`, `environmentalType`, `amount`, `overkill`, `currentHP`, `timestamp`; the killer is the newest event | verified-in-game | S-06: after drowning, events 1 to 7 were `ENVIRONMENTAL_DAMAGE` / `Drowning` and earlier ones `SWING_DAMAGE` from `sourceName="Prairie Wolf"` with its GUID. API docs (DeathRecap): environment `All`, no secrecy predicate |
+| API-classification | `UnitClassification(unit)` returns e.g. `"normal"`; no secrecy predicate | verified-in-game | S-06: `"normal"` for a wolf and a named NPC; API docs (Unit) |
 | API-item-info-async | `GET_ITEM_INFO_RECEIVED(itemID, success)` and `ITEM_DATA_LOAD_RESULT(itemID, success)`; `C_Item.RequestLoadItemDataByID`, `C_Item.GetItemQualityByID` | verified-by-source | API docs (Item) |
 | API-zone-events | `ZONE_CHANGED`, `ZONE_CHANGED_INDOORS`, `ZONE_CHANGED_NEW_AREA`, no payload | verified-by-source | API docs (Map) |
 | API-zone-text | `GetZoneText()`, `GetSubZoneText()`, `GetRealZoneText()`, `GetMinimapZoneText()` | verified-by-source | API docs (ZoneScript) |
@@ -90,9 +94,9 @@ that matter here, quoted from the client's documentation of its secrecy predicat
 | API-locale | `GetLocale()` | verified-by-source | API docs (Locale) |
 | API-settings-panel | `Settings.RegisterCanvasLayoutCategory` and `Settings.RegisterAddOnCategory`; `InterfaceOptions_AddCategory` is not present | verified-by-source | `Blizzard_Settings_Shared` in the client UI code; no call site or definition of `InterfaceOptions_AddCategory` |
 | API-damage-subevents | Damage sub-events (`SWING_DAMAGE`, `SPELL_DAMAGE`, `RANGE_DAMAGE`, `SPELL_PERIODIC_DAMAGE`) are combat log payloads, so they are **not readable by addons** | verified-by-source | See API-cleu-fields |
-| API-environmental | Environmental damage (falling, drowning, fatigue, lava) is a combat log payload, so it is **not readable by addons**. Drowning can instead be inferred from the breath timer: `MIRROR_TIMER_START(timerName, value, maxValue, scale, paused, timerLabel)` and `MIRROR_TIMER_STOP(timerName)` are documented events | verified-by-source | API docs (CombatLog, Unit). The breath timer's `timerName` value is an in-game check |
+| API-environmental | Environmental damage is a combat log payload addons cannot read live, but the death recap reports it after a death: `event="ENVIRONMENTAL_DAMAGE"` with `environmentalType` (e.g. `"Drowning"`) | verified-in-game | S-06: death recap events after drowning carry `environmentalType="Drowning"`. Live combat log: see API-cleu-fields |
 | API-affiliation-flags | `Enum.CombatLogObject` affiliation constants still exist, but they only describe combat log payloads, which addons cannot read; not usable | verified-by-source | The client's combat log deprecation shims map `COMBATLOG_OBJECT_AFFILIATION_*` to `Enum.CombatLogObject` |
-| API-guid-npcid | An NPC's GUID is a secret value to addons, so its NPC ID cannot be extracted | verified-by-source | Secrecy predicate on `UnitGUID`, `PARTY_KILL` and `UNIT_DIED` (see Addon restrictions); in-game check pending |
+| API-guid-npcid | NPC GUIDs read `Creature-0-<server>-<instance>-<zone>-<npcID>-<spawn>`; the NPC ID is the sixth dash-separated field. Readable in the open world, possibly secret in restricted areas | verified-in-game | S-06: Prairie Wolf GUID `Creature-0-6867-1-2-2958-...` (NPC ID 2958), `issecretvalue` false in and out of combat |
 | API-chat-loot | `CHAT_MSG_LOOT(text, playerName, ...)`; `text` is secret during chat messaging lockdown (dungeons, raids, encounters, PvP) and readable elsewhere. The `LOOT_ITEM_SELF*` global strings used to parse it are not referenced by the client UI code, so their presence and format are unchecked | unconfirmed | API docs (ChatInfo). fallback: notable loot is read from the loot window (`GetLootSlotLink` on `LOOT_OPENED`), which needs no string parsing; chat parsing only adds items pushed straight to the bags (Compat.ParseLootMessage returns nil when the pattern strings are missing) |
 | API-discovery | Zone discovery messages (`ERR_ZONE_EXPLORED*` global strings via `UI_INFO_MESSAGE(errorType, message)` or `CHAT_MSG_SYSTEM`) are not referenced by the client UI code | unconfirmed | fallback: a discovery is the first time this character enters a subzone, tracked by the addon itself (Compat.IsDiscoveryMessage returns false when the strings are missing) |
 | API-screenshot-files | Screenshot folder and file name format on Forever | unconfirmed | No `Screenshots/` folder exists until a first screenshot is taken. fallback: the app matches screenshot files to events by file modification time, not by name (Compat.TakeScreenshot only reports success via `SCREENSHOT_SUCCEEDED`) |
@@ -100,7 +104,7 @@ that matter here, quoted from the client's documentation of its secrecy predicat
 | API-date-time | Lua `date()` and `time()` are available; also `C_DateAndTime.GetCurrentCalendarTime`, `GetServerTimeLocal` | verified-by-source | Called from client UI files; API docs (DateAndTime) |
 | API-timer | `C_Timer.After`, `C_Timer.NewTicker`, `C_Timer.NewTimer` | verified-by-source | API docs (Timer) |
 | DATA-junk-boots | Item IDs of junk boots and other junk fishing catches on Forever | unconfirmed | fallback: a fishing catch of poor quality (quality 0) counts as junk, and a junk catch whose name matches the localized boot list counts as a boot (Compat.IsBootCatch) |
-| DATA-murloc-npcs | Murloc NPC IDs cannot be used (NPC GUIDs are secret) | unconfirmed | fallback: murlocs are recognised by name, from a per-locale data list of murloc names, where a name is readable at all (Compat.IsMurlocName) |
+| DATA-murloc-npcs | Murlocs are identified by NPC ID from the GUID (readable in the open world); a sourced list of murloc NPC IDs for Forever is still needed | unconfirmed | NPC IDs are readable (S-06). fallback: until the ID list is sourced, and where the GUID is secret, murlocs are recognised by name from a per-locale list (Compat.IsMurlocName) |
 
 ## Compat interface (draft)
 
