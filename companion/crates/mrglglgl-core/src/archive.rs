@@ -20,8 +20,8 @@ use serde::{Deserialize, Serialize};
 use crate::db::{BackupRetention, Database, DbError};
 use crate::discovery::CharacterSource;
 use crate::schema::{
-    self, AddonErrors, AddonHeartbeat, Character, Companion, Day, Journal, JournalError, Quest,
-    Stats,
+    self, AddonErrors, AddonHeartbeat, Character, Companion, Day, Digest, ItemCount, Journal,
+    JournalError, Quest, Stats,
 };
 use crate::watch::{modified_unix, now_unix};
 
@@ -184,6 +184,133 @@ struct JournalRecord {
     errors: Option<AddonErrors>,
 }
 
+/// The earlier of two optional day keys.
+fn min_some(a: Option<String>, b: Option<String>) -> Option<String> {
+    match (a, b) {
+        (Some(a), Some(b)) => Some(a.min(b)),
+        (a, b) => a.or(b),
+    }
+}
+
+/// How much a digest holds: one thinned by age always holds less than one that is not; then the
+/// entries it lists and the counts it keeps.
+fn fullness(digest: &Digest) -> (bool, usize, i64) {
+    let d = digest;
+    let listed = d.zones.len()
+        + d.subzones.len()
+        + d.discovered.len()
+        + d.accepted.len()
+        + d.turned_in.len()
+        + d.deaths.len()
+        + d.kills.len()
+        + d.notable_kills.len()
+        + d.fish.len()
+        + d.loot.len()
+        + d.companions.len()
+        + d.bosses.len()
+        + d.skills.len()
+        + d.crafted.len()
+        + d.gathered.len();
+    let c = &d.counts;
+    let counted = c.sessions
+        + c.levels
+        + c.accepted
+        + c.turned_in
+        + c.deaths
+        + c.fish
+        + c.loot
+        + c.discoveries
+        + c.bosses
+        + c.kills
+        + c.skill_ups
+        + c.crafted
+        + c.gathered;
+    (!d.thin, listed, counted)
+}
+
+/// One day from what the archive holds and a snapshot, never with less of anything than either:
+/// the longer event list, every kill, skill and item with the larger count, the fuller digest.
+/// On a tie the newer snapshot's version is kept. The game shrinks a day as it ages (compaction,
+/// thinning) and when the player uses Forget; neither reaches the archive, and neither does an old
+/// file read late with a fresh modification time.
+fn merge_day(stored: Day, incoming: Day, incoming_newer: bool) -> Day {
+    let prefer = |stored_len: usize, incoming_len: usize| {
+        incoming_len > stored_len || (incoming_len == stored_len && incoming_newer)
+    };
+    let events = match (stored.events, incoming.events) {
+        (Some(s), Some(i)) => Some(if prefer(s.len(), i.len()) { i } else { s }),
+        (s, i) => i.or(s),
+    };
+
+    let mut kills = stored.kills;
+    for (npc, kill) in incoming.kills {
+        match kills.get_mut(&npc) {
+            Some(kept) => {
+                let name = kept.name.take().or_else(|| kill.name.clone());
+                if prefer(kept.count as usize, kill.count as usize) {
+                    *kept = kill;
+                }
+                kept.name = kept.name.take().or(name);
+            }
+            None => {
+                kills.insert(npc, kill);
+            }
+        }
+    }
+
+    let mut skills = stored.skills;
+    for (id, skill) in incoming.skills {
+        match skills.get_mut(&id) {
+            Some(kept) => {
+                kept.from = kept.from.min(skill.from);
+                kept.to = kept.to.max(skill.to);
+                kept.name = kept.name.take().or(skill.name);
+                kept.category = kept.category.take().or(skill.category);
+            }
+            None => {
+                skills.insert(id, skill);
+            }
+        }
+    }
+
+    let items = |mut kept: BTreeMap<i64, ItemCount>, incoming: BTreeMap<i64, ItemCount>| {
+        for (id, item) in incoming {
+            match kept.get_mut(&id) {
+                Some(k) => {
+                    k.count = k.count.max(item.count);
+                    k.name = k.name.take().or(item.name);
+                    k.via = k.via.take().or(item.via);
+                }
+                None => {
+                    kept.insert(id, item);
+                }
+            }
+        }
+        kept
+    };
+
+    let digest = match (stored.digest, incoming.digest) {
+        (Some(s), Some(i)) => Some(
+            if fullness(&i) > fullness(&s) || (fullness(&i) == fullness(&s) && incoming_newer) {
+                i
+            } else {
+                s
+            },
+        ),
+        (s, i) => i.or(s),
+    };
+
+    Day {
+        events,
+        kills,
+        anon_kills: stored.anon_kills.max(incoming.anon_kills),
+        skills,
+        crafted: items(stored.crafted, incoming.crafted),
+        gathered: items(stored.gathered, incoming.gathered),
+        digest,
+    }
+}
+
 fn merge_quest(into: &mut Quest, from: &Quest) {
     if from.title.is_some() {
         into.title.clone_from(&from.title);
@@ -223,33 +350,11 @@ pub fn merge_snapshot(
             None => (incoming.clone(), source_mtime),
             Some((json, stored_mtime)) => {
                 let stored: Day = serde_json::from_str(&json)?;
-                if source_mtime >= stored_mtime {
-                    let mut merged = incoming.clone();
-                    if merged.events.is_none() {
-                        merged.events = stored.events;
-                        if merged.kills.is_empty() {
-                            merged.kills = stored.kills;
-                        }
-                        if merged.anon_kills == 0 {
-                            merged.anon_kills = stored.anon_kills;
-                        }
-                    }
-                    if merged.digest.is_none() {
-                        merged.digest = stored.digest;
-                    }
-                    (merged, source_mtime)
-                } else {
-                    let mut merged = stored;
-                    if merged.events.is_none() && incoming.events.is_some() {
-                        merged.events.clone_from(&incoming.events);
-                        merged.kills.clone_from(&incoming.kills);
-                        merged.anon_kills = incoming.anon_kills;
-                    }
-                    if merged.digest.is_none() {
-                        merged.digest.clone_from(&incoming.digest);
-                    }
-                    (merged, stored_mtime)
-                }
+                let newer = source_mtime >= stored_mtime;
+                (
+                    merge_day(stored, incoming.clone(), newer),
+                    stored_mtime.max(source_mtime),
+                )
             }
         };
         tx.execute(
@@ -276,13 +381,29 @@ pub fn merge_snapshot(
     if newer {
         record.schema = journal.schema;
         record.character = journal.character.clone();
-        record.stats = journal.stats.clone();
-        if journal.addon.is_some() {
-            record.addon.clone_from(&journal.addon);
-        }
-        if journal.errors.is_some() {
-            record.errors.clone_from(&journal.errors);
-        }
+    }
+    // All-time counts only grow: an old file read late, or a Forget in the game, never lowers them.
+    let stats = &journal.stats;
+    record.stats.boots = record.stats.boots.max(stats.boots);
+    record.stats.murlocs_slain = record.stats.murlocs_slain.max(stats.murlocs_slain);
+    record.stats.deaths_by_murloc = record.stats.deaths_by_murloc.max(stats.deaths_by_murloc);
+    record.stats.drownings = record.stats.drownings.max(stats.drownings);
+    // The latest login and the larger error count, whatever order the files arrive in.
+    if let Some(addon) = &journal.addon
+        && record
+            .addon
+            .as_ref()
+            .is_none_or(|kept| kept.login <= addon.login)
+    {
+        record.addon = Some(addon.clone());
+    }
+    if let Some(errors) = &journal.errors
+        && record
+            .errors
+            .as_ref()
+            .is_none_or(|kept| kept.count <= errors.count)
+    {
+        record.errors = Some(errors.clone());
     }
     for (id, quest) in &journal.quests {
         let entry = record.quests.entry(*id).or_default();
@@ -295,9 +416,10 @@ pub fn merge_snapshot(
         }
     }
     for (who, companion) in &journal.companions {
-        if newer || !record.companions.contains_key(who) {
-            record.companions.insert(who.clone(), companion.clone());
-        }
+        let kept = record.companions.entry(who.clone()).or_default();
+        kept.days = kept.days.max(companion.days);
+        kept.first = min_some(kept.first.take(), companion.first.clone());
+        kept.last = kept.last.take().max(companion.last.clone());
     }
     record.discovered.extend(journal.discovered.iter().cloned());
     tx.execute(

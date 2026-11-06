@@ -472,3 +472,114 @@ fn days_archived_before_professions_were_recorded_still_load_and_merge() {
     assert!(loaded.days[&date].skills.is_empty());
     merge_snapshot(&db, id, &synthetic(), 200).unwrap();
 }
+
+/// A journal with one day, 2026-11-08 from the shared fixture, and that day's stats.
+fn one_day() -> (Database, i64, Journal) {
+    let db = Database::open_in_memory().unwrap();
+    let id = db
+        .upsert_character(&source(Path::new("/wow"), "Wren-Hollowbrook"), None, None)
+        .unwrap();
+    let mut j = synthetic();
+    j.days.retain(|d, _| d == "2026-11-08");
+    (db, id, j)
+}
+
+#[test]
+fn a_compacted_snapshot_never_drops_professions_the_archive_holds() {
+    let (db, id, raw) = one_day();
+    let day = &raw.days["2026-11-08"];
+    assert!(!day.skills.is_empty() && !day.crafted.is_empty() && !day.gathered.is_empty());
+    let mut compacted = raw.clone();
+    let d = compacted.days.get_mut("2026-11-08").unwrap();
+    d.events = None;
+    d.kills.clear();
+    d.anon_kills = 0;
+    d.skills.clear();
+    d.crafted.clear();
+    d.gathered.clear();
+    d.digest = Some(schema::Digest::default());
+
+    merge_snapshot(&db, id, &raw, 100).unwrap();
+    merge_snapshot(&db, id, &compacted, 200).unwrap();
+    let kept = &archive::load(&db, id).unwrap().unwrap().days["2026-11-08"];
+    assert_eq!(kept.skills, day.skills);
+    assert_eq!(kept.crafted, day.crafted);
+    assert_eq!(kept.gathered, day.gathered);
+    assert_eq!(kept.events, day.events);
+}
+
+#[test]
+fn a_thinned_digest_never_replaces_a_fuller_one() {
+    let (db, id, mut j) = one_day();
+    let d = j.days.get_mut("2026-11-08").unwrap();
+    d.events = None;
+    let full = schema::Digest {
+        zones: vec!["Mulgore".into(), "The Barrens".into(), "Durotar".into()],
+        counts: schema::DigestCounts {
+            kills: 40,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    d.digest = Some(full.clone());
+    let mut thin = j.clone();
+    let t = thin.days.get_mut("2026-11-08").unwrap();
+    let mut thinned = full.clone();
+    thinned.zones.truncate(1);
+    thinned.thin = true;
+    t.digest = Some(thinned);
+
+    merge_snapshot(&db, id, &j, 100).unwrap();
+    merge_snapshot(&db, id, &thin, 200).unwrap();
+    let kept = &archive::load(&db, id).unwrap().unwrap().days["2026-11-08"];
+    assert_eq!(kept.digest.as_ref().unwrap(), &full);
+}
+
+#[test]
+fn an_old_file_with_a_new_date_never_erases_newer_data() {
+    // A restored backup or a synced folder gives old content a fresh modification time.
+    let (db, id, newer) = one_day();
+    let mut older = newer.clone();
+    let d = older.days.get_mut("2026-11-08").unwrap();
+    d.events.as_mut().unwrap().truncate(3);
+    d.kills.clear();
+    older.stats.boots = 0;
+    older.stats.murlocs_slain = 0;
+    for c in older.companions.values_mut() {
+        c.days = 0;
+    }
+
+    merge_snapshot(&db, id, &newer, 100).unwrap();
+    merge_snapshot(&db, id, &older, 300).unwrap();
+    let kept = archive::load(&db, id).unwrap().unwrap();
+    assert_eq!(
+        kept.days["2026-11-08"].events,
+        newer.days["2026-11-08"].events
+    );
+    assert_eq!(
+        kept.days["2026-11-08"].kills,
+        newer.days["2026-11-08"].kills
+    );
+    assert_eq!(kept.stats, newer.stats, "stats never go back");
+    assert_eq!(kept.companions, newer.companions);
+}
+
+#[test]
+fn forgetting_in_the_game_leaves_the_archive_whole() {
+    // The addon's Forget shrinks the game file only; the app keeps its own copy.
+    let (db, id, before) = one_day();
+    let mut forgot = before.clone();
+    let d = forgot.days.get_mut("2026-11-08").unwrap();
+    d.kills.clear();
+    d.anon_kills = 0;
+    d.events
+        .as_mut()
+        .unwrap()
+        .retain(|e| !matches!(e.kind, schema::EventKind::Death { .. }));
+
+    merge_snapshot(&db, id, &before, 100).unwrap();
+    merge_snapshot(&db, id, &forgot, 200).unwrap();
+    let kept = &archive::load(&db, id).unwrap().unwrap().days["2026-11-08"];
+    assert_eq!(kept.kills, before.days["2026-11-08"].kills);
+    assert_eq!(kept.events, before.days["2026-11-08"].events);
+}
