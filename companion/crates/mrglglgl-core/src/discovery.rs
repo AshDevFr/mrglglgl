@@ -15,6 +15,7 @@ pub const JOURNAL_FILE: &str = "Mrglglgl.lua";
 
 /// Where an install's path came from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
 pub enum RootSource {
     /// Chosen by the player in settings. Always wins.
@@ -28,6 +29,7 @@ pub enum RootSource {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
 pub struct WowRoot {
     pub path: PathBuf,
@@ -36,6 +38,7 @@ pub struct WowRoot {
 
 /// One game flavor's folder, such as `_forever_` or `_classic_era_`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
 pub struct Flavor {
     pub name: String,
@@ -44,6 +47,7 @@ pub struct Flavor {
 
 /// A character with a Mrglglgl journal. The folder names identify it on disk only.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
 pub struct CharacterSource {
     pub flavor: String,

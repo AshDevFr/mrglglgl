@@ -1,3 +1,0 @@
-[env]
-# Where ts-rs writes the TypeScript types of everything Tauri commands exchange.
-TS_RS_EXPORT_DIR = { value = "ui/src/bindings", relative = true }

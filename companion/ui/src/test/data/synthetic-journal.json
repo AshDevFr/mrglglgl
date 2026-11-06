@@ -1,0 +1,572 @@
+{
+  "schema": 1,
+  "character": {
+    "name": "Wren",
+    "surname": "Hollowbrook",
+    "realm": "Test Realm",
+    "realmId": 1,
+    "race": "Tauren",
+    "class": "HUNTER",
+    "faction": "Horde",
+    "locale": "enUS"
+  },
+  "days": {
+    "2026-11-01": {
+      "events": null,
+      "kills": {},
+      "anonKills": 0,
+      "digest": {
+        "version": 1,
+        "counts": {
+          "sessions": 1,
+          "levels": 0,
+          "accepted": 0,
+          "turnedIn": 0,
+          "deaths": 1,
+          "fish": 2,
+          "junk": 1,
+          "boots": 1,
+          "loot": 0,
+          "discoveries": 2,
+          "bosses": 0,
+          "group": 0,
+          "screenshots": 0,
+          "kills": 1,
+          "murlocs": 0,
+          "anonKills": 0
+        },
+        "levelFrom": 5,
+        "levelTo": 5,
+        "zones": [
+          "Mulgore"
+        ],
+        "subzones": [
+          "Red Cloud Mesa"
+        ],
+        "discovered": [
+          "Mulgore",
+          "Red Cloud Mesa"
+        ],
+        "accepted": [],
+        "turnedIn": [],
+        "deaths": [
+          {
+            "killer": null,
+            "environment": "Drowning",
+            "zone": "Mulgore",
+            "subzone": "Red Cloud Mesa"
+          }
+        ],
+        "kills": [
+          {
+            "npcId": 2958,
+            "name": null,
+            "count": 1,
+            "classification": "unknown",
+            "murloc": false
+          }
+        ],
+        "notableKills": [],
+        "fish": [
+          {
+            "itemId": 6303,
+            "name": "Raw Slitherskin Mackerel",
+            "count": 1,
+            "junk": false,
+            "boot": null
+          },
+          {
+            "itemId": 6150,
+            "name": "Old Boot",
+            "count": 1,
+            "junk": true,
+            "boot": true
+          }
+        ],
+        "loot": [],
+        "companions": [],
+        "bosses": [],
+        "onlyFished": false,
+        "nothingHappened": false
+      }
+    },
+    "2026-11-08": {
+      "events": [
+        {
+          "time": 1794164400,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "sessionStart"
+          }
+        },
+        {
+          "time": 1794164400,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "zone"
+          }
+        },
+        {
+          "time": 1794164400,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "subzone"
+          }
+        },
+        {
+          "time": 1794164400,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "discover",
+            "area": "Red Rocks",
+            "source": "visit"
+          }
+        },
+        {
+          "time": 1794164490,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "discover",
+            "area": "Thunder Bluff",
+            "source": "message"
+          }
+        },
+        {
+          "time": 1794164490,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "questAccept",
+            "questId": 749
+          }
+        },
+        {
+          "time": 1794164490,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "boss",
+            "encounterId": 1144,
+            "name": "Hogger"
+          }
+        },
+        {
+          "time": 1794164490,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "questTurnin",
+            "questId": 749,
+            "xp": 450,
+            "money": 75
+          }
+        },
+        {
+          "time": 1794164490,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 6,
+          "kind": {
+            "kind": "level"
+          }
+        },
+        {
+          "time": 1794164490,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "screenshot",
+            "moment": "levelUp"
+          }
+        },
+        {
+          "time": 1794164491,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "loot",
+            "itemId": 2140,
+            "name": "Carving Knife",
+            "quality": 3,
+            "quantity": 1
+          }
+        },
+        {
+          "time": 1794164491,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "groupJoin",
+            "who": "Tamsin-Reedwater"
+          }
+        },
+        {
+          "time": 1794164491,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "death",
+            "killer": {
+              "name": "Murloc Streamrunner",
+              "npcId": 732,
+              "murloc": true
+            },
+            "environment": null
+          }
+        },
+        {
+          "time": 1794164553,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "sessionEnd"
+          }
+        }
+      ],
+      "kills": {
+        "732": {
+          "count": 1,
+          "name": "Murloc Streamrunner",
+          "classification": "unknown",
+          "murloc": true
+        },
+        "2958": {
+          "count": 23,
+          "name": "Prairie Wolf",
+          "classification": "normal",
+          "murloc": false
+        },
+        "3035": {
+          "count": 1,
+          "name": "Flatland Cougar",
+          "classification": "elite",
+          "murloc": false
+        }
+      },
+      "anonKills": 1,
+      "digest": {
+        "version": 1,
+        "counts": {
+          "sessions": 1,
+          "levels": 1,
+          "accepted": 1,
+          "turnedIn": 1,
+          "deaths": 1,
+          "fish": 0,
+          "junk": 0,
+          "boots": 0,
+          "loot": 1,
+          "discoveries": 2,
+          "bosses": 1,
+          "group": 1,
+          "screenshots": 1,
+          "kills": 26,
+          "murlocs": 1,
+          "anonKills": 1
+        },
+        "levelFrom": 5,
+        "levelTo": 6,
+        "zones": [
+          "Mulgore"
+        ],
+        "subzones": [
+          "Red Rocks"
+        ],
+        "discovered": [
+          "Red Rocks",
+          "Thunder Bluff"
+        ],
+        "accepted": [
+          749
+        ],
+        "turnedIn": [
+          749
+        ],
+        "deaths": [
+          {
+            "killer": {
+              "name": "Murloc Streamrunner",
+              "npcId": 732,
+              "murloc": true
+            },
+            "environment": null,
+            "zone": "Mulgore",
+            "subzone": "Red Rocks"
+          }
+        ],
+        "kills": [
+          {
+            "npcId": 2958,
+            "name": "Prairie Wolf",
+            "count": 23,
+            "classification": "normal",
+            "murloc": false
+          },
+          {
+            "npcId": 732,
+            "name": "Murloc Streamrunner",
+            "count": 1,
+            "classification": "unknown",
+            "murloc": true
+          },
+          {
+            "npcId": 3035,
+            "name": "Flatland Cougar",
+            "count": 1,
+            "classification": "elite",
+            "murloc": false
+          }
+        ],
+        "notableKills": [
+          {
+            "npcId": 3035,
+            "name": "Flatland Cougar",
+            "count": 1,
+            "classification": "elite",
+            "murloc": false
+          }
+        ],
+        "fish": [],
+        "loot": [
+          {
+            "itemId": 2140,
+            "name": "Carving Knife",
+            "quality": 3,
+            "quantity": 1
+          }
+        ],
+        "companions": [
+          "Tamsin-Reedwater"
+        ],
+        "bosses": [
+          "Hogger"
+        ],
+        "onlyFished": false,
+        "nothingHappened": false
+      }
+    },
+    "2026-11-09": {
+      "events": [
+        {
+          "time": 1794254400,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "sessionStart"
+          }
+        },
+        {
+          "time": 1794254400,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "fish",
+            "itemId": 6303,
+            "name": "Raw Slitherskin Mackerel",
+            "junk": false,
+            "boot": null
+          }
+        },
+        {
+          "time": 1794254430,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "fish",
+            "itemId": 6303,
+            "name": "Raw Slitherskin Mackerel",
+            "junk": false,
+            "boot": null
+          }
+        },
+        {
+          "time": 1794254520,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "sessionEnd"
+          }
+        }
+      ],
+      "kills": {},
+      "anonKills": 0,
+      "digest": {
+        "version": 1,
+        "counts": {
+          "sessions": 1,
+          "levels": 0,
+          "accepted": 0,
+          "turnedIn": 0,
+          "deaths": 0,
+          "fish": 2,
+          "junk": 0,
+          "boots": 0,
+          "loot": 0,
+          "discoveries": 0,
+          "bosses": 0,
+          "group": 0,
+          "screenshots": 0,
+          "kills": 0,
+          "murlocs": 0,
+          "anonKills": 0
+        },
+        "levelFrom": 5,
+        "levelTo": 5,
+        "zones": [
+          "Mulgore"
+        ],
+        "subzones": [],
+        "discovered": [],
+        "accepted": [],
+        "turnedIn": [],
+        "deaths": [],
+        "kills": [],
+        "notableKills": [],
+        "fish": [
+          {
+            "itemId": 6303,
+            "name": "Raw Slitherskin Mackerel",
+            "count": 2,
+            "junk": false,
+            "boot": null
+          }
+        ],
+        "loot": [],
+        "companions": [],
+        "bosses": [],
+        "onlyFished": true,
+        "nothingHappened": false
+      }
+    },
+    "2026-11-10": {
+      "events": [
+        {
+          "time": 1794344400,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "sessionStart"
+          }
+        },
+        {
+          "time": 1794344460,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "sessionEnd"
+          }
+        }
+      ],
+      "kills": {},
+      "anonKills": 0,
+      "digest": {
+        "version": 1,
+        "counts": {
+          "sessions": 1,
+          "levels": 0,
+          "accepted": 0,
+          "turnedIn": 0,
+          "deaths": 0,
+          "fish": 0,
+          "junk": 0,
+          "boots": 0,
+          "loot": 0,
+          "discoveries": 0,
+          "bosses": 0,
+          "group": 0,
+          "screenshots": 0,
+          "kills": 0,
+          "murlocs": 0,
+          "anonKills": 0
+        },
+        "levelFrom": 5,
+        "levelTo": 5,
+        "zones": [
+          "Mulgore"
+        ],
+        "subzones": [],
+        "discovered": [],
+        "accepted": [],
+        "turnedIn": [],
+        "deaths": [],
+        "kills": [],
+        "notableKills": [],
+        "fish": [],
+        "loot": [],
+        "companions": [],
+        "bosses": [],
+        "onlyFished": false,
+        "nothingHappened": true
+      }
+    }
+  },
+  "quests": {
+    "749": {
+      "title": "The Ravaged Caravan",
+      "text": "Some marauding wolves have attacked a caravan near Red Rocks."
+    }
+  },
+  "companions": {
+    "Tamsin-Reedwater": {
+      "first": "2026-11-08",
+      "last": "2026-11-08",
+      "days": 1
+    }
+  },
+  "discovered": [
+    "Mulgore",
+    "Red Cloud Mesa",
+    "Red Rocks",
+    "Thunder Bluff"
+  ],
+  "stats": {
+    "boots": 1,
+    "murlocsSlain": 1,
+    "deathsByMurloc": 1,
+    "drownings": 1
+  }
+}

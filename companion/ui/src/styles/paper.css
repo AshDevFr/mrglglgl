@@ -1,0 +1,75 @@
+/* The journal's own look: slightly soggy paper, drawn entirely in CSS. No game art is used. */
+
+:root {
+  --paper: #f3ead6;
+  --paper-edge: #e6d6b4;
+  --ink: #2f2a22;
+  --ink-soft: #6b604f;
+  --water: rgba(86, 128, 140, 0.1);
+  --water-edge: rgba(86, 128, 140, 0.18);
+  --stamp: #8a3b2e;
+  --reading-font: "Literata Variable", Georgia, "Times New Roman", serif;
+}
+
+[data-mantine-color-scheme="dark"] {
+  --paper: #23201b;
+  --paper-edge: #2e2a23;
+  --ink: #e9e1cf;
+  --ink-soft: #b2a68f;
+  --water: rgba(120, 170, 180, 0.07);
+  --water-edge: rgba(120, 170, 180, 0.14);
+  --stamp: #d98b72;
+}
+
+.paper {
+  color: var(--ink);
+  background-color: var(--paper);
+  /* Two old water rings and a darker edge, like a page that has been somewhere damp. */
+  background-image:
+    radial-gradient(
+      circle at 82% 14%,
+      transparent 38px,
+      var(--water-edge) 40px,
+      var(--water) 46px,
+      transparent 60px
+    ),
+    radial-gradient(circle at 12% 78%, var(--water) 0, transparent 90px),
+    radial-gradient(ellipse at center, transparent 62%, var(--paper-edge) 100%);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.reading {
+  font-family: var(--reading-font);
+  font-size: 1.075rem;
+  line-height: 1.7;
+  max-width: 38rem;
+}
+
+.reading h1,
+.reading h2,
+.reading h3 {
+  font-family: var(--reading-font);
+  font-weight: 600;
+}
+
+.stamp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.4rem 0.9rem;
+  border: 2px solid var(--stamp);
+  border-radius: 999px;
+  color: var(--stamp);
+  font-family: var(--reading-font);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transform: rotate(-3deg);
+  opacity: 0.9;
+}
+
+.stamp small {
+  font-weight: 400;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+}

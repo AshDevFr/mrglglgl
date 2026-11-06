@@ -23,7 +23,7 @@ mrglglgl-core = { path = "crates/mrglglgl-core" }
 mrglglgl-llm = { path = "crates/mrglglgl-llm" }
 
 # Desktop shell
-tauri = { version = "2.12", features = [] }
+tauri = { version = "2.12", features = ["protocol-asset"] }
 tauri-build = { version = "2.7", features = [] }
 
 # TypeScript bindings for the types Tauri commands exchange. tauri-specta's
@@ -49,6 +49,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 rusqlite = { version = "0.41", features = ["bundled"] }
 notify = "8"
 dirs = "7"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 winreg = "0.56"
 
 # Tests

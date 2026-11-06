@@ -1,5 +1,5 @@
 .PHONY: help \
-	ui-install ui-build ui-lint ui-lint-fix ui-test \
+	bindings ui-install ui-build ui-lint ui-lint-fix ui-test \
 	fmt lint test check ci dev build \
 	changelog changelog-unreleased setup-hooks clean
 
@@ -30,7 +30,12 @@ ui/node_modules: ui/package.json ui/package-lock.json
 
 ui-install: ui/node_modules ## Install frontend dependencies
 
-ui-build: ui-install ## Build the frontend into ui/dist (the app embeds it)
+# The frontend type-checks against these, so they are written before it builds. The app crate's
+# own command types are written by `make test` (it embeds ui/dist, so it builds after the UI).
+bindings: ## Regenerate the TypeScript types of the core data the app sends to the frontend
+	$(CARGO) test -p mrglglgl-core --features ts --lib $(CARGO_JOBS) export_bindings
+
+ui-build: ui-install bindings ## Build the frontend into ui/dist (the app embeds it)
 	$(NPM) run build
 
 ui-lint: ui-install ## Lint the frontend (biome)
@@ -53,6 +58,10 @@ lint: ui-build ## Run clippy with warnings as errors
 
 test: ui-build ## Run Rust tests (also regenerates the TypeScript bindings)
 	$(CARGO) test --workspace $(CARGO_JOBS)
+
+core-test: ## Run one mrglglgl-core integration test target: make core-test T=sv
+	@test -n "$(T)" || { echo "T is empty"; exit 1; }
+	$(CARGO) test -p mrglglgl-core --test $(T) $(CARGO_JOBS)
 
 check: ui-build ui-lint ## Build, lint and test everything
 	cargo fmt --all -- --check

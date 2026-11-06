@@ -1,0 +1,118 @@
+name: companion
+
+on:
+  push:
+    paths:
+      - "companion/**"
+      - "fixtures/**"
+      - "docs/schema.md"
+      - ".cargo/**"
+      - ".github/workflows/companion.yml"
+  pull_request:
+    paths:
+      - "companion/**"
+      - "fixtures/**"
+      - "docs/schema.md"
+      - ".cargo/**"
+      - ".github/workflows/companion.yml"
+  workflow_dispatch:
+    inputs:
+      fuzz:
+        description: "Fuzz the SavedVariables parser for ten minutes"
+        type: boolean
+        default: false
+
+concurrency:
+  group: companion-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Lint and test (Linux)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: companion
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tauri system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libxdo-dev libssl-dev \
+            libayatana-appindicator3-dev librsvg2-dev
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: companion/ui/package-lock.json
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: companion
+      - name: Check
+        run: make check JOBS=0 NICE=
+
+  build:
+    name: Build (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            bundles: app,dmg
+          - os: windows-latest
+            bundles: nsis
+    defaults:
+      run:
+        shell: bash
+        working-directory: companion
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+          cache: npm
+          cache-dependency-path: companion/ui/package-lock.json
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: companion
+      - name: Install frontend dependencies
+        run: npm --prefix ui ci
+      # Runs the data layer's tests on the OS itself; on Windows this also compiles the
+      # registry-based install discovery, which no other job builds.
+      - name: Core tests
+        run: cargo test -p mrglglgl-core
+      - name: Build unsigned installers
+        working-directory: companion/crates/mrglglgl-app
+        run: ../../ui/node_modules/.bin/tauri build --bundles ${{ matrix.bundles }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: mrglglgl-${{ matrix.os }}
+          path: |
+            companion/target/release/bundle/dmg/*.dmg
+            companion/target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+          retention-days: 14
+
+  fuzz:
+    name: Fuzz the SavedVariables parser
+    if: github.event_name == 'workflow_dispatch' && inputs.fuzz
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: companion/crates/mrglglgl-core
+    steps:
+      - uses: actions/checkout@v7
+      - name: Nightly toolchain and cargo-fuzz
+        run: |
+          rustup toolchain install nightly --profile minimal
+          cargo install cargo-fuzz --locked
+      - name: Seed the corpus with real journal files
+        run: |
+          mkdir -p fuzz/corpus/parse
+          cp ../../../fixtures/savedvariables/*.lua tests/data/*.lua fuzz/corpus/parse/
+      - name: Fuzz
+        run: cargo +nightly fuzz run parse -- -max_total_time=600

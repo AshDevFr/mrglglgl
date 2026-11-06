@@ -12,7 +12,7 @@
     "noEmit": true,
     "resolveJsonModule": true,
     "jsx": "react-jsx",
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "node"],
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

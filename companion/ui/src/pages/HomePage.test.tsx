@@ -1,27 +1,33 @@
-import { MantineProvider } from "@mantine/core";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { renderWithProviders } from "@/test/render";
 import { HomePage } from "./HomePage";
+
+const commands = vi.hoisted(() => ({
+  characters: [] as unknown[],
+}));
 
 vi.mock("@/api/commands", () => ({
   appInfo: () => Promise.resolve({ version: "9.9.9" }),
+  listCharacters: () => Promise.resolve(commands.characters),
 }));
 
-function renderWithProviders(ui: ReactNode) {
-  const client = new QueryClient();
-  return render(
-    <MantineProvider>
-      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
-    </MantineProvider>,
-  );
-}
-
 describe("HomePage", () => {
-  it("shows translated text and the version reported by the Rust side", async () => {
+  it("has a murloc-flavoured empty state and explains when journals arrive", async () => {
+    commands.characters = [];
     renderWithProviders(<HomePage />);
-    expect(screen.getByText("Mrglglgl")).toBeInTheDocument();
+    expect(
+      await screen.findByText(/No journals yet\. Mrgl/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/log out or type \/reload/).length,
+    ).toBeGreaterThan(0);
     expect(await screen.findByText("Version 9.9.9")).toBeInTheDocument();
+  });
+
+  it("asks the reader to pick a character once there are some", async () => {
+    commands.characters = [{ character: { id: 1 } }];
+    renderWithProviders(<HomePage />);
+    expect(await screen.findByText(/Choose a character/)).toBeInTheDocument();
   });
 });

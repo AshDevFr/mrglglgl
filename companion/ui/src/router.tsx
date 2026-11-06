@@ -2,13 +2,15 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  Outlet,
 } from "@tanstack/react-router";
+import { Layout } from "@/Layout";
+import { CharacterPage } from "@/pages/CharacterPage";
 import { HomePage } from "@/pages/HomePage";
+import { MilestonesPage } from "@/pages/MilestonesPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 
-// Code-based routing keeps the scaffold self-contained (no router codegen
-// plugin). Switch to file-based routing later if the route tree grows.
-const rootRoute = createRootRoute({ component: () => <Outlet /> });
+// Code-based routing keeps the app self-contained (no router codegen plugin).
+const rootRoute = createRootRoute({ component: Layout });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -16,7 +18,40 @@ const indexRoute = createRoute({
   component: HomePage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute]);
+const characterRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/characters/$characterId",
+  validateSearch: (search: Record<string, unknown>): { day?: string } => ({
+    day: typeof search.day === "string" ? search.day : undefined,
+  }),
+  component: function Character() {
+    const { characterId } = characterRoute.useParams();
+    const { day } = characterRoute.useSearch();
+    return <CharacterPage characterId={Number(characterId)} day={day} />;
+  },
+});
+
+const milestonesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/characters/$characterId/milestones",
+  component: function Milestones() {
+    const { characterId } = milestonesRoute.useParams();
+    return <MilestonesPage characterId={Number(characterId)} />;
+  },
+});
+
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/settings",
+  component: SettingsPage,
+});
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  characterRoute,
+  milestonesRoute,
+  settingsRoute,
+]);
 
 export const router = createRouter({ routeTree });
 
