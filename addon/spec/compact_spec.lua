@@ -82,6 +82,7 @@ describe("Compact", function()
 		_G.MrglglglDB.settings.retentionDays = 7
 		_G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now - 10 * DAY)] = { ev = { { t = 0, k = "level", lv = 4 } } }
 		Mock.fire("PLAYER_LOGIN")
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 		Mock.fire("PLAYER_LOGOUT")
 		local today = _G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)]
 		assert.equals(1, today.digest.counts.sessions)

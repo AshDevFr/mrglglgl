@@ -20,6 +20,7 @@ describe("Kills", function()
 		ns = Addon.load(Mock)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
 		Mock.fire("PLAYER_LOGIN")
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 	end)
 
 	it("never listens to the combat log, which addons cannot read on Forever", function()

@@ -31,6 +31,7 @@ describe("Deaths", function()
 		Addon.load(Mock)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
 		Mock.fire("PLAYER_LOGIN")
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 	end)
 
 	it("names a murloc killer with its NPC ID and counts the death", function()

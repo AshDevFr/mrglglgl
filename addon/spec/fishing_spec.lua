@@ -27,6 +27,7 @@ describe("Fishing", function()
 		Addon.load(Mock)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
 		Mock.fire("PLAYER_LOGIN")
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 		Mock.items[6303] = { name = "Raw Slitherskin Mackerel", quality = 1 }
 		Mock.items[6150] = { name = "Old Boot", quality = 0 }
 		Mock.items[6149] = { name = "Rusty Hook", quality = 0 }
