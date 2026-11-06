@@ -24,6 +24,7 @@ import type { ReviewItem } from "@/bindings/ReviewItem";
 import { type Problem, problem } from "@/i18n/problems";
 import { formatDay } from "@/lib/format";
 import { dayFacts } from "@/lib/journal";
+import { narratorLabel } from "@/lib/narrators";
 import { daySentences } from "@/lib/sentences";
 import { useWriting } from "@/lib/useWriting";
 import { type Live, slot } from "@/lib/writing";
@@ -207,8 +208,7 @@ function ReviewRow({
           date: formatDay(item.startDay, i18n.language, true),
         })
       : formatDay(item.startDay, i18n.language, true);
-  const narratorName = (id: string) =>
-    narrators.find((n) => n.id === id)?.name ?? id;
+  const narratorName = (id: string) => narratorLabel(t, narrators, id);
   const day = item.kind === "day" ? journal?.days[item.startDay] : undefined;
   const facts =
     journal && day

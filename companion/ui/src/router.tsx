@@ -8,6 +8,7 @@ import { Layout } from "@/Layout";
 import { CharacterPage } from "@/pages/CharacterPage";
 import { HomePage } from "@/pages/HomePage";
 import { MilestonesPage } from "@/pages/MilestonesPage";
+import { NarratorPage } from "@/pages/NarratorPage";
 import { ReviewPage } from "@/pages/ReviewPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 
@@ -54,6 +55,15 @@ const reviewRoute = createRoute({
   },
 });
 
+const narratorRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/narrators/$narratorId",
+  component: function Narrator() {
+    const { narratorId } = narratorRoute.useParams();
+    return <NarratorPage narratorId={narratorId} />;
+  },
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/settings",
@@ -65,6 +75,7 @@ const routeTree = rootRoute.addChildren([
   characterRoute,
   milestonesRoute,
   reviewRoute,
+  narratorRoute,
   settingsRoute,
 ]);
 

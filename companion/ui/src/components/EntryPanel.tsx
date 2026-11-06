@@ -8,6 +8,7 @@ import type { Story } from "@/bindings/Story";
 import type { StoryKind } from "@/bindings/StoryKind";
 import { type Problem, problem } from "@/i18n/problems";
 import { formatTime } from "@/lib/format";
+import { narratorLabel } from "@/lib/narrators";
 import { type Live, loadingKey } from "@/lib/writing";
 
 /** An entry's text: paragraphs, with the murloc's margin note set apart. */
@@ -84,8 +85,7 @@ export function EntryPanel({
 
   const shown = versions[index];
   const readable = shown && shown.check !== "failed";
-  const narratorName = (id: string) =>
-    narrators.find((n) => n.id === id)?.name ?? id;
+  const narratorName = (id: string) => narratorLabel(t, narrators, id);
 
   if (live?.active) {
     return (

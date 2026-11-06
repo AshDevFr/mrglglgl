@@ -32,6 +32,9 @@ export const PROBLEMS = [
   "writing.reason.timedOut",
   "writing.reason.other",
   "writing.setAside",
+  "narrators.previewSetAside",
+  "narrators.previewFailed",
+  "narrators.fileFailed",
 ] as const;
 
 export type Problem = (typeof PROBLEMS)[number];

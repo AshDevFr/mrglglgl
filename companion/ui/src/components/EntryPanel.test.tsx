@@ -170,6 +170,15 @@ describe("EntryPanel", () => {
     expect(screen.getByText(/Written by The grumpy dwarf/)).toBeInTheDocument();
   });
 
+  it("names a narrator the player removed plainly", () => {
+    panel({
+      versions: [story(1, "The water was kind.", { narrator: "custom_heron" })],
+    });
+    expect(
+      screen.getByText(/Written by a narrator you removed/),
+    ).toBeInTheDocument();
+  });
+
   it("writes again with the narrator picked for this day", async () => {
     const { onWrite } = panel({
       versions: [story(1, "The plains were quiet.")],

@@ -7,7 +7,12 @@ import type { DownloadProgress } from "@/bindings/DownloadProgress";
 import type { ExportedFiles } from "@/bindings/ExportedFiles";
 import type { Journal } from "@/bindings/Journal";
 import type { ModelsView } from "@/bindings/ModelsView";
+import type { Narrator } from "@/bindings/Narrator";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
+import type { NarratorSaved } from "@/bindings/NarratorSaved";
+import type { PreviewDay } from "@/bindings/PreviewDay";
+import type { PreviewEvent } from "@/bindings/PreviewEvent";
+import type { PreviewResult } from "@/bindings/PreviewResult";
 import type { QueueEvent } from "@/bindings/QueueEvent";
 import type { ReviewItem } from "@/bindings/ReviewItem";
 import type { Screenshot } from "@/bindings/Screenshot";
@@ -156,6 +161,55 @@ export function setWritingPaused(paused: boolean): Promise<void> {
 
 export function listNarrators(): Promise<NarratorInfo[]> {
   return invoke<NarratorInfo[]>("list_narrators");
+}
+
+/** The player's own narrator, to edit; null once it is gone. */
+export function narrator(id: string): Promise<Narrator | null> {
+  return invoke<Narrator | null>("narrator", { id });
+}
+
+/** Every field of a narrator, as the start of a new one; not saved yet. */
+export function copyNarrator(id: string): Promise<Narrator> {
+  return invoke<Narrator>("copy_narrator", { id });
+}
+
+export function saveNarrator(narrator: Narrator): Promise<NarratorSaved> {
+  return invoke<NarratorSaved>("save_narrator", { narrator });
+}
+
+/** Adds a shared narrator file, given its text. */
+export function importNarrator(text: string): Promise<NarratorSaved> {
+  return invoke<NarratorSaved>("import_narrator", { text });
+}
+
+/** Writes the narrator as one file into a folder; answers the file's path. */
+export function exportNarrator(id: string, folder: string): Promise<string> {
+  return invoke<string>("export_narrator", { id, folder });
+}
+
+export function deleteNarrator(id: string): Promise<void> {
+  return invoke<void>("delete_narrator", { id });
+}
+
+/** Writes one day with the narrator being edited, saved or not; nothing is stored. */
+export function previewNarrator(
+  narrator: Narrator,
+  day: PreviewDay,
+): Promise<PreviewResult> {
+  return invoke<PreviewResult>("preview_narrator", { narrator, day });
+}
+
+export function cancelPreview(): Promise<boolean> {
+  return invoke<boolean>("cancel_preview");
+}
+
+/** Called with the preview's text as it is written. */
+export function onNarratorPreview(
+  handler: (event: PreviewEvent) => void,
+): Promise<UnlistenFn> {
+  return listen<PreviewEvent>("narrator-preview", (event) =>
+    handler(event.payload),
+  );
 }
 
 /** Called for everything the background writer does. */

@@ -33,6 +33,16 @@ window.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
 
 window.scrollTo = vi.fn() as unknown as typeof window.scrollTo;
 
+// Mantine's auto-growing textarea re-measures when web fonts load.
+Object.defineProperty(document, "fonts", {
+  configurable: true,
+  value: {
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    ready: Promise.resolve(),
+  },
+});
+
 // Mantine's combobox scrolls the selected option into view on a timer after it opens.
 Element.prototype.scrollIntoView = vi.fn();
 
