@@ -13,6 +13,7 @@ use async_trait::async_trait;
 use tokio::sync::mpsc;
 pub use tokio_util::sync::CancellationToken;
 
+pub mod catalogue;
 pub mod fake;
 #[cfg(feature = "local")]
 pub mod local;
