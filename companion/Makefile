@@ -103,3 +103,7 @@ setup-hooks: ## Install the pre-commit hooks
 clean: ## Remove build output
 	cargo clean
 	rm -rf ui/dist
+
+# Checks the user documentation (every guide exists; the privacy text matches the app).
+docs-check:
+	scripts/check-docs.sh
