@@ -75,7 +75,9 @@ local function walk(zone, subzone)
 end
 
 local function play()
-	local saved = {}
+	-- An empty journal from an earlier install: the first session below is not the install
+	-- session, so its places are told as discoveries.
+	local saved = { character = { schema = 1, char = {}, days = {}, quests = {}, companions = {}, stats = {} } }
 
 	-- Ten days before "today": compacted to its digest by the last logout (retention is 7 days).
 	session(saved, at(11, 1, 18), function()
