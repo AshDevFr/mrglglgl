@@ -1,0 +1,126 @@
+-- A day's digest: the compact summary that survives once the day's raw events are dropped, and
+-- the app's main input for writing the day. A pure function of the day record.
+local _, ns = ...
+
+local Digest = {}
+ns.Digest = Digest
+
+-- Increment when the digest's shape or meaning changes. Days that still have raw events are
+-- rebuilt; compacted days keep the version they were built with.
+Digest.VERSION = 1
+
+-- Caps keep a busy day's digest small; counts stay exact.
+local TOP_KILLS = 15
+local LIST_CAP = 20
+
+local NOTABLE_CLASSIFICATIONS = { elite = true, rare = true, rareelite = true, worldboss = true }
+
+local function push(list, value)
+	if #list < LIST_CAP then
+		list[#list + 1] = value
+	end
+end
+
+local function addOnce(list, seen, value)
+	if value and value ~= "" and not seen[value] then
+		seen[value] = true
+		push(list, value)
+	end
+end
+
+function Digest.build(day)
+	local counts = {
+		sessions = 0, levels = 0, accepted = 0, turnedIn = 0, deaths = 0, fish = 0, junk = 0, boots = 0,
+		loot = 0, discoveries = 0, bosses = 0, group = 0, screenshots = 0,
+		kills = 0, murlocs = 0, anonKills = day.anonKills or 0,
+	}
+	local digest = {
+		v = Digest.VERSION, counts = counts,
+		zones = {}, subzones = {}, discovered = {}, deaths = {}, accepted = {}, turnedIn = {},
+		fish = {}, loot = {}, companions = {}, bosses = {}, kills = {}, notableKills = {},
+	}
+	local zonesSeen, subzonesSeen, fishByItem = {}, {}, {}
+	local lowLevel, highLevel
+
+	for _, e in ipairs(day.ev or {}) do
+		if e.lv then
+			lowLevel = (lowLevel == nil or e.lv < lowLevel) and e.lv or lowLevel
+			highLevel = (highLevel == nil or e.lv > highLevel) and e.lv or highLevel
+		end
+		addOnce(digest.zones, zonesSeen, e.z)
+		local k = e.k
+		if k == "session_start" then
+			counts.sessions = counts.sessions + 1
+		elseif k == "level" then
+			counts.levels = counts.levels + 1
+		elseif k == "subzone" then
+			addOnce(digest.subzones, subzonesSeen, e.sz)
+		elseif k == "discover" then
+			counts.discoveries = counts.discoveries + 1
+			push(digest.discovered, e.area)
+		elseif k == "quest_accept" then
+			counts.accepted = counts.accepted + 1
+			push(digest.accepted, e.q)
+		elseif k == "quest_turnin" then
+			counts.turnedIn = counts.turnedIn + 1
+			push(digest.turnedIn, e.q)
+		elseif k == "death" then
+			counts.deaths = counts.deaths + 1
+			push(digest.deaths, { killer = e.killer, env = e.env, z = e.z, sz = e.sz })
+		elseif k == "fish" then
+			counts.fish = counts.fish + 1
+			counts.junk = counts.junk + (e.junk and 1 or 0)
+			counts.boots = counts.boots + (e.boot and 1 or 0)
+			local entry = fishByItem[e.item]
+			if entry == nil then
+				entry = { item = e.item, name = e.name, n = 0, junk = e.junk, boot = e.boot }
+				fishByItem[e.item] = entry
+				push(digest.fish, entry)
+			end
+			entry.n = entry.n + 1
+		elseif k == "loot" then
+			counts.loot = counts.loot + 1
+			push(digest.loot, { item = e.item, name = e.name, ql = e.ql, qty = e.qty })
+		elseif k == "group_join" then
+			counts.group = counts.group + 1
+			push(digest.companions, e.who)
+		elseif k == "boss" then
+			counts.bosses = counts.bosses + 1
+			push(digest.bosses, e.name)
+		elseif k == "screenshot" then
+			counts.screenshots = counts.screenshots + 1
+		end
+	end
+
+	local kills = {}
+	for npc, kill in pairs(day.kills or {}) do
+		counts.kills = counts.kills + kill.n
+		if kill.murloc then
+			counts.murlocs = counts.murlocs + kill.n
+		end
+		local entry = { npc = npc, name = kill.name, n = kill.n, cls = kill.cls, murloc = kill.murloc }
+		kills[#kills + 1] = entry
+		if NOTABLE_CLASSIFICATIONS[kill.cls] then
+			push(digest.notableKills, entry)
+		end
+	end
+	-- Most killed first; ties by NPC ID, so the same day always gives the same digest.
+	table.sort(kills, function(a, b)
+		if a.n ~= b.n then
+			return a.n > b.n
+		end
+		return a.npc < b.npc
+	end)
+	table.sort(digest.notableKills, function(a, b) return a.npc < b.npc end)
+	for i = 1, math.min(TOP_KILLS, #kills) do
+		digest.kills[i] = kills[i]
+	end
+	counts.kills = counts.kills + counts.anonKills
+
+	digest.levelFrom, digest.levelTo = lowLevel, highLevel
+	local busy = counts.kills + counts.deaths + counts.accepted + counts.turnedIn + counts.loot
+		+ counts.levels + counts.discoveries + counts.bosses + counts.group
+	digest.onlyFished = counts.fish > 0 and counts.kills == 0 and counts.accepted == 0 and counts.turnedIn == 0
+	digest.nothingHappened = busy + counts.fish == 0
+	return digest
+end

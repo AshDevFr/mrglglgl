@@ -126,7 +126,33 @@ sixth field of the creature GUID), so it does not depend on the client's languag
 
 `anonKills` counts kills whose target the client withheld from addons; they have no aggregate.
 
-Fields added by later work (digest contents, more event kinds) are documented here as they land.
+### Digest (`days[key].digest`)
+
+The day's summary, rebuilt at every login and logout while the day still has raw events. Once a
+day is older than `settings.retentionDays`, its `ev`, `kills` and `anonKills` are removed and the
+digest is all that remains. Lists are capped at 20 entries and `kills` at the 15 most killed;
+`counts` are always exact.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `v` | int | Digest version. Days rebuilt from raw events get the current version; compacted days keep theirs |
+| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills` |
+| `levelFrom`, `levelTo` | int? | Lowest and highest level seen that day |
+| `zones` | array | Zones in the order first seen |
+| `subzones` | array | Subzones in the order first seen |
+| `discovered` | array | Areas discovered |
+| `accepted`, `turnedIn` | array | Quest IDs |
+| `deaths` | array | `{ killer?, env?, z, sz }`, as in `death` events |
+| `kills` | array | `{ npc, name?, n, cls, murloc }`, most killed first, ties by NPC ID |
+| `notableKills` | array | Kills of elite, rare, rare elite or world boss classification |
+| `fish` | array | `{ item, name?, n, junk?, boot? }` per item caught |
+| `loot` | array | `{ item, name, ql, qty? }` |
+| `companions` | array | `"Firstname-Surname"` of members met that day |
+| `bosses` | array | Encounter names won |
+| `onlyFished` | bool | Caught fish, and no kills or quest activity |
+| `nothingHappened` | bool | No kills, deaths, quests, fishing, loot, levels, discoveries, bosses or companions |
+
+Fields added by later work are documented here as they land.
 
 ### Quest record (`quests[questID]`)
 
