@@ -38,6 +38,11 @@ The murloc checks its own work: an entry that names a number, place, creature or
 the day's notes is written again once, and if it is still wrong, the day keeps its plain notes and
 says why.
 
+**Edit** on a finished day or week lets you write your own version, starting from the one shown
+(a day set aside by the check included). It goes straight into the journal as a new version, the
+earlier ones are kept, and its byline says you edited it: the app does not check your words
+against the notes.
+
 ## Narrators and margin notes
 
 **Narrator** chooses who writes your journal. The murloc scribe is the default; the others are

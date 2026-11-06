@@ -343,7 +343,16 @@
     "soFar": "Write what happened so far",
     "soFarAgain": "Tell it again so far",
     "soFarByline": "Told so far by {{narrator}}, {{when}}",
-    "soFarNote": "The day goes on. The full entry is written once the day is over."
+    "soFarNote": "The day goes on. The full entry is written once the day is over.",
+    "edit": "Edit",
+    "editLabel": "Your version of the entry",
+    "editHelp": "Saved as a new version in the journal; the earlier ones are kept. The app does not check your words against the day's notes.",
+    "editSave": "Save my version",
+    "editCancel": "Cancel",
+    "editedByline": "Edited by you from {{narrator}}'s entry, {{when}}. Not checked against the notes",
+    "editRefused": "this version cannot be edited",
+    "editFailed": "Your version was not saved: {{message}}",
+    "editFailedNext": "Your text is still in the box; try again, or copy it somewhere safe first."
   },
   "models": {
     "title": "Writing models",

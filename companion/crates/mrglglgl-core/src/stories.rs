@@ -4,7 +4,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use rusqlite::params;
+use rusqlite::{OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 
 use crate::db::{Database, DbError};
@@ -264,6 +264,67 @@ pub fn accept(db: &Database, character_id: i64, story_id: i64) -> Result<bool, D
     }
     tx.commit()?;
     Ok(accepted)
+}
+
+/// Who wrote a version the player edited by hand.
+pub const PLAYER: &str = "player";
+
+/// The longest entry the player may save, in characters.
+pub const MAX_EDIT_CHARS: usize = 20_000;
+
+/// Saves the player's own text for a day or week as a new version, in the journal at once, made
+/// from `story_id` (whose narrator and language it keeps). Drafts of the same day or week are set
+/// aside, as when a draft is accepted. Returns the new version's id, or `None` when `story_id` is
+/// not this character's, is a day told only so far (its full entry would replace the edit), or
+/// the text is blank.
+pub fn edit(
+    db: &Database,
+    character_id: i64,
+    story_id: i64,
+    text: &str,
+) -> Result<Option<i64>, DbError> {
+    let text = text.trim();
+    if text.is_empty() || text.chars().count() > MAX_EDIT_CHARS {
+        return Ok(None);
+    }
+    let base = db
+        .conn()
+        .query_row(
+            &format!("SELECT {COLUMNS} FROM stories WHERE id = ?1 AND character_id = ?2"),
+            params![story_id, character_id],
+            read,
+        )
+        .optional()?;
+    let Some(base) = base.filter(|b| !b.partial) else {
+        return Ok(None);
+    };
+    let id = save(
+        db,
+        &NewStory {
+            character_id,
+            kind: base.kind,
+            start_day: base.start_day,
+            end_day: base.end_day,
+            narrator: base.narrator,
+            language: base.language,
+            provider: PLAYER.to_string(),
+            model: String::new(),
+            prompt_hash: base.prompt_hash,
+            text: text.to_string(),
+            check: CheckStatus::Edited,
+            check_reason: None,
+            status: StoryStatus::Accepted,
+            note: None,
+            partial: false,
+        },
+    )?;
+    db.conn().execute(
+        "UPDATE stories SET status = 'discarded'
+         WHERE status = 'draft' AND (character_id, kind, start_day) =
+             (SELECT character_id, kind, start_day FROM stories WHERE id = ?1)",
+        [id],
+    )?;
+    Ok(Some(id))
 }
 
 /// Throws a draft away. Returns false when `story_id` is not a draft of this character: an

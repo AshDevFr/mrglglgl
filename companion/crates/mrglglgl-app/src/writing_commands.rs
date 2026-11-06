@@ -58,6 +58,18 @@ pub fn accept_draft(
     stories::accept(&db, character_id, story_id).map_err(|e| e.to_string())
 }
 
+/// Saves the player's own text for a day or week as a new version in the journal.
+#[tauri::command]
+pub fn edit_story(
+    state: State<'_, AppState>,
+    character_id: i64,
+    story_id: i64,
+    text: String,
+) -> Result<Option<i64>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    stories::edit(&db, character_id, story_id, &text).map_err(|e| e.to_string())
+}
+
 /// Throws a draft away; the day stays on the To review list until written again.
 #[tauri::command]
 pub fn discard_draft(

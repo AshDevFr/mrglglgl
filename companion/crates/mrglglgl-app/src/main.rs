@@ -68,6 +68,7 @@ fn main() {
             writing_commands::character_stories,
             writing_commands::review_list,
             writing_commands::accept_draft,
+            writing_commands::edit_story,
             writing_commands::discard_draft,
             writing_commands::write_drafts,
             writing_commands::writing_status,

@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Job } from "@/bindings/Job";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
@@ -287,5 +287,89 @@ describe("EntryPanel", () => {
   it("shows a day told so far waiting in line", () => {
     panel({ finished: false, onWriteSoFar: vi.fn(), job: job({}) });
     expect(screen.getByText(/number 3 in line/)).toBeInTheDocument();
+  });
+});
+
+describe("EntryPanel, edited by hand", () => {
+  const handlers = { onWrite: vi.fn(), onCancel: vi.fn(), onRetry: vi.fn() };
+
+  it("saves the player's own version and keeps the box open when saving fails", async () => {
+    const onEdit = vi
+      .fn<(s: Story, text: string) => Promise<void>>()
+      .mockRejectedValueOnce("disk full")
+      .mockResolvedValueOnce(undefined);
+    const base = story(1, "The model's words.");
+    renderWithProviders(
+      <EntryPanel
+        {...handlers}
+        kind="day"
+        day="2026-11-08"
+        finished
+        versions={[base]}
+        blocked={null}
+        narrators={[]}
+        onEdit={onEdit}
+      />,
+    );
+    fireEvent.click(screen.getByText("Edit"));
+    const box = screen.getByLabelText("Your version of the entry");
+    expect(box).toHaveValue("The model's words.");
+    expect(
+      screen.getByText(/does not check your words against the day's notes/),
+    ).toBeInTheDocument();
+    fireEvent.change(box, { target: { value: "My own words." } });
+    fireEvent.click(screen.getByText("Save my version"));
+    expect(
+      await screen.findByText(/Your version was not saved: disk full\./),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Your version of the entry")).toHaveValue(
+      "My own words.",
+    );
+    fireEvent.click(screen.getByText("Save my version"));
+    await waitFor(() => expect(onEdit).toHaveBeenCalledTimes(2));
+    expect(onEdit).toHaveBeenLastCalledWith(base, "My own words.");
+    await waitFor(() =>
+      expect(screen.queryByLabelText("Your version of the entry")).toBeNull(),
+    );
+  });
+
+  it("says an edited version was not checked against the notes", () => {
+    renderWithProviders(
+      <EntryPanel
+        {...handlers}
+        kind="day"
+        day="2026-11-08"
+        finished
+        versions={[
+          { ...story(2, "Mine."), check: "edited", provider: "player" },
+        ]}
+        blocked={null}
+        narrators={[]}
+        onEdit={async () => {}}
+      />,
+    );
+    expect(screen.getByText("Mine.")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /Edited by you from .* entry, .*Not checked against the notes/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("offers no edit for a day told only so far, or a day still going", () => {
+    renderWithProviders(
+      <EntryPanel
+        {...handlers}
+        kind="day"
+        day="2026-11-10"
+        finished={false}
+        versions={[{ ...story(3, "So far."), partial: true }]}
+        blocked={null}
+        narrators={[]}
+        onWriteSoFar={() => {}}
+        onEdit={async () => {}}
+      />,
+    );
+    expect(screen.queryByText("Edit")).toBeNull();
   });
 });

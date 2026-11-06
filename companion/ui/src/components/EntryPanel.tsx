@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Select, Text } from "@mantine/core";
+import { Alert, Button, Group, Select, Text, Textarea } from "@mantine/core";
 import type { TFunction } from "i18next";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -55,6 +55,8 @@ interface Props {
   onRetry: () => void;
   /** Extra actions for the entry shown, such as copying it. */
   actions?: (story: Story) => ReactNode;
+  /** Saves the player's own text as a new version, made from the version shown. */
+  onEdit?: (story: Story, text: string) => Promise<void>;
 }
 
 function failure(t: TFunction, reason: string | null) {
@@ -78,6 +80,7 @@ export function EntryPanel({
   onCancel,
   onRetry,
   actions,
+  onEdit,
 }: Props) {
   const { t, i18n } = useTranslation();
   const [index, setIndex] = useState(0);
@@ -89,6 +92,27 @@ export function EntryPanel({
   const shown = versions[index];
   const readable = shown && shown.check !== "failed";
   const narratorName = (id: string) => narratorLabel(t, narrators, id);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  // Another day, or a new version: whatever was being edited belongs to the old one.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on these changes only
+  useEffect(() => setEditing(null), [versions.length, day]);
+  const editable = Boolean(onEdit && shown && !shown.partial && finished);
+
+  async function saveEdit() {
+    if (!onEdit || !shown || editing === null) return;
+    setSaving(true);
+    setEditError(null);
+    try {
+      await onEdit(shown, editing);
+      setEditing(null);
+    } catch (e) {
+      setEditError(String(e));
+    } finally {
+      setSaving(false);
+    }
+  }
 
   if (live?.active) {
     return (
@@ -128,7 +152,43 @@ export function EntryPanel({
         </Alert>
       )}
 
-      {readable ? (
+      {editing !== null ? (
+        <>
+          <Textarea
+            aria-label={t("writing.editLabel")}
+            value={editing}
+            onChange={(e) => setEditing(e.currentTarget.value)}
+            autosize
+            minRows={6}
+          />
+          <Text size="xs" c="dimmed">
+            {t("writing.editHelp")}
+          </Text>
+          {editError && (
+            <Alert color="red">
+              {problem(t, "writing.editFailed", { message: editError })}
+            </Alert>
+          )}
+          <Group gap="xs">
+            <Button
+              size="xs"
+              loading={saving}
+              disabled={editing.trim() === ""}
+              onClick={() => void saveEdit()}
+            >
+              {t("writing.editSave")}
+            </Button>
+            <Button
+              size="xs"
+              variant="default"
+              disabled={saving}
+              onClick={() => setEditing(null)}
+            >
+              {t("writing.editCancel")}
+            </Button>
+          </Group>
+        </>
+      ) : readable ? (
         <>
           <EntryText text={shown.text} />
           {shown.partial && !finished && (
@@ -206,10 +266,17 @@ export function EntryPanel({
       )}
       {shown && (
         <Text size="xs" c="dimmed">
-          {t(shown.partial ? "writing.soFarByline" : "writing.byline", {
-            narrator: narratorName(shown.narrator),
-            when: formatTime(shown.createdAt, i18n.language),
-          })}
+          {t(
+            shown.check === "edited"
+              ? "writing.editedByline"
+              : shown.partial
+                ? "writing.soFarByline"
+                : "writing.byline",
+            {
+              narrator: narratorName(shown.narrator),
+              when: formatTime(shown.createdAt, i18n.language),
+            },
+          )}
         </Text>
       )}
 
@@ -242,6 +309,15 @@ export function EntryPanel({
                 : t("writing.soFar")}
           </Button>
           {readable && actions?.(shown)}
+          {editable && editing === null && (
+            <Button
+              size="xs"
+              variant="subtle"
+              onClick={() => setEditing(shown.text)}
+            >
+              {t("writing.edit")}
+            </Button>
+          )}
         </Group>
       )}
     </div>

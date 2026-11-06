@@ -31,6 +31,8 @@ pub enum CheckStatus {
     Rewritten,
     /// The rewrite failed too; the day shows its plain facts.
     Failed,
+    /// Written or changed by the player by hand: the fact check does not vouch for it.
+    Edited,
 }
 
 impl CheckStatus {
@@ -39,11 +41,12 @@ impl CheckStatus {
             CheckStatus::Passed => "passed",
             CheckStatus::Rewritten => "rewritten",
             CheckStatus::Failed => "failed",
+            CheckStatus::Edited => "edited",
         }
     }
 
     pub fn from_key(key: &str) -> Option<Self> {
-        [Self::Passed, Self::Rewritten, Self::Failed]
+        [Self::Passed, Self::Rewritten, Self::Failed, Self::Edited]
             .into_iter()
             .find(|s| s.key() == key)
     }

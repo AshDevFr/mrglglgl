@@ -147,6 +147,14 @@ export function acceptDraft(
   return invoke<boolean>("accept_draft", { characterId, storyId });
 }
 
+export function editStory(
+  characterId: number,
+  storyId: number,
+  text: string,
+): Promise<number | null> {
+  return invoke<number | null>("edit_story", { characterId, storyId, text });
+}
+
 export function discardDraft(
   characterId: number,
   storyId: number,

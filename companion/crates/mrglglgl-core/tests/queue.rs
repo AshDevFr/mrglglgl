@@ -705,3 +705,84 @@ async fn a_day_told_so_far_is_shown_now_and_written_in_full_once_it_is_over() {
         );
     }
 }
+
+#[test]
+fn an_entry_edited_by_hand_is_a_new_version_the_fact_check_does_not_vouch_for() {
+    let (db, id) = setup();
+    let db = db.lock().unwrap();
+    let save = |text: &str, status, check, partial| {
+        stories::save(
+            &db,
+            &NewStory {
+                character_id: id,
+                kind: StoryKind::Day,
+                start_day: DAYS[0].into(),
+                end_day: DAYS[0].into(),
+                narrator: "murloc_scribe".into(),
+                language: "en".into(),
+                provider: "fake".into(),
+                model: "fake".into(),
+                prompt_hash: "h".into(),
+                text: text.into(),
+                check,
+                check_reason: None,
+                status,
+                note: None,
+                partial,
+            },
+        )
+        .unwrap()
+    };
+    let written = save(
+        "The model's words.",
+        StoryStatus::Accepted,
+        CheckStatus::Passed,
+        false,
+    );
+    let draft = save("A draft.", StoryStatus::Draft, CheckStatus::Passed, false);
+
+    let edited = stories::edit(&db, id, written, "  My own words.\n\nTwo paragraphs.  ")
+        .unwrap()
+        .expect("an edit is saved");
+    let all = stories::all(&db, id).unwrap();
+    let get = |sid: i64| all.iter().find(|s| s.id == sid).unwrap().clone();
+    let mine = get(edited);
+    assert_eq!(mine.text, "My own words.\n\nTwo paragraphs.");
+    assert_eq!(mine.check, CheckStatus::Edited);
+    assert_eq!(mine.provider, stories::PLAYER);
+    assert_eq!(mine.status, StoryStatus::Accepted);
+    assert_eq!(mine.narrator, "murloc_scribe");
+    assert_eq!(
+        get(written).text,
+        "The model's words.",
+        "the old version is kept"
+    );
+    assert_eq!(get(draft).status, StoryStatus::Discarded);
+    assert_eq!(
+        stories::latest(&db, id, StoryKind::Day).unwrap()[DAYS[0]].id,
+        edited,
+        "the journal shows the edit"
+    );
+
+    // A day set aside by the fact check can be fixed by hand, and then shows the text.
+    let failed = save(
+        "Invented things.",
+        StoryStatus::Accepted,
+        CheckStatus::Failed,
+        false,
+    );
+    let fixed = stories::edit(&db, id, failed, "Only what happened.")
+        .unwrap()
+        .unwrap();
+    assert_eq!(
+        stories::day_entries(&db, id).unwrap()[DAYS[0]],
+        "Only what happened."
+    );
+    assert!(fixed > failed);
+
+    // Refused: blank text, another character's entry, a day told only so far.
+    assert_eq!(stories::edit(&db, id, written, "  \n ").unwrap(), None);
+    assert_eq!(stories::edit(&db, id + 1, written, "Mine.").unwrap(), None);
+    let so_far = save("So far.", StoryStatus::Accepted, CheckStatus::Passed, true);
+    assert_eq!(stories::edit(&db, id, so_far, "Mine.").unwrap(), None);
+}

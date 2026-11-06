@@ -19,6 +19,7 @@ import {
   characterScreenshots,
   characterStories,
   deleteCharacter,
+  editStory,
   listCharacters,
   listNarrators,
   retryWriting,
@@ -120,6 +121,11 @@ export function CharacterPage({
       onRetry: () =>
         void retryWriting(characterId, kind, start).then(refreshStatus),
       actions: (story) => <CopyEntryButton story={story} />,
+      onEdit: async (story, text) => {
+        const saved = await editStory(characterId, story.id, text);
+        if (saved === null) throw new Error(t("writing.editRefused"));
+        await queryClient.invalidateQueries();
+      },
     };
   }
 
