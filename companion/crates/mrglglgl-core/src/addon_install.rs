@@ -42,6 +42,16 @@ const MAX_UNPACKED_BYTES: u64 = 50 * 1024 * 1024;
 const ALLOWED_EXTENSIONS: &[&str] = &[
     "lua", "toc", "xml", "md", "txt", "tga", "blp", "ttf", "ogg", "mp3",
 ];
+/// Plain text files packages carry without an extension, allowed by exact name.
+const ALLOWED_NAMES: &[&str] = &[
+    "LICENSE",
+    "LICENCE",
+    "COPYING",
+    "README",
+    "CHANGELOG",
+    "NOTICE",
+    "AUTHORS",
+];
 /// Rollback copies kept per flavor.
 const ROLLBACKS_KEPT: usize = 3;
 /// The prefix of the installer's working folders under `AddOns`.
@@ -108,9 +118,13 @@ pub struct Package {
 }
 
 fn allowed_file(path: &Path) -> bool {
-    path.extension()
-        .and_then(|e| e.to_str())
-        .is_some_and(|e| ALLOWED_EXTENSIONS.contains(&e.to_ascii_lowercase().as_str()))
+    match path.extension().and_then(|e| e.to_str()) {
+        Some(extension) => ALLOWED_EXTENSIONS.contains(&extension.to_ascii_lowercase().as_str()),
+        None => path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .is_some_and(|n| ALLOWED_NAMES.contains(&n.to_ascii_uppercase().as_str())),
+    }
 }
 
 /// A path inside the addon folder made only of plain names: no `..`, no root, no drive.

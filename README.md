@@ -27,9 +27,9 @@ Documentation, with screenshots: **https://mrglglgl.pages.dev**
 the app install and update it: Settings, Addon, Install.
 
 **App:** download the installer for your system from the same releases page. The builds are not
-signed yet, so your system asks once whether to trust them: on macOS, open the app with right-click
-then Open (or allow it under System Settings > Privacy & Security); on Windows, choose More info
-then Run anyway in the SmartScreen prompt.
+signed with a developer certificate yet, so your system asks once whether to trust them: on macOS,
+open the app once, then choose Open Anyway under System Settings > Privacy & Security; on Windows,
+choose More info then Run anyway in the SmartScreen prompt.
 
 ## Privacy
 

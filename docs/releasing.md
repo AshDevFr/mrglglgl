@@ -37,6 +37,8 @@ repository's releases page when it finishes.
 
 - The addon's in-game version reads the whole tag (for example `addon-v0.1.0-beta.2`), because the
   packager fills the TOC version from the tag name.
-- App builds are not signed or notarised yet; the release notes tell players how to open them.
+- App builds are not signed with a developer certificate or notarised yet. macOS builds are signed
+  ad hoc (`signingIdentity: "-"`): without it, macOS calls the downloaded app damaged and offers no
+  way to open it. The release notes tell players to choose Open Anyway.
   An Apple Developer ID exists, so signing is an additive change to `companion-release.yml`.
 - There is no auto-updater until builds are signed.

@@ -1,8 +1,9 @@
 name: companion-release
 
 # Builds the app's installers for macOS and Windows when an app tag is pushed, and publishes them
-# with a changelog of the app's own commits. Builds are unsigned for now; the release notes tell
-# players how to open them. Tags with a suffix (companion-vX.Y.Z-beta.N) publish a prerelease.
+# with a changelog of the app's own commits. macOS builds are signed ad hoc (no developer
+# certificate yet): without that, macOS calls a downloaded app damaged and offers no way to open
+# it. The release notes tell players how to open them. Tags with a suffix (companion-vX.Y.Z-beta.N) publish a prerelease.
 on:
   push:
     tags: ["companion-v*"]
@@ -81,9 +82,10 @@ jobs:
             echo
             echo "## Installing"
             echo
-            echo "These builds are not signed yet. On macOS, open the app with right-click then Open,"
-            echo "or allow it under System Settings > Privacy & Security. On Windows, choose More info"
-            echo "then Run anyway in the SmartScreen prompt."
+            echo "These builds are not signed with a developer certificate yet, so your system asks once"
+            echo "whether to trust them. On macOS, open the app once; when it says it cannot verify the"
+            echo "developer, open System Settings > Privacy & Security and choose Open Anyway. On Windows,"
+            echo "choose More info then Run anyway in the SmartScreen prompt."
           } > notes.md
           prerelease=""
           case "$TAG" in *-*) prerelease="--prerelease" ;; esac

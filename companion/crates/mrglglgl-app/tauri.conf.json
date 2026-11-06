@@ -1,13 +1,19 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Mrglglgl",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "io.github.ashdevfr.mrglglgl",
   "build": {
     "frontendDist": "../../ui/dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": { "script": "npm run dev", "cwd": "../../ui" },
-    "beforeBuildCommand": { "script": "npm run build", "cwd": "../../ui" }
+    "beforeDevCommand": {
+      "script": "npm run dev",
+      "cwd": "../../ui"
+    },
+    "beforeBuildCommand": {
+      "script": "npm run build",
+      "cwd": "../../ui"
+    }
   },
   "app": {
     "windows": [
@@ -38,7 +44,8 @@
       "icons/icon.ico"
     ],
     "macOS": {
-      "minimumSystemVersion": "10.15"
+      "minimumSystemVersion": "10.15",
+      "signingIdentity": "-"
     }
   }
 }

@@ -14,9 +14,21 @@ Download the installer for your system from the
 
 The builds are not signed yet, so your system asks once whether to trust them:
 
-- **macOS:** open the app with right-click, then **Open**, or allow it under System Settings,
-  Privacy & Security.
+- **macOS:** open the app once. When macOS says it cannot verify the developer, open System
+  Settings, Privacy & Security, and choose **Open Anyway**.
 - **Windows:** in the SmartScreen prompt, choose **More info**, then **Run anyway**.
+
+:::tip[macOS says the app "is damaged and can't be opened"]
+That is macOS refusing an app downloaded from the internet that is not signed by a registered
+developer (version 0.1.0 shows it). The app is not damaged. Move it to Applications, then run this
+once in Terminal to clear the "downloaded from the internet" mark:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Mrglglgl.app
+```
+
+Then open it as usual.
+:::
 
 ## 2. Install the addon
 

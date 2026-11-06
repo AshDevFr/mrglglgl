@@ -453,6 +453,27 @@ fn every_bad_package_is_refused_before_anything_is_written() {
 }
 
 #[test]
+fn a_licence_and_other_plain_text_files_without_an_extension_are_allowed() {
+    // The published packages include the repository's LICENSE.
+    let zip = zip_of(&[
+        ("Mrglglgl/Mrglglgl.toc", &toc(TAG, Some(1))),
+        ("Mrglglgl/LICENSE", "MIT"),
+        ("Mrglglgl/README", "read me"),
+    ]);
+    let checked = verify(&zip, &sha(&zip), TAG).unwrap();
+    assert!(checked.files.contains_key(Path::new("LICENSE")));
+    // Any other file without an extension, such as a program, is still refused.
+    let zip = zip_of(&[
+        ("Mrglglgl/Mrglglgl.toc", &toc(TAG, Some(1))),
+        ("Mrglglgl/install", "#!/bin/sh"),
+    ]);
+    assert!(matches!(
+        verify(&zip, &sha(&zip), TAG),
+        Err(InstallError::BadFile(_))
+    ));
+}
+
+#[test]
 fn a_package_from_before_the_schema_field_reads_as_schema_one() {
     let zip = zip_of(&[("Mrglglgl/Mrglglgl.toc", &toc(TAG, None))]);
     assert_eq!(verify(&zip, &sha(&zip), TAG).unwrap().schema, 1);
