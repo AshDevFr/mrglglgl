@@ -24,9 +24,9 @@ describe("Core", function()
 	end)
 
 	it("only registers events that a module listens to", function()
-		assert.is_false(Mock.isRegistered("PLAYER_LEVEL_UP"))
-		ns.On("PLAYER_LEVEL_UP", function() end)
-		assert.is_true(Mock.isRegistered("PLAYER_LEVEL_UP"))
+		assert.is_false(Mock.isRegistered("PLAYER_REGEN_ENABLED"))
+		ns.On("PLAYER_REGEN_ENABLED", function() end)
+		assert.is_true(Mock.isRegistered("PLAYER_REGEN_ENABLED"))
 	end)
 end)
 

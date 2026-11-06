@@ -111,6 +111,10 @@ function Mock.install()
 		return os.date(format, t or Mock.now)
 	end
 	_G.GetTime = function() return Mock.now end
+	Mock.zone, Mock.subzone, Mock.mapId = "Mulgore", "", 7
+	_G.GetZoneText = function() return Mock.zone end
+	_G.GetSubZoneText = function() return Mock.subzone end
+	_G.C_Map = { GetBestMapForUnit = function() return Mock.mapId end }
 	_G.C_Timer = {
 		After = function(delay, fn)
 			timers[#timers + 1] = { due = Mock.now + delay, fn = fn }

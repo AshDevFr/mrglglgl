@@ -64,6 +64,7 @@ All `record` flags default to `true` and all `screenshots` flags to `false`.
 | `days` | table | Day records keyed by local calendar date `"YYYY-MM-DD"` |
 | `quests` | table | Quest text keyed by quest ID, stored once per quest |
 | `companions` | table | Group members met, keyed by `"Firstname-Surname"` |
+| `discovered` | table? | Areas (zone or subzone names) already recorded as discovered, as `name = true` |
 | `stats.boots` | int | Junk boots fished, all time |
 | `stats.murlocsSlain` | int | Murlocs slain, all time |
 | `stats.deathsByMurloc` | int | Deaths to a murloc, all time |
@@ -80,8 +81,31 @@ A day is a local calendar date. Each event belongs to the day of its own timesta
 | `anonKills` | int? | Kills whose target the client withheld (dungeons, raids, encounters, PvP) |
 | `digest` | table? | The day's summary; kept after compaction |
 
-Fields added by later work (digest contents, per-kind event fields) are documented here as they
-land.
+### Event (`days[key].ev[i]`)
+
+Every event has these fields:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `t` | int | Unix time of the event |
+| `k` | string | Event kind, below |
+| `z` | string | Zone name, in the client's language |
+| `sz` | string | Subzone name, empty when none |
+| `m` | int? | Map ID from `C_Map.GetBestMapForUnit` |
+| `lv` | int | Player level; for `level` events, the new level |
+
+Event kinds and their extra fields:
+
+| Kind | Extra fields | Meaning |
+|---|---|---|
+| `session_start` | | Logged in |
+| `session_end` | | Logged out |
+| `level` | | Reached level `lv` |
+| `zone` | | Entered zone `z` |
+| `subzone` | | Entered subzone `sz` (at most once per subzone per minute) |
+| `discover` | `area` string, `src` string | First time this character found `area`: `src` is `"message"` (the client's discovery message) or `"visit"` (first recorded visit) |
+
+Fields added by later work (digest contents, more event kinds) are documented here as they land.
 
 ### Quest record (`quests[questID]`)
 

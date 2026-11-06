@@ -13,3 +13,6 @@ Locales\enUS.lua
 Compat.lua
 Migrate.lua
 Storage.lua
+Day.lua
+Logger.lua
+Zones.lua
