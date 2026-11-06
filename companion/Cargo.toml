@@ -27,6 +27,8 @@ tauri = { version = "2.12", features = ["protocol-asset"] }
 tauri-build = { version = "2.7", features = [] }
 # Native folder picker for exports.
 tauri-plugin-dialog = "2.8.3"
+# Shows the log file in the system's file manager.
+tauri-plugin-opener = "2.7"
 # Scales screenshots to page width for exports; only the formats the game saves.
 image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "tga"] }
 # Renders the journal website through themes players can override (Jinja-style templates).
@@ -55,6 +57,8 @@ anyhow = "1"
 thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# The app's log file: rotated daily in the data folder, a week kept.
+tracing-appender = "0.2.5"
 
 # HTTP: model downloads and OpenAI-compatible endpoints. rustls avoids a system OpenSSL.
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }

@@ -6,4 +6,8 @@ export type SettingsView = { settings: Settings,
 /**
  * The installs found with the current settings.
  */
-roots: Array<WowRoot>, };
+roots: Array<WowRoot>, 
+/**
+ * Settings groups that could not be read and are shown at their defaults.
+ */
+unreadable: Array<string>, };

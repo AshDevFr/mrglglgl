@@ -257,6 +257,13 @@
     "papers": {
       "tide": "Tide-marked rag paper",
       "parchment": "Parchment"
+    },
+    "unreadable": "Some settings could not be read and are back to their defaults: {{list}}",
+    "unreadableNext": "Check them below and save. The values that could not be read were kept aside in the app's data, and the log says what went wrong.",
+    "group": {
+      "writing": "writing",
+      "site": "website",
+      "backup_retention": "backups"
     }
   },
   "writing": {
@@ -615,5 +622,12 @@
     "actionFailedNext": "The game folder was left as it was. Close the game if it is running, then try again.",
     "releaseFailed": "Could not look up the addon's releases: {{message}}",
     "releaseFailedNext": "Check the connection, then press Check again; what is installed keeps working."
+  },
+  "log": {
+    "title": "Log",
+    "help": "The app keeps a log of what it does for the last week. If something goes wrong, the log helps whoever you ask for help.",
+    "show": "Show the log file",
+    "showFailed": "Could not show the log: {{message}}",
+    "showFailedNext": "The log files are in the logs folder of the app's data folder."
   }
 }

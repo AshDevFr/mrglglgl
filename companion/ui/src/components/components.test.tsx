@@ -105,6 +105,7 @@ describe("SettingsForm", () => {
           roots: [
             { path: "/Applications/World of Warcraft", source: "defaultPath" },
           ],
+          unreadable: [],
         }}
         onSave={onSave}
       />,
@@ -148,6 +149,7 @@ describe("SettingsForm", () => {
             writing: defaultWriting,
           },
           roots: [],
+          unreadable: [],
         }}
         onSave={onSave}
       />,

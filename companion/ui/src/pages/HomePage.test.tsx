@@ -26,6 +26,7 @@ vi.mock("@/api/commands", () => ({
       roots: [
         { path: "/Applications/World of Warcraft", source: "defaultPath" },
       ],
+      unreadable: [],
     }),
   models: () =>
     Promise.resolve({

@@ -445,23 +445,56 @@ impl Database {
 
     /// The player's settings, with defaults for anything never set.
     pub fn settings(&self) -> Result<Settings, DbError> {
+        Ok(self.settings_checked()?.0)
+    }
+
+    /// A settings group stored as JSON; one that cannot be read falls back to its defaults, is
+    /// logged, and its stored text is copied aside under `<key>.unreadable` (once), so the next
+    /// save does not destroy the only copy.
+    fn json_setting<T: serde::de::DeserializeOwned + Default>(
+        &self,
+        key: &str,
+        unreadable: &mut Vec<String>,
+    ) -> Result<T, DbError> {
+        let Some(json) = self.setting(key)? else {
+            return Ok(T::default());
+        };
+        match serde_json::from_str(&json) {
+            Ok(value) => Ok(value),
+            Err(e) => {
+                tracing::warn!("settings: {key} could not be read ({e}); using its defaults");
+                let aside = format!("{key}.unreadable");
+                if self.setting(&aside)?.is_none() {
+                    self.set_setting(&aside, Some(&json))?;
+                }
+                unreadable.push(key.to_string());
+                Ok(T::default())
+            }
+        }
+    }
+
+    /// The player's settings, and the groups that could not be read and are at their defaults.
+    pub fn settings_checked(&self) -> Result<(Settings, Vec<String>), DbError> {
         let defaults = Settings::default();
-        Ok(Settings {
+        let mut unreadable = Vec::new();
+        let backup_retention = match self.setting("backup_retention")? {
+            None => defaults.backup_retention,
+            Some(v) => BackupRetention::from_key(&v).unwrap_or_else(|| {
+                tracing::warn!(
+                    "settings: backup_retention {v:?} is not a choice; using the default"
+                );
+                unreadable.push("backup_retention".to_string());
+                defaults.backup_retention
+            }),
+        };
+        let settings = Settings {
             wow_root_override: self.setting("wow_root_override")?.map(PathBuf::from),
-            backup_retention: self
-                .setting("backup_retention")?
-                .and_then(|v| BackupRetention::from_key(&v))
-                .unwrap_or(defaults.backup_retention),
+            backup_retention,
             ui_language: self.setting("ui_language")?,
-            writing: self
-                .setting("writing")?
-                .and_then(|json| serde_json::from_str(&json).ok())
-                .unwrap_or_default(),
-            site: self
-                .setting("site")?
-                .and_then(|json| serde_json::from_str(&json).ok())
-                .unwrap_or_default(),
-        })
+            writing: self.json_setting("writing", &mut unreadable)?,
+            site: self.json_setting("site", &mut unreadable)?,
+        };
+        Ok((settings, unreadable))
     }
 
     pub fn save_settings(&self, settings: &Settings) -> Result<(), DbError> {

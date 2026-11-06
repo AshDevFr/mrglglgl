@@ -121,16 +121,22 @@ pub struct SettingsView {
     pub settings: Settings,
     /// The installs found with the current settings.
     pub roots: Vec<WowRoot>,
+    /// Settings groups that could not be read and are shown at their defaults.
+    pub unreadable: Vec<String>,
 }
 
 #[tauri::command]
 pub fn get_settings(state: State<'_, AppState>) -> Result<SettingsView, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let settings = db.settings().map_err(|e| e.to_string())?;
+    let (settings, unreadable) = db.settings_checked().map_err(|e| e.to_string())?;
     let roots = discovery::discover(&DiscoveryOverrides {
         wow_root: settings.wow_root_override.clone(),
     });
-    Ok(SettingsView { settings, roots })
+    Ok(SettingsView {
+        settings,
+        roots,
+        unreadable,
+    })
 }
 
 /// The addon in each WoW: Forever flavor found: installed or not, which version, and whether it

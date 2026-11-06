@@ -42,6 +42,8 @@ export const PROBLEMS = [
   "addon.problem.errors",
   "addon.actionFailed",
   "addon.releaseFailed",
+  "log.showFailed",
+  "settings.unreadable",
 ] as const;
 
 export type Problem = (typeof PROBLEMS)[number];

@@ -3,6 +3,7 @@
 
 mod addon_commands;
 mod commands;
+mod logging;
 mod power;
 mod site_commands;
 mod sync;
@@ -15,17 +16,14 @@ use mrglglgl_core::db::Database;
 use tauri::Manager;
 
 fn main() {
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "mrglglgl=info".into()),
-        )
-        .init();
-
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
+            // Kept for the app's lifetime: dropping it would stop the log file being written.
+            app.manage(logging::init(&data_dir));
+            tracing::info!("mrglglgl {} starting", env!("CARGO_PKG_VERSION"));
             let db = Database::open(&data_dir)?;
             // The archive is the only copy of days the game has compacted: keep a weekly copy.
             match db.snapshot_if_due(&data_dir, chrono::Utc::now().timestamp()) {
@@ -57,6 +55,7 @@ fn main() {
             commands::character_milestones,
             commands::character_screenshots,
             commands::get_settings,
+            logging::show_log,
             addon_commands::addon_views,
             addon_commands::addon_release,
             addon_commands::set_addon_prereleases,

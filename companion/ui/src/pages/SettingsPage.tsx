@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { getSettings, saveSettings } from "@/api/commands";
 import type { Settings } from "@/bindings/Settings";
 import { AddonPanel } from "@/components/AddonPanel";
+import { LogPanel } from "@/components/LogPanel";
 import { ModelsPanel } from "@/components/ModelsPanel";
 import { NarratorsPanel } from "@/components/NarratorsPanel";
 import { PaperField } from "@/components/PaperField";
@@ -42,6 +43,15 @@ export function SettingsPage() {
           {problem(t, "errors.load", { message: String(view.error) })}
         </Alert>
       )}
+      {view.data && view.data.unreadable.length > 0 && (
+        <Alert color="orange" mb="md" maw={640}>
+          {problem(t, "settings.unreadable", {
+            list: view.data.unreadable
+              .map((key) => t(`settings.group.${key}`, { defaultValue: key }))
+              .join(", "),
+          })}
+        </Alert>
+      )}
       {view.data ? (
         <Stack gap="xl" maw={640}>
           <PaperField />
@@ -58,6 +68,7 @@ export function SettingsPage() {
             }
           />
           <WebsitePanel site={view.data.settings.site} />
+          <LogPanel />
         </Stack>
       ) : (
         <Text>{t("loading")}</Text>

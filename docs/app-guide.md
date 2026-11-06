@@ -73,6 +73,13 @@ whatever you choose: backups are only a safety net.
 Forgetting data in the game, with the addon's "Forget recorded" buttons, changes only the game's
 files. To remove a character's history from the app, remove the character in the app.
 
+## When something goes wrong
+
+The app keeps a log of what it does, a file a day for the last week, in the `logs` folder of its
+data folder. Settings, Log, **Show the log file** opens it in your file manager: attach it when you
+ask for help. If some settings could not be read, Settings says which ones are back to their
+defaults; the values it could not read are kept aside rather than overwritten.
+
 ## Privacy
 
 With **This computer**, nothing leaves your computer.

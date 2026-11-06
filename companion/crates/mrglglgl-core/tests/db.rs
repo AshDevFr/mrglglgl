@@ -265,3 +265,39 @@ fn addon_test_versions_are_off_until_chosen_and_survive_a_restart() {
     db.set_addon_prereleases(false).unwrap();
     assert!(!db.addon_prereleases().unwrap());
 }
+
+#[test]
+fn a_settings_group_that_cannot_be_read_is_reported_and_kept_aside() {
+    let dir = tempfile::tempdir().unwrap();
+    {
+        let db = Database::open(dir.path()).unwrap();
+        db.save_settings(&Settings::default()).unwrap();
+    }
+    let raw = rusqlite::Connection::open(dir.path().join("mrglglgl.db")).unwrap();
+    raw.execute(
+        "UPDATE settings SET value = '{\"paused\": \"not a bool\"' WHERE key = 'writing'",
+        [],
+    )
+    .unwrap();
+    raw.execute(
+        "UPDATE settings SET value = 'weekly' WHERE key = 'backup_retention'",
+        [],
+    )
+    .unwrap();
+    let db = Database::open(dir.path()).unwrap();
+    let (settings, unreadable) = db.settings_checked().unwrap();
+    assert_eq!(settings, Settings::default());
+    assert_eq!(unreadable, vec!["backup_retention", "writing"]);
+
+    // Saving the defaults keeps the text that could not be read, for someone to look at.
+    db.save_settings(&settings).unwrap();
+    let aside: String = raw
+        .query_row(
+            "SELECT value FROM settings WHERE key = 'writing.unreadable'",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(aside, "{\"paused\": \"not a bool\"");
+    assert!(db.settings_checked().unwrap().1.is_empty());
+}

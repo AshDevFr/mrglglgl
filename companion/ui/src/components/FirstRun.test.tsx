@@ -30,6 +30,7 @@ function settings(roots: SettingsView["roots"]): SettingsView {
       writing: defaultWriting,
     },
     roots,
+    unreadable: [],
   };
 }
 

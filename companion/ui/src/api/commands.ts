@@ -93,6 +93,10 @@ export function restoreAddon(flavor: string): Promise<Installed> {
   return invoke<Installed>("restore_addon", { flavor });
 }
 
+export function showLog(): Promise<void> {
+  return invoke("show_log");
+}
+
 export function getSettings(): Promise<SettingsView> {
   return invoke<SettingsView>("get_settings");
 }
