@@ -10,6 +10,10 @@ import {
   syntheticAwards,
 } from "@/test/render";
 import { CharacterTree } from "./CharacterTree";
+
+const dialog = vi.hoisted(() => ({ open: vi.fn() }));
+vi.mock("@tauri-apps/plugin-dialog", () => dialog);
+
 import { SettingsForm } from "./SettingsForm";
 
 const wren: CharacterSummary = {
@@ -110,6 +114,7 @@ describe("SettingsForm", () => {
         onSave={onSave}
       />,
     );
+    expect(screen.getByText("Found automatically:")).toBeInTheDocument();
     expect(
       screen.getByText("/Applications/World of Warcraft"),
     ).toBeInTheDocument();
@@ -120,9 +125,10 @@ describe("SettingsForm", () => {
       screen.getByText(/changes only the game's files/),
     ).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText(/World of Warcraft folder/), {
-      target: { value: "  /Games/World of Warcraft  " },
-    });
+    dialog.open.mockResolvedValueOnce("/Games/World of Warcraft");
+    fireEvent.click(screen.getByText("Choose another folder…"));
+    expect(await screen.findByText("Chosen by you:")).toBeInTheDocument();
+    expect(screen.getByText("Save to use this.")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Save"));
     await waitFor(() =>
       expect(screen.getByText("Settings saved.")).toBeInTheDocument(),
@@ -198,5 +204,48 @@ describe("SettingsForm", () => {
     const saved = onSave.mock.calls[0][0];
     expect(saved.writing.preferences).toBe("No em dashes.");
     expect(saved.wowRootOverride).toBe("/Games/World of Warcraft");
+  });
+
+  it("never pins the folder it found, and finds it again on request", async () => {
+    const onSave = vi.fn((_: Settings) => Promise.resolve());
+    const view = (override: string | null, found: boolean) => ({
+      settings: {
+        wowRootOverride: override,
+        backupRetention: "days90" as const,
+        uiLanguage: null,
+        site: defaultSite,
+        writing: defaultWriting,
+      },
+      roots: found
+        ? [
+            {
+              path: override ?? "/Applications/World of Warcraft",
+              source: "override" as const,
+            },
+          ]
+        : [],
+      unreadable: [],
+    });
+    const { unmount } = renderWithProviders(
+      <SettingsForm view={view("/Games/Gone", false)} onSave={onSave} />,
+    );
+    expect(screen.getByText("/Games/Gone")).toBeInTheDocument();
+    expect(
+      screen.getByText(/The folder you chose has no World of Warcraft in it/),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Find it automatically again"));
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(onSave.mock.calls[0][0].wowRootOverride).toBeNull();
+    unmount();
+
+    // Saving anything else while the folder is found keeps it automatic.
+    const again = vi.fn((_: Settings) => Promise.resolve());
+    renderWithProviders(
+      <SettingsForm view={{ ...view(null, true) }} onSave={again} />,
+    );
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() => expect(again).toHaveBeenCalled());
+    expect(again.mock.calls[0][0].wowRootOverride).toBeNull();
   });
 });

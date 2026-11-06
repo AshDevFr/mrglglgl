@@ -1,4 +1,4 @@
-import { Alert, Button, List, Select, Stack, Text } from "@mantine/core";
+import { Alert, Button, Select, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,7 +9,7 @@ import type { SettingsView } from "@/bindings/SettingsView";
 import type { WritingSettings } from "@/bindings/WritingSettings";
 import { problem } from "@/i18n/problems";
 import { EndpointFields } from "./EndpointFields";
-import { FolderField } from "./FolderField";
+import { WowFolderField } from "./WowFolderField";
 import { WritingFields } from "./WritingFields";
 
 interface Props {
@@ -67,26 +67,12 @@ export function SettingsForm({ view, onSave, section = "general" }: Props) {
     <Stack maw={640}>
       {section === "general" ? (
         <>
-          <FolderField
-            label={t("settings.wowFolder")}
-            description={t("settings.wowFolderHelp")}
+          <WowFolderField
             value={folder}
+            saved={view.settings.wowRootOverride}
+            roots={view.roots}
             onChange={setFolder}
           />
-          {view.roots.length === 0 ? (
-            <Text size="sm">{problem(t, "settings.foundNone")}</Text>
-          ) : (
-            <div>
-              <Text size="sm">
-                {t("settings.found", { count: view.roots.length })}
-              </Text>
-              <List size="sm">
-                {view.roots.map((root) => (
-                  <List.Item key={root.path}>{root.path}</List.Item>
-                ))}
-              </List>
-            </div>
-          )}
           <Select
             label={t("settings.backupRetention")}
             description={t("settings.backupRetentionHelp")}

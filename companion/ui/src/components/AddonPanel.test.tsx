@@ -62,6 +62,7 @@ function release(updates: string[] = []): ReleaseCheck {
       published: null,
     },
     prereleases: false,
+    testVersion: null,
     updates,
     checked: 1794000000,
   };
@@ -268,5 +269,22 @@ describe("AddonPanel", () => {
     await waitFor(() =>
       expect(api.setAddonPrereleases).toHaveBeenCalledWith(true),
     );
+  });
+
+  it("says when only a test version is published", async () => {
+    api.views = [];
+    api.check = {
+      release: null,
+      prereleases: false,
+      testVersion: "0.1.0-beta.2",
+      updates: [],
+      checked: 1794000000,
+    };
+    renderWithProviders(<AddonPanel />);
+    expect(
+      await screen.findByText(
+        /No release yet, only test version 0\.1\.0-beta\.2\. Turn on Offer test versions/,
+      ),
+    ).toBeInTheDocument();
   });
 });

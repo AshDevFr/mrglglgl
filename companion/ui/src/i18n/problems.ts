@@ -10,6 +10,7 @@ import type { TFunction } from "i18next";
 export const PROBLEMS = [
   "errors.load",
   "settings.foundNone",
+  "settings.chosenMissing",
   "settings.error",
   "settings.connectionFailed",
   "models.failed",

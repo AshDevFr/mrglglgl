@@ -65,6 +65,8 @@ pub struct ReleaseCheck {
     pub release: Option<Release>,
     /// Whether test versions are offered.
     pub prereleases: bool,
+    /// The newest test version, when test versions are off and there is no release yet.
+    pub test_version: Option<String>,
     /// Flavor folders whose installed addon is older than the release.
     pub updates: Vec<PathBuf>,
     /// Unix time of the listing.
@@ -114,6 +116,11 @@ pub async fn addon_release(
         .map_err(|e| e.to_string())?;
     let (text, checked) = listing(force).await?;
     let release = addon_install::latest_release(&text, prereleases);
+    let test_version = release
+        .is_none()
+        .then(|| addon_install::latest_release(&text, true))
+        .flatten()
+        .map(|r| r.version);
     let updates = match &release {
         Some(release) => forever_flavors(&state)?
             .into_iter()
@@ -132,6 +139,7 @@ pub async fn addon_release(
     Ok(ReleaseCheck {
         release,
         prereleases,
+        test_version,
         updates,
         checked,
     })

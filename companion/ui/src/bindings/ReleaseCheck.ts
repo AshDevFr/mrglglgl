@@ -10,6 +10,10 @@ export type ReleaseCheck = { release: Release | null,
  */
 prereleases: boolean, 
 /**
+ * The newest test version, when test versions are off and there is no release yet.
+ */
+testVersion: string | null, 
+/**
  * Flavor folders whose installed addon is older than the release.
  */
 updates: Array<string>, 

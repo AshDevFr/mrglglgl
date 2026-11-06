@@ -97,7 +97,7 @@ describe("first run", () => {
     renderWithProviders(<FirstRun onOpenSettings={vi.fn()} />);
     expect(
       await screen.findByText(
-        "No World of Warcraft folder found. Enter the game folder above (the one containing _forever_), then save.",
+        "No World of Warcraft folder found. Choose the game folder, the one containing _forever_.",
       ),
     ).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("World of Warcraft folder"), {

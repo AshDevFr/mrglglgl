@@ -185,9 +185,7 @@
   "settings": {
     "title": "Settings",
     "wowFolder": "World of Warcraft folder",
-    "wowFolderHelp": "Leave empty to find it automatically. Enter the game folder (the one containing _forever_) or a flavor folder such as _forever_.",
-    "found_one": "Found {{count}} World of Warcraft folder:",
-    "found_other": "Found {{count}} World of Warcraft folders:",
+    "wowFolderHelp": "The app finds the game by itself. Choose a folder only if it looks in the wrong place: the game folder (the one containing _forever_) or a flavor folder such as _forever_.",
     "foundNone": "No World of Warcraft folder found.",
     "backupRetention": "Keep backups for",
     "backupRetentionHelp": "Your journal's full history stays in the app whatever you choose. Backups are only a safety net: copies of the raw files the game saved. Every copy from the last week is kept; older ones are thinned to one a day.",
@@ -246,7 +244,7 @@
     "disclosure": "This address is not on this computer. When writing, the app sends {{host}}: your character's name, the names of people you grouped with, and the text of quests you touched that day, along with what happened that day.",
     "pseudonyms": "Send stand-in names for the people you grouped with",
     "pseudonymsHelp": "Their real names are put back in the entry when it comes back.",
-    "foundNoneNext": "Enter the game folder above (the one containing _forever_), then save.",
+    "foundNoneNext": "Choose the game folder, the one containing _forever_.",
     "errorNext": "Check that the folder above exists, then save again.",
     "connectionFailedNext": "Check the address (it usually ends in /v1), that the server is running and the model name, then test again.",
     "writeOnBattery": "Write while on battery",
@@ -274,7 +272,15 @@
       "narrators": "Narrators",
       "website": "Website",
       "addon": "Addon"
-    }
+    },
+    "wowFound": "Found automatically:",
+    "wowChosen": "Chosen by you:",
+    "wowChoose": "Choose the folder…",
+    "wowChooseAnother": "Choose another folder…",
+    "wowAutomatic": "Find it automatically again",
+    "wowUnsaved": "Save to use this.",
+    "chosenMissing": "The folder you chose has no World of Warcraft in it",
+    "chosenMissingNext": "Choose the game folder (the one containing _forever_), or find it automatically again, then save."
   },
   "writing": {
     "loading": {
@@ -616,6 +622,7 @@
     },
     "latest": "Newest release: {{version}} (checked {{when}}).",
     "noRelease": "No release of the addon was found for this channel.",
+    "onlyTestVersion": "No release yet, only test version {{version}}. Turn on Offer test versions to install it.",
     "checkAgain": "Check again",
     "prereleases": "Offer test versions",
     "prereleasesHelp": "Test versions come before a release and may still have rough edges. Off, only releases are installed.",

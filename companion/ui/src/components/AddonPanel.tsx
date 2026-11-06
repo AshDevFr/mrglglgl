@@ -311,7 +311,11 @@ export function AddonPanel() {
                   version: latest.version,
                   when: when(i18n.language, release.data.checked),
                 })
-              : t("addon.noRelease")}
+              : release.data.testVersion
+                ? t("addon.onlyTestVersion", {
+                    version: release.data.testVersion,
+                  })
+                : t("addon.noRelease")}
           </Text>
           <Button
             size="xs"

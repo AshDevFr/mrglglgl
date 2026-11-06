@@ -38,6 +38,7 @@ vi.mock("@/api/commands", () => ({
   addonRelease: async () => ({
     release: null,
     prereleases: false,
+    testVersion: null,
     updates: [],
     checked: 0,
   }),
@@ -60,15 +61,13 @@ beforeEach(() => {
 describe("SettingsPage", () => {
   it("opens on General and shows one tab's sections at a time", async () => {
     renderWithProviders(<SettingsPage />);
-    expect(
-      await screen.findByLabelText(/World of Warcraft folder/),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("Chosen by you:")).toBeInTheDocument();
     expect(screen.getByText("Show the log file")).toBeInTheDocument();
     expect(screen.queryByText("Offer test versions")).toBeNull();
 
     fireEvent.click(screen.getByRole("tab", { name: "Addon" }));
     expect(await screen.findByText("Offer test versions")).toBeInTheDocument();
-    expect(screen.queryByLabelText(/World of Warcraft folder/)).toBeNull();
+    expect(screen.queryByText("Chosen by you:")).toBeNull();
   });
 
   it("remembers the tab when the page is opened again", async () => {
@@ -83,9 +82,7 @@ describe("SettingsPage", () => {
 
   it("saves only the open tab's settings, keeping the rest as stored", async () => {
     renderWithProviders(<SettingsPage />);
-    fireEvent.change(await screen.findByLabelText(/World of Warcraft folder/), {
-      target: { value: "/Elsewhere" },
-    });
+    fireEvent.click(await screen.findByText("Find it automatically again"));
     fireEvent.click(screen.getByRole("tab", { name: "Writing" }));
     fireEvent.click(await screen.findByText("Save"));
     await waitFor(() => expect(api.saveSettings).toHaveBeenCalled());
