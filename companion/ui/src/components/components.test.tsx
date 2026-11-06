@@ -82,7 +82,7 @@ describe("SettingsForm", () => {
         view={{
           settings: {
             wowRootOverride: null,
-            backupCount: 30,
+            backupRetention: "days90",
             uiLanguage: null,
           },
           roots: [
@@ -111,8 +111,39 @@ describe("SettingsForm", () => {
     );
     expect(onSave).toHaveBeenCalledWith({
       wowRootOverride: "/Games/World of Warcraft",
-      backupCount: 30,
+      backupRetention: "days90",
       uiLanguage: null,
     });
+  });
+
+  it("keeps backups by age, explaining that the archive keeps full history anyway", async () => {
+    const onSave = vi.fn((_: Settings) => Promise.resolve());
+    renderWithProviders(
+      <SettingsForm
+        view={{
+          settings: {
+            wowRootOverride: null,
+            backupRetention: "days90",
+            uiLanguage: null,
+          },
+          roots: [],
+        }}
+        onSave={onSave}
+      />,
+    );
+    expect(
+      screen.getByText(/full history stays in the app whatever you choose/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/only a safety net/)).toBeInTheDocument();
+
+    const select = screen
+      .getAllByLabelText("Keep backups for")
+      .find((el) => el.tagName === "INPUT");
+    if (!select) throw new Error("no backup period input");
+    fireEvent.click(select);
+    fireEvent.click(await screen.findByRole("option", { name: "Forever" }));
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(onSave.mock.calls[0][0].backupRetention).toBe("forever");
   });
 });

@@ -149,8 +149,14 @@
     "found_one": "Found {{count}} World of Warcraft folder:",
     "found_other": "Found {{count}} World of Warcraft folders:",
     "foundNone": "No World of Warcraft folder found.",
-    "backupCount": "Backups kept per character",
-    "backupCountHelp": "The app copies each journal file every time the game saves it, and keeps this many copies per character.",
+    "backupRetention": "Keep backups for",
+    "backupRetentionHelp": "Your journal's full history stays in the app whatever you choose. Backups are only a safety net: copies of the raw files the game saved. Every copy from the last week is kept; older ones are thinned to one a day.",
+    "retention": {
+      "days30": "30 days",
+      "days90": "90 days",
+      "year": "1 year",
+      "forever": "Forever"
+    },
     "language": "Language",
     "languageSystem": "Same as the system",
     "languageEnglish": "English",

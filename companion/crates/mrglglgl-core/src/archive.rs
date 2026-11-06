@@ -17,10 +17,10 @@ use std::path::{Path, PathBuf};
 use rusqlite::{OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 
-use crate::db::{Database, DbError};
+use crate::db::{BackupRetention, Database, DbError};
 use crate::discovery::CharacterSource;
 use crate::schema::{self, Character, Companion, Day, Journal, JournalError, Quest, Stats};
-use crate::watch::modified_unix;
+use crate::watch::{modified_unix, now_unix};
 
 /// The folder, inside the app data folder, that holds journal backups.
 pub const BACKUPS_FOLDER: &str = "backups";
@@ -70,38 +70,99 @@ pub fn backups(folder: &Path) -> Vec<PathBuf> {
     files
 }
 
+/// Every copy younger than this many days is kept; older ones thin to one per day.
+pub const KEEP_EVERY_COPY_DAYS: i64 = 7;
+
+const DAY_SECONDS: i64 = 24 * 60 * 60;
+
+/// When the game wrote the journal a backup copies, from the backup's name.
+fn backup_time(path: &Path) -> Option<i64> {
+    let stem = path.file_stem()?.to_str()?;
+    stem.split('-').next()?.parse().ok()
+}
+
+fn local_day(unix: i64) -> Option<chrono::NaiveDate> {
+    use chrono::TimeZone;
+    chrono::Local
+        .timestamp_opt(unix, 0)
+        .earliest()
+        .map(|t| t.date_naive())
+}
+
+/// The backups to delete at time `now`: copies from the last week are all kept; older copies
+/// thin to the last one of each local calendar day; copies older than the retention period go.
+/// The newest copy is always kept, however old: it holds the journal's current content.
+pub fn backups_to_remove(
+    backups: &[PathBuf],
+    now: i64,
+    retention: BackupRetention,
+) -> Vec<PathBuf> {
+    let mut dated: Vec<(i64, &PathBuf)> = backups
+        .iter()
+        .filter_map(|p| Some((backup_time(p)?, p)))
+        .collect();
+    dated.sort();
+    let Some(&(_, newest)) = dated.last() else {
+        return Vec::new();
+    };
+
+    let mut last_of_day: BTreeMap<chrono::NaiveDate, &PathBuf> = BTreeMap::new();
+    for (time, path) in &dated {
+        if let Some(day) = local_day(*time) {
+            last_of_day.insert(day, path);
+        }
+    }
+
+    dated
+        .iter()
+        .filter(|(time, path)| {
+            if *path == newest {
+                return false;
+            }
+            let age = now - time;
+            let expired = retention
+                .days()
+                .is_some_and(|days| age > days * DAY_SECONDS);
+            let thinned = age >= KEEP_EVERY_COPY_DAYS * DAY_SECONDS
+                && local_day(*time).and_then(|d| last_of_day.get(&d)) != Some(path);
+            expired || thinned
+        })
+        .map(|(_, path)| (*path).clone())
+        .collect()
+}
+
 /// Copies a character's journal into its backup folder, unless the newest backup already holds
-/// the same content, and keeps only the newest `keep` copies. Returns the backup holding the
-/// current content, which is the file to parse. The original is only ever read.
+/// the same content, then thins old copies for the retention period at time `now`. Returns the
+/// backup holding the current content, which is the file to parse. The original is only ever
+/// read.
 pub fn backup_journal(
     data_dir: &Path,
     source: &CharacterSource,
-    keep: u32,
+    retention: BackupRetention,
+    now: i64,
 ) -> Result<PathBuf, ArchiveError> {
     let content = fs::read(&source.journal_path).map_err(io_error(&source.journal_path))?;
     let folder = backup_folder(data_dir, source);
     fs::create_dir_all(&folder).map_err(io_error(&folder))?;
 
     let existing = backups(&folder);
-    if let Some(newest) = existing.last()
-        && fs::read(newest).is_ok_and(|bytes| bytes == content)
-    {
-        return Ok(newest.clone());
-    }
+    let path = match existing.last() {
+        Some(newest) if fs::read(newest).is_ok_and(|bytes| bytes == content) => newest.clone(),
+        _ => {
+            let mtime = modified_unix(&source.journal_path).unwrap_or(0);
+            let mut path = folder.join(format!("{mtime:012}.lua"));
+            let mut n = 1;
+            while path.exists() {
+                path = folder.join(format!("{mtime:012}-{n}.lua"));
+                n += 1;
+            }
+            fs::write(&path, &content).map_err(io_error(&path))?;
+            path
+        }
+    };
 
-    let mtime = modified_unix(&source.journal_path).unwrap_or(0);
-    let mut path = folder.join(format!("{mtime:012}.lua"));
-    let mut n = 1;
-    while path.exists() {
-        path = folder.join(format!("{mtime:012}-{n}.lua"));
-        n += 1;
-    }
-    fs::write(&path, &content).map_err(io_error(&path))?;
-
-    let all = backups(&folder);
-    let excess = all.len().saturating_sub(keep.max(1) as usize);
-    for old in &all[..excess] {
-        fs::remove_file(old).map_err(io_error(old))?;
+    for old in backups_to_remove(&backups(&folder), now, retention) {
+        fs::remove_file(&old).map_err(io_error(&old))?;
     }
     Ok(path)
 }
@@ -299,9 +360,9 @@ pub fn import(
     db: &Database,
     data_dir: &Path,
     source: &CharacterSource,
-    keep: u32,
+    retention: BackupRetention,
 ) -> Result<ImportOutcome, ArchiveError> {
-    let copy = backup_journal(data_dir, source, keep)?;
+    let copy = backup_journal(data_dir, source, retention, now_unix())?;
     let text = fs::read_to_string(&copy).map_err(io_error(&copy))?;
     let synced = modified_unix(&source.journal_path);
     match schema::journal_from_text(&text) {

@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use mrglglgl_core::archive::{self, ImportOutcome};
-use mrglglgl_core::db::Database;
+use mrglglgl_core::db::{BackupRetention, Database};
 use mrglglgl_core::discovery::{self, CharacterSource, DiscoveryOverrides, WowRoot};
 use mrglglgl_core::milestones;
 use mrglglgl_core::screenshots;
@@ -56,8 +56,13 @@ fn sources(roots: &[WowRoot]) -> Vec<CharacterSource> {
 }
 
 /// Imports one character's journal and refreshes its milestones. Returns its id when imported.
-fn import_one(db: &Database, data_dir: &Path, source: &CharacterSource, keep: u32) -> Option<i64> {
-    match archive::import(db, data_dir, source, keep) {
+fn import_one(
+    db: &Database,
+    data_dir: &Path,
+    source: &CharacterSource,
+    retention: BackupRetention,
+) -> Option<i64> {
+    match archive::import(db, data_dir, source, retention) {
         Ok(ImportOutcome::Imported { character_id }) => {
             if let Ok(Some(journal)) = archive::load(db, character_id)
                 && let Err(e) = milestones::award(db, character_id, &journal)
@@ -90,7 +95,7 @@ pub fn sync_all(state: &AppState) -> Result<SyncReport, String> {
     };
     for source in sources(&roots) {
         report.characters += 1;
-        match import_one(&db, &state.data_dir, &source, settings.backup_count) {
+        match import_one(&db, &state.data_dir, &source, settings.backup_retention) {
             Some(_) => report.imported += 1,
             None => report.unreadable += 1,
         }
@@ -156,12 +161,15 @@ pub fn start_watching(app: &AppHandle) -> Result<(), String> {
             let Ok(db) = state.db.lock() else {
                 return;
             };
-            let keep = db.settings().map(|s| s.backup_count).unwrap_or(30);
+            let retention = db
+                .settings()
+                .map(|s| s.backup_retention)
+                .unwrap_or_default();
             for source in sources(&roots) {
                 if changed
                     .iter()
                     .any(|path| same_file(path, &source.journal_path))
-                    && let Some(id) = import_one(&db, &state.data_dir, &source, keep)
+                    && let Some(id) = import_one(&db, &state.data_dir, &source, retention)
                 {
                     let _ = handle.emit(JOURNAL_UPDATED, id);
                 }

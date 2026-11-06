@@ -15,8 +15,45 @@ use crate::schema::Character;
 /// The database file name inside the app data folder.
 pub const DATABASE_FILE: &str = "mrglglgl.db";
 
-/// Backups kept per character when the player has not chosen a number.
-pub const DEFAULT_BACKUP_COUNT: u32 = 30;
+/// How long backups of the raw journal files are kept. The archive keeps every day it has seen
+/// whatever this is set to; backups are only a safety net of the files as the game wrote them.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub enum BackupRetention {
+    Days30,
+    #[default]
+    Days90,
+    Year,
+    Forever,
+}
+
+impl BackupRetention {
+    /// The period in days, or `None` for forever.
+    pub fn days(self) -> Option<i64> {
+        match self {
+            BackupRetention::Days30 => Some(30),
+            BackupRetention::Days90 => Some(90),
+            BackupRetention::Year => Some(365),
+            BackupRetention::Forever => None,
+        }
+    }
+
+    fn key(self) -> &'static str {
+        match self {
+            BackupRetention::Days30 => "days30",
+            BackupRetention::Days90 => "days90",
+            BackupRetention::Year => "year",
+            BackupRetention::Forever => "forever",
+        }
+    }
+
+    fn from_key(key: &str) -> Option<Self> {
+        [Self::Days30, Self::Days90, Self::Year, Self::Forever]
+            .into_iter()
+            .find(|r| r.key() == key)
+    }
+}
 
 /// Migrations in order; entry `n` upgrades the database from version `n` to `n + 1`.
 const MIGRATIONS: &[&str] = &[
@@ -66,6 +103,18 @@ const MIGRATIONS: &[&str] = &[
         day TEXT NOT NULL,
         PRIMARY KEY (character_id, id)
     );",
+    // Backups are kept by age instead of by count. The untouched default (30 copies) becomes the
+    // new default of 90 days; a player who kept fewer copies gets the shortest period, one who
+    // kept more gets a year.
+    "INSERT OR REPLACE INTO settings (key, value)
+        SELECT 'backup_retention',
+            CASE
+                WHEN CAST(value AS INTEGER) = 30 THEN 'days90'
+                WHEN CAST(value AS INTEGER) < 30 THEN 'days30'
+                ELSE 'year'
+            END
+        FROM settings WHERE key = 'backup_count';
+    DELETE FROM settings WHERE key = 'backup_count';",
 ];
 
 /// The schema version this build creates and understands.
@@ -87,26 +136,16 @@ pub enum DbError {
 }
 
 /// The settings the player chooses in the app.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     /// A WoW folder chosen by the player; wins over every discovered install.
     pub wow_root_override: Option<PathBuf>,
-    /// Backups of each character's journal file kept in the app data folder.
-    pub backup_count: u32,
+    /// How long backups of each character's journal file are kept in the app data folder.
+    pub backup_retention: BackupRetention,
     /// The UI language; `None` follows the operating system.
     pub ui_language: Option<String>,
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        Self {
-            wow_root_override: None,
-            backup_count: DEFAULT_BACKUP_COUNT,
-            ui_language: None,
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -199,10 +238,10 @@ impl Database {
         let defaults = Settings::default();
         Ok(Settings {
             wow_root_override: self.setting("wow_root_override")?.map(PathBuf::from),
-            backup_count: self
-                .setting("backup_count")?
-                .and_then(|v| v.parse().ok())
-                .unwrap_or(defaults.backup_count),
+            backup_retention: self
+                .setting("backup_retention")?
+                .and_then(|v| BackupRetention::from_key(&v))
+                .unwrap_or(defaults.backup_retention),
             ui_language: self.setting("ui_language")?,
         })
     }
@@ -214,7 +253,7 @@ impl Database {
             .as_ref()
             .map(|p| p.to_string_lossy().into_owned());
         self.set_setting("wow_root_override", root.as_deref())?;
-        self.set_setting("backup_count", Some(&settings.backup_count.to_string()))?;
+        self.set_setting("backup_retention", Some(settings.backup_retention.key()))?;
         self.set_setting("ui_language", settings.ui_language.as_deref())?;
         tx.commit()?;
         Ok(())
