@@ -11,3 +11,5 @@ Core.lua
 Locale.lua
 Locales\enUS.lua
 Compat.lua
+Migrate.lua
+Storage.lua

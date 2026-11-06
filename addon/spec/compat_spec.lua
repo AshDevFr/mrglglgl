@@ -19,7 +19,7 @@ describe("Compat", function()
 	end)
 
 	it("returns no NPC ID for players, secret GUIDs or nil", function()
-		assert.is_nil(Compat.NpcIdFromGuid("Player-6841-001C54AD"))
+		assert.is_nil(Compat.NpcIdFromGuid("Player-1-0000ABCD"))
 		assert.is_nil(Compat.NpcIdFromGuid(Mock.SECRET))
 		assert.is_nil(Compat.NpcIdFromGuid(nil))
 	end)

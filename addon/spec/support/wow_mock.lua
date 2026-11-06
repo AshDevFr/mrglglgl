@@ -76,15 +76,28 @@ local function unitField(token, field)
 end
 
 -- Installs the mock as globals and resets all state. Call before loading the addon.
+-- Specs must reach SavedVariables as _G.MrglglglDB and _G.MrglglglCharDB: busted gives each spec
+-- file its own global environment, so a bare name would read and write a copy the addon never sees.
 function Mock.install()
 	frames, timers = {}, {}
 	Mock.screenshots = 0
 	Mock.now = 1793938800
-	Mock.units = {}
+	Mock.units = {
+		player = { guid = "Player-1-0001", name = "Wren", surname = "Hollowbrook", level = 5,
+			race = "Tauren", className = "Hunter", class = "HUNTER", faction = "Horde" },
+	}
 	Mock.locale = "enUS"
 	Mock.buildInfo = { "1.60.1", "70790", "Nov  3 2026", 16001 }
 
 	_G.MrglglglDB, _G.MrglglglCharDB = nil, nil
+	Mock.printed = {}
+	_G.print = function(...)
+		local parts = {}
+		for i = 1, select("#", ...) do
+			parts[i] = tostring((select(i, ...)))
+		end
+		Mock.printed[#Mock.printed + 1] = table.concat(parts, " ")
+	end
 	_G.CreateFrame = function() return newFrame() end
 	_G.GetLocale = function() return Mock.locale end
 	_G.GetBuildInfo = function() return unpack(Mock.buildInfo) end
@@ -109,7 +122,7 @@ function Mock.install()
 	_G.UnitFullName = function(token) return unitField(token, "name"), unitField(token, "surname") end
 	_G.UnitClassification = function(token) return unitField(token, "classification") or "normal" end
 	_G.UnitLevel = function(token) return unitField(token, "level") or 1 end
-	_G.UnitRace = function(token) return unitField(token, "race") end
+	_G.UnitRace = function(token) return unitField(token, "race"), unitField(token, "race") end
 	_G.UnitClass = function(token) return unitField(token, "className"), unitField(token, "class") end
 	_G.UnitFactionGroup = function(token) return unitField(token, "faction") end
 	_G.GetRealmName = function() return "Test Realm" end
