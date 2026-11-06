@@ -78,7 +78,12 @@ fn reports_a_journal_written_by_the_game_within_five_seconds() {
 fn reports_each_character_that_changed() {
     let dir = tempfile::tempdir().unwrap();
     let account = dir.path().join("_forever_/WTF/Account");
-    fs::create_dir_all(&account).unwrap();
+    // Character folders exist before the app starts watching, as in a real install: the game
+    // creates them with the character. (Linux registers new subfolders asynchronously, so a file
+    // written into a folder created after watching began can be missed there.)
+    for character in ["Wren-Hollowbrook", "Tamsin-Reedwater"] {
+        fs::create_dir_all(journal_path(dir.path(), character).parent().unwrap()).unwrap();
+    }
     let (sender, receiver) = mpsc::channel();
     let _watcher = watch::watch(
         &[account],

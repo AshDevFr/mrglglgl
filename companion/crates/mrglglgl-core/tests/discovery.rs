@@ -214,10 +214,14 @@ fn snapshot(path: &Path) -> Vec<(PathBuf, u64, Option<SystemTime>)> {
     while let Some(dir) = stack.pop() {
         for entry in fs::read_dir(&dir).unwrap().flatten() {
             let meta = entry.metadata().unwrap();
+            // Files only: a folder's own timestamp is updated lazily on some file systems (NTFS),
+            // so it can move after the test's setup writes without the code under test writing.
             if meta.is_dir() {
                 stack.push(entry.path());
+                out.push((entry.path(), 0, None));
+            } else {
+                out.push((entry.path(), meta.len(), meta.modified().ok()));
             }
-            out.push((entry.path(), meta.len(), meta.modified().ok()));
         }
     }
     out.sort();
