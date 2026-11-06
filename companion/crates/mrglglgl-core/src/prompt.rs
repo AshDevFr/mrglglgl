@@ -115,7 +115,8 @@ pub fn language_name(code: &str) -> &str {
 }
 
 /// A companion's real name and the stand-in sent instead.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Alias {
     pub real: String,
     pub alias: String,
@@ -126,6 +127,12 @@ const PSEUDONYMS: &[&str] = &[
     "Fennick", "Marlow", "Juniper", "Corwin", "Sable", "Thistle", "Bramble", "Odette", "Harrow",
     "Linnet", "Quill", "Pip", "Ember", "Rook", "Willa", "Moss",
 ];
+
+/// Stand-in names for other players, stable for the same names: for endpoints, and for a
+/// published website.
+pub fn stand_in_names(names: &[String]) -> Vec<Alias> {
+    aliases(names)
+}
 
 fn aliases(names: &[String]) -> Vec<Alias> {
     let mut taken: Vec<&str> = Vec::new();

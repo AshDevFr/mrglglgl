@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ModelsView } from "@/bindings/ModelsView";
 import type { SettingsView } from "@/bindings/SettingsView";
 import {
+  defaultSite,
   defaultWriting,
   renderWithProviders,
   syntheticAwards,
@@ -25,6 +26,7 @@ function settings(roots: SettingsView["roots"]): SettingsView {
       wowRootOverride: null,
       backupRetention: "days90",
       uiLanguage: null,
+      site: defaultSite,
       writing: defaultWriting,
     },
     roots,

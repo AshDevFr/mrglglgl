@@ -46,6 +46,8 @@ export function SettingsForm({ view, onSave }: Props) {
         backupRetention: retention,
         uiLanguage: language === SYSTEM ? null : language,
         writing,
+        // The website's settings are edited on their own panel; kept as they are here.
+        site: view.settings.site,
       });
       setState("saved");
     } catch (e) {

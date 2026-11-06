@@ -4,6 +4,7 @@ import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import type { Award } from "@/bindings/Award";
 import type { Journal } from "@/bindings/Journal";
+import type { SiteSettings } from "@/bindings/SiteSettings";
 import type { WritingSettings } from "@/bindings/WritingSettings";
 import awards from "./data/synthetic-awards.json";
 import journal from "./data/synthetic-journal.json";
@@ -39,3 +40,15 @@ export function renderWithProviders(ui: ReactNode) {
     </MantineProvider>,
   );
 }
+
+/** The website settings a fresh install has, as the backend's defaults. */
+export const defaultSite: SiteSettings = {
+  enabled: false,
+  folder: null,
+  themeFolder: null,
+  title: "",
+  baseUrl: null,
+  characters: [],
+  standInNames: true,
+  hideRealm: true,
+};

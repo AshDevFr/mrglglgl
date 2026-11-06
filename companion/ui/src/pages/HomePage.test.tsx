@@ -1,6 +1,10 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { defaultWriting, renderWithProviders } from "@/test/render";
+import {
+  defaultSite,
+  defaultWriting,
+  renderWithProviders,
+} from "@/test/render";
 import { HomePage } from "./HomePage";
 
 const commands = vi.hoisted(() => ({
@@ -16,6 +20,7 @@ vi.mock("@/api/commands", () => ({
         wowRootOverride: null,
         backupRetention: "days90",
         uiLanguage: null,
+        site: defaultSite,
         writing: defaultWriting,
       },
       roots: [

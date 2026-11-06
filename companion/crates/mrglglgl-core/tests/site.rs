@@ -369,3 +369,21 @@ fn the_default_theme_is_copied_as_a_starting_point_without_overwriting_edits() {
         "mine"
     );
 }
+
+#[test]
+fn other_players_get_stable_stand_in_names_that_are_never_a_real_one() {
+    let names: Vec<String> = ["Tamsin", "Rowan", "Fennick"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+    let first = mrglglgl_core::prompt::stand_in_names(&names);
+    let again = mrglglgl_core::prompt::stand_in_names(&names);
+    assert_eq!(first, again, "the same names every build");
+    let aliases: Vec<&str> = first.iter().map(|a| a.alias.as_str()).collect();
+    assert_eq!(aliases.len(), 3);
+    assert!(aliases.iter().all(|a| !names.iter().any(|n| n == a)));
+    let mut distinct = aliases.clone();
+    distinct.sort();
+    distinct.dedup();
+    assert_eq!(distinct.len(), 3);
+}

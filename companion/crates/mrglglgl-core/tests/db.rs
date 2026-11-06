@@ -94,6 +94,7 @@ fn settings_default_until_saved_and_survive_a_restart() {
                 copy_footer: false,
                 ..WritingSettings::default()
             },
+            site: Default::default(),
         })
         .unwrap();
     }
@@ -220,4 +221,28 @@ fn stories_from_before_draft_review_stay_in_the_journal() {
     let story = &mrglglgl_core::stories::all(&db, id).unwrap()[0];
     assert_eq!(story.status, mrglglgl_core::stories::StoryStatus::Accepted);
     assert_eq!(story.note, None);
+}
+
+#[test]
+fn website_settings_default_to_off_with_stand_in_names_and_survive_a_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = Database::open(dir.path()).unwrap();
+    let site = db.settings().unwrap().site;
+    assert!(!site.enabled);
+    assert!(
+        site.stand_in_names,
+        "other players are hidden unless the player says otherwise"
+    );
+    assert!(site.hide_realm);
+    assert!(site.folder.is_none() && site.characters.is_empty());
+
+    let mut settings = db.settings().unwrap();
+    settings.site.enabled = true;
+    settings.site.folder = Some(dir.path().join("site"));
+    settings.site.title = "Wren's travels".into();
+    settings.site.characters = vec![1, 3];
+    db.save_settings(&settings).unwrap();
+    drop(db);
+    let reopened = Database::open(dir.path()).unwrap().settings().unwrap().site;
+    assert_eq!(reopened, settings.site);
 }

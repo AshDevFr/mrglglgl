@@ -3,6 +3,7 @@
 
 mod commands;
 mod power;
+mod site_commands;
 mod sync;
 #[cfg(test)]
 mod test_data;
@@ -85,6 +86,10 @@ fn main() {
             writing_commands::export_character,
             writing_commands::screenshot_data,
             writing_commands::print_page,
+            site_commands::save_site_settings,
+            site_commands::site_stand_in_names,
+            site_commands::build_site,
+            site_commands::copy_site_theme,
         ])
         .run(tauri::generate_context!())
         .expect("the Mrglglgl window failed to start");

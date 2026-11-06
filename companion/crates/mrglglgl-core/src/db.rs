@@ -250,6 +250,42 @@ impl Default for WritingSettings {
     }
 }
 
+/// The journal website: where it is written, how it looks, and whose journals it shows.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase", default)]
+pub struct SiteSettings {
+    /// The folder is rebuilt while the app is open.
+    pub enabled: bool,
+    pub folder: Option<PathBuf>,
+    /// A theme of the player's own; its files win over the default theme's.
+    pub theme_folder: Option<PathBuf>,
+    pub title: String,
+    /// Where the site will live, for the feeds' full links.
+    pub base_url: Option<String>,
+    /// The characters on the site, by id.
+    pub characters: Vec<i64>,
+    /// Other players appear under stand-in names.
+    pub stand_in_names: bool,
+    /// Realm and account names are left out.
+    pub hide_realm: bool,
+}
+
+impl Default for SiteSettings {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            folder: None,
+            theme_folder: None,
+            title: String::new(),
+            base_url: None,
+            characters: Vec::new(),
+            stand_in_names: true,
+            hide_realm: true,
+        }
+    }
+}
+
 /// The settings the player chooses in the app.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
@@ -262,6 +298,8 @@ pub struct Settings {
     /// The UI language; `None` follows the operating system.
     pub ui_language: Option<String>,
     pub writing: WritingSettings,
+    #[serde(default)]
+    pub site: SiteSettings,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -363,6 +401,10 @@ impl Database {
                 .setting("writing")?
                 .and_then(|json| serde_json::from_str(&json).ok())
                 .unwrap_or_default(),
+            site: self
+                .setting("site")?
+                .and_then(|json| serde_json::from_str(&json).ok())
+                .unwrap_or_default(),
         })
     }
 
@@ -377,6 +419,8 @@ impl Database {
         self.set_setting("ui_language", settings.ui_language.as_deref())?;
         let writing = serde_json::to_string(&settings.writing).expect("settings serialise");
         self.set_setting("writing", Some(&writing))?;
+        let site = serde_json::to_string(&settings.site).expect("settings serialise");
+        self.set_setting("site", Some(&site))?;
         tx.commit()?;
         Ok(())
     }

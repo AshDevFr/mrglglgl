@@ -4,6 +4,7 @@ import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { Settings } from "@/bindings/Settings";
 import { MilestoneList } from "@/pages/MilestonesPage";
 import {
+  defaultSite,
   defaultWriting,
   renderWithProviders,
   syntheticAwards,
@@ -98,6 +99,7 @@ describe("SettingsForm", () => {
             wowRootOverride: null,
             backupRetention: "days90",
             uiLanguage: null,
+            site: defaultSite,
             writing: defaultWriting,
           },
           roots: [
@@ -128,6 +130,7 @@ describe("SettingsForm", () => {
       wowRootOverride: "/Games/World of Warcraft",
       backupRetention: "days90",
       uiLanguage: null,
+      site: defaultSite,
       writing: defaultWriting,
     });
   });
@@ -141,6 +144,7 @@ describe("SettingsForm", () => {
             wowRootOverride: null,
             backupRetention: "days90",
             uiLanguage: null,
+            site: defaultSite,
             writing: defaultWriting,
           },
           roots: [],

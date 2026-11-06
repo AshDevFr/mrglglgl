@@ -669,6 +669,30 @@ pub fn default_export_folder() -> Option<String> {
         .map(|p| p.to_string_lossy().into_owned())
 }
 
+/// Every World of Warcraft folder the app knows: the ones discovered, and the game folder holding
+/// each journal (`<game>/<flavor>/WTF/Account/<account>/<realm>/<character>/SavedVariables/
+/// Mrglglgl.lua`), wherever it was found. Exports and the website are never written inside any.
+/// Never the filesystem root, which would refuse every folder.
+pub(crate) fn game_folders<'a>(
+    settings: &mrglglgl_core::db::Settings,
+    journals: impl IntoIterator<Item = &'a Path>,
+) -> Vec<std::path::PathBuf> {
+    let mut folders: Vec<std::path::PathBuf> = discovery::discover(&DiscoveryOverrides {
+        wow_root: settings.wow_root_override.clone(),
+    })
+    .into_iter()
+    .map(|r| r.path)
+    .collect();
+    folders.extend(journals.into_iter().filter_map(|journal| {
+        journal
+            .ancestors()
+            .nth(8)
+            .filter(|p| p.parent().is_some())
+            .map(Path::to_path_buf)
+    }));
+    folders
+}
+
 /// What a journal is exported as.
 #[derive(Debug, Clone, Copy, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -707,23 +731,7 @@ pub fn export_character(
         .character(character_id)
         .map_err(|e| e.to_string())?
         .ok_or("that character is not in the app any more")?;
-    let mut game_folders: Vec<std::path::PathBuf> = discovery::discover(&DiscoveryOverrides {
-        wow_root: settings.wow_root_override.clone(),
-    })
-    .into_iter()
-    .map(|r| r.path)
-    .collect();
-    // The game folder holding this character's journal (<game>/<flavor>/WTF/Account/<account>/
-    // <realm>/<character>/SavedVariables/Mrglglgl.lua), wherever it was found. Never the
-    // filesystem root, which would refuse every folder.
-    game_folders.extend(
-        character
-            .journal_path
-            .ancestors()
-            .nth(8)
-            .filter(|p| p.parent().is_some())
-            .map(Path::to_path_buf),
-    );
+    let game_folders = game_folders(&settings, [character.journal_path.as_path()]);
     let title = [character.name.as_deref(), character.surname.as_deref()]
         .into_iter()
         .flatten()
