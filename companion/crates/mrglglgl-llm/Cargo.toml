@@ -1,0 +1,12 @@
+[package]
+name = "mrglglgl-llm"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Text generation providers for Mrglglgl: bundled local inference and OpenAI-compatible endpoints"
+repository.workspace = true
+
+[dependencies]
+async-trait = { workspace = true }
+thiserror = { workspace = true }

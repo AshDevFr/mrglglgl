@@ -1,0 +1,29 @@
+# Pre-commit hooks. Install with: make -C companion setup-hooks (or: pre-commit install)
+# Run manually: pre-commit run --all-files
+
+repos:
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: Rust format (app)
+        entry: cargo fmt --manifest-path companion/Cargo.toml --all --
+        language: system
+        types: [rust]
+        files: ^companion/
+        pass_filenames: true
+
+      - id: cargo-clippy
+        name: Rust clippy (app, warnings only)
+        entry: bash -c 'cargo clippy --manifest-path companion/Cargo.toml --workspace --all-targets -- -W clippy::all || true'
+        language: system
+        types: [rust]
+        files: ^companion/
+        pass_filenames: false
+        verbose: true
+
+      - id: ui-lint-fix
+        name: Fix frontend lint issues (app)
+        entry: make -C companion ui-lint-fix
+        language: system
+        files: ^companion/ui/
+        pass_filenames: false

@@ -1,0 +1,9 @@
+{
+  "app": {
+    "title": "Mrglglgl",
+    "version": "Version {{version}}"
+  },
+  "home": {
+    "empty": "No journals yet. Mrgl, the pages are still drying."
+  }
+}
