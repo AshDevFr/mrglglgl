@@ -7,7 +7,7 @@
 use std::path::{Path, PathBuf};
 
 use rusqlite::{Connection, OptionalExtension, params};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use crate::discovery::CharacterSource;
 use crate::schema::Character;
@@ -87,7 +87,8 @@ pub enum DbError {
 }
 
 /// The settings the player chooses in the app.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
 pub struct Settings {
     /// A WoW folder chosen by the player; wins over every discovered install.
@@ -109,6 +110,7 @@ impl Default for Settings {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
 pub struct StoredCharacter {
     pub id: i64,

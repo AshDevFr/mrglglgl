@@ -1907,6 +1907,7 @@ dependencies = [
  "mrglglgl-core",
  "mrglglgl-llm",
  "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
  "tracing",
@@ -1925,6 +1926,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.21",
  "tracing",
+ "ts-rs",
  "winreg",
 ]
 

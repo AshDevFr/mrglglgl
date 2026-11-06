@@ -1,0 +1,96 @@
+import {
+  ActionIcon,
+  AppShell,
+  Group,
+  NavLink,
+  ScrollArea,
+  Text,
+  Title,
+  useMantineColorScheme,
+} from "@mantine/core";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { listCharacters, onJournalUpdated, syncNow } from "@/api/commands";
+import { CharacterTree } from "@/components/CharacterTree";
+
+export function Layout() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { toggleColorScheme } = useMantineColorScheme();
+  const params = useParams({ strict: false });
+  const selectedId = params.characterId ? Number(params.characterId) : null;
+  const characters = useQuery({
+    queryKey: ["characters"],
+    queryFn: listCharacters,
+  });
+
+  // The game saved a journal: refresh whatever is on screen.
+  useEffect(() => {
+    const unlisten = onJournalUpdated(() => queryClient.invalidateQueries());
+    return () => {
+      unlisten.then((stop) => stop());
+    };
+  }, [queryClient]);
+
+  return (
+    <AppShell navbar={{ width: 280, breakpoint: "sm" }} padding={0}>
+      <AppShell.Navbar p="sm">
+        <AppShell.Section>
+          <Group justify="space-between" mb="sm">
+            <Title
+              order={3}
+              className="reading"
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate({ to: "/" })}
+            >
+              {t("app.title")}
+            </Title>
+            <ActionIcon
+              variant="subtle"
+              onClick={toggleColorScheme}
+              aria-label={t("nav.theme")}
+            >
+              ◐
+            </ActionIcon>
+          </Group>
+          <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={4}>
+            {t("nav.characters")}
+          </Text>
+        </AppShell.Section>
+        <AppShell.Section grow component={ScrollArea}>
+          {characters.data && (
+            <CharacterTree
+              characters={characters.data}
+              selectedId={selectedId}
+              onSelect={(id) =>
+                navigate({
+                  to: "/characters/$characterId",
+                  params: { characterId: String(id) },
+                })
+              }
+            />
+          )}
+        </AppShell.Section>
+        <AppShell.Section>
+          <NavLink
+            label={t("nav.syncNow")}
+            onClick={async () => {
+              await syncNow();
+              await queryClient.invalidateQueries();
+            }}
+          />
+          <NavLink
+            label={t("nav.settings")}
+            onClick={() => navigate({ to: "/settings" })}
+          />
+        </AppShell.Section>
+      </AppShell.Navbar>
+      <AppShell.Main h="100vh">
+        <Outlet />
+      </AppShell.Main>
+    </AppShell>
+  );
+}

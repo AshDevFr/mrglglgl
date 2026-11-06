@@ -193,6 +193,7 @@ pub fn facts(day: &Day) -> DayFacts {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
 pub struct Award {
     pub id: String,

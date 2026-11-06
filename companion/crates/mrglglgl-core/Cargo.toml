@@ -14,6 +14,11 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+ts-rs = { workspace = true, optional = true }
+
+[features]
+# TypeScript types for the app's frontend; off for everything else.
+ts = ["dep:ts-rs"]
 
 [target.'cfg(windows)'.dependencies]
 winreg = { workspace = true }

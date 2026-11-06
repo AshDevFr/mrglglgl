@@ -1,0 +1,7 @@
+# At the repository root because cargo reads this file from the working directory and its
+# parents, not from --manifest-path: here it applies whether cargo runs in companion/ or above it.
+[env]
+# Where ts-rs writes the TypeScript types of everything Tauri commands exchange.
+TS_RS_EXPORT_DIR = { value = "companion/ui/src/bindings", relative = true }
+# JSON carries plain numbers; journal integers (times, ids, counts) are well within its range.
+TS_RS_LARGE_INT = "number"

@@ -3,7 +3,153 @@
     "title": "Mrglglgl",
     "version": "Version {{version}}"
   },
+  "nav": {
+    "characters": "Characters",
+    "settings": "Settings",
+    "milestones": "Milestones",
+    "journal": "Journal",
+    "syncNow": "Check for new journal entries",
+    "theme": "Switch between light and dark"
+  },
+  "loading": "Mrgl, drying the pages…",
   "home": {
-    "empty": "No journals yet. Mrgl, the pages are still drying."
+    "empty": "No journals yet. Mrgl, the pages are still drying.",
+    "emptyHelp": "Play with the Mrglglgl addon installed, then log out or type /reload: the game saves the journal at those moments, and it appears here.",
+    "noInstall": "No World of Warcraft folder was found. Choose it in Settings.",
+    "pick": "Choose a character on the left to read their journal."
+  },
+  "sync": {
+    "explain": "The game saves journals only when you log out or type /reload. New entries show up here a few seconds after that.",
+    "lastSynced": "Last synced {{when}}",
+    "neverSynced": "Not synced yet",
+    "archived": "Archived",
+    "archivedHelp": "This character's game files are gone. Their journal is kept here.",
+    "status": {
+      "older": "Saved by an older addon version. Log in once with the current addon to update it.",
+      "newer": "Saved by a newer addon version. Update the app to read it.",
+      "unreadable": "This journal file could not be read. The last readable copy is shown."
+    }
+  },
+  "character": {
+    "unnamed": "Unnamed character",
+    "level": "Level {{level}}",
+    "remove": "Remove from app",
+    "removeTitle": "Remove {{name}} from the app?",
+    "removeBody": "This deletes the app's copy of this journal: its archive, backups and milestones. The game's own files are not touched, so if the character still exists, their journal is read again next time.",
+    "removeConfirm": "Remove",
+    "cancel": "Cancel",
+    "noDays": "No days recorded yet.",
+    "compacted": "Summary only: the game kept the details for a few days and the app saw only this summary."
+  },
+  "day": {
+    "facts": "What happened",
+    "nothing": "Nothing to report.",
+    "levelUp": "Reached level {{to}}",
+    "levelRange": "Level {{from}} to {{to}}",
+    "levelSteady": "Level {{level}}",
+    "zones": "Places: {{list}}",
+    "discovered": "Discovered: {{list}}",
+    "accepted": "Quests accepted: {{list}}",
+    "turnedIn": "Quests turned in: {{list}}",
+    "killed": "Defeated: {{list}}",
+    "killEntry": "{{name}} ×{{count}}",
+    "unknownCreature": "unknown creature #{{id}}",
+    "anonKills_one": "{{count}} foe the game kept unnamed",
+    "anonKills_other": "{{count}} foes the game kept unnamed",
+    "notable": "Notable foes: {{list}}",
+    "classification": {
+      "elite": "elite",
+      "rare": "rare",
+      "rareelite": "rare elite",
+      "worldboss": "world boss"
+    },
+    "murlocs_one": "{{count}} of them a murloc",
+    "murlocs_other": "{{count}} of them murlocs",
+    "deathBy": "Died to {{name}}",
+    "deathEnvironment": {
+      "Drowning": "Drowned",
+      "Falling": "Fell",
+      "Fatigue": "Died of exhaustion in deep water",
+      "Fire": "Burned",
+      "Lava": "Fell into lava",
+      "Slime": "Died in slime"
+    },
+    "deathUnknown": "Died",
+    "fish_one": "Caught {{count}} fish",
+    "fish_other": "Caught {{count}} fish",
+    "fishBoots_one": "including {{count}} boot",
+    "fishBoots_other": "including {{count}} boots",
+    "fishList": "Catch: {{list}}",
+    "loot": "Notable loot: {{list}}",
+    "companions": "Grouped with {{list}}",
+    "bosses": "Bosses defeated: {{list}}",
+    "screenshots_one": "{{count}} screenshot",
+    "screenshots_other": "{{count}} screenshots",
+    "onlyFished": "A day spent fishing."
+  },
+  "milestones": {
+    "title": "Milestones",
+    "earned": "Earned {{day}}",
+    "none": "No milestones yet. Mrgl. Go fish up a boot.",
+    "kept_the_boot": {
+      "name": "Kept the Boot",
+      "description": "Fished up a boot. Kept it."
+    },
+    "first_murloc": {
+      "name": "First Blood (Fishy)",
+      "description": "Slew a murloc for the first time."
+    },
+    "slain_by_murloc": {
+      "name": "Mrglglgl'd",
+      "description": "Slain by a murloc."
+    },
+    "traitor": {
+      "name": "Traitor",
+      "description": "Slew a hundred murlocs."
+    },
+    "only_fished": {
+      "name": "Gone Fishin'",
+      "description": "A whole day of fishing and nothing else."
+    },
+    "boot_collector": {
+      "name": "Cobbler's Apprentice",
+      "description": "Fished up five boots."
+    },
+    "sleeps_with_fishes": {
+      "name": "Sleeps With the Fishes",
+      "description": "Drowned."
+    },
+    "bad_day": {
+      "name": "Character Building",
+      "description": "Died three times in one day."
+    },
+    "tourist": {
+      "name": "Tourist",
+      "description": "Discovered five places in one day."
+    },
+    "quiet_day": {
+      "name": "Nothing to Report",
+      "description": "Logged in, and nothing happened."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "wowFolder": "World of Warcraft folder",
+    "wowFolderHelp": "Leave empty to find it automatically. Enter the game folder (the one containing _forever_) or a flavor folder such as _forever_.",
+    "found_one": "Found {{count}} World of Warcraft folder:",
+    "found_other": "Found {{count}} World of Warcraft folders:",
+    "foundNone": "No World of Warcraft folder found.",
+    "backupCount": "Backups kept per character",
+    "backupCountHelp": "The app copies each journal file every time the game saves it, and keeps this many copies per character.",
+    "language": "Language",
+    "languageSystem": "Same as the system",
+    "languageEnglish": "English",
+    "forgetting": "Forgetting data in the game (with the addon's \"Forget recorded\" buttons) changes only the game's files. The app keeps its own copy until you remove the character here.",
+    "save": "Save",
+    "saved": "Settings saved.",
+    "error": "The settings could not be saved: {{message}}"
+  },
+  "list": {
+    "separator": ", "
   }
 }
