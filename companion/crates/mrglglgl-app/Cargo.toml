@@ -1,0 +1,24 @@
+[package]
+name = "mrglglgl-app"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "mrglglgl"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { workspace = true }
+
+[dependencies]
+mrglglgl-core = { workspace = true }
+mrglglgl-llm = { workspace = true }
+tauri = { workspace = true }
+serde = { workspace = true }
+ts-rs = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

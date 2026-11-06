@@ -1,0 +1,55 @@
+[workspace]
+members = [
+    "crates/mrglglgl-app",
+    "crates/mrglglgl-core",
+    "crates/mrglglgl-llm",
+]
+resolver = "2"
+default-members = ["crates/mrglglgl-app"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+authors = ["AshDevFr"]
+description = "Reads Mrglglgl addon journals and writes them up as prose"
+repository = "https://github.com/AshDevFr/mrglglgl"
+homepage = "https://github.com/AshDevFr/mrglglgl"
+
+[workspace.dependencies]
+# Workspace crates (one crate per concern; new domains get their own
+# mrglglgl-* crate declared here and consumed with `workspace = true`)
+mrglglgl-core = { path = "crates/mrglglgl-core" }
+mrglglgl-llm = { path = "crates/mrglglgl-llm" }
+
+# Desktop shell
+tauri = { version = "2.12", features = [] }
+tauri-build = { version = "2.7", features = [] }
+
+# TypeScript bindings for the types Tauri commands exchange. tauri-specta's
+# Tauri 2 line is still a release candidate, so the stable ts-rs generates
+# the types and a thin hand-written wrapper types each `invoke`.
+ts-rs = "12"
+
+# Runtime
+tokio = { version = "1", features = ["full"] }
+async-trait = "0.1"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Errors and tracing
+anyhow = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Storage and files
+rusqlite = { version = "0.41", features = ["bundled"] }
+notify = "8"
+dirs = "7"
+winreg = "0.56"
+
+# Tests
+tempfile = "3"

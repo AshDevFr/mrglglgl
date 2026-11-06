@@ -1,0 +1,5 @@
+# Node is pinned to the active LTS major. Rust is managed by rustup via
+# rust-toolchain.toml, and TypeScript stays in ui/package.json so the
+# project-local version is the only one in play.
+[tools]
+node = "26"
