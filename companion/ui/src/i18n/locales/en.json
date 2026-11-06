@@ -506,6 +506,8 @@
   "export": {
     "weekOf": "Week of {{date}}",
     "photo": "Screenshot from {{day}}",
-    "writtenWith": "Written with Mrglglgl, a journal for World of Warcraft adventurers."
+    "writtenWith": "Written with Mrglglgl, a journal for World of Warcraft adventurers.",
+    "toggleScheme": "Light / dark",
+    "togglePaper": "Change paper"
   }
 }

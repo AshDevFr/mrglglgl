@@ -21,19 +21,19 @@ export interface ExportData {
   awards: Award[];
   /** Picture sources by day: embedded data for a file, asset URLs for printing. */
   photos: Record<string, string[]>;
-  /** The paper chosen in Settings, always in its light version. */
+  /** The paper chosen in Settings: what an exported page starts on, and what prints. */
   paper: Paper;
 }
 
 /** The whole journal as a book, oldest day first, with the pages, stamps and photos the app
- * shows. Plain markup and the paper styles only, so it stands alone as a web page or on paper. */
+ * shows. Plain markup and the paper styles only, so it stands alone as a web page or on paper;
+ * the paper and theme come from the element around it. */
 export function ExportDocument({
   title,
   journal,
   stories,
   awards,
   photos,
-  paper,
 }: ExportData) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -51,7 +51,7 @@ export function ExportDocument({
   const meta = [c.race, c.realm].filter(Boolean).join(" · ");
 
   return (
-    <main className="export paper-light" data-paper={paper}>
+    <main className="export">
       <header className="export-header">
         <h1>{title}</h1>
         {meta && <p>{meta}</p>}

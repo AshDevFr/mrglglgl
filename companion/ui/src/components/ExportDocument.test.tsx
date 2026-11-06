@@ -87,11 +87,44 @@ describe("ExportDocument", () => {
 
   it("becomes a page body and its own look, with nothing of the app around it", () => {
     const page = exportPage(data);
-    expect(page.body).toContain('class="export paper-light"');
-    expect(page.body).toContain('data-paper="parchment"');
+    expect(page.body).toContain('class="export"');
     expect(page.body).toContain("ink-stamp");
-    expect(page.body).not.toContain("mantine");
+    expect(page.body).not.toContain("mantine-Button");
     expect(page.css).toContain(".journal-page");
     expect(page.css).toContain("@media print");
+  });
+
+  it("lets the reader switch light and dark, and the paper, starting from the exported one", () => {
+    const page = exportPage(data);
+    // Follows the reader's system theme unless they choose; the paper starts as exported.
+    expect(page.body).toContain("prefers-color-scheme: dark");
+    expect(page.body).toContain('"parchment"');
+    expect(page.body).toContain('data-toggle="scheme"');
+    expect(page.body).toContain('data-toggle="paper"');
+    // Printing switches to light paper, and the controls never print.
+    expect(page.body).toContain("beforeprint");
+    expect(page.body).toContain('class="export-controls no-print"');
+    // Everything is inside the file.
+    expect(page.body).not.toMatch(/<script[^>]+src=/);
+  });
+
+  it("runs: starts as the reader's system and the exported paper, and switches on a click", () => {
+    localStorage.clear();
+    const page = exportPage(data);
+    document.body.innerHTML = page.body;
+    const script = page.body.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? "";
+    new Function(script)();
+    const root = document.documentElement;
+    expect(root.getAttribute("data-mantine-color-scheme")).toBe("light");
+    expect(root.getAttribute("data-paper")).toBe("parchment");
+    (document.querySelector('[data-toggle="scheme"]') as HTMLElement).click();
+    expect(root.getAttribute("data-mantine-color-scheme")).toBe("dark");
+    (document.querySelector('[data-toggle="paper"]') as HTMLElement).click();
+    expect(root.getAttribute("data-paper")).toBe("tide");
+    expect(localStorage.getItem("mrglglgl.export.scheme")).toBe("dark");
+    window.dispatchEvent(new Event("beforeprint"));
+    expect(root.getAttribute("data-mantine-color-scheme")).toBe("light");
+    window.dispatchEvent(new Event("afterprint"));
+    expect(root.getAttribute("data-mantine-color-scheme")).toBe("dark");
   });
 });

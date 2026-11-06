@@ -87,7 +87,34 @@
   aspect-ratio: auto;
 }
 
-/* Light paper whatever the app's theme, so a print or a shared page reads the same. */
+/* The exported page's switches for light or dark and the paper; never printed. */
+.export-controls {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 1;
+}
+
+.export-controls button {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--page-edge);
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--ink);
+  font:
+    500 0.85rem system-ui,
+    sans-serif;
+  cursor: pointer;
+}
+
+.export-controls button:focus-visible {
+  outline: 2px solid var(--stamp);
+  outline-offset: 2px;
+}
+
+/* The print page keeps light paper whatever the app's theme. */
 .paper-light .ink-stamp {
   mix-blend-mode: multiply;
 }
@@ -111,7 +138,8 @@
   .export-chapter {
     break-inside: avoid;
   }
-  .print-sheet .no-print {
+  .print-sheet .no-print,
+  .export-controls {
     display: none;
   }
 }
