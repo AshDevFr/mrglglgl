@@ -40,7 +40,7 @@ fn sample(photo: &Path) -> SiteData {
             let week = monday.format("%G-w%V").to_string();
             SitePost {
                 slug: week,
-                title: format!("Week of <b>{date}</b>"),
+                title: format!("Week of {date}"),
                 date: date.clone(),
                 month: monday.format("%Y-%m").to_string(),
                 month_label: monday.format("%B %Y").to_string(),
@@ -95,7 +95,10 @@ fn text<'a>(files: &'a [SiteFile], path: &str) -> &'a str {
 fn a_site_has_a_home_posts_in_pages_of_ten_an_archive_milestones_and_a_feed() {
     let dir = tempfile::tempdir().unwrap();
     let source = photo(dir.path());
-    let files = site::render(&sample(&source), None).unwrap();
+    let mut data = sample(&source);
+    // Text from a journal must never become markup.
+    data.characters[0].posts[0].title = "Week of <b>2026-11-02</b>".into();
+    let files = site::render(&data, None).unwrap();
     let paths: Vec<&str> = files.iter().map(|f| f.path.as_str()).collect();
     for expected in [
         "index.html",
