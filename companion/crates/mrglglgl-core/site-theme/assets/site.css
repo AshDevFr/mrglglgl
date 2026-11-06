@@ -1,0 +1,406 @@
+/*
+ * The Mrglglgl site theme: the journal's damp rag paper (or parchment), iron-gall ink and stamp
+ * ink. To restyle a site, put a custom.css in your theme folder: it loads after this file.
+ * Colours are custom properties, so most changes are a few lines, e.g.
+ *   :root { --stamp: #7a2fb0; }
+ */
+
+@font-face {
+  font-family: "Literata";
+  font-weight: 200 900;
+  font-display: swap;
+  src: url("literata.woff2") format("woff2");
+}
+
+:root {
+  --desk: #cdd3cf;
+  --page: #e3e6de;
+  --page-edge: #c9d0c8;
+  --ink: #1c2a34;
+  --ink-faded: #4f5b61;
+  --stamp: #2a6351;
+  --tide: #a9bdb4;
+  --photo-frame: #f6f6f1;
+  --reading-font: "Literata", Georgia, "Times New Roman", serif;
+  --ui-font: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+[data-scheme="dark"] {
+  --desk: #121819;
+  --page: #1e2628;
+  --page-edge: #283335;
+  --ink: #dce4df;
+  --ink-faded: #93a39e;
+  --stamp: #78bfa4;
+  --tide: #3a4d4c;
+  --photo-frame: #d9ddd6;
+}
+
+[data-paper="parchment"] {
+  --desk: #d4c19a;
+  --page: #f1e4c6;
+  --page-edge: #d4b986;
+  --ink: #3a2816;
+  --ink-faded: #5a4630;
+  --stamp: #8c2f1e;
+  --tide: #c4a165;
+  --photo-frame: #faf3e1;
+}
+
+[data-paper="parchment"][data-scheme="dark"] {
+  --desk: #16120d;
+  --page: #2a2117;
+  --page-edge: #3b2e1f;
+  --ink: #ecdfc4;
+  --ink-faded: #b9a585;
+  --stamp: #df8b6f;
+  --tide: #4d3b24;
+  --photo-frame: #e8dcc2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--desk);
+  color: var(--ink);
+  font-family: var(--reading-font);
+}
+
+a {
+  color: var(--stamp);
+}
+
+/* Header: the site's title, the characters, the character's pages, the switches. */
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1.25rem 1.25rem 0.75rem;
+  font-family: var(--ui-font);
+  font-size: 0.95rem;
+}
+
+.site-title {
+  color: var(--ink);
+  font-family: var(--reading-font);
+  font-size: 1.35rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.site-menu,
+.character-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+.site-menu a,
+.character-menu a {
+  color: var(--ink-faded);
+  text-decoration: none;
+  padding-bottom: 0.15rem;
+  border-bottom: 2px solid transparent;
+}
+
+.site-menu a:hover,
+.character-menu a:hover,
+.site-menu a[aria-current="page"] {
+  color: var(--ink);
+  border-bottom-color: var(--stamp);
+}
+
+.character-menu {
+  flex-basis: 100%;
+}
+
+.site-controls {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.site-controls button {
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--page-edge);
+  border-radius: 999px;
+  background: var(--page);
+  color: var(--ink);
+  font: 500 0.8rem var(--ui-font);
+  cursor: pointer;
+}
+
+.site-main {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 1rem 1.25rem 3rem;
+}
+
+.page-title {
+  margin: 1rem 0 0.25rem;
+  font-size: 2.4rem;
+  font-weight: 600;
+}
+
+.page-subtitle,
+.post-week,
+.empty,
+.site-footer {
+  color: var(--ink-faded);
+  font-family: var(--ui-font);
+  font-size: 0.9rem;
+}
+
+.site-footer {
+  max-width: 52rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+  text-align: center;
+}
+
+/* Home: a card per character. */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.character-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.25rem 1.4rem;
+  background: var(--page);
+  color: var(--ink);
+  text-decoration: none;
+  border-radius: 2px;
+  box-shadow: 0 1px 0 var(--page-edge);
+}
+
+.character-card-name {
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.character-card-summary,
+.character-card-latest {
+  color: var(--ink-faded);
+  font-family: var(--ui-font);
+  font-size: 0.85rem;
+}
+
+/* A character's index: one card per week. */
+.post-card {
+  margin-top: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--page);
+  border-radius: 2px;
+  box-shadow: 0 1px 0 var(--page-edge);
+}
+
+.post-card h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.3rem;
+}
+
+.post-card h2 a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.post-card-excerpt {
+  margin: 0;
+  color: var(--ink-faded);
+  line-height: 1.6;
+}
+
+.pager,
+.post-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  font-family: var(--ui-font);
+  font-size: 0.9rem;
+}
+
+/* A week: the chapter, then each day as a journal page. */
+.chapter .entry {
+  font-size: 1.05rem;
+  font-style: italic;
+  line-height: 1.7;
+}
+
+.journal-page {
+  position: relative;
+  margin-top: 2.75rem;
+  padding: 3rem 3.5rem 2.75rem;
+  background-color: var(--page);
+  background-image:
+    radial-gradient(
+      ellipse 70% 55% at 0% 100%,
+      transparent 58%,
+      color-mix(in srgb, var(--tide) 70%, transparent) 61%,
+      color-mix(in srgb, var(--tide) 25%, transparent) 66%,
+      transparent 74%
+    ),
+    radial-gradient(ellipse at center, transparent 70%, var(--page-edge) 130%);
+  border-radius: 2px;
+  box-shadow:
+    0 1px 0 var(--page-edge),
+    0 22px 40px -28px color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.journal-page h2 {
+  margin: 0 0 1.5rem;
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.entry {
+  margin: 0;
+  max-width: 34em;
+  font-size: 1.125rem;
+  line-height: 1.75;
+}
+
+.entry + .entry {
+  margin-top: 1em;
+}
+
+.margin-note {
+  margin: 1.25rem 0 0;
+  max-width: 30em;
+  font-style: italic;
+  color: var(--stamp);
+  transform: rotate(-0.6deg);
+}
+
+/* Stamps pressed over the page's corner. */
+.journal-page .stamps {
+  position: absolute;
+  top: -1.25rem;
+  right: -0.5rem;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.ink-stamp {
+  color: var(--stamp);
+  opacity: 0.86;
+  mix-blend-mode: multiply;
+  font-family: var(--reading-font);
+}
+
+[data-scheme="dark"] .ink-stamp {
+  mix-blend-mode: screen;
+}
+
+/* Screenshots, as wide as the text, pinned in a white frame with a caption. */
+.photos {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  max-width: 36rem;
+  margin-top: 2.25rem;
+}
+
+.photo {
+  position: relative;
+  margin: 0;
+  padding: 8px 8px 0;
+  background: var(--photo-frame);
+  box-shadow: 0 6px 14px -8px color-mix(in srgb, var(--ink) 70%, transparent);
+  transform: rotate(-0.8deg);
+}
+
+.photo:nth-child(even) {
+  transform: rotate(0.7deg);
+}
+
+.photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* On the photo's own pale frame, so always dark ink. */
+.photo figcaption {
+  padding: 0.6rem 0.25rem 0.75rem;
+  color: #3d3a33;
+  font-size: 0.9rem;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Archive and milestones. */
+.archive-month h2 {
+  margin: 2rem 0 0.5rem;
+  font-size: 1.2rem;
+}
+
+.archive-month ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  line-height: 1.8;
+}
+
+.milestone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.milestone {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.milestone .ink-stamp {
+  flex: none;
+  width: 96px;
+  height: 96px;
+}
+
+.milestone p {
+  margin: 0.2rem 0;
+}
+
+.milestone-name {
+  font-weight: 600;
+}
+
+@media (max-width: 40rem) {
+  .journal-page {
+    padding: 2.25rem 1.5rem 2rem;
+  }
+}
+
+@media print {
+  body {
+    background: none;
+  }
+  .site-header,
+  .site-controls,
+  .pager,
+  .post-nav {
+    display: none;
+  }
+  .journal-page {
+    box-shadow: none;
+  }
+  .photo {
+    break-inside: avoid;
+  }
+}

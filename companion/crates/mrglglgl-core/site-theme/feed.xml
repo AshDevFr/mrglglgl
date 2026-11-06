@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+{#- A character's feed. Receives: site, character, posts (newest twenty), base (the site's address, or a relative path when none is set). -#}
+<rss version="2.0">
+<channel>
+<title>{{ character.name }} · {{ site.title }}</title>
+<link>{{ base }}{{ character.slug }}/</link>
+<description>{{ character.summary }}</description>
+<language>{{ site.language }}</language>
+{%- for post in posts %}
+<item>
+<title>{{ post.title }}</title>
+<link>{{ base }}{{ character.slug }}/{{ post.slug }}/</link>
+<guid>{{ base }}{{ character.slug }}/{{ post.slug }}/</guid>
+<pubDate>{{ post.date | rfc822 }}</pubDate>
+<description>{{ post.excerpt }}</description>
+</item>
+{%- endfor %}
+</channel>
+</rss>

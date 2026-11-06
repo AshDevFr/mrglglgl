@@ -20,6 +20,7 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 toml = { workspace = true }
 image = { workspace = true }
+minijinja = { workspace = true }
 tracing = { workspace = true }
 ts-rs = { workspace = true, optional = true }
 

@@ -17,6 +17,7 @@ pub mod queue;
 pub mod review;
 pub mod schema;
 pub mod screenshots;
+pub mod site;
 pub mod stories;
 pub mod sv;
 pub mod watch;

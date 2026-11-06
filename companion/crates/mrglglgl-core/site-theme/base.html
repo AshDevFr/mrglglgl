@@ -1,0 +1,50 @@
+{#- The frame every page extends. Override a block in your own template, or copy this file
+    into your theme folder to change the frame for every page.
+    Blocks: title, head, menu, content, footer. -#}
+<!doctype html>
+<html lang="{{ site.language }}" data-paper="{{ site.paper }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ site.title }}{% endblock %}</title>
+<link rel="stylesheet" href="{{ root }}assets/site.css">
+{%- if has_custom_css %}
+<link rel="stylesheet" href="{{ root }}assets/custom.css">
+{%- endif %}
+<script src="{{ root }}assets/site.js"></script>
+{%- if character %}
+<link rel="alternate" type="application/rss+xml" title="{{ character.name }}" href="{{ root }}{{ character.slug }}/feed.xml">
+{%- endif %}
+{% block head %}{% endblock %}
+</head>
+<body>
+<header class="site-header">
+  <a class="site-title" href="{{ root }}">{{ site.title }}</a>
+  {% block menu %}
+  <nav class="site-menu" aria-label="{{ labels.characters | default('Characters') }}">
+    {%- for c in site.characters %}
+    <a href="{{ root }}{{ c.slug }}/"{% if character and character.slug == c.slug %} aria-current="page"{% endif %}>{{ c.name }}</a>
+    {%- endfor %}
+  </nav>
+  {%- if character %}
+  <nav class="character-menu" aria-label="{{ character.name }}">
+    <a href="{{ root }}{{ character.slug }}/">{{ labels.posts | default('Posts') }}</a>
+    <a href="{{ root }}{{ character.slug }}/archive/">{{ labels.archive | default('Archive') }}</a>
+    <a href="{{ root }}{{ character.slug }}/milestones/">{{ labels.milestones | default('Milestones') }}</a>
+    <a href="{{ root }}{{ character.slug }}/feed.xml">{{ labels.feed | default('Feed') }}</a>
+  </nav>
+  {%- endif %}
+  {% endblock %}
+  <div class="site-controls">
+    <button type="button" data-toggle="scheme">{{ labels.light_dark | default('Light / dark') }}</button>
+    <button type="button" data-toggle="paper">{{ labels.change_paper | default('Change paper') }}</button>
+  </div>
+</header>
+<main class="site-main">
+{% block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+{% block footer %}{{ labels.written_with | default('Written with Mrglglgl, a journal for World of Warcraft adventurers.') }}{% endblock %}
+</footer>
+</body>
+</html>

@@ -29,6 +29,8 @@ tauri-build = { version = "2.7", features = [] }
 tauri-plugin-dialog = "2.8.3"
 # Scales screenshots to page width for exports; only the formats the game saves.
 image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "tga"] }
+# Renders the journal website through themes players can override (Jinja-style templates).
+minijinja = { version = "2.24.0", features = ["loader"] }
 
 # TypeScript bindings for the types Tauri commands exchange. tauri-specta's
 # Tauri 2 line is still a release candidate, so the stable ts-rs generates

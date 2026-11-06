@@ -1,0 +1,19 @@
+{#- The stamps a character earned. Receives: site, root, labels, character. -#}
+{% extends "base.html" %}
+{% block title %}{{ labels.milestones | default('Milestones') }} · {{ character.name }}{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ labels.milestones | default('Milestones') }}</h1>
+<div class="milestone-list">
+{%- for stamp in character.milestones %}
+  <div class="milestone">
+    {{ stamp.svg | safe }}
+    <div>
+      <p class="milestone-name">{{ stamp.name }}</p>
+      <p>{{ stamp.description }}</p>
+    </div>
+  </div>
+{%- else %}
+  <p class="empty">{{ labels.no_milestones | default('No stamps yet.') }}</p>
+{%- endfor %}
+</div>
+{% endblock %}

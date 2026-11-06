@@ -1,0 +1,35 @@
+{#- One week: its chapter, then each day's page with stamps and photos.
+    Receives: site, root, labels, character, post, newer_post, older_post. -#}
+{% extends "base.html" %}
+{% block title %}{{ post.title }} · {{ character.name }}{% endblock %}
+{% block content %}
+<article class="post">
+  <p class="post-week">{{ character.name }} · {{ post.title }}</p>
+  {%- if post.chapter_html %}
+  <div class="chapter">{{ post.chapter_html | safe }}</div>
+  {%- endif %}
+  {%- for day in post.days %}
+  <section class="journal-page" id="{{ day.date }}">
+    {%- if day.stamps %}
+    <div class="stamps">{% for stamp in day.stamps %}{{ stamp.svg | safe }}{% endfor %}</div>
+    {%- endif %}
+    <h2>{{ day.title }}</h2>
+    {{ day.html | safe }}
+    {%- if day.photos %}
+    <div class="photos">
+      {%- for photo in day.photos %}
+      <figure class="photo">
+        <img src="{{ root }}images/{{ character.slug }}/{{ photo.file }}" alt="{{ photo.caption }}" loading="lazy">
+        <figcaption>{{ photo.caption }}</figcaption>
+      </figure>
+      {%- endfor %}
+    </div>
+    {%- endif %}
+  </section>
+  {%- endfor %}
+  <nav class="post-nav">
+    {%- if older_post %}<a href="{{ root }}{{ character.slug }}/{{ older_post.slug }}/">{{ labels.previous_week | default('Previous week') }}: {{ older_post.title }}</a>{% endif %}
+    {%- if newer_post %}<a href="{{ root }}{{ character.slug }}/{{ newer_post.slug }}/">{{ labels.next_week | default('Next week') }}: {{ newer_post.title }}</a>{% endif %}
+  </nav>
+</article>
+{% endblock %}

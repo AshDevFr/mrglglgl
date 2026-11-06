@@ -1,0 +1,17 @@
+{#- The home page: one card per character. Receives: site, root, labels. -#}
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">{{ site.title }}</h1>
+<div class="cards">
+{%- for c in site.characters %}
+  <a class="character-card" href="{{ root }}{{ c.slug }}/">
+    <span class="character-card-name">{{ c.name }}</span>
+    <span class="character-card-summary">{{ c.summary }}</span>
+    {%- if c.posts %}
+    {%- set latest = c.posts | sort(attribute="date", reverse=true) | first %}
+    <span class="character-card-latest">{{ labels.latest | default('Latest') }}: {{ latest.title }}</span>
+    {%- endif %}
+  </a>
+{%- endfor %}
+</div>
+{% endblock %}

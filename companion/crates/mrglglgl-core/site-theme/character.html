@@ -1,0 +1,24 @@
+{#- A character's posts, newest first, ten to a page.
+    Receives: site, root, labels, character, posts (this page's), page (number, total, newer_url,
+    older_url). -#}
+{% extends "base.html" %}
+{% block title %}{{ character.name }} · {{ site.title }}{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ character.name }}</h1>
+<p class="page-subtitle">{{ character.summary }}</p>
+{%- for post in posts %}
+<article class="post-card">
+  <h2><a href="{{ root }}{{ character.slug }}/{{ post.slug }}/">{{ post.title }}</a></h2>
+  <p class="post-card-excerpt">{{ post.excerpt }}</p>
+</article>
+{%- else %}
+<p class="empty">{{ labels.no_posts | default('Nothing written yet.') }}</p>
+{%- endfor %}
+{%- if page.total > 1 %}
+<nav class="pager">
+  {%- if page.newer_url %}<a href="{{ page.newer_url }}">{{ labels.newer | default('Newer') }}</a>{% endif %}
+  <span>{{ page.number }} / {{ page.total }}</span>
+  {%- if page.older_url %}<a href="{{ page.older_url }}">{{ labels.older | default('Older') }}</a>{% endif %}
+</nav>
+{%- endif %}
+{% endblock %}

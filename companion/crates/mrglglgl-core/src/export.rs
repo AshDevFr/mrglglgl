@@ -21,7 +21,7 @@ pub const FOOTER: &str = "via Mrglglgl (github.com/AshDevFr/mrglglgl)";
 
 /// An open-licence font (SIL OFL 1.1, see `assets/literata-OFL.txt`), embedded in exported
 /// pages so they look the same anywhere.
-const LITERATA: &[u8] = include_bytes!("../assets/literata-latin-wght-normal.woff2");
+pub(crate) const LITERATA: &[u8] = include_bytes!("../assets/literata-latin-wght-normal.woff2");
 
 const WEEKDAYS_EN: [&str; 7] = [
     "Monday",

@@ -1,0 +1,16 @@
+{#- Every post by month. Receives: site, root, labels, character, months (month, label, posts). -#}
+{% extends "base.html" %}
+{% block title %}{{ labels.archive | default('Archive') }} · {{ character.name }}{% endblock %}
+{% block content %}
+<h1 class="page-title">{{ labels.archive | default('Archive') }}</h1>
+{%- for month in months %}
+<section class="archive-month">
+  <h2>{{ month.label }}</h2>
+  <ul>
+    {%- for post in month.posts %}
+    <li><a href="{{ root }}{{ character.slug }}/{{ post.slug }}/">{{ post.title }}</a></li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endfor %}
+{% endblock %}
