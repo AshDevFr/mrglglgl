@@ -75,18 +75,40 @@
   transform: rotate(-0.6deg);
 }
 
-/* Photos: larger than on screen, where a click opens them. */
+/* Photos: as wide as the text, with a caption, since an export has no click to enlarge them. */
+.export .photos {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2.25rem;
+  max-width: 36rem;
+}
+
 .export .photo {
   margin: 0;
+  padding: 8px 8px 0;
   cursor: default;
+  transform: rotate(-0.8deg);
+}
+
+.export .photo:nth-child(even) {
+  transform: rotate(0.7deg);
 }
 
 .export .photo img {
-  width: 18rem;
+  width: 100%;
   height: auto;
-  aspect-ratio: auto;
+  object-fit: contain;
 }
 
+/* On the photo's own white frame, so always dark ink whatever the theme. */
+.export .photo figcaption {
+  padding: 0.6rem 0.25rem 0.75rem;
+  color: #3d3a33;
+  font-family: var(--reading-font);
+  font-size: 0.9rem;
+  font-style: italic;
+  text-align: center;
+}
 /* The exported page's switches for light or dark and the paper; never printed. */
 .export-controls {
   position: fixed;
@@ -133,6 +155,8 @@
   }
   .export .journal-page {
     box-shadow: none;
+  }
+  .export .photo {
     break-inside: avoid;
   }
   .export-chapter {

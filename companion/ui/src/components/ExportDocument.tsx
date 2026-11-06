@@ -13,6 +13,15 @@ import { InkStamp } from "./InkStamp";
 
 const TILTS = [-7, 5, -3, 8];
 
+/** A screenshot in an export: where its picture comes from, and what it caught. */
+export interface ExportPhoto {
+  src: string;
+  /** What the addon was capturing, e.g. `"levelUp"`; `null` for an ordinary screenshot. */
+  moment: string | null;
+  /** Unix time. */
+  taken: number;
+}
+
 export interface ExportData {
   title: string;
   journal: Journal;
@@ -20,7 +29,7 @@ export interface ExportData {
   stories: Story[];
   awards: Award[];
   /** Picture sources by day: embedded data for a file, asset URLs for printing. */
-  photos: Record<string, string[]>;
+  photos: Record<string, ExportPhoto[]>;
   /** The paper chosen in Settings: what an exported page starts on, and what prints. */
   paper: Paper;
 }
@@ -47,6 +56,29 @@ export function ExportDocument({
     if (last && last[0] === monday) last[1].push(day);
     else weeks.push([monday, [day]]);
   }
+  /** "Level up in Red Rocks, 9:41 PM": what was happening, where the day's events place it. */
+  const caption = (day: string, photo: ExportPhoto) => {
+    const before = (journal.days[day]?.events ?? []).filter(
+      (e) => e.time <= photo.taken && (e.subzone || e.zone),
+    );
+    const last = before[before.length - 1];
+    const place = last ? last.subzone || last.zone : null;
+    const time = new Intl.DateTimeFormat(lang, { timeStyle: "short" }).format(
+      new Date(photo.taken * 1000),
+    );
+    if (!photo.moment || photo.moment === "other") {
+      return place
+        ? t("export.captionPlace", { place, time })
+        : t("export.captionTime", { time });
+    }
+    const said = t(`photo.moment.${photo.moment}`, {
+      defaultValue: t("photo.moment.other"),
+    });
+    const moment = said.charAt(0).toLocaleUpperCase(lang) + said.slice(1);
+    return place
+      ? t("export.caption", { moment, place, time })
+      : t("export.captionNoPlace", { moment, time });
+  };
   const c = journal.character;
   const meta = [c.race, c.realm].filter(Boolean).join(" · ");
 
@@ -104,17 +136,18 @@ export function ExportDocument({
                   )}
                   {pictures.length > 0 && (
                     <div className="photos">
-                      {pictures.map((src, i) => (
-                        <figure
-                          key={src.slice(-40) + String(i)}
-                          className="photo"
-                        >
-                          <img
-                            src={src}
-                            alt={t("export.photo", { day: heading })}
-                          />
-                        </figure>
-                      ))}
+                      {pictures.map((photo) => {
+                        const words = caption(day, photo);
+                        return (
+                          <figure
+                            key={photo.taken + photo.src.slice(-24)}
+                            className="photo"
+                          >
+                            <img src={photo.src} alt={words} />
+                            <figcaption>{words}</figcaption>
+                          </figure>
+                        );
+                      })}
                     </div>
                   )}
                 </article>

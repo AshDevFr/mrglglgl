@@ -10,7 +10,11 @@ import {
   screenshotData,
   screenshotUrl,
 } from "@/api/commands";
-import { type ExportData, ExportDocument } from "@/components/ExportDocument";
+import {
+  type ExportData,
+  ExportDocument,
+  type ExportPhoto,
+} from "@/components/ExportDocument";
 import { displayName } from "@/lib/journal";
 import { savedPaper } from "@/lib/paper";
 import exportCss from "@/styles/export.css?raw";
@@ -82,12 +86,16 @@ export async function loadExportData(
   ]);
   if (!journal) throw new Error("this character has no journal yet");
   const summary = characters.find((c) => c.character.id === characterId);
-  const photos: Record<string, string[]> = {};
+  const photos: Record<string, ExportPhoto[]> = {};
   for (const [day, list] of Object.entries(shots)) {
     photos[day] = await Promise.all(
-      list.map((s) =>
-        embed ? screenshotData(characterId, s.path) : screenshotUrl(s.path),
-      ),
+      list.map(async (s) => ({
+        src: embed
+          ? await screenshotData(characterId, s.path)
+          : screenshotUrl(s.path),
+        moment: s.moment,
+        taken: s.taken,
+      })),
     );
   }
   return {

@@ -46,7 +46,15 @@ const data = {
     }),
     story(4, "week", "2026-11-02", "A week of wolves and water."),
   ],
-  photos: { "2026-11-08": ["data:image/jpeg;base64,AAAA"] },
+  photos: {
+    "2026-11-08": [
+      {
+        src: "data:image/jpeg;base64,AAAA",
+        moment: "levelUp",
+        taken: 1794164491,
+      },
+    ],
+  },
   paper: "parchment" as const,
 };
 
@@ -126,5 +134,22 @@ describe("ExportDocument", () => {
     expect(root.getAttribute("data-mantine-color-scheme")).toBe("light");
     window.dispatchEvent(new Event("afterprint"));
     expect(root.getAttribute("data-mantine-color-scheme")).toBe("dark");
+    document.body.innerHTML = "";
+    root.removeAttribute("data-mantine-color-scheme");
+    root.removeAttribute("data-paper");
+  });
+
+  it("captions each screenshot with what was happening, where and when", () => {
+    render(<ExportDocument {...data} />);
+    const day = screen.getByRole("article", {
+      name: "Sunday, November 8, 2026",
+    });
+    const figure = day.querySelector("figure.photo");
+    expect(figure?.querySelector("figcaption")?.textContent).toMatch(
+      /^Level up in Red Rocks, \d{1,2}:\d{2}/,
+    );
+    expect(figure?.querySelector("img")?.getAttribute("alt")).toMatch(
+      /^Level up in Red Rocks/,
+    );
   });
 });
