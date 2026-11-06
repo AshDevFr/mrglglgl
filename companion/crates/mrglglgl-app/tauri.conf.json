@@ -13,10 +13,10 @@
     "windows": [
       {
         "title": "Mrglglgl",
-        "width": 1100,
-        "height": 760,
-        "minWidth": 720,
-        "minHeight": 480
+        "width": 1280,
+        "height": 860,
+        "minWidth": 900,
+        "minHeight": 600
       }
     ],
     "security": {

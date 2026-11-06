@@ -20,6 +20,7 @@ import {
   syncNow,
 } from "@/api/commands";
 import { CharacterTree } from "@/components/CharacterTree";
+import { applyZoom, savedZoom, stepZoom } from "@/lib/zoom";
 
 export function Layout() {
   const { t } = useTranslation();
@@ -32,6 +33,26 @@ export function Layout() {
     queryKey: ["characters"],
     queryFn: listCharacters,
   });
+
+  // ⌘/Ctrl with +, − and 0 size the interface, as in a browser.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+      const direction =
+        e.key === "=" || e.key === "+"
+          ? 1
+          : e.key === "-" || e.key === "_"
+            ? -1
+            : e.key === "0"
+              ? 0
+              : null;
+      if (direction === null) return;
+      e.preventDefault();
+      void applyZoom(stepZoom(savedZoom(), direction));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // The game saved a journal or a screenshot: refresh what is on screen.
   useEffect(() => {

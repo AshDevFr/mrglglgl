@@ -10,6 +10,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { getSettings } from "./api/commands";
 import { applyLanguage, initI18n } from "./i18n";
+import { applyZoom, savedZoom } from "./lib/zoom";
 import { router } from "./router";
 
 // Queries are local commands, not network calls: retrying one that failed only delays the error.
@@ -23,6 +24,8 @@ const theme = createTheme({
   headings: { fontFamily: "var(--reading-font)" },
   primaryColor: "teal",
 });
+
+void applyZoom(savedZoom());
 
 initI18n()
   .then(() => getSettings())

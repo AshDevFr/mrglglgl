@@ -449,8 +449,13 @@ export function latestSnapshot(journal: Journal): Snapshot {
   const snapshot: Snapshot = { level: null, zone: null };
   for (const date of daysNewestFirst(journal)) {
     const day = journal.days[date];
+    // A level never goes down, but the game can stamp the logout with the level from before
+    // the session's level-ups: the newest day's highest level is the current one.
+    const levels = (day.events ?? [])
+      .map((e) => e.level)
+      .filter((l): l is number => l !== null);
+    if (levels.length > 0) snapshot.level ??= Math.max(...levels);
     for (const e of [...(day.events ?? [])].reverse()) {
-      snapshot.level ??= e.level;
       snapshot.zone ??= e.zone || null;
     }
     snapshot.level ??= day.digest?.levelTo ?? null;

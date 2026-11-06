@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
+import type { Journal } from "@/bindings/Journal";
 import type { StoredCharacter } from "@/bindings/StoredCharacter";
 import { syntheticJournal } from "@/test/render";
 import {
@@ -7,6 +8,7 @@ import {
   daysNewestFirst,
   displayName,
   groupCharacters,
+  latestSnapshot,
 } from "./journal";
 
 function character(overrides: Partial<StoredCharacter>): CharacterSummary {
@@ -118,5 +120,33 @@ describe("dayFacts", () => {
       "2026-11-08",
       "2026-11-01",
     ]);
+  });
+});
+
+describe("the character's latest level", () => {
+  it("is the highest level of the newest day, whatever the last event says", () => {
+    const ev = (level: number) => ({
+      time: 0,
+      zone: "The Barrens",
+      subzone: null,
+      mapId: null,
+      level,
+      kind: { kind: "sessionEnd" },
+    });
+    const journal = {
+      ...syntheticJournal,
+      days: {
+        "2026-11-06": {
+          events: [ev(9), ev(10), ev(9)],
+          kills: {},
+          anonKills: 0,
+          skills: {},
+          crafted: {},
+          gathered: {},
+          digest: null,
+        },
+      },
+    } as unknown as Journal;
+    expect(latestSnapshot(journal).level).toBe(10);
   });
 });

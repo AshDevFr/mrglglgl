@@ -246,7 +246,9 @@
     "writeOnBattery": "Write while on battery",
     "writeOnBatteryHelp": "Off by default: writing uses the processor hard and drains a laptop. When off, writing waits until the charger is plugged in. Checked on macOS and Windows laptops.",
     "review": "Let me review entries first",
-    "reviewHelp": "New entries wait in To review until you accept them. Off: they go straight into the journal."
+    "reviewHelp": "New entries wait in To review until you accept them. Off: they go straight into the journal.",
+    "zoom": "Interface size",
+    "zoomHelp": "Text and layout together, on this computer. ⌘ or Ctrl with + and − change it too; with 0 it goes back to 100%."
   },
   "writing": {
     "loading": {

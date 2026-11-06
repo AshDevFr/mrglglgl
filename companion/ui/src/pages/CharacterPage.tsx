@@ -157,12 +157,12 @@ export function CharacterPage({
   return (
     <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
       <Stack gap="lg" maw="48rem">
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
+        <Group justify="space-between" align="flex-start" wrap="wrap">
           <CharacterHeader
             character={summary.character}
             journal={journal.data ?? null}
           />
-          <Group gap="xs" wrap="nowrap">
+          <Group gap="xs" wrap="wrap">
             <Button
               variant="subtle"
               color="gray"
