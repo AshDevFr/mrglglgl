@@ -167,6 +167,17 @@ const MIGRATIONS: &[&str] = &[
     // full entry, which is still written once the day is over.
     "ALTER TABLE stories ADD COLUMN partial INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE write_queue ADD COLUMN partial INTEGER NOT NULL DEFAULT 0;",
+    // Archived rows carry the format they were written in, so a newer app's rows are never
+    // misread. A row that cannot be read is set aside here before anything replaces it.
+    "ALTER TABLE archive_days ADD COLUMN format INTEGER NOT NULL DEFAULT 1;
+    ALTER TABLE archive_journals ADD COLUMN format INTEGER NOT NULL DEFAULT 1;
+    CREATE TABLE archive_quarantine (
+        character_id INTEGER NOT NULL,
+        day TEXT NOT NULL,
+        data_json TEXT NOT NULL,
+        format INTEGER NOT NULL,
+        set_aside INTEGER NOT NULL
+    );",
 ];
 
 /// The schema version this build creates and understands.
@@ -341,6 +352,51 @@ impl Database {
         // WAL keeps the UI reading while a background import writes.
         conn.pragma_update(None, "journal_mode", "WAL")?;
         Self::prepare(conn)
+    }
+
+    /// Copies the whole database into `<data_dir>/snapshots/` when the newest copy there is a
+    /// week old or more, keeping the four newest. The archive is the only copy of days the game
+    /// has since compacted, so it should not live in one file. Returns the new copy, if any.
+    pub fn snapshot_if_due(&self, data_dir: &Path, now: i64) -> Result<Option<PathBuf>, DbError> {
+        const KEEP: usize = 4;
+        const EVERY_DAYS: i64 = 7;
+        let folder = data_dir.join("snapshots");
+        let io = |source| DbError::DataFolder {
+            path: folder.clone(),
+            source,
+        };
+        std::fs::create_dir_all(&folder).map_err(io)?;
+        let mut taken: Vec<(chrono::NaiveDate, PathBuf)> = std::fs::read_dir(&folder)
+            .map_err(io)?
+            .filter_map(Result::ok)
+            .filter_map(|e| {
+                let name = e.file_name().to_string_lossy().into_owned();
+                let date = name.strip_prefix("mrglglgl-")?.strip_suffix(".db")?;
+                Some((
+                    chrono::NaiveDate::parse_from_str(date, "%Y-%m-%d").ok()?,
+                    e.path(),
+                ))
+            })
+            .collect();
+        taken.sort();
+        let today = chrono::DateTime::from_timestamp(now, 0)
+            .unwrap_or_default()
+            .date_naive();
+        if taken
+            .last()
+            .is_some_and(|(date, _)| (today - *date).num_days() < EVERY_DAYS)
+        {
+            return Ok(None);
+        }
+        let path = folder.join(format!("mrglglgl-{}.db", today.format("%Y-%m-%d")));
+        self.conn
+            .execute("VACUUM INTO ?1", [path.to_string_lossy()])?;
+        taken.push((today, path.clone()));
+        let excess = taken.len().saturating_sub(KEEP);
+        for (_, old) in taken.into_iter().take(excess) {
+            std::fs::remove_file(&old).map_err(io)?;
+        }
+        Ok(Some(path))
     }
 
     /// An in-memory database, for tests and previews.

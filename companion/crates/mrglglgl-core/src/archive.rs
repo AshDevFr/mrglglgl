@@ -328,6 +328,41 @@ fn merge_quest(into: &mut Quest, from: &Quest) {
 
 /// Merges one parsed snapshot of a character's journal into the archive. `source_mtime` is when
 /// the game wrote the snapshot; it decides which of two snapshots is newer.
+/// The shape archived rows are written in. A row with a higher format was written by a newer
+/// app: it is never read as if it were this one.
+pub const ARCHIVE_FORMAT: i64 = 1;
+
+/// Reads an archived row, or `None` when it cannot be read: damaged, or written by a newer app.
+fn read_row<T: serde::de::DeserializeOwned>(json: &str, format: i64) -> Option<T> {
+    if format > ARCHIVE_FORMAT {
+        return None;
+    }
+    serde_json::from_str(json).ok()
+}
+
+/// Keeps an unreadable row aside before anything replaces it, so it can still be recovered.
+fn set_aside(
+    tx: &rusqlite::Transaction,
+    character_id: i64,
+    day: &str,
+    json: &str,
+    format: i64,
+) -> Result<(), ArchiveError> {
+    tracing::warn!("archive: day {day} of character {character_id} could not be read; set aside");
+    tx.execute(
+        "INSERT INTO archive_quarantine (character_id, day, data_json, format, set_aside)
+         VALUES (?1, ?2, ?3, ?4, ?5)",
+        params![
+            character_id,
+            day,
+            json,
+            format,
+            chrono::Utc::now().timestamp()
+        ],
+    )?;
+    Ok(())
+}
+
 pub fn merge_snapshot(
     db: &Database,
     character_id: i64,
@@ -338,43 +373,61 @@ pub fn merge_snapshot(
     let tx = conn.unchecked_transaction()?;
 
     for (date, incoming) in &journal.days {
-        let stored: Option<(String, i64)> = tx
+        let stored: Option<(String, i64, i64)> = tx
             .query_row(
-                "SELECT data_json, source_mtime FROM archive_days
+                "SELECT data_json, source_mtime, format FROM archive_days
                  WHERE character_id = ?1 AND day = ?2",
                 params![character_id, date],
-                |row| Ok((row.get(0)?, row.get(1)?)),
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
             )
             .optional()?;
         let (merged, mtime) = match stored {
             None => (incoming.clone(), source_mtime),
-            Some((json, stored_mtime)) => {
-                let stored: Day = serde_json::from_str(&json)?;
-                let newer = source_mtime >= stored_mtime;
-                (
-                    merge_day(stored, incoming.clone(), newer),
-                    stored_mtime.max(source_mtime),
-                )
-            }
+            Some((json, stored_mtime, format)) => match read_row::<Day>(&json, format) {
+                Some(stored) => {
+                    let newer = source_mtime >= stored_mtime;
+                    (
+                        merge_day(stored, incoming.clone(), newer),
+                        stored_mtime.max(source_mtime),
+                    )
+                }
+                None => {
+                    set_aside(&tx, character_id, date, &json, format)?;
+                    (incoming.clone(), source_mtime)
+                }
+            },
         };
         tx.execute(
-            "INSERT INTO archive_days (character_id, day, data_json, source_mtime)
-             VALUES (?1, ?2, ?3, ?4)
+            "INSERT INTO archive_days (character_id, day, data_json, source_mtime, format)
+             VALUES (?1, ?2, ?3, ?4, ?5)
              ON CONFLICT (character_id, day) DO UPDATE SET
-                 data_json = excluded.data_json, source_mtime = excluded.source_mtime",
-            params![character_id, date, serde_json::to_string(&merged)?, mtime],
+                 data_json = excluded.data_json, source_mtime = excluded.source_mtime,
+                 format = excluded.format",
+            params![
+                character_id,
+                date,
+                serde_json::to_string(&merged)?,
+                mtime,
+                ARCHIVE_FORMAT
+            ],
         )?;
     }
 
-    let stored: Option<(String, i64)> = tx
+    let stored: Option<(String, i64, i64)> = tx
         .query_row(
-            "SELECT data_json, source_mtime FROM archive_journals WHERE character_id = ?1",
+            "SELECT data_json, source_mtime, format FROM archive_journals WHERE character_id = ?1",
             [character_id],
-            |row| Ok((row.get(0)?, row.get(1)?)),
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
         )
         .optional()?;
     let (mut record, stored_mtime) = match stored {
-        Some((json, mtime)) => (serde_json::from_str::<JournalRecord>(&json)?, mtime),
+        Some((json, mtime, format)) => match read_row::<JournalRecord>(&json, format) {
+            Some(record) => (record, mtime),
+            None => {
+                set_aside(&tx, character_id, "", &json, format)?;
+                (JournalRecord::default(), i64::MIN)
+            }
+        },
         None => (JournalRecord::default(), i64::MIN),
     };
     let newer = source_mtime >= stored_mtime;
@@ -423,55 +476,91 @@ pub fn merge_snapshot(
     }
     record.discovered.extend(journal.discovered.iter().cloned());
     tx.execute(
-        "INSERT INTO archive_journals (character_id, data_json, source_mtime)
-         VALUES (?1, ?2, ?3)
+        "INSERT INTO archive_journals (character_id, data_json, source_mtime, format)
+         VALUES (?1, ?2, ?3, ?4)
          ON CONFLICT (character_id) DO UPDATE SET
-             data_json = excluded.data_json, source_mtime = excluded.source_mtime",
+             data_json = excluded.data_json, source_mtime = excluded.source_mtime,
+             format = excluded.format",
         params![
             character_id,
             serde_json::to_string(&record)?,
-            stored_mtime.max(source_mtime)
+            stored_mtime.max(source_mtime),
+            ARCHIVE_FORMAT
         ],
     )?;
     tx.commit()?;
     Ok(())
 }
 
-/// A character's archived journal: every day the app has seen, merged.
+/// A character's archive, and the days that could not be read.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Loaded {
+    pub journal: Journal,
+    /// Days whose rows are damaged or were written by a newer app; `""` for the journal's own
+    /// record. They are left in place, and set aside before a snapshot replaces them.
+    pub unreadable: Vec<String>,
+}
+
+/// A character's archived journal: every day the app has seen, merged. A row that cannot be read
+/// is skipped, so one damaged day never hides the others.
 pub fn load(db: &Database, character_id: i64) -> Result<Option<Journal>, ArchiveError> {
+    Ok(load_checked(db, character_id)?.map(|loaded| loaded.journal))
+}
+
+/// The archived journal, with the days that could not be read.
+pub fn load_checked(db: &Database, character_id: i64) -> Result<Option<Loaded>, ArchiveError> {
     let conn = db.conn();
-    let record: Option<String> = conn
+    let record: Option<(String, i64)> = conn
         .query_row(
-            "SELECT data_json FROM archive_journals WHERE character_id = ?1",
+            "SELECT data_json, format FROM archive_journals WHERE character_id = ?1",
             [character_id],
-            |row| row.get(0),
+            |row| Ok((row.get(0)?, row.get(1)?)),
         )
         .optional()?;
-    let Some(record) = record else {
+    let Some((record, format)) = record else {
         return Ok(None);
     };
-    let record: JournalRecord = serde_json::from_str(&record)?;
+    let mut unreadable = Vec::new();
+    let record: JournalRecord = read_row(&record, format).unwrap_or_else(|| {
+        unreadable.push(String::new());
+        JournalRecord::default()
+    });
     let mut stmt =
-        conn.prepare("SELECT day, data_json FROM archive_days WHERE character_id = ?1")?;
-    let days = stmt
-        .query_map([character_id], |row| {
-            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-        })?
-        .map(|row| {
-            let (date, json) = row?;
-            Ok((date, serde_json::from_str::<Day>(&json)?))
-        })
-        .collect::<Result<BTreeMap<_, _>, ArchiveError>>()?;
-    Ok(Some(Journal {
-        schema: record.schema,
-        character: record.character,
-        days,
-        quests: record.quests,
-        companions: record.companions,
-        discovered: record.discovered,
-        stats: record.stats,
-        addon: record.addon,
-        errors: record.errors,
+        conn.prepare("SELECT day, data_json, format FROM archive_days WHERE character_id = ?1")?;
+    let rows = stmt.query_map([character_id], |row| {
+        Ok((
+            row.get::<_, String>(0)?,
+            row.get::<_, String>(1)?,
+            row.get::<_, i64>(2)?,
+        ))
+    })?;
+    let mut days = BTreeMap::new();
+    for row in rows {
+        let (date, json, format) = row?;
+        match read_row::<Day>(&json, format) {
+            Some(day) => {
+                days.insert(date, day);
+            }
+            None => {
+                tracing::warn!("archive: day {date} of character {character_id} could not be read");
+                unreadable.push(date);
+            }
+        }
+    }
+    unreadable.sort();
+    Ok(Some(Loaded {
+        journal: Journal {
+            schema: record.schema,
+            character: record.character,
+            days,
+            quests: record.quests,
+            companions: record.companions,
+            discovered: record.discovered,
+            stats: record.stats,
+            addon: record.addon,
+            errors: record.errors,
+        },
+        unreadable,
     }))
 }
 

@@ -26,6 +26,12 @@ fn main() {
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
             let db = Database::open(&data_dir)?;
+            // The archive is the only copy of days the game has compacted: keep a weekly copy.
+            match db.snapshot_if_due(&data_dir, chrono::Utc::now().timestamp()) {
+                Ok(Some(path)) => tracing::info!("database snapshot: {}", path.display()),
+                Ok(None) => {}
+                Err(e) => tracing::warn!("database snapshot: {e}"),
+            }
             app.manage(sync::AppState::new(db, data_dir));
             // Importing can take a moment on a big archive; the window opens meanwhile and
             // refreshes when the journals arrive.

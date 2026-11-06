@@ -155,9 +155,14 @@ fn database_with_backup_count(dir: &std::path::Path, count: &str) {
         [count],
     )
     .unwrap();
-    // Version 2 is the last one that counted copies; tables added since go too.
-    conn.execute_batch("DROP TABLE IF EXISTS continuity; DROP TABLE IF EXISTS stories; DROP TABLE IF EXISTS write_queue;")
-        .unwrap();
+    // Version 2 is the last one that counted copies; tables and columns added since go too.
+    conn.execute_batch(
+        "DROP TABLE IF EXISTS continuity; DROP TABLE IF EXISTS stories;
+         DROP TABLE IF EXISTS write_queue; DROP TABLE IF EXISTS archive_quarantine;
+         ALTER TABLE archive_days DROP COLUMN format;
+         ALTER TABLE archive_journals DROP COLUMN format;",
+    )
+    .unwrap();
     conn.pragma_update(None, "user_version", 2).unwrap();
 }
 

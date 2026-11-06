@@ -1,0 +1,362 @@
+{
+  "events": [
+    {
+      "time": 1794164400,
+      "zone": "Mulgore",
+      "subzone": "Bloodhoof Village",
+      "mapId": 7,
+      "level": 5,
+      "kind": {
+        "kind": "sessionStart"
+      }
+    },
+    {
+      "time": 1794164400,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 5,
+      "kind": {
+        "kind": "zone"
+      }
+    },
+    {
+      "time": 1794164400,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 5,
+      "kind": {
+        "kind": "subzone"
+      }
+    },
+    {
+      "time": 1794164400,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 5,
+      "kind": {
+        "kind": "discover",
+        "area": "Red Rocks",
+        "source": "visit"
+      }
+    },
+    {
+      "time": 1794164490,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 5,
+      "kind": {
+        "kind": "discover",
+        "area": "Thunder Bluff",
+        "source": "message"
+      }
+    },
+    {
+      "time": 1794164490,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 5,
+      "kind": {
+        "kind": "questAccept",
+        "questId": 749
+      }
+    },
+    {
+      "time": 1794164490,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 5,
+      "kind": {
+        "kind": "boss",
+        "encounterId": 1144,
+        "name": "Hogger"
+      }
+    },
+    {
+      "time": 1794164490,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 5,
+      "kind": {
+        "kind": "questTurnin",
+        "questId": 749,
+        "xp": 450,
+        "money": 75
+      }
+    },
+    {
+      "time": 1794164490,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 6,
+      "kind": {
+        "kind": "level"
+      }
+    },
+    {
+      "time": 1794164490,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 6,
+      "kind": {
+        "kind": "screenshot",
+        "moment": "levelUp"
+      }
+    },
+    {
+      "time": 1794164491,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 6,
+      "kind": {
+        "kind": "loot",
+        "itemId": 2140,
+        "name": "Carving Knife",
+        "quality": 3,
+        "quantity": 1
+      }
+    },
+    {
+      "time": 1794164491,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 6,
+      "kind": {
+        "kind": "groupJoin",
+        "who": "Tamsin-Reedwater"
+      }
+    },
+    {
+      "time": 1794164491,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 6,
+      "kind": {
+        "kind": "death",
+        "killer": {
+          "name": "Murloc Streamrunner",
+          "npcId": 732,
+          "murloc": true
+        },
+        "environment": null
+      }
+    },
+    {
+      "time": 1794164553,
+      "zone": "Mulgore",
+      "subzone": "Red Rocks",
+      "mapId": 7,
+      "level": 6,
+      "kind": {
+        "kind": "sessionEnd"
+      }
+    }
+  ],
+  "kills": {
+    "732": {
+      "count": 1,
+      "name": "Murloc Streamrunner",
+      "classification": "unknown",
+      "murloc": true
+    },
+    "2958": {
+      "count": 23,
+      "name": "Prairie Wolf",
+      "classification": "normal",
+      "murloc": false
+    },
+    "3035": {
+      "count": 1,
+      "name": "Flatland Cougar",
+      "classification": "elite",
+      "murloc": false
+    }
+  },
+  "anonKills": 1,
+  "skills": {
+    "129": {
+      "name": "First Aid",
+      "category": "Secondary Skills",
+      "from": 30,
+      "to": 35
+    },
+    "186": {
+      "name": "Mining",
+      "category": "Professions",
+      "from": 40,
+      "to": 41
+    }
+  },
+  "crafted": {
+    "1251": {
+      "name": "Linen Bandage",
+      "count": 5,
+      "via": null
+    }
+  },
+  "gathered": {
+    "2770": {
+      "name": "Copper Ore",
+      "count": 1,
+      "via": "Mining"
+    },
+    "2835": {
+      "name": "Rough Stone",
+      "count": 1,
+      "via": "Mining"
+    }
+  },
+  "digest": {
+    "version": 2,
+    "counts": {
+      "sessions": 1,
+      "levels": 1,
+      "accepted": 1,
+      "turnedIn": 1,
+      "deaths": 1,
+      "fish": 0,
+      "junk": 0,
+      "boots": 0,
+      "loot": 1,
+      "discoveries": 2,
+      "bosses": 1,
+      "group": 1,
+      "screenshots": 1,
+      "kills": 26,
+      "murlocs": 1,
+      "anonKills": 1,
+      "skillUps": 6,
+      "crafted": 5,
+      "gathered": 2
+    },
+    "levelFrom": 5,
+    "levelTo": 6,
+    "zones": [
+      "Mulgore"
+    ],
+    "subzones": [
+      "Red Rocks"
+    ],
+    "discovered": [
+      "Red Rocks",
+      "Thunder Bluff"
+    ],
+    "accepted": [
+      749
+    ],
+    "turnedIn": [
+      749
+    ],
+    "deaths": [
+      {
+        "killer": {
+          "name": "Murloc Streamrunner",
+          "npcId": 732,
+          "murloc": true
+        },
+        "environment": null,
+        "zone": "Mulgore",
+        "subzone": "Red Rocks"
+      }
+    ],
+    "kills": [
+      {
+        "npcId": 2958,
+        "name": "Prairie Wolf",
+        "count": 23,
+        "classification": "normal",
+        "murloc": false
+      },
+      {
+        "npcId": 732,
+        "name": "Murloc Streamrunner",
+        "count": 1,
+        "classification": "unknown",
+        "murloc": true
+      },
+      {
+        "npcId": 3035,
+        "name": "Flatland Cougar",
+        "count": 1,
+        "classification": "elite",
+        "murloc": false
+      }
+    ],
+    "notableKills": [
+      {
+        "npcId": 3035,
+        "name": "Flatland Cougar",
+        "count": 1,
+        "classification": "elite",
+        "murloc": false
+      }
+    ],
+    "fish": [],
+    "loot": [
+      {
+        "itemId": 2140,
+        "name": "Carving Knife",
+        "quality": 3,
+        "quantity": 1
+      }
+    ],
+    "companions": [
+      "Tamsin-Reedwater"
+    ],
+    "bosses": [
+      "Hogger"
+    ],
+    "skills": [
+      {
+        "skillId": 129,
+        "name": "First Aid",
+        "category": "Secondary Skills",
+        "from": 30,
+        "to": 35
+      },
+      {
+        "skillId": 186,
+        "name": "Mining",
+        "category": "Professions",
+        "from": 40,
+        "to": 41
+      }
+    ],
+    "crafted": [
+      {
+        "itemId": 1251,
+        "name": "Linen Bandage",
+        "count": 5,
+        "via": null
+      }
+    ],
+    "gathered": [
+      {
+        "itemId": 2770,
+        "name": "Copper Ore",
+        "count": 1,
+        "via": "Mining"
+      },
+      {
+        "itemId": 2835,
+        "name": "Rough Stone",
+        "count": 1,
+        "via": "Mining"
+      }
+    ],
+    "onlyFished": false,
+    "nothingHappened": false,
+    "thin": false
+  }
+}

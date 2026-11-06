@@ -583,3 +583,127 @@ fn forgetting_in_the_game_leaves_the_archive_whole() {
     assert_eq!(kept.kills, before.days["2026-11-08"].kills);
     assert_eq!(kept.events, before.days["2026-11-08"].events);
 }
+
+fn archived(dir: &Path) -> (Database, i64, String) {
+    let db = Database::open(dir).unwrap();
+    let id = db
+        .upsert_character(&source(Path::new("/wow"), "Wren-Hollowbrook"), None, None)
+        .unwrap();
+    merge_snapshot(&db, id, &synthetic(), 100).unwrap();
+    (db, id, "2026-11-08".to_string())
+}
+
+fn raw(dir: &Path) -> rusqlite::Connection {
+    rusqlite::Connection::open(dir.join("mrglglgl.db")).unwrap()
+}
+
+#[test]
+fn one_unreadable_day_never_hides_the_rest_of_a_character() {
+    let dir = tempfile::tempdir().unwrap();
+    let (db, id, day) = archived(dir.path());
+    raw(dir.path())
+        .execute(
+            "UPDATE archive_days SET data_json = '{not json' WHERE day = ?1",
+            [&day],
+        )
+        .unwrap();
+    let loaded = archive::load_checked(&db, id).unwrap().unwrap();
+    assert_eq!(loaded.unreadable, vec![day.clone()]);
+    assert!(!loaded.journal.days.contains_key(&day));
+    assert_eq!(loaded.journal.days.len(), synthetic().days.len() - 1);
+    assert!(
+        archive::load(&db, id).unwrap().is_some(),
+        "the plain load still works"
+    );
+}
+
+#[test]
+fn a_day_saved_by_a_newer_app_is_skipped_not_misread() {
+    let dir = tempfile::tempdir().unwrap();
+    let (db, id, day) = archived(dir.path());
+    raw(dir.path())
+        .execute(
+            "UPDATE archive_days SET format = ?1 WHERE day = ?2",
+            rusqlite::params![archive::ARCHIVE_FORMAT + 1, day],
+        )
+        .unwrap();
+    let loaded = archive::load_checked(&db, id).unwrap().unwrap();
+    assert_eq!(loaded.unreadable, vec![day]);
+}
+
+#[test]
+fn an_unreadable_day_is_set_aside_before_a_snapshot_replaces_it() {
+    let dir = tempfile::tempdir().unwrap();
+    let (db, id, day) = archived(dir.path());
+    raw(dir.path())
+        .execute(
+            "UPDATE archive_days SET data_json = '{not json' WHERE day = ?1",
+            [&day],
+        )
+        .unwrap();
+    merge_snapshot(&db, id, &synthetic(), 200).unwrap();
+    let kept: String = raw(dir.path())
+        .query_row(
+            "SELECT data_json FROM archive_quarantine WHERE day = ?1",
+            [&day],
+            |row| row.get(0),
+        )
+        .unwrap();
+    assert_eq!(kept, "{not json");
+    let loaded = archive::load_checked(&db, id).unwrap().unwrap();
+    assert!(loaded.unreadable.is_empty());
+    assert!(loaded.journal.days.contains_key(&day));
+}
+
+#[test]
+fn an_archived_day_in_format_one_still_reads_every_field() {
+    // Written by the app in archive format 1. A change to the archived types that would lose or
+    // misread any of it fails here, before it reaches anyone's archive.
+    let path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/data/archive-day-format-1.json");
+    if std::env::var_os("MRGLGLGL_UPDATE_SNAPSHOTS").is_some() && !path.exists() {
+        let day = &synthetic().days["2026-11-08"];
+        fs::write(&path, serde_json::to_string_pretty(day).unwrap()).unwrap();
+    }
+    let text = fs::read_to_string(&path).unwrap();
+    let original: serde_json::Value = serde_json::from_str(&text).unwrap();
+    let day: schema::Day = serde_json::from_str(&text).unwrap();
+    assert_eq!(serde_json::to_value(&day).unwrap(), original);
+}
+
+#[test]
+fn the_database_is_snapshotted_weekly_and_four_are_kept() {
+    let dir = tempfile::tempdir().unwrap();
+    let (db, _, _) = archived(dir.path());
+    let start = 1_794_000_000; // 2026-11-07
+    let first = db
+        .snapshot_if_due(dir.path(), start)
+        .unwrap()
+        .expect("a first snapshot");
+    assert!(first.is_file());
+    assert!(
+        db.snapshot_if_due(dir.path(), start + 3 * 86_400)
+            .unwrap()
+            .is_none()
+    );
+    for week in 1..=5 {
+        assert!(
+            db.snapshot_if_due(dir.path(), start + week * 7 * 86_400)
+                .unwrap()
+                .is_some()
+        );
+    }
+    let kept = fs::read_dir(dir.path().join("snapshots")).unwrap().count();
+    assert_eq!(kept, 4);
+    // A snapshot is a whole database, archive included.
+    let newest = fs::read_dir(dir.path().join("snapshots"))
+        .unwrap()
+        .map(|e| e.unwrap().path())
+        .max()
+        .unwrap();
+    let days: i64 = rusqlite::Connection::open(newest)
+        .unwrap()
+        .query_row("SELECT count(*) FROM archive_days", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(days as usize, synthetic().days.len());
+}
