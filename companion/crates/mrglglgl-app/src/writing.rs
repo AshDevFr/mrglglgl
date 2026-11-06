@@ -100,7 +100,7 @@ pub fn endpoint_config(settings: &Settings) -> Option<EndpointConfig> {
 /// The provider the settings ask for, if it is ready: a downloaded model, or a configured
 /// endpoint. A local provider is kept while its model stays the same, so the loaded model is not
 /// thrown away between entries.
-fn provider(state: &AppState, settings: &Settings) -> Option<Arc<dyn Provider>> {
+pub fn provider(state: &AppState, settings: &Settings) -> Option<Arc<dyn Provider>> {
     let mut cached = state.provider.lock().unwrap();
     let wanted: (String, Option<Arc<dyn Provider>>) = match settings.writing.provider {
         ProviderChoice::Endpoint => {

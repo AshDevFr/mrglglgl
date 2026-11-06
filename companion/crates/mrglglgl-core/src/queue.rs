@@ -17,7 +17,7 @@ use mrglglgl_llm::{
     CancellationToken, DEFAULT_TEMPERATURE, ENDPOINT_TIMEOUT, LOCAL_TIMEOUT, Provider,
 };
 use rusqlite::{OptionalExtension, params};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tokio::sync::{Notify, mpsc};
 
 use crate::archive;
@@ -397,6 +397,11 @@ pub struct Control {
     paused: AtomicBool,
     /// Where the player's own narrators are kept; built-ins only when `None`.
     narrators: Option<PathBuf>,
+    /// Taken for every generation, entry or preview: one model, one writer at a time. A preview
+    /// waits for the entry being written, then goes before the next one.
+    writer: tokio::sync::Mutex<()>,
+    /// The preview being written, to cancel it.
+    preview: Mutex<Option<CancellationToken>>,
     wake: Notify,
     current: Mutex<Option<(Job, CancellationToken)>>,
 }
@@ -451,6 +456,17 @@ impl Control {
             .unwrap()
             .as_ref()
             .map(|(job, _)| job.clone())
+    }
+
+    /// Stops the preview being written, if any. Returns whether there was one.
+    pub fn cancel_preview(&self) -> bool {
+        match self.preview.lock().unwrap().as_ref() {
+            Some(token) => {
+                token.cancel();
+                true
+            }
+            None => false,
+        }
     }
 
     /// Cancels the entry being written, if it is the one named (any one when `None`).
@@ -599,6 +615,7 @@ pub async fn run_next(
         }
     };
 
+    let _turn = control.writer.lock().await;
     let cancel = CancellationToken::new();
     *control.current.lock().unwrap() = Some((job.clone(), cancel.clone()));
     let (character_id, kind, start_day) = (job.character_id, job.kind, job.start_day.clone());
@@ -744,4 +761,112 @@ pub fn sheet(
         .map(|s| s.running_jokes)
         .unwrap_or_default();
     Ok(ContinuitySheet::compute(journal, &awards, &jokes, None))
+}
+
+/// The day a narrator preview writes.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase", tag = "kind")]
+pub enum PreviewDay {
+    /// One of a character's days.
+    #[serde(rename_all = "camelCase")]
+    Character { character_id: i64, day: String },
+    /// The built-in sample day, for a player with no journal yet.
+    Sample,
+}
+
+/// A made-up adventurer's journal and its liveliest day, for previews without a journal.
+const SAMPLE_JOURNAL: &str =
+    include_str!("../../../../fixtures/savedvariables/synthetic-character.lua");
+const SAMPLE_DAY: &str = "2026-11-08";
+
+/// Writes one day with `narrator`, saved or not, the way a real entry would be written (fact
+/// check included), and stores nothing. It takes its turn with the background writer.
+/// `on_event` receives the text as it streams. Errors are plain sentences.
+pub async fn preview(
+    db: &Mutex<Database>,
+    provider: &dyn Provider,
+    control: &Control,
+    language_fallback: &str,
+    narrator: &narrators::Narrator,
+    day: &PreviewDay,
+    on_event: &(dyn Fn(StreamEvent) + Send + Sync),
+) -> Result<WriteResult, String> {
+    let is_endpoint = provider.id() == "endpoint";
+    let (prompt, language, allowed) = {
+        let db = db.lock().unwrap();
+        let settings = db.settings().map_err(|e| e.to_string())?.writing;
+        let language = settings
+            .prose_language
+            .clone()
+            .unwrap_or_else(|| language_fallback.to_string());
+        let (character_id, journal, date, awards, jokes) = match day {
+            PreviewDay::Character { character_id, day } => {
+                let journal = archive::load(&db, *character_id)
+                    .map_err(|e| e.to_string())?
+                    .ok_or("this character has no journal yet")?;
+                let awards = milestones::awards(&db, *character_id).map_err(|e| e.to_string())?;
+                let jokes = continuity::load(&db, *character_id)
+                    .map_err(|e| e.to_string())?
+                    .map(|s| s.running_jokes)
+                    .unwrap_or_default();
+                (*character_id, journal, day.clone(), awards, jokes)
+            }
+            PreviewDay::Sample => {
+                let journal = crate::schema::journal_from_text(SAMPLE_JOURNAL)
+                    .expect("the sample journal reads");
+                let awards = milestones::compute(&journal);
+                (0, journal, SAMPLE_DAY.to_string(), awards, Vec::new())
+            }
+        };
+        let prompt = prompt::day_prompt(&DayRequest {
+            character_id,
+            journal: &journal,
+            day: &date,
+            awards: &awards,
+            running_jokes: &jokes,
+            narrator,
+            language: &language,
+            meddling: settings.meddling,
+            pseudonyms: is_endpoint && settings.pseudonyms,
+            thresholds: &Thresholds::default(),
+            note: None,
+        });
+        let c = &journal.character;
+        let allowed: Vec<String> = [&c.faction, &c.realm]
+            .into_iter()
+            .flatten()
+            .cloned()
+            .collect();
+        (prompt, language, allowed)
+    };
+
+    let _turn = control.writer.lock().await;
+    let cancel = CancellationToken::new();
+    *control.preview.lock().unwrap() = Some(cancel.clone());
+    let options = WriteOptions {
+        language,
+        max_tokens: DAY_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
+        timeout: if is_endpoint {
+            ENDPOINT_TIMEOUT
+        } else {
+            LOCAL_TIMEOUT
+        },
+        allowed,
+    };
+    let (tx, mut rx) = mpsc::channel::<StreamEvent>(64);
+    let forward = async {
+        while let Some(event) = rx.recv().await {
+            on_event(event);
+        }
+    };
+    let write = async {
+        let result = writer::write(provider, &prompt, &options, &cancel, Some(&tx)).await;
+        drop(tx);
+        result
+    };
+    let (result, ()) = tokio::join!(write, forward);
+    *control.preview.lock().unwrap() = None;
+    result.map_err(|e| plain(&e))
 }

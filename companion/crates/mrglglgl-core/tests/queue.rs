@@ -7,11 +7,11 @@ use mrglglgl_core::db::Database;
 use mrglglgl_core::discovery::CharacterSource;
 use mrglglgl_core::game::is_game_process;
 use mrglglgl_core::queue::{
-    self, Ask, CANCELLED, Control, JobState, MAX_ATTEMPTS, QueueEvent, drain, run_next,
+    self, Ask, CANCELLED, Control, JobState, MAX_ATTEMPTS, PreviewDay, QueueEvent, drain, run_next,
 };
 use mrglglgl_core::schema::{Character, Day, Event, EventKind, Journal};
 use mrglglgl_core::stories::{self, NewStory, StoryKind, StoryStatus};
-use mrglglgl_core::writer::CheckStatus;
+use mrglglgl_core::writer::{CheckStatus, WriteResult};
 use mrglglgl_llm::ProviderError;
 use mrglglgl_llm::fake::{FakeProvider, Pace};
 
@@ -574,4 +574,89 @@ async fn a_job_is_written_with_the_players_own_narrator() {
         stories::versions(&db, id, StoryKind::Day, DAYS[0]).unwrap()[0].narrator,
         mine.id
     );
+}
+
+fn heron() -> mrglglgl_core::narrators::Narrator {
+    let mut n = mrglglgl_core::narrators::copy_of("murloc_scribe", "en");
+    n.persona = "You are a heron who keeps this journal.".into();
+    n
+}
+
+#[tokio::test]
+async fn a_preview_writes_a_day_with_the_unsaved_narrator_and_stores_nothing() {
+    let (db, id) = setup();
+    let provider = FakeProvider::new([ENTRY]);
+    let control = Control::new(false);
+    let result = queue::preview(
+        &db,
+        &provider,
+        &control,
+        "en",
+        &heron(),
+        &PreviewDay::Character {
+            character_id: id,
+            day: DAYS[0].into(),
+        },
+        &|_| {},
+    )
+    .await
+    .unwrap();
+    assert!(matches!(result, WriteResult::Written { ref text, .. } if text == ENTRY));
+    let request = &provider.requests()[0];
+    assert!(request.system.contains("You are a heron"));
+    assert_eq!(notes_day(request), "2026-11-02");
+    let db = db.lock().unwrap();
+    assert!(
+        stories::all(&db, id).unwrap().is_empty(),
+        "nothing is stored"
+    );
+    assert!(
+        queue::jobs(&db, id).unwrap().is_empty(),
+        "nothing is queued"
+    );
+}
+
+#[tokio::test]
+async fn a_preview_without_a_journal_writes_the_sample_day() {
+    let (db, _) = setup();
+    let provider = FakeProvider::new([ENTRY]);
+    queue::preview(
+        &db,
+        &provider,
+        &Control::new(false),
+        "en",
+        &heron(),
+        &PreviewDay::Sample,
+        &|_| {},
+    )
+    .await
+    .unwrap();
+    assert!(provider.requests()[0].user.contains("Prairie Wol"));
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_preview_can_be_cancelled() {
+    let (db, id) = setup();
+    let long = "word ".repeat(200);
+    let provider =
+        FakeProvider::new([long.as_str()]).with_pace(Pace::PerWord(Duration::from_millis(10)));
+    let control = Arc::new(Control::new(false));
+    let canceller = control.clone();
+    let result = queue::preview(
+        &db,
+        &provider,
+        &control,
+        "en",
+        &heron(),
+        &PreviewDay::Character {
+            character_id: id,
+            day: DAYS[0].into(),
+        },
+        &move |_| {
+            canceller.cancel_preview();
+        },
+    )
+    .await
+    .unwrap();
+    assert_eq!(result, WriteResult::Cancelled);
 }

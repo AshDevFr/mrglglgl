@@ -7,10 +7,11 @@ use mrglglgl_core::db::ProviderChoice;
 use mrglglgl_core::discovery::{self, DiscoveryOverrides};
 use mrglglgl_core::export;
 use mrglglgl_core::milestones;
-use mrglglgl_core::narrators::NarratorInfo;
-use mrglglgl_core::queue::{self, Job};
+use mrglglgl_core::narrators::{self, Invalid, Narrator, NarratorError, NarratorInfo};
+use mrglglgl_core::queue::{self, Job, PreviewDay};
 use mrglglgl_core::review::{self, ReviewItem};
 use mrglglgl_core::stories::{self, Story, StoryKind};
+use mrglglgl_core::writer::{CheckStatus, StreamEvent, WriteResult};
 use mrglglgl_llm::CancellationToken;
 use mrglglgl_llm::catalogue::{self, Advice, Shortfall};
 use mrglglgl_llm::endpoint::{self, EndpointConfig, EndpointProvider};
@@ -214,6 +215,180 @@ pub fn set_writing_paused(state: State<'_, AppState>, paused: bool) -> Result<()
 #[tauri::command]
 pub fn list_narrators(state: State<'_, AppState>) -> Vec<NarratorInfo> {
     state.control.narrators().list()
+}
+
+/// Event sent while a narrator preview writes; the payload is a [`PreviewEvent`].
+pub const NARRATOR_PREVIEW: &str = "narrator-preview";
+
+/// The player's own narrator with this id, to edit.
+#[tauri::command]
+pub fn narrator(state: State<'_, AppState>, id: String) -> Option<Narrator> {
+    state.control.narrators().custom(&id).cloned()
+}
+
+/// A narrator to start a new one from: every field of `id`, in the prose language, unsaved.
+#[tauri::command]
+pub fn copy_narrator(state: State<'_, AppState>, id: String) -> Result<Narrator, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let language = writing::prose_language(&db.settings().map_err(|e| e.to_string())?);
+    let library = state.control.narrators();
+    Ok(match library.custom(&id) {
+        Some(mine) => {
+            let mut copy = mine.clone();
+            copy.id = String::new();
+            copy.name = format!("{} (copy)", copy.name);
+            copy
+        }
+        None => narrators::copy_of(&id, &language),
+    })
+}
+
+/// What saving or importing a narrator came to.
+#[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "camelCase", tag = "kind")]
+#[ts(export)]
+pub enum NarratorSaved {
+    Saved {
+        narrator: Box<Narrator>,
+    },
+    /// Fields to fix before it can be saved; nothing was written.
+    Invalid {
+        problems: Vec<Invalid>,
+    },
+}
+
+fn saved(result: Result<Narrator, NarratorError>) -> Result<NarratorSaved, String> {
+    match result {
+        Ok(narrator) => Ok(NarratorSaved::Saved {
+            narrator: Box::new(narrator),
+        }),
+        Err(NarratorError::Invalid(problems)) => Ok(NarratorSaved::Invalid { problems }),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+#[tauri::command]
+pub fn save_narrator(
+    state: State<'_, AppState>,
+    narrator: Narrator,
+) -> Result<NarratorSaved, String> {
+    saved(narrators::save(
+        &writing::narrators_dir(&state.data_dir),
+        narrator,
+    ))
+}
+
+/// Adds a shared narrator file, given its text, as the player's own.
+#[tauri::command]
+pub fn import_narrator(state: State<'_, AppState>, text: String) -> Result<NarratorSaved, String> {
+    saved(narrators::import(
+        &writing::narrators_dir(&state.data_dir),
+        &text,
+    ))
+}
+
+/// Writes the player's narrator as `<id>.toml` into `folder`; returns the file's path.
+#[tauri::command]
+pub fn export_narrator(
+    state: State<'_, AppState>,
+    id: String,
+    folder: String,
+) -> Result<String, String> {
+    let folder = std::path::PathBuf::from(folder.trim());
+    if !folder.is_dir() {
+        return Err(format!("{} is not a folder", folder.display()));
+    }
+    let library = state.control.narrators();
+    let narrator = library
+        .custom(&id)
+        .ok_or("that narrator no longer exists")?;
+    let path = folder.join(format!("{id}.toml"));
+    std::fs::write(&path, narrators::to_toml(narrator)).map_err(|e| e.to_string())?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
+#[tauri::command]
+pub fn delete_narrator(state: State<'_, AppState>, id: String) -> Result<(), String> {
+    narrators::delete(&writing::narrators_dir(&state.data_dir), &id).map_err(|e| e.to_string())
+}
+
+/// What the preview streams while it writes.
+#[derive(Debug, Clone, Serialize, TS)]
+#[serde(rename_all = "camelCase", tag = "type")]
+#[ts(export)]
+pub enum PreviewEvent {
+    Chunk {
+        text: String,
+    },
+    /// The fact check sent the text back; what streamed so far is discarded.
+    Restarted,
+}
+
+/// How a preview ended.
+#[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "camelCase", tag = "outcome")]
+#[ts(export)]
+pub enum PreviewResult {
+    Written {
+        text: String,
+        check: CheckStatus,
+        reason: Option<String>,
+    },
+    Cancelled,
+    TimedOut,
+}
+
+/// Writes one day with the narrator being edited, saved or not, and stores nothing.
+#[tauri::command]
+pub async fn preview_narrator(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    narrator: Narrator,
+    day: PreviewDay,
+) -> Result<PreviewResult, String> {
+    let settings = {
+        let db = state.db.lock().map_err(|e| e.to_string())?;
+        db.settings().map_err(|e| e.to_string())?
+    };
+    let provider = writing::provider(&state, &settings)
+        .ok_or("nothing can write yet: download a model or set up an endpoint in Settings")?;
+    let emit = move |event: StreamEvent| {
+        let _ = app.emit(
+            NARRATOR_PREVIEW,
+            match event {
+                StreamEvent::Chunk(text) => PreviewEvent::Chunk { text },
+                StreamEvent::Restart => PreviewEvent::Restarted,
+            },
+        );
+    };
+    let result = queue::preview(
+        &state.db,
+        provider.as_ref(),
+        &state.control,
+        &writing::prose_language(&settings),
+        &narrator,
+        &day,
+        &emit,
+    )
+    .await?;
+    Ok(match result {
+        WriteResult::Written {
+            text,
+            check,
+            reason,
+        } => PreviewResult::Written {
+            text,
+            check,
+            reason,
+        },
+        WriteResult::Cancelled => PreviewResult::Cancelled,
+        WriteResult::TimedOut => PreviewResult::TimedOut,
+    })
+}
+
+#[tauri::command]
+pub fn cancel_preview(state: State<'_, AppState>) -> bool {
+    state.control.cancel_preview()
 }
 
 #[derive(Debug, Serialize, TS)]
