@@ -20,3 +20,13 @@ data\Murlocs.lua
 Kills.lua
 Deaths.lua
 Quests.lua
+data\Junk.lua
+Fishing.lua
+Loot.lua
+Group.lua
+Digest.lua
+Compact.lua
+Slash.lua
+Forget.lua
+Settings.lua
+Screenshots.lua

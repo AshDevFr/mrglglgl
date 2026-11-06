@@ -11,6 +11,7 @@ describe("Storage", function()
 	local function start()
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
 		Mock.fire("PLAYER_LOGIN")
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 	end
 
 	before_each(function()

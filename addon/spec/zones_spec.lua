@@ -23,6 +23,7 @@ describe("Zones", function()
 		Addon.load(Mock)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
 		Mock.fire("PLAYER_LOGIN")
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 	end)
 
 	it("records a zone change once, not on every subzone change inside it", function()

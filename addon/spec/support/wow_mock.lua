@@ -153,11 +153,47 @@ function Mock.install()
 	_G.C_QuestLog = { GetTitleForQuestID = function(id) return Mock.questTitles[id] end }
 	_G.SelectQuestLogEntry = function() Mock.questLogSelections = Mock.questLogSelections + 1 end
 	_G.C_QuestLog.SetSelectedQuest = _G.SelectQuestLogEntry
+	Mock.loot, Mock.fishing, Mock.chatLockdown = {}, false, false
+	_G.GetNumLootItems = function() return #Mock.loot end
+	_G.GetLootSlotLink = function(slot) return Mock.loot[slot] end
+	_G.IsFishingLoot = function() return Mock.fishing end
+	_G.C_ChatInfo = { InChatMessagingLockdown = function() return Mock.chatLockdown end }
+	_G.UnitIsUnit = function(a, b) return a == b or (Mock.units[a] ~= nil and Mock.units[a] == Mock.units[b]) end
+	_G.SlashCmdList = {}
 	_G.Screenshot = function() Mock.screenshots = Mock.screenshots + 1 end
+	-- The client's vertical settings layout, recording what the addon builds. Mock.controls maps
+	-- each setting's variable name to { kind, setting, options? }.
+	Mock.controls, Mock.headers, Mock.buttons, Mock.registered, Mock.opened = {}, {}, {}, false, nil
 	_G.Settings = {
-		RegisterCanvasLayoutCategory = function(frame, name) return { frame = frame, name = name } end,
-		RegisterAddOnCategory = function() end,
+		VarType = { Boolean = "boolean", Number = "number", String = "string" },
+		RegisterVerticalLayoutCategory = function(name)
+			local layout = { AddInitializer = function(_, initializer)
+				if initializer.header then
+					Mock.headers[#Mock.headers + 1] = initializer.header
+				elseif initializer.button then
+					Mock.buttons[initializer.button] = initializer
+				end
+			end }
+			return { name = name, GetID = function() return 42 end }, layout
+		end,
+		RegisterProxySetting = function(_, variable, _, name, default, getValue, setValue)
+			return { variable = variable, name = name, default = default,
+				GetValue = function() return getValue() end, SetValue = function(_, v) setValue(v) end }
+		end,
+		CreateCheckbox = function(_, setting) Mock.controls[setting.variable] = { kind = "checkbox", setting = setting } end,
+		CreateDropdown = function(_, setting, options)
+			Mock.controls[setting.variable] = { kind = "dropdown", setting = setting, options = options() }
+		end,
+		CreateControlTextContainer = function()
+			local data = {}
+			return { Add = function(_, value, label) data[#data + 1] = { value = value, label = label } end,
+				GetData = function() return data end }
+		end,
+		RegisterAddOnCategory = function() Mock.registered = true end,
+		OpenToCategory = function(id) Mock.opened = id end,
 	}
+	_G.CreateSettingsListSectionHeaderInitializer = function(name) return { header = name } end
+	_G.CreateSettingsButtonInitializer = function(name, _, click) return { button = name, click = click } end
 	_G.LOOT_ITEM_SELF = "You receive loot: %s"
 	_G.LOOT_ITEM_SELF_MULTIPLE = "You receive loot: %sx%d"
 	_G.LOOT_ITEM_PUSHED_SELF = "You receive item: %s"

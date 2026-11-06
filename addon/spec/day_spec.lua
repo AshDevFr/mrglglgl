@@ -21,6 +21,7 @@ describe("Day", function()
 		Mock.now = localTime(2026, 11, 5, 23, 30)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
 		Mock.fire("PLAYER_LOGIN")
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 	end)
 
 	it("keys a day by the local calendar date", function()
@@ -57,5 +58,35 @@ describe("Day", function()
 		Mock.fire("PLAYER_LEVEL_UP", 6)
 		Mock.fire("PLAYER_LOGOUT")
 		assert.same({ "session_start" }, kinds(_G.MrglglglCharDB.days["2026-11-05"]))
+	end)
+end)
+
+describe("Sessions", function()
+	before_each(function()
+		Addon.load(Mock)
+		Mock.fire("ADDON_LOADED", "Mrglglgl")
+		Mock.fire("PLAYER_LOGIN")
+	end)
+
+	local function starts()
+		local n = 0
+		for _, event in ipairs(_G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)].ev) do
+			n = n + (event.k == "session_start" and 1 or 0)
+		end
+		return n
+	end
+
+	it("starts a session once the world is loaded, with the zone known", function()
+		Mock.zone, Mock.subzone = "Mulgore", "Bloodhoof Village"
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
+		local first = _G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)].ev[1]
+		assert.same({ "session_start", "Mulgore" }, { first.k, first.z })
+	end)
+
+	it("starts a session on a UI reload but not on a loading screen", function()
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
+		Mock.fire("PLAYER_ENTERING_WORLD", false, false)
+		Mock.fire("PLAYER_ENTERING_WORLD", false, true)
+		assert.equals(2, starts())
 	end)
 end)

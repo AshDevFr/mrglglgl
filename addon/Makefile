@@ -7,7 +7,11 @@ BUSTED   := $(ROCKS)/bin/busted
 LUACHECK := $(ROCKS)/bin/luacheck
 SPECS    ?=
 
-.PHONY: setup lint test spec check
+# Day keys and timestamps come from local time; one fixed zone makes specs and fixtures identical
+# on every machine and in CI.
+export TZ := UTC
+
+.PHONY: setup lint test spec check fixtures
 
 $(BUSTED) $(LUACHECK):
 	luarocks --lua-version 5.1 $(if $(LUA_DIR),--lua-dir $(LUA_DIR)) --tree $(ROCKS) install busted
@@ -30,3 +34,7 @@ spec: setup
 	$(BUSTED) $(SPECS)
 
 check: lint test
+
+# Regenerates fixtures/savedvariables/ from the addon's own code.
+fixtures:
+	$(LUA) tools/fixtures.lua

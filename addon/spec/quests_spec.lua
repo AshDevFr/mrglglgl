@@ -21,6 +21,7 @@ describe("Quests", function()
 		Addon.load(Mock)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
 		Mock.fire("PLAYER_LOGIN")
+		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 	end)
 
 	it("stores the title and description from the detail frame when the quest is accepted", function()

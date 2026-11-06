@@ -108,6 +108,10 @@ Event kinds and their extra fields:
 | `boss` | `enc` int, `name` string | A boss encounter was won (`BOSS_KILL`) |
 | `quest_accept` | `q` int | Accepted quest `q`; its title and description are in `quests[q]` |
 | `quest_turnin` | `q` int, `xp` int, `money` int | Turned in quest `q`, with the XP and copper it rewarded |
+| `fish` | `item` int, `name` string?, `junk` bool?, `boot` bool? | A fishing catch. `name`, `junk` (poor quality) and `boot` are filled once the client has the item's data; a catch whose data never arrived has only `item` |
+| `loot` | `item` int, `name` string, `ql` int, `qty` int? | Received an item at or above `settings.lootQuality`; `qty` is absent when read from the loot window rather than the loot message |
+| `group_join` | `who` string | Grouped with `who` (`"Firstname-Surname"`) for the first time that day; see `companions[who]` |
+| `screenshot` | `moment` string | The addon took a screenshot: `"levelUp"`, `"death"`, `"bossKill"`, `"firstBoot"`, `"firstMurlocKill"` or `"firstDeathByMurloc"`. The file is `_forever_/Screenshots/WoWScrnShot_MMDDYY_HHMMSS.jpg` taken about a second after `t` |
 
 ### Kill aggregate (`days[key].kills[npcID]`)
 
@@ -123,7 +127,33 @@ sixth field of the creature GUID), so it does not depend on the client's languag
 
 `anonKills` counts kills whose target the client withheld from addons; they have no aggregate.
 
-Fields added by later work (digest contents, more event kinds) are documented here as they land.
+### Digest (`days[key].digest`)
+
+The day's summary, rebuilt at every login and logout while the day still has raw events. Once a
+day is older than `settings.retentionDays`, its `ev`, `kills` and `anonKills` are removed and the
+digest is all that remains. Lists are capped at 20 entries and `kills` at the 15 most killed;
+`counts` are always exact.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `v` | int | Digest version. Days rebuilt from raw events get the current version; compacted days keep theirs |
+| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills` |
+| `levelFrom`, `levelTo` | int? | Lowest and highest level seen that day |
+| `zones` | array | Zones in the order first seen |
+| `subzones` | array | Subzones in the order first seen |
+| `discovered` | array | Areas discovered |
+| `accepted`, `turnedIn` | array | Quest IDs |
+| `deaths` | array | `{ killer?, env?, z, sz }`, as in `death` events |
+| `kills` | array | `{ npc, name?, n, cls, murloc }`, most killed first, ties by NPC ID |
+| `notableKills` | array | Kills of elite, rare, rare elite or world boss classification |
+| `fish` | array | `{ item, name?, n, junk?, boot? }` per item caught |
+| `loot` | array | `{ item, name, ql, qty? }` |
+| `companions` | array | `"Firstname-Surname"` of members met that day |
+| `bosses` | array | Encounter names won |
+| `onlyFished` | bool | Caught fish, and no kills or quest activity |
+| `nothingHappened` | bool | No kills, deaths, quests, fishing, loot, levels, discoveries, bosses or companions |
+
+Fields added by later work are documented here as they land.
 
 ### Quest record (`quests[questID]`)
 

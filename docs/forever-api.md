@@ -20,7 +20,7 @@ nothing here is assumed from other WoW flavors without saying so.
 |---|---|---|---|
 | ID-interface | `## Interface:` value is `16001` | verified-in-game | S-01: `GetBuildInfo()` returns interface `16001`. Also: Warcraft Wiki [TOC format](https://warcraft.wiki.gg/wiki/TOC_format); installed Forever addons; the BigWigs packager maps `16???` to `forever` |
 | ID-toc-suffix | The client reads `<Addon>_Forever.toc` and `<Addon>_Camelot.toc` | verified-by-source | Warcraft Wiki TOC format: "Forever: `AddOnName_Forever.toc` or `AddOnName_Camelot.toc`", and the Forever changelog line "Added Camelot game type, Game variable value and TOC suffix, with Forever game type and TOC suffix alias". Installed Questie ships both. Note: the BigWigs packager recognises only `_Camelot` as a Forever suffix (it does not know `_Forever`); Wago accepts both |
-| ID-toc-bare | With no matching suffixed TOC, the client loads the bare `<Addon>.toc` | verified-by-source | Warcraft Wiki TOC format: the game "will default to `AddOnName.toc` without a suffix" when no suffixed file matches. Family suffix `_Mainline` also applies to Forever and ranks below `_Forever` / `_Camelot` |
+| ID-toc-bare | With no matching suffixed TOC, the client loads the bare `<Addon>.toc` | verified-in-game | S-11: the Mrglglgl addon, shipped with only `Mrglglgl.toc` (`## Interface: 16001`), loaded in game and wrote its SavedVariables. Also Warcraft Wiki TOC format: the game "will default to `AddOnName.toc` without a suffix" when no suffixed file matches |
 | ID-toc-multi-interface | `## Interface:` accepts a comma-separated list | verified-by-source | Warcraft Wiki TOC format (supported since patch 10.2.7); installed Forever-compatible addons (Altoholic, Auctionator, Bartender4) ship a single bare TOC listing `120105, 50504, 20506, 11509, 16001` |
 | ID-folder | Install subfolder is `_forever_` | verified-in-game | S-10: the running client wrote its screenshot to `World of Warcraft/_forever_/Screenshots/`; the folder also holds the client, `Interface/` and `WTF/`, and its `.flavor.info` names product `wowf` |
 | ID-build | Client version 1.60.1, build 70790, built Nov 3 2026 | verified-in-game | S-01: `GetBuildInfo()` returns `"1.60.1", "70790", "Nov  3 2026", 16001`; matches the install metadata `.build.info` |
@@ -106,7 +106,7 @@ addon code can pass them back to the client but cannot read, compare or print th
 | DATA-junk-boots | Item IDs of junk boots and other junk fishing catches on Forever | unconfirmed | fallback: a fishing catch of poor quality (quality 0) counts as junk, and a junk catch whose name matches the localized boot list counts as a boot (Compat.IsBootCatch) |
 | DATA-murloc-npcs | Murlocs are identified by NPC ID from the GUID (readable in the open world); a sourced list of murloc NPC IDs for Forever is still needed | unconfirmed | NPC IDs are readable (S-06). fallback: until the ID list is sourced, and where the GUID is secret, murlocs are recognised by name from a per-locale list (Compat.IsMurlocName) |
 
-## Compat interface (draft)
+## Compat interface
 
 The addon calls the client only through this module for anything that is unconfirmed, restricted
 or version-sensitive, so the rest of the code never branches on client details.
@@ -133,6 +133,18 @@ function Compat.IsMurlocName(name)       -- per-locale name list; false for secr
 -- Screenshots
 function Compat.TakeScreenshot()         -- calls Screenshot(); success arrives via SCREENSHOT_SUCCEEDED
 
--- Settings
-function Compat.RegisterSettingsPanel(frame, name) -- Settings.RegisterCanvasLayoutCategory + RegisterAddOnCategory
+-- Creatures and items
+function Compat.NpcIdFromGuid(guid)      -- sixth field of a creature GUID; nil for players and secrets
+function Compat.GetItemNameAndQuality(link) -- nil until the item is cached (GET_ITEM_INFO_RECEIVED)
+function Compat.ItemIdFromLink(link)
+function Compat.InChatLockdown()         -- C_ChatInfo.InChatMessagingLockdown
+
+-- Settings panel, on the client's vertical settings layout (Blizzard_Settings_Shared)
+function Compat.CreateSettingsCategory(name)  -- Settings.RegisterVerticalLayoutCategory
+function Compat.AddSettingsHeader(layout, name)
+function Compat.AddCheckbox(category, variable, name, tooltip, get, set, default)
+function Compat.AddDropdown(category, variable, name, tooltip, choices, get, set, default)
+function Compat.AddButton(layout, name, buttonText, onClick, tooltip)
+function Compat.RegisterSettingsCategory(category)
+function Compat.OpenSettings(category)
 ```

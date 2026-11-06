@@ -93,6 +93,9 @@ function Kills.onPartyKill(attackerGUID, targetGUID)
 	if kill.murloc then
 		local stats = Storage.journal().stats
 		stats.murlocsSlain = stats.murlocsSlain + 1
+		if stats.murlocsSlain == 1 then
+			ns.Emit("firstMurlocKill")
+		end
 	end
 end
 
@@ -117,6 +120,9 @@ ns.On("CHAT_MSG_COMBAT_XP_GAIN", function(_, text)
 			unnamed.murloc = true
 			local stats = Storage.journal().stats
 			stats.murlocsSlain = stats.murlocsSlain + unnamed.n
+			if stats.murlocsSlain == unnamed.n then
+				ns.Emit("firstMurlocKill")
+			end
 		end
 		unnamed = nil
 	end
