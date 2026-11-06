@@ -30,3 +30,13 @@ Link this folder into the client's AddOns folder, then restart the game:
 ```sh
 ln -s "$PWD" "/Applications/World of Warcraft/_forever_/Interface/AddOns/Mrglglgl"
 ```
+
+## Installing a beta build
+
+Beta builds are attached to the GitHub releases tagged `addon-v…-beta…` at
+https://github.com/AshDevFr/mrglglgl/releases. Download the zip and extract it into
+`World of Warcraft/_forever_/Interface/AddOns/`, so that the folder
+`Interface/AddOns/Mrglglgl/` contains `Mrglglgl.toc`. Restart the game.
+
+The addon records quietly and shows nothing unless asked: `/mrgl status` lists what has been
+recorded today, and Options > AddOns > Mrglglgl chooses what gets recorded.

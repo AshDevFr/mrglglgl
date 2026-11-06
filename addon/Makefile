@@ -11,7 +11,7 @@ SPECS    ?=
 # on every machine and in CI.
 export TZ := UTC
 
-.PHONY: setup lint test spec check fixtures
+.PHONY: setup lint test spec check fixtures package-check
 
 $(BUSTED) $(LUACHECK):
 	luarocks --lua-version 5.1 $(if $(LUA_DIR),--lua-dir $(LUA_DIR)) --tree $(ROCKS) install busted
@@ -38,3 +38,8 @@ check: lint test
 # Regenerates fixtures/savedvariables/ from the addon's own code.
 fixtures:
 	$(LUA) tools/fixtures.lua
+
+# Checks the package definition (TOC and .pkgmeta) without building the zip; the zip itself is
+# built by the BigWigs packager in the release workflow.
+package-check:
+	$(LUA) tools/check-package.lua

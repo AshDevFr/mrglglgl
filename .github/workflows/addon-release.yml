@@ -1,0 +1,32 @@
+name: addon-release
+
+# Packages the addon with the BigWigs packager when an addon tag is pushed. Prerelease tags
+# (addon-vX.Y.Z-beta.N) produce a GitHub prerelease only; CurseForge and Wago uploads happen when
+# their project IDs are in the TOC and their tokens are set as repository secrets.
+on:
+  push:
+    tags: ["addon-v*"]
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: leafo/gh-actions-lua@v13
+        with:
+          luaVersion: "luajit-2.1"
+      - uses: leafo/gh-actions-luarocks@v6
+      - name: Lint, test and check the package definition
+        working-directory: addon
+        run: make check package-check LUA=luajit LUA_DIR=
+      - uses: BigWigsMods/packager@v2
+        with:
+          args: -t addon
+        env:
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}

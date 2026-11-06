@@ -1,0 +1,11 @@
+package-as: Mrglglgl
+
+ignore:
+  - spec
+  - tools
+  - Makefile
+  - README.md
+  - .busted
+  - .luacheckrc
+  - .rocks
+  - .gitignore
