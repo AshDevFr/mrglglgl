@@ -3,3 +3,5 @@
 //! and never executes Lua.
 
 pub mod sv;
+
+pub mod schema;
