@@ -1,6 +1,7 @@
-import { Alert, Container, Stack, Text, Title } from "@mantine/core";
+import { Alert, Container, Stack, Tabs, Text, Title } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getSettings, saveSettings } from "@/api/commands";
 import type { Settings } from "@/bindings/Settings";
@@ -15,11 +16,36 @@ import { ZoomField } from "@/components/ZoomField";
 import { applyLanguage } from "@/i18n";
 import { problem } from "@/i18n/problems";
 
+const TABS = ["general", "writing", "narrators", "website", "addon"] as const;
+type Tab = (typeof TABS)[number];
+const TAB_KEY = "mrglglgl.settingsTab";
+
+/** The tab last open, so coming back from a narrator's page lands where the player was. */
+function rememberedTab(): Tab {
+  try {
+    const saved = sessionStorage.getItem(TAB_KEY);
+    return TABS.find((tab) => tab === saved) ?? "general";
+  } catch {
+    return "general";
+  }
+}
+
 export function SettingsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const view = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  const [tab, setTab] = useState<Tab>(rememberedTab);
+
+  function openTab(value: string | null) {
+    const next = TABS.find((t) => t === value) ?? "general";
+    setTab(next);
+    try {
+      sessionStorage.setItem(TAB_KEY, next);
+    } catch {
+      // Not remembered; the tab still opens.
+    }
+  }
 
   async function save(settings: Settings) {
     await saveSettings(settings);
@@ -53,23 +79,51 @@ export function SettingsPage() {
         </Alert>
       )}
       {view.data ? (
-        <Stack gap="xl" maw={640}>
-          <PaperField />
-          <ZoomField />
-          <ModelsPanel onChoose={(id) => void choose(id)} />
-          <SettingsForm view={view.data} onSave={save} />
-          <AddonPanel />
-          <NarratorsPanel
-            onEdit={(narratorId) =>
-              navigate({
-                to: "/narrators/$narratorId",
-                params: { narratorId },
-              })
-            }
-          />
-          <WebsitePanel site={view.data.settings.site} />
-          <LogPanel />
-        </Stack>
+        <Tabs value={tab} onChange={openTab} keepMounted={false}>
+          <Tabs.List mb="lg">
+            {TABS.map((value) => (
+              <Tabs.Tab key={value} value={value}>
+                {t(`settings.tab.${value}`)}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          <Tabs.Panel value="general">
+            <Stack gap="xl" maw={640}>
+              <PaperField />
+              <ZoomField />
+              <SettingsForm view={view.data} onSave={save} section="general" />
+              <LogPanel />
+            </Stack>
+          </Tabs.Panel>
+          <Tabs.Panel value="writing">
+            <Stack gap="xl" maw={640}>
+              <ModelsPanel onChoose={(id) => void choose(id)} />
+              <SettingsForm view={view.data} onSave={save} section="writing" />
+            </Stack>
+          </Tabs.Panel>
+          <Tabs.Panel value="narrators">
+            <Stack gap="xl" maw={640}>
+              <NarratorsPanel
+                onEdit={(narratorId) =>
+                  navigate({
+                    to: "/narrators/$narratorId",
+                    params: { narratorId },
+                  })
+                }
+              />
+            </Stack>
+          </Tabs.Panel>
+          <Tabs.Panel value="website">
+            <Stack gap="xl" maw={640}>
+              <WebsitePanel site={view.data.settings.site} />
+            </Stack>
+          </Tabs.Panel>
+          <Tabs.Panel value="addon">
+            <Stack gap="xl" maw={640}>
+              <AddonPanel />
+            </Stack>
+          </Tabs.Panel>
+        </Tabs>
       ) : (
         <Text>{t("loading")}</Text>
       )}

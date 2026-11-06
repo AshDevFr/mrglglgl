@@ -5,7 +5,7 @@ murloc scribe write each day and each week as a short journal entry.
 
 ## First run
 
-1. Install the addon (Settings, The addon, **Install**, or from CurseForge, Wago or the
+1. Install the addon (Settings, Addon, **Install**, or from CurseForge, Wago or the
    releases page) and play at least once. The game saves the addon's journal when you log out
    or type `/reload`, and only then can the app see it.
 2. Open the app. It looks for World of Warcraft in the usual places. If it does not find it, open
@@ -62,7 +62,7 @@ To change how the site looks, see [Theming the journal website](site-themes.md).
 ## Your data
 
 The app writes nothing into the World of Warcraft folder except the addon itself, and only when
-you ask it to install, update or remove it in Settings, The addon (never while the game runs).
+you ask it to install, update or remove it in Settings, Addon (never while the game runs).
 Removing the addon removes only its folder: what it recorded stays in the game's files and in the
 app, and a copy is kept so you can put it back. A copy installed by an addon manager is left
 alone unless you choose to replace it. Each time the game saves a
@@ -76,8 +76,8 @@ files. To remove a character's history from the app, remove the character in the
 ## When something goes wrong
 
 The app keeps a log of what it does, a file a day for the last week, in the `logs` folder of its
-data folder. Settings, Log, **Show the log file** opens it in your file manager: attach it when you
-ask for help. If some settings could not be read, Settings says which ones are back to their
+data folder. Settings, General, **Show the log file** opens it in your file manager: attach it
+when you ask for help. If some settings could not be read, Settings says which ones are back to their
 defaults; the values it could not read are kept aside rather than overwritten.
 
 ## Privacy

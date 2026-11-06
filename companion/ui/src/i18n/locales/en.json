@@ -264,6 +264,13 @@
       "writing": "writing",
       "site": "website",
       "backup_retention": "backups"
+    },
+    "tab": {
+      "general": "General",
+      "writing": "Writing",
+      "narrators": "Narrators",
+      "website": "Website",
+      "addon": "Addon"
     }
   },
   "writing": {
