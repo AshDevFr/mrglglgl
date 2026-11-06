@@ -1,0 +1,13 @@
+## Interface: 16001
+## Title: Mrglglgl
+## Notes: Quietly keeps a soggy journal of your character's life, for the Mrglglgl app to write up.
+## Author: AshDevFr
+## Version: @project-version@
+## X-Website: https://github.com/AshDevFr/mrglglgl
+## SavedVariables: MrglglglDB
+## SavedVariablesPerCharacter: MrglglglCharDB
+
+Core.lua
+Locale.lua
+Locales\enUS.lua
+Compat.lua

@@ -1,0 +1,23 @@
+name: addon
+
+on:
+  push:
+    branches: [main]
+    paths: ["addon/**", "fixtures/**", ".github/workflows/addon.yml"]
+  pull_request:
+    paths: ["addon/**", "fixtures/**", ".github/workflows/addon.yml"]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: addon
+    steps:
+      - uses: actions/checkout@v7
+      - uses: leafo/gh-actions-lua@v13
+        with:
+          luaVersion: "luajit-2.1"
+      - uses: leafo/gh-actions-luarocks@v6
+      - name: Lint and test
+        run: make check LUA=luajit LUA_DIR=
