@@ -29,15 +29,25 @@ end
 
 -- Skill rank by skill ID, with each skill's name and the header it sits under in the skills list.
 -- Skills under a collapsed header are not listed by the client; they are simply not compared.
+-- The client lists some professions twice under one name (Skinning as 393 and 2947): the lower
+-- ID, the long-standing one, is kept, so a skill-up is recorded once.
 local function readSkills()
-	local skills, header = {}, nil
+	local skills, byName, header = {}, {}, nil
 	for index = 1, C_SkillInfo.GetNumSkillLines() do
 		local info = C_SkillInfo.GetSkillLineInfo(index)
 		if info then
 			if info.isHeader then
 				header = info.name
 			elseif info.skillID then
-				skills[info.skillID] = { name = info.name, rank = info.rank, cat = header }
+				local key = (header or "") .. "\0" .. (info.name or "")
+				local seen = byName[key]
+				if seen == nil or info.skillID < seen then
+					if seen then
+						skills[seen] = nil
+					end
+					byName[key] = info.skillID
+					skills[info.skillID] = { name = info.name, rank = info.rank, cat = header }
+				end
 			end
 		end
 	end

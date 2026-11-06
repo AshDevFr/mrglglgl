@@ -35,6 +35,15 @@ describe("Professions", function()
 		assert.same({ [393] = { name = "Skinning", cat = "Professions", from = 75, to = 80 } }, today().skills)
 	end)
 
+	it("records a profession the client lists twice under one skill ID", function()
+		-- The skills list can carry the same profession under two IDs (Skinning as 393 and 2947).
+		table.insert(Mock.skills, 3, { skillID = 2947, name = "Skinning", rank = 75 })
+		Mock.fire("SKILL_LINES_CHANGED")
+		Mock.skills[2].rank, Mock.skills[3].rank = 78, 78
+		Mock.fire("SKILL_LINES_CHANGED")
+		assert.same({ [393] = { name = "Skinning", cat = "Professions", from = 75, to = 78 } }, today().skills)
+	end)
+
 	it("collapses weapon skill-ups the same way and keeps their header", function()
 		for rank = 51, 60 do
 			Mock.skills[4].rank = rank
