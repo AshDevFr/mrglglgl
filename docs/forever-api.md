@@ -89,3 +89,46 @@ that matter here, quoted from the client's documentation of its secrecy predicat
 | API-screenshot-events | `SCREENSHOT_STARTED`, `SCREENSHOT_SUCCEEDED`, `SCREENSHOT_FAILED` | verified-by-source | API docs (Video) |
 | API-locale | `GetLocale()` | verified-by-source | API docs (Locale) |
 | API-settings-panel | `Settings.RegisterCanvasLayoutCategory` and `Settings.RegisterAddOnCategory`; `InterfaceOptions_AddCategory` is not present | verified-by-source | `Blizzard_Settings_Shared` in the client UI code; no call site or definition of `InterfaceOptions_AddCategory` |
+| API-damage-subevents | Damage sub-events (`SWING_DAMAGE`, `SPELL_DAMAGE`, `RANGE_DAMAGE`, `SPELL_PERIODIC_DAMAGE`) are combat log payloads, so they are **not readable by addons** | verified-by-source | See API-cleu-fields |
+| API-environmental | Environmental damage (falling, drowning, fatigue, lava) is a combat log payload, so it is **not readable by addons**. Drowning can instead be inferred from the breath timer: `MIRROR_TIMER_START(timerName, value, maxValue, scale, paused, timerLabel)` and `MIRROR_TIMER_STOP(timerName)` are documented events | verified-by-source | API docs (CombatLog, Unit). The breath timer's `timerName` value is an in-game check |
+| API-affiliation-flags | `Enum.CombatLogObject` affiliation constants still exist, but they only describe combat log payloads, which addons cannot read; not usable | verified-by-source | The client's combat log deprecation shims map `COMBATLOG_OBJECT_AFFILIATION_*` to `Enum.CombatLogObject` |
+| API-guid-npcid | An NPC's GUID is a secret value to addons, so its NPC ID cannot be extracted | verified-by-source | Secrecy predicate on `UnitGUID`, `PARTY_KILL` and `UNIT_DIED` (see Addon restrictions); in-game check pending |
+| API-chat-loot | `CHAT_MSG_LOOT(text, playerName, ...)`; `text` is secret during chat messaging lockdown (dungeons, raids, encounters, PvP) and readable elsewhere. The `LOOT_ITEM_SELF*` global strings used to parse it are not referenced by the client UI code, so their presence and format are unchecked | unconfirmed | API docs (ChatInfo). fallback: notable loot is read from the loot window (`GetLootSlotLink` on `LOOT_OPENED`), which needs no string parsing; chat parsing only adds items pushed straight to the bags (Compat.ParseLootMessage returns nil when the pattern strings are missing) |
+| API-discovery | Zone discovery messages (`ERR_ZONE_EXPLORED*` global strings via `UI_INFO_MESSAGE(errorType, message)` or `CHAT_MSG_SYSTEM`) are not referenced by the client UI code | unconfirmed | fallback: a discovery is the first time this character enters a subzone, tracked by the addon itself (Compat.IsDiscoveryMessage returns false when the strings are missing) |
+| API-screenshot-files | Screenshot folder and file name format on Forever | unconfirmed | No `Screenshots/` folder exists until a first screenshot is taken. fallback: the app matches screenshot files to events by file modification time, not by name (Compat.TakeScreenshot only reports success via `SCREENSHOT_SUCCEEDED`) |
+| API-bit | The `bit` library (`bit.band`, `bit.bor`) is available | verified-by-source | Called from many client UI files |
+| API-date-time | Lua `date()` and `time()` are available; also `C_DateAndTime.GetCurrentCalendarTime`, `GetServerTimeLocal` | verified-by-source | Called from client UI files; API docs (DateAndTime) |
+| API-timer | `C_Timer.After`, `C_Timer.NewTicker`, `C_Timer.NewTimer` | verified-by-source | API docs (Timer) |
+| DATA-junk-boots | Item IDs of junk boots and other junk fishing catches on Forever | unconfirmed | fallback: a fishing catch of poor quality (quality 0) counts as junk, and a junk catch whose name matches the localized boot list counts as a boot (Compat.IsBootCatch) |
+| DATA-murloc-npcs | Murloc NPC IDs cannot be used (NPC GUIDs are secret) | unconfirmed | fallback: murlocs are recognised by name, from a per-locale data list of murloc names, where a name is readable at all (Compat.IsMurlocName) |
+
+## Compat interface (draft)
+
+The addon calls the client only through this module for anything that is unconfirmed, restricted
+or version-sensitive, so the rest of the code never branches on client details.
+
+```lua
+-- Client identity
+function Compat.IsForever()              -- interface in 16000..19999; never relies on WOW_PROJECT_ID
+function Compat.IsSecret(value)          -- issecretvalue(value) where it exists, else false
+
+-- Quests (QUEST_DETAIL frame is open)
+function Compat.GetQuestDetailText()     -- questID, title, description
+
+-- Fishing and loot (loot window is open)
+function Compat.IsFishingLoot()          -- false if the API is missing
+function Compat.IsBootCatch(itemLink)    -- poor quality and name in the localized boot list
+function Compat.ParseLootMessage(text)   -- itemLink, quantity; nil if secret or patterns missing
+
+-- Zones
+function Compat.IsDiscoveryMessage(text) -- false if the discovery strings are missing
+
+-- Creatures
+function Compat.IsMurlocName(name)       -- per-locale name list; false for secret names
+
+-- Screenshots
+function Compat.TakeScreenshot()         -- calls Screenshot(); success arrives via SCREENSHOT_SUCCEEDED
+
+-- Settings
+function Compat.RegisterSettingsPanel(frame, name) -- Settings.RegisterCanvasLayoutCategory + RegisterAddOnCategory
+```
