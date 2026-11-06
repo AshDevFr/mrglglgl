@@ -88,7 +88,9 @@ jobs:
             echo "choose More info then Run anyway in the SmartScreen prompt."
           } > notes.md
           prerelease=""
-          case "$TAG" in *-*) prerelease="--prerelease" ;; esac
+          # Only the version decides: companion-v0.2.0-beta.1 is a test version, the tag's own
+          # "companion-" prefix is not.
+          case "${TAG#companion-v}" in *-*) prerelease="--prerelease" ;; esac
           # The artifacts keep their bundle folders (dmg/, nsis/): publish the installers in them.
           mapfile -t files < <(find installers -type f \( -name '*.dmg' -o -name '*.exe' \))
           if (( ${#files[@]} < 2 )); then
