@@ -37,6 +37,8 @@ enum Rule {
 
 pub struct Milestone {
     pub id: &'static str,
+    /// The English name, as prompts and exports use it. The UI translates by id instead.
+    pub name: &'static str,
     /// Suggested but not yet approved by the project owner.
     pub proposed: bool,
     /// Turning a milestone off is this one flag.
@@ -50,65 +52,83 @@ pub const MILESTONES: &[Milestone] = &[
     // The first stamp most players get: a single boot is enough.
     Milestone {
         id: "kept_the_boot",
+        name: "Kept the Boot",
         proposed: false,
         enabled: true,
         rule: Rule::FirstDay(|f| f.boots > 0),
     },
     Milestone {
         id: "first_murloc",
+        name: "First Blood (Fishy)",
         proposed: false,
         enabled: true,
         rule: Rule::FirstDay(|f| f.murloc_kills > 0),
     },
     Milestone {
         id: "slain_by_murloc",
+        name: "Mrglglgl'd",
         proposed: false,
         enabled: true,
         rule: Rule::FirstDay(|f| f.deaths_by_murloc > 0),
     },
     Milestone {
         id: "traitor",
+        name: "Traitor",
         proposed: false,
         enabled: true,
         rule: Rule::Total(|f| f.murloc_kills, 100),
     },
     Milestone {
         id: "only_fished",
+        name: "Gone Fishin'",
         proposed: false,
         enabled: true,
         rule: Rule::FirstDay(|f| f.only_fished),
     },
     Milestone {
         id: "boot_collector",
+        name: "Cobbler's Apprentice",
         proposed: true,
         enabled: true,
         rule: Rule::Total(|f| f.boots, 5),
     },
     Milestone {
         id: "sleeps_with_fishes",
+        name: "Sleeps With the Fishes",
         proposed: true,
         enabled: true,
         rule: Rule::FirstDay(|f| f.drownings > 0),
     },
     Milestone {
         id: "bad_day",
+        name: "Character Building",
         proposed: true,
         enabled: true,
         rule: Rule::FirstDay(|f| f.deaths >= 3),
     },
     Milestone {
         id: "tourist",
+        name: "Tourist",
         proposed: true,
         enabled: true,
         rule: Rule::FirstDay(|f| f.discoveries >= 5),
     },
     Milestone {
         id: "quiet_day",
+        name: "Nothing to Report",
         proposed: true,
         enabled: true,
         rule: Rule::FirstDay(|f| f.nothing_happened),
     },
 ];
+
+/// The English name of a milestone, or its id when unknown.
+pub fn name(id: &str) -> &str {
+    MILESTONES
+        .iter()
+        .find(|m| m.id == id)
+        .map_or(id, |m| m.name)
+}
 
 /// The facts of one day, from raw events when present, from the digest otherwise.
 pub fn facts(day: &Day) -> DayFacts {

@@ -3,6 +3,7 @@
 //! and never executes Lua.
 
 pub mod archive;
+pub mod beats;
 pub mod db;
 pub mod discovery;
 pub mod milestones;
