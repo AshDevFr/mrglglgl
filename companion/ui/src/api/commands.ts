@@ -4,6 +4,7 @@ import type { AppInfo } from "@/bindings/AppInfo";
 import type { Award } from "@/bindings/Award";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
+import type { ExportedFiles } from "@/bindings/ExportedFiles";
 import type { Journal } from "@/bindings/Journal";
 import type { ModelsView } from "@/bindings/ModelsView";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
@@ -175,4 +176,26 @@ export function testEndpoint(url: string, model: string): Promise<void> {
 
 export function endpointSendsOffMachine(url: string): Promise<boolean> {
   return invoke<boolean>("endpoint_sends_off_machine", { url });
+}
+
+// ── Sharing ──────────────────────────────────────────────────────────────────
+
+/** An entry as plain text: the day, the entry, and the footer unless turned off. */
+export function copyEntryText(
+  characterId: number,
+  storyId: number,
+): Promise<string> {
+  return invoke<string>("copy_entry_text", { characterId, storyId });
+}
+
+export function defaultExportFolder(): Promise<string | null> {
+  return invoke<string | null>("default_export_folder");
+}
+
+/** Writes the character's journal as Markdown and HTML into `folder`. */
+export function exportCharacter(
+  characterId: number,
+  folder: string,
+): Promise<ExportedFiles> {
+  return invoke<ExportedFiles>("export_character", { characterId, folder });
 }

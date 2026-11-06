@@ -2,7 +2,11 @@
 
 use std::path::Path;
 
+use mrglglgl_core::archive;
 use mrglglgl_core::db::ProviderChoice;
+use mrglglgl_core::discovery::{self, DiscoveryOverrides};
+use mrglglgl_core::export;
+use mrglglgl_core::milestones;
 use mrglglgl_core::narrators::{self, NarratorInfo};
 use mrglglgl_core::queue::{self, Job};
 use mrglglgl_core::stories::{self, Story, StoryKind};
@@ -343,6 +347,117 @@ pub async fn test_endpoint(url: String, model: String) -> Result<(), String> {
     .test_connection()
     .await
     .map_err(|e| e.to_string())
+}
+
+/// One entry as plain text for the clipboard: the day, the entry, and the footer unless the
+/// player turned it off.
+#[tauri::command]
+pub fn copy_entry_text(
+    state: State<'_, AppState>,
+    character_id: i64,
+    story_id: i64,
+) -> Result<String, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let footer = db
+        .settings()
+        .map_err(|e| e.to_string())?
+        .writing
+        .copy_footer;
+    let story = stories::all(&db, character_id)
+        .map_err(|e| e.to_string())?
+        .into_iter()
+        .find(|s| s.id == story_id)
+        .ok_or("that entry no longer exists")?;
+    Ok(export::copy_entry(
+        &story.start_day,
+        &story.language,
+        &story.text,
+        footer,
+    ))
+}
+
+/// Where exports go unless the player picks another folder.
+#[tauri::command]
+pub fn default_export_folder() -> Option<String> {
+    dirs::document_dir()
+        .or_else(dirs::home_dir)
+        .map(|p| p.to_string_lossy().into_owned())
+}
+
+#[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct ExportedFiles {
+    pub markdown: String,
+    pub html: String,
+}
+
+/// Writes a character's journal as Markdown and as one HTML page into `folder`, refusing any
+/// folder inside a World of Warcraft install.
+#[tauri::command]
+pub fn export_character(
+    state: State<'_, AppState>,
+    character_id: i64,
+    folder: String,
+) -> Result<ExportedFiles, String> {
+    let folder = std::path::PathBuf::from(folder.trim());
+    if !folder.is_dir() {
+        return Err(format!("{} is not a folder", folder.display()));
+    }
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let settings = db.settings().map_err(|e| e.to_string())?;
+    let character = db
+        .character(character_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("that character is not in the app any more")?;
+    let journal = archive::load(&db, character_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("this character has no journal yet")?;
+    let stories = stories::all(&db, character_id).map_err(|e| e.to_string())?;
+    let awards = milestones::awards(&db, character_id).map_err(|e| e.to_string())?;
+    let mut game_folders: Vec<std::path::PathBuf> = discovery::discover(&DiscoveryOverrides {
+        wow_root: settings.wow_root_override.clone(),
+    })
+    .into_iter()
+    .map(|r| r.path)
+    .collect();
+    // The game folder holding this character's journal (<game>/<flavor>/WTF/Account/<account>/
+    // <realm>/<character>/SavedVariables/Mrglglgl.lua), wherever it was found. Never the
+    // filesystem root, which would refuse every folder.
+    game_folders.extend(
+        character
+            .journal_path
+            .ancestors()
+            .nth(8)
+            .filter(|p| p.parent().is_some())
+            .map(Path::to_path_buf),
+    );
+    let title = [character.name.as_deref(), character.surname.as_deref()]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join(" ");
+    let title = if title.is_empty() {
+        character.character_folder.clone()
+    } else {
+        title
+    };
+    let files = export::write(
+        &folder,
+        &game_folders,
+        &export::ExportInput {
+            title: &title,
+            journal: &journal,
+            stories: &stories,
+            awards: &awards,
+            language: &writing::prose_language(&settings),
+        },
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(ExportedFiles {
+        markdown: files.markdown.to_string_lossy().into_owned(),
+        html: files.html.to_string_lossy().into_owned(),
+    })
 }
 
 /// Whether entries sent to this address leave the machine; the settings then say what is sent.

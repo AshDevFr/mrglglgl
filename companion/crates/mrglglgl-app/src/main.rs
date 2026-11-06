@@ -65,6 +65,9 @@ fn main() {
             writing_commands::has_api_key,
             writing_commands::test_endpoint,
             writing_commands::endpoint_sends_off_machine,
+            writing_commands::copy_entry_text,
+            writing_commands::default_export_folder,
+            writing_commands::export_character,
         ])
         .run(tauri::generate_context!())
         .expect("the Mrglglgl window failed to start");

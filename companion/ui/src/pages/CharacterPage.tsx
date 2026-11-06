@@ -21,6 +21,7 @@ import type { StoryKind } from "@/bindings/StoryKind";
 import { CharacterHeader } from "@/components/CharacterHeader";
 import { EmptyState } from "@/components/EmptyState";
 import { type DayWriting, JournalPage } from "@/components/JournalPage";
+import { CopyEntryButton, ExportDialog } from "@/components/Sharing";
 import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
 import { daysNewestFirst, displayName } from "@/lib/journal";
@@ -44,6 +45,7 @@ export function CharacterPage({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const characters = useQuery({
     queryKey: ["characters"],
@@ -91,6 +93,7 @@ export function CharacterPage({
       onCancel: () => void cancelWriting(characterId, kind, start),
       onRetry: () =>
         void retryWriting(characterId, kind, start).then(refreshStatus),
+      actions: (story) => <CopyEntryButton story={story} />,
     };
   }
 
@@ -165,6 +168,13 @@ export function CharacterPage({
             )}
             <Button
               variant="subtle"
+              color="gray"
+              onClick={() => setExporting(true)}
+            >
+              {t("share.exportButton")}
+            </Button>
+            <Button
+              variant="subtle"
               color="red"
               onClick={() => setConfirming(true)}
             >
@@ -198,6 +208,11 @@ export function CharacterPage({
           <EmptyState title={t("week.empty")}>{t("week.emptyHelp")}</EmptyState>
         )}
       </Stack>
+      <ExportDialog
+        characterId={characterId}
+        opened={exporting}
+        onClose={() => setExporting(false)}
+      />
       <Modal
         opened={confirming}
         onClose={() => setConfirming(false)}

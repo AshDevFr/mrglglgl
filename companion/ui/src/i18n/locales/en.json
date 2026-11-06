@@ -298,5 +298,18 @@
     "firstRunAction": "Download {{name}} ({{size}} GB)",
     "notEnoughMemory": "This computer has {{has}} GB of memory; the writing models need {{needed}} GB. You can use an endpoint instead: a model running on another machine or a service.",
     "notEnoughDisk": "There is {{free}} GB free on this disk; a writing model needs about {{needed}} GB. Free some space, or use an endpoint instead."
+  },
+  "share": {
+    "copy": "Copy entry",
+    "copied": "Copied",
+    "copyFailed": "Could not copy",
+    "exportButton": "Export",
+    "exportTitle": "Export this journal",
+    "exportHelp": "Saves the whole journal as a Markdown file and as a single web page you can open anywhere. Days the murloc has not written yet appear with their notes.",
+    "folder": "Folder",
+    "export": "Export",
+    "close": "Close",
+    "exported": "Saved {{markdown}} and {{html}}.",
+    "exportFailed": "The export was not saved: {{message}}"
   }
 }

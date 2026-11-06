@@ -2496,6 +2496,7 @@ name = "mrglglgl-app"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "dirs",
  "keyring",
  "mrglglgl-core",
  "mrglglgl-llm",
