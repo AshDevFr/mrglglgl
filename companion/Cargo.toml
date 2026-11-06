@@ -66,5 +66,11 @@ winreg = "0.56"
 sha2 = "0.11"
 toml = "1"
 
+# The endpoint key lives in the system keychain. On Linux the Secret Service is reached over
+# pure-Rust D-Bus, so no system library is needed to build.
+keyring = { version = "3.6", features = ["apple-native", "windows-native", "linux-native-async-persistent", "tokio", "crypto-rust"] }
+# Whether the game is running, and the machine's memory and free disk for the first run.
+sysinfo = { version = "0.37", default-features = false, features = ["system", "disk"] }
+
 # Tests
 tempfile = "3"

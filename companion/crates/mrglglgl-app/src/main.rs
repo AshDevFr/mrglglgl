@@ -5,6 +5,7 @@ mod commands;
 mod sync;
 #[cfg(test)]
 mod test_data;
+mod writing;
 
 use mrglglgl_core::db::Database;
 use tauri::Manager;
@@ -35,6 +36,7 @@ fn main() {
                 }
                 let _ = tauri::Emitter::emit(&handle, sync::JOURNAL_UPDATED, ());
             });
+            tauri::async_runtime::spawn(writing::run(app.handle().clone()));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
