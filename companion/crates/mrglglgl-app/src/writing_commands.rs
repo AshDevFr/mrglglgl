@@ -7,7 +7,7 @@ use mrglglgl_core::db::ProviderChoice;
 use mrglglgl_core::discovery::{self, DiscoveryOverrides};
 use mrglglgl_core::export;
 use mrglglgl_core::milestones;
-use mrglglgl_core::narrators::{self, NarratorInfo};
+use mrglglgl_core::narrators::NarratorInfo;
 use mrglglgl_core::queue::{self, Job};
 use mrglglgl_core::review::{self, ReviewItem};
 use mrglglgl_core::stories::{self, Story, StoryKind};
@@ -212,8 +212,8 @@ pub fn set_writing_paused(state: State<'_, AppState>, paused: bool) -> Result<()
 }
 
 #[tauri::command]
-pub fn list_narrators() -> Vec<NarratorInfo> {
-    narrators::list()
+pub fn list_narrators(state: State<'_, AppState>) -> Vec<NarratorInfo> {
+    state.control.narrators().list()
 }
 
 #[derive(Debug, Serialize, TS)]

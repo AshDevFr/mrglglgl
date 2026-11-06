@@ -3,4 +3,8 @@
 /**
  * A narrator as the settings screen lists it.
  */
-export type NarratorInfo = { id: string, name: string, optIn: boolean, };
+export type NarratorInfo = { id: string, name: string, optIn: boolean, 
+/**
+ * Made by the player, not shipped with the app.
+ */
+custom: boolean, };

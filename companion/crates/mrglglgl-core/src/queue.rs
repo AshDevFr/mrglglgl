@@ -8,6 +8,7 @@
 //! an attempt, so it does not simply start again.
 
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -394,6 +395,8 @@ pub enum QueueEvent {
 #[derive(Default)]
 pub struct Control {
     paused: AtomicBool,
+    /// Where the player's own narrators are kept; built-ins only when `None`.
+    narrators: Option<PathBuf>,
     wake: Notify,
     current: Mutex<Option<(Job, CancellationToken)>>,
 }
@@ -404,6 +407,21 @@ impl Control {
             paused: AtomicBool::new(paused),
             ..Self::default()
         }
+    }
+
+    /// Reads the player's own narrators from `dir` whenever an entry is prepared, so an edit
+    /// applies to the next entry.
+    pub fn with_narrators(mut self, dir: PathBuf) -> Self {
+        self.narrators = Some(dir);
+        self
+    }
+
+    /// The narrators to write with: the built-ins and the player's own.
+    pub fn narrators(&self) -> narrators::Library {
+        self.narrators
+            .as_deref()
+            .map(narrators::Library::load)
+            .unwrap_or_default()
     }
 
     /// Pausing lets the current entry finish and starts no other.
@@ -464,6 +482,7 @@ struct Prepared {
 
 fn prepare(
     db: &Database,
+    library: &narrators::Library,
     job: &Job,
     language_fallback: &str,
     provider_is_endpoint: bool,
@@ -487,7 +506,7 @@ fn prepare(
         .narrator
         .clone()
         .unwrap_or_else(|| settings.narrator.clone());
-    let narrator = narrators::get(&narrator_id, &language);
+    let narrator = library.get(&narrator_id, &language);
     let pseudonyms = provider_is_endpoint && settings.pseudonyms;
     let thresholds = Thresholds::default();
     let (prompt, end_day) = match job.kind {
@@ -563,7 +582,13 @@ pub async fn run_next(
         let Some(job) = take_next(&db, now())? else {
             return Ok(None);
         };
-        let prepared = prepare(&db, &job, language_fallback, is_endpoint)?;
+        let prepared = prepare(
+            &db,
+            &control.narrators(),
+            &job,
+            language_fallback,
+            is_endpoint,
+        )?;
         (job, prepared)
     };
     let prepared = match prepared {

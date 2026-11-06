@@ -37,11 +37,12 @@ pub struct AppState {
 impl AppState {
     pub fn new(db: Database, data_dir: PathBuf) -> Self {
         let paused = db.settings().map(|s| s.writing.paused).unwrap_or(false);
+        let control = Control::new(paused).with_narrators(crate::writing::narrators_dir(&data_dir));
         Self {
             db: Mutex::new(db),
             data_dir,
             watchers: Mutex::new(Vec::new()),
-            control: Arc::new(Control::new(paused)),
+            control: Arc::new(control),
             provider: Mutex::new(None),
             download: Mutex::new(None),
         }

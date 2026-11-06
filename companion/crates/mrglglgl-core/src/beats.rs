@@ -442,6 +442,17 @@ pub enum Pattern {
 }
 
 impl Pattern {
+    pub const ALL: [Pattern; 8] = [
+        Pattern::ManyDeaths,
+        Pattern::OnlyFished,
+        Pattern::BigLevelJump,
+        Pattern::NewZone,
+        Pattern::RareLoot,
+        Pattern::MurlocHeavy,
+        Pattern::MurlocDeath,
+        Pattern::NothingHappened,
+    ];
+
     pub fn key(self) -> &'static str {
         match self {
             Pattern::ManyDeaths => "many_deaths",

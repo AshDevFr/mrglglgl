@@ -8,8 +8,13 @@ import { renderWithProviders } from "@/test/render";
 import { EntryPanel } from "./EntryPanel";
 
 const narrators: NarratorInfo[] = [
-  { id: "murloc_scribe", name: "The murloc scribe", optIn: false },
-  { id: "grumpy_dwarf", name: "The grumpy dwarf", optIn: false },
+  {
+    id: "murloc_scribe",
+    name: "The murloc scribe",
+    optIn: false,
+    custom: false,
+  },
+  { id: "grumpy_dwarf", name: "The grumpy dwarf", optIn: false, custom: false },
 ];
 
 function story(id: number, text: string, extra: Partial<Story> = {}): Story {

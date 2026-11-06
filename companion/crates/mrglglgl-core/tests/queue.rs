@@ -549,3 +549,29 @@ fn accepting_a_draft_puts_it_in_the_journal_and_sets_its_rivals_aside() {
     // Another character's story is out of reach.
     assert!(!stories::accept(&db, id + 1, other).unwrap());
 }
+
+#[tokio::test]
+async fn a_job_is_written_with_the_players_own_narrator() {
+    let (db, id) = setup();
+    let folder = tempfile::tempdir().unwrap();
+    let mut mine = mrglglgl_core::narrators::copy_of("murloc_scribe", "en");
+    mine.persona = "You are a heron who keeps this journal.".into();
+    let mine = mrglglgl_core::narrators::save(folder.path(), mine).unwrap();
+    let ask = Ask {
+        narrator: Some(&mine.id),
+        ..Ask::default()
+    };
+    queue::request(&db.lock().unwrap(), id, StoryKind::Day, DAYS[0], &ask).unwrap();
+    let provider = FakeProvider::new([ENTRY]);
+    let control = Control::new(false).with_narrators(folder.path().to_path_buf());
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &control, "en", &on_event)
+        .await
+        .unwrap();
+    assert!(provider.requests()[0].system.contains("You are a heron"));
+    let db = db.lock().unwrap();
+    assert_eq!(
+        stories::versions(&db, id, StoryKind::Day, DAYS[0]).unwrap()[0].narrator,
+        mine.id
+    );
+}

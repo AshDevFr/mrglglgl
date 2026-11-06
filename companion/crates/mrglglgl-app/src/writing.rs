@@ -31,6 +31,11 @@ pub fn models_dir(data_dir: &Path) -> PathBuf {
     data_dir.join("models")
 }
 
+/// The folder the player's own narrators live in, one TOML file each.
+pub fn narrators_dir(data_dir: &Path) -> PathBuf {
+    data_dir.join("narrators")
+}
+
 /// The model list: the shipped one, or a newer one dropped into the data folder.
 pub fn catalogue(data_dir: &Path) -> Catalogue {
     Catalogue::load(Some(&data_dir.join("catalogue.json")))
