@@ -23,6 +23,7 @@ thiserror = { workspace = true }
 tokio = { workspace = true }
 tokio-util = { workspace = true }
 tracing = { workspace = true }
+url = { workspace = true }
 
 # Default features pull in OpenMP and llama.cpp's `common` library; neither is needed for plain
 # CPU generation, and OpenMP needs a separately installed runtime on macOS.

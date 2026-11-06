@@ -14,6 +14,7 @@ use tokio::sync::mpsc;
 pub use tokio_util::sync::CancellationToken;
 
 pub mod catalogue;
+pub mod endpoint;
 pub mod fake;
 #[cfg(feature = "local")]
 pub mod local;
