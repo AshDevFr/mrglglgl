@@ -163,7 +163,7 @@ fn a_crowded_day_is_cut_to_eight_beats_keeping_the_important_ones() {
     let has = |f: fn(&Beat) -> bool| day.beats.iter().any(f);
     assert!(has(|b| matches!(b, Beat::Boot { .. })));
     assert!(has(|b| matches!(b, Beat::Death { .. })));
-    assert!(has(|b| matches!(b, Beat::Milestone { .. })));
+    assert!(has(|b| matches!(b, Beat::Milestones { .. })));
     assert!(has(|b| matches!(b, Beat::LevelUp { .. })));
     // Weapon practice is the first thing dropped from a busy day.
     assert!(!has(|b| matches!(b, Beat::Practice { .. })));

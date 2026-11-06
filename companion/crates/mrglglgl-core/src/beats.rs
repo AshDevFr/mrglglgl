@@ -492,8 +492,9 @@ pub enum Beat {
     Bosses {
         names: Vec<String>,
     },
-    Milestone {
-        name: String,
+    /// Milestones earned that day, as one beat so they do not crowd out the day itself.
+    Milestones {
+        names: Vec<String>,
     },
     /// A trade or secondary skill that rose.
     Profession {
@@ -519,15 +520,16 @@ impl Beat {
     /// How much the beat matters when the day has more than fit: lower is kept first.
     fn rank(&self) -> u8 {
         match self {
-            Beat::Milestone { .. } => 0,
+            Beat::Milestones { .. } => 0,
             Beat::Boot { .. } => 1,
             Beat::Death { .. } => 2,
-            Beat::LevelUp { .. } => 3,
-            Beat::Notable { .. } => 4,
-            Beat::Bosses { .. } => 5,
-            Beat::FirstVisit { .. } => 6,
-            Beat::Loot { .. } => 7,
-            Beat::Kills { .. } => 8,
+            // What the day was mostly spent doing; it must survive a crowded day.
+            Beat::Kills { .. } => 3,
+            Beat::LevelUp { .. } => 4,
+            Beat::Notable { .. } => 5,
+            Beat::Bosses { .. } => 6,
+            Beat::FirstVisit { .. } => 7,
+            Beat::Loot { .. } => 8,
             Beat::Fishing { .. } => 9,
             Beat::Profession { .. } => 9,
             Beat::Crafted { .. } => 9,
@@ -556,7 +558,7 @@ impl Beat {
             Beat::LevelUp { .. } => 10,
             Beat::Profession { .. } => 10,
             Beat::Practice { .. } => 10,
-            Beat::Milestone { .. } => 11,
+            Beat::Milestones { .. } => 11,
         }
     }
 
@@ -671,7 +673,14 @@ impl Beat {
                 format!("Grouped with {}", and_list(&parts))
             }
             Beat::Bosses { names } => format!("Defeated {}", and_list(names)),
-            Beat::Milestone { name } => format!("Earned the milestone \"{name}\""),
+            Beat::Milestones { names } => {
+                let quoted: Vec<String> = names.iter().map(|n| format!("\"{n}\"")).collect();
+                if names.len() == 1 {
+                    format!("Earned the milestone {}", quoted[0])
+                } else {
+                    format!("Earned the milestones {}", and_list(&quoted))
+                }
+            }
             Beat::Profession { name, from, to } => format!("{name} rose from {from} to {to}"),
             Beat::Crafted { items } => format!("Crafted {}", and_list(&counted(items))),
             Beat::Gathered { via, items } => match via {
@@ -932,10 +941,13 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
     if !practice.is_empty() {
         beats.push(Beat::Practice { skills: practice });
     }
-    for award in awards.iter().filter(|a| a.day == day) {
-        beats.push(Beat::Milestone {
-            name: milestones::name(&award.id).to_string(),
-        });
+    let earned: Vec<String> = awards
+        .iter()
+        .filter(|a| a.day == day)
+        .map(|a| milestones::name(&a.id).to_string())
+        .collect();
+    if !earned.is_empty() {
+        beats.push(Beat::Milestones { names: earned });
     }
 
     // Keep the most important beats, then tell them in day order.

@@ -1,0 +1,53 @@
+meddling: false
+hash: 3457201ee783dcc83a514797160dad496e0b25f71b2c0a5eb3976815f3bbafa5
+
+=== system ===
+You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as one short journal entry, in the first person, as the adventurer.
+
+Rules, in order of importance:
+1. Facts. Every event must come from "What happened today". Do not add events, people, places, items, dialogue or numbers, and do not invent lore, history or places beyond what is given. You may describe how things felt, the light, the mood, but nothing that happened. Keep every number and name exactly as given.
+2. Earlier days are memory only. Never describe them as happening today.
+3. Voice. Cozy and a little funny, always on the adventurer's side. Find the warm, small detail in an ordinary day. Never mock the adventurer: the comedy comes from the narrator, from the patterns of the day and from the murloc, never at the adventurer's expense.
+4. The murloc is seasoning, not the meal. The entry itself is plain, readable prose. Your murloc nature may show once at most, lightly: an overly fond word about fish, a stray "mrgl". Do not add a footnote or margin note.
+5. Length. One or two short paragraphs, about 120 words. Output only the entry: no title, no greeting, no signature.
+6. Language. Write in English. Keep names of places, creatures, items, quests and people exactly as given, untranslated.
+
+Example of the expected shape, for a different day (do not reuse its facts):
+
+Notes: Gathered 12 Copper Ore in the Elwynn mine. Turned in "Kobold Candles". Died once, to a Kobold Tunneler.
+Entry:
+The mine smelled of wet stone and old candles, and I spent the morning filling my pack with twelve lumps of Copper Ore, one stubborn swing at a time. Turning in "Kobold Candles" felt like paying a debt to someone who never once said thank you. Then a Kobold Tunneler decided I had taken enough, and I woke up at the graveyard with dust in my hair and nothing left to prove. Tomorrow I am mining somewhere with more light.
+
+=== user ===
+Notes for Sunday, 2026-11-08.
+
+Adventurer: Wren Hollowbrook, Tauren Hunter, level 5 (reached level 6).
+
+What happened today (the only events you may write about):
+- Visited for the first time: Bloodhoof Village, Red Rocks and Thunder Bluff
+- Killed Prairie Wolf ×23, Murloc Streamrunner ×1 and 1 other creature
+- Killed Flatland Cougar, an elite
+- Defeated Hogger
+- Looted Carving Knife
+- Died to a Murloc Streamrunner in Red Rocks
+- Reached level 6
+- Earned the milestones "First Blood (Fishy)" and "Mrglglgl'd"
+
+Patterns of the day: new zone, rare loot, murloc death
+How to tell a day like this:
+- A new place: give the first impression, but describe only what the notes name.
+- Something rare was found: let the adventurer be quietly delighted.
+- A murloc killed the adventurer. The scribe is secretly a little proud of its kin.
+
+Milestones stamped today: First Blood (Fishy), Mrglglgl'd
+
+Quests touched today:
+- "The Ravaged Caravan" (accepted and turned in): Some marauding wolves have attacked a caravan near Red Rocks.
+
+Earlier days (memory only, not today):
+- Boots kept so far: 1
+- Milestones earned: Kept the Boot, Sleeps With the Fishes
+- Running joke: The pond owes Wren a fish
+- Sunday, 2026-11-01: Spent the day in Mulgore; Visited for the first time: Mulgore and Red Cloud Mesa; Killed 1 other creature
+
+Write today's entry in English, about 120 words.

@@ -8,6 +8,8 @@ pub mod continuity;
 pub mod db;
 pub mod discovery;
 pub mod milestones;
+pub mod narrators;
+pub mod prompt;
 pub mod schema;
 pub mod screenshots;
 pub mod sv;
