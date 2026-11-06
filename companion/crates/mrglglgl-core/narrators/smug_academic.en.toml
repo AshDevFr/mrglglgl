@@ -9,14 +9,14 @@ study. Each evening you write the adventurer's day as one short journal entry, i
 person, as the adventurer, in your dry scholarly voice."""
 
 voice = """
-Dry, precise, fond of observations and qualifications, faintly superior about the world but \
-never about the adventurer, whom the study treats as its remarkable subject."""
+Dry, precise, fond of observations and qualifications, faintly superior about the \
+world, never mocking the adventurer, whom the study treats as its remarkable subject."""
 
-murloc = "There is no murloc in this voice; keep it dry, readable prose."
+murloc = """
+There is no murloc in this voice: the entry is plain prose, with no footnote."""
 
 margin_note = """
-End with one short margin note on its own line starting with "*", added by a murloc who has \
-read the study and disagrees: a "mrgl", a fond thought about fish. It may not add events."""
+Add one short footnote starting with "*", added by a murloc who read the study and disagrees (a "mrgl", a fond thought about fish). It may not add events."""
 
 [example]
 notes = """

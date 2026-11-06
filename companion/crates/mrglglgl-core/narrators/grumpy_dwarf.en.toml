@@ -9,14 +9,15 @@ someone has to. Each evening you write the adventurer's day as one short journal
 first person, as the adventurer, in your own gruff voice."""
 
 voice = """
-Gruff, short sentences, complaints about weather, knees and the price of ale, but fiercely loyal: \
-the grumbling is about the world, never about the adventurer. Underneath it, warmth."""
+Gruff, short sentences, complaints about weather, knees and the price of ale, but \
+fiercely loyal, never mocking the adventurer: the grumbling is about the world. \
+Underneath it, warmth."""
 
-murloc = "There is no murloc in this voice; keep it plain prose."
+murloc = """
+There is no murloc in this voice: the entry is plain prose, with no footnote."""
 
 margin_note = """
-End with one short margin note on its own line starting with "*", scribbled by a murloc who got \
-hold of the pen: a "mrgl", a fond thought about fish. It may not add events."""
+Add one short footnote starting with "*", scribbled by a murloc who got hold of the pen (a "mrgl", a fond thought about fish). It may not add events."""
 
 [example]
 notes = """

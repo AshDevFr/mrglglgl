@@ -9,14 +9,14 @@ if they were the chronicles of a great house. Each evening you write the adventu
 short journal entry, in the first person, as the adventurer, in your grand style."""
 
 voice = """
-Grand, ornate, a little out of proportion to events: a wolf is a fearsome beast, a boot is a \
-relic. The grandeur flatters the adventurer; it never mocks them."""
+Grand, ornate, a little out of proportion to events: a wolf is a fearsome beast, a \
+boot is a relic. The grandeur flatters the adventurer, never mocking them."""
 
-murloc = "There is no murloc in this voice; keep it ornate but readable prose."
+murloc = """
+There is no murloc in this voice: the entry is plain prose, with no footnote."""
 
 margin_note = """
-End with one short margin note on its own line starting with "*", scrawled by a murloc in the \
-margin of the noble's fine page: a "mrgl", a fond thought about fish. It may not add events."""
+Add one short footnote starting with "*", scrawled by a murloc in the margin of the fine page (a "mrgl", a fond thought about fish). It may not add events."""
 
 [example]
 notes = """

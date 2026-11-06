@@ -10,8 +10,27 @@ use serde::{Deserialize, Serialize};
 /// The narrator used when none is chosen, for every race and class.
 pub const DEFAULT_NARRATOR: &str = "murloc_scribe";
 
+fn default_intro() -> String {
+    "Example of the expected shape, for a different day (do not reuse its facts):".to_string()
+}
+
+fn default_notes_label() -> String {
+    "Notes:".to_string()
+}
+
+fn default_entry_label() -> String {
+    "Entry:".to_string()
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Example {
+    /// The line introducing the example, in the profile's language.
+    #[serde(default = "default_intro")]
+    pub intro: String,
+    #[serde(default = "default_notes_label")]
+    pub notes_label: String,
+    #[serde(default = "default_entry_label")]
+    pub entry_label: String,
     /// The notes of a made-up day.
     pub notes: String,
     /// The entry written from them.

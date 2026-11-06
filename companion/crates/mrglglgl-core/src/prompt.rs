@@ -255,6 +255,9 @@ enum Kind {
     Week,
 }
 
+/// The system prompt: the tested prompt's rules word for word, with two additions the product
+/// needs (an explicit ban on invented lore, and the footnote asked for exactly when the murloc
+/// meddles rather than always optional) and the narrator's persona, voice and example.
 fn system(narrator: &Narrator, language: &str, meddling: bool, kind: Kind) -> String {
     let (events, when, length) = match kind {
         Kind::Day => (
@@ -268,44 +271,44 @@ fn system(narrator: &Narrator, language: &str, meddling: bool, kind: Kind) -> St
             format!("Three short paragraphs at most, about {WEEK_WORDS} words"),
         ),
     };
-    let murloc = if meddling {
-        narrator.margin_note.trim()
+    let (murloc, length) = if meddling {
+        (
+            narrator.margin_note.trim(),
+            format!("{length}, then the footnote"),
+        )
     } else {
-        "Do not add a footnote or margin note."
+        (narrator.murloc.trim(), length)
     };
-    let length = if meddling {
-        format!("{length}, then the margin note")
-    } else {
-        length
-    };
+    let e = &narrator.example;
     let mut example = format!(
-        "Notes: {}\nEntry:\n{}",
-        narrator.example.notes.trim(),
-        narrator.example.entry.trim()
+        "{} {}\n{}\n{}",
+        e.notes_label.trim(),
+        e.notes.trim(),
+        e.entry_label.trim(),
+        e.entry.trim()
     );
     if meddling {
-        example = format!("{example}\n{}", narrator.example.margin_note.trim());
+        example = format!("{example}\n{}", e.margin_note.trim());
     }
     format!(
         "{persona}\n\n\
          Rules, in order of importance:\n\
-         1. Facts. Every event must come from \"{events}\". Do not add events, people, places, \
-         items, dialogue or numbers, and do not invent lore, history or places beyond what is \
-         given. You may describe how things felt, the light, the mood, but nothing that \
-         happened. Keep every number and name exactly as given.\n\
+         1. Facts. Every event in the entry must come from the list \"{events}\". Do not add \
+         events, people, places, items, dialogue or numbers. You may describe how things felt, \
+         the light, the weather of the mood, but nothing that happened. Keep every number and \
+         name exactly as given. Do not invent lore beyond what is given.\n\
          2. Earlier days are memory only. Never describe them as happening {when}.\n\
-         3. Voice. {voice} Never mock the adventurer: the comedy comes from the narrator, from \
-         the patterns of the day and from the murloc, never at the adventurer's expense.\n\
-         4. The murloc is seasoning, not the meal. {murloc_rule} {murloc}\n\
+         3. Voice. {voice}\n\
+         4. The murloc. {murloc}\n\
          5. Length. {length}. Output only the entry: no title, no greeting, no signature.\n\
-         6. Language. Write in {language}. Keep names of places, creatures, items, quests and \
-         people exactly as given, untranslated.\n\n\
-         Example of the expected shape, for a different day (do not reuse its facts):\n\n\
+         6. Language. Write in {language}. Keep names of places, creatures, quests and people \
+         exactly as given, untranslated.\n\n\
+         {intro}\n\n\
          {example}",
         persona = narrator.persona.trim(),
         voice = narrator.voice.trim(),
-        murloc_rule = narrator.murloc.trim(),
         language = language_name(language),
+        intro = e.intro.trim(),
     )
 }
 
@@ -318,11 +321,9 @@ fn title_case(word: &str) -> String {
     }
 }
 
+/// Days are given as recorded, `YYYY-MM-DD`, as in the tested prompt.
 fn dated(day: &str) -> String {
-    match NaiveDate::parse_from_str(day, "%Y-%m-%d") {
-        Ok(d) => format!("{}, {day}", d.format("%A")),
-        Err(_) => day.to_string(),
-    }
+    day.to_string()
 }
 
 fn adventurer(journal: &Journal, level: Option<(i64, i64)>) -> String {
@@ -346,7 +347,9 @@ fn adventurer(journal: &Journal, level: Option<(i64, i64)>) -> String {
         line = format!("{line}, {who}");
     }
     match level {
-        Some((from, to)) if to > from => format!("{line}, level {from} (reached level {to})."),
+        Some((from, to)) if to > from => {
+            format!("{line}, level {from} (reached level {to} today).")
+        }
         Some((from, _)) => format!("{line}, level {from}."),
         None => format!("{line}."),
     }
@@ -373,11 +376,6 @@ fn quest_lines(journal: &Journal, record: &DayRecord) -> Vec<String> {
         }
     }
     for id in &ids {
-        let what = match (record.accepted.contains(id), record.turned_in.contains(id)) {
-            (true, true) => "accepted and turned in",
-            (true, false) => "accepted",
-            _ => "turned in",
-        };
         let quest = journal.quests.get(id);
         let title = quest
             .and_then(|q| q.title.clone())
@@ -390,11 +388,20 @@ fn quest_lines(journal: &Journal, record: &DayRecord) -> Vec<String> {
             }
         });
         lines.push(match text {
-            Some(t) if !t.is_empty() => format!("\"{title}\" ({what}): {t}"),
-            _ => format!("\"{title}\" ({what})"),
+            Some(t) if !t.is_empty() => format!("{title}: {t}"),
+            _ => title,
         });
     }
     lines
+}
+
+/// Memory lines as a list, "- nothing yet" when empty, as in the tested prompt.
+fn memory_block(lines: &[String]) -> String {
+    if lines.is_empty() {
+        "- nothing yet".to_string()
+    } else {
+        bullets(lines)
+    }
 }
 
 fn hint_lines(narrator: &Narrator, patterns: &[&str]) -> Vec<String> {
@@ -410,7 +417,7 @@ fn companion_names(records: &[&DayRecord], sheet: &ContinuitySheet) -> Vec<Strin
     for name in records
         .iter()
         .flat_map(|r| r.companions.iter())
-        .chain(sheet.companions.iter())
+        .chain(sheet.companions.iter().map(|c| &c.name))
     {
         if !names.contains(name) {
             names.push(name.clone());
@@ -488,7 +495,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
             milestones_today.join(", ")
         },
         quests = bullets(&quest_lines(r.journal, &record)),
-        memory = bullets(&memory),
+        memory = memory_block(&memory),
         language = language_name(r.language),
     ));
 
@@ -597,7 +604,7 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
             milestones_week.join(", ")
         },
         quests = bullets(&quests),
-        memory = bullets(&sheet.memory_lines()),
+        memory = memory_block(&sheet.memory_lines()),
         language = language_name(r.language),
     );
     let record_refs: Vec<&DayRecord> = records.iter().collect();

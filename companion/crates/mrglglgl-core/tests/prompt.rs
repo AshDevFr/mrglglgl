@@ -120,10 +120,19 @@ fn a_day_prompt_carries_everything_the_entry_is_grounded_in() {
     let p = day(&j, &awards, "en", "grumpy_dwarf", false);
     let dwarf = narrators::get("grumpy_dwarf", "en");
     assert!(p.system.contains(dwarf.persona.trim()), "narrator profile");
-    assert!(p.system.contains("do not invent lore"), "no-invention rule");
-    assert!(p.system.contains("Never mock the adventurer"), "tone rule");
     assert!(
-        p.system.contains("The murloc is seasoning, not the meal"),
+        p.system
+            .contains("Do not invent lore beyond what is given."),
+        "no-invention rule"
+    );
+    assert!(
+        p.system.contains("never mocking the adventurer"),
+        "tone rule"
+    );
+    // The murloc is seasoning: plain prose unless the murloc meddles.
+    assert!(
+        p.system
+            .contains("the entry is plain prose, with no footnote"),
         "tone rule"
     );
     assert!(p.system.contains("Write in English"), "output language");
@@ -232,13 +241,13 @@ fn the_prompt_asks_for_a_margin_note_exactly_when_the_murloc_meddles() {
     let often = week(&j, &awards, "en", Meddling::Often);
     let off = week(&j, &awards, "en", Meddling::Off);
     assert!(!off.meddling);
-    assert!(off.system.contains("Do not add a footnote or margin note."));
+    assert!(off.system.contains("with no footnote"));
     assert_eq!(
         often.meddling,
         meddles(1, "week:2026-11-09", Meddling::Often)
     );
     if often.meddling {
-        assert!(often.system.contains("margin note from the murloc"));
+        assert!(often.system.contains("Add one short footnote"));
     }
     // Regenerating gives the same prompt, so the same answer.
     assert_eq!(often, week(&j, &awards, "en", Meddling::Often));
@@ -287,6 +296,79 @@ fn companions_can_be_sent_under_stand_in_names() {
         restore_names(&written, &hidden.aliases),
         format!("I fished beside {} all morning.", hidden.aliases[0].real)
     );
+}
+
+/// A section of the tested prompt file, `## System` or `## User`.
+fn tested(language: &str, heading: &str) -> String {
+    let path =
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(format!("prompts/prompt-v2-{language}.md"));
+    let text = std::fs::read_to_string(path).unwrap();
+    let start = text.find(heading).unwrap() + heading.len();
+    let rest = &text[start..];
+    rest[..rest.find("\n## ").unwrap_or(rest.len())]
+        .trim()
+        .to_string()
+}
+
+#[test]
+fn the_scribe_speaks_the_tested_prompt_word_for_word() {
+    // The tested prompt lifted Qwen3.5 4B's English grade from 2.7 to 4.0; the production
+    // prompt may differ from it only by the changes listed here.
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let character = (1..100)
+        .find(|c| meddles(*c, "2026-11-08", Meddling::Often))
+        .expect("some character meddles that day");
+    for (language, name) in [("en", "English"), ("fr", "French")] {
+        let p = day_prompt(&DayRequest {
+            character_id: character,
+            journal: &j,
+            day: "2026-11-08",
+            awards: &awards,
+            running_jokes: &[],
+            narrator: narrators::get(DEFAULT_NARRATOR, language),
+            language,
+            meddling: Meddling::Often,
+            pseudonyms: false,
+            thresholds: &Thresholds::default(),
+        });
+        assert!(p.meddling);
+        let expected = tested(language, "## System")
+            .replace("{language}", name)
+            // The spec asks for an explicit ban on invented lore.
+            .replace(
+                "Keep every number and name exactly as given.",
+                "Keep every number and name exactly as given. Do not invent lore beyond what is \
+                 given.",
+            )
+            // The footnote is asked for exactly when the murloc meddles, so its share is fixed.
+            .replace(
+                "You may add at most one short footnote",
+                "Add one short footnote",
+            )
+            .replace("then the optional footnote", "then the footnote");
+        assert_eq!(p.system, expected, "{language}");
+
+        // The notes keep the tested layout, in the same order.
+        let headers = [
+            "Notes for 2026-11-08.",
+            "Adventurer: Wren Hollowbrook, Tauren Hunter, level 5 (reached level 6 today).",
+            "What happened today (the only events you may write about):",
+            "Patterns of the day:",
+            "Milestones stamped today:",
+            "Quests touched today:",
+            "Earlier days (memory only, not today):",
+            &format!("Write today's entry in {name}, about 120 words."),
+        ];
+        let mut at = 0;
+        for h in headers {
+            let found = p.user[at..]
+                .find(h)
+                .unwrap_or_else(|| panic!("{h} in order"));
+            at += found + h.len();
+        }
+        assert!(tested(language, "## User").starts_with("Notes for {date}."));
+    }
 }
 
 #[test]

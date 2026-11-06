@@ -32,6 +32,15 @@ pub struct Nemesis {
     pub deaths: i64,
 }
 
+/// A companion met on more than one day.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase", default)]
+pub struct Recurring {
+    pub name: String,
+    pub days: i64,
+}
+
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase", default)]
@@ -40,7 +49,7 @@ pub struct ContinuitySheet {
     pub titles: Vec<String>,
     pub nemesis: Option<Nemesis>,
     /// Companions met on more than one day, most often met first.
-    pub companions: Vec<String>,
+    pub companions: Vec<Recurring>,
     pub boots: i64,
     pub murlocs_slain: i64,
     pub deaths_by_murloc: i64,
@@ -126,7 +135,10 @@ impl ContinuitySheet {
             companions: companions
                 .into_iter()
                 .take(MAX_COMPANIONS)
-                .map(|(c, _)| c.to_string())
+                .map(|(name, days)| Recurring {
+                    name: name.to_string(),
+                    days,
+                })
                 .collect(),
             boots: (stats.boots - later(|r| r.boots)).max(0),
             murlocs_slain: (stats.murlocs_slain - later(|r| r.murloc_kills())).max(0),
@@ -160,20 +172,30 @@ impl ContinuitySheet {
         })
     }
 
-    /// The sheet as lines of memory for the prompt, in English. Empty facts are left out.
+    /// The sheet as lines of memory for the prompt, in English, worded as in the tested prompt
+    /// with the nemesis and titles after. Empty facts are left out.
     pub fn memory_lines(&self) -> Vec<String> {
         let mut lines = Vec::new();
         if self.boots > 0 {
             lines.push(format!("Boots kept so far: {}", self.boots));
         }
         if self.murlocs_slain > 0 {
-            lines.push(format!("Murlocs slain so far: {}", self.murlocs_slain));
+            lines.push(format!("Murlocs slain in total: {}", self.murlocs_slain));
         }
         if self.deaths_by_murloc > 0 {
             lines.push(format!(
-                "Deaths by murloc so far: {}",
+                "Deaths by murloc in total: {}",
                 self.deaths_by_murloc
             ));
+        }
+        for c in &self.companions {
+            lines.push(format!(
+                "Recurring companion: {} ({} days together)",
+                c.name, c.days
+            ));
+        }
+        for joke in &self.running_jokes {
+            lines.push(format!("Running joke: {joke}"));
         }
         if let Some(n) = &self.nemesis {
             lines.push(format!(
@@ -183,15 +205,6 @@ impl ContinuitySheet {
         }
         if !self.titles.is_empty() {
             lines.push(format!("Milestones earned: {}", self.titles.join(", ")));
-        }
-        if !self.companions.is_empty() {
-            lines.push(format!(
-                "Companions met more than once: {}",
-                self.companions.join(", ")
-            ));
-        }
-        for joke in &self.running_jokes {
-            lines.push(format!("Running joke: {joke}"));
         }
         lines
     }

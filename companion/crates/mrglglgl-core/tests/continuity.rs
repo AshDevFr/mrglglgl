@@ -2,7 +2,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use mrglglgl_core::continuity::{self, ContinuitySheet, MAX_JOKES, Nemesis};
+use mrglglgl_core::continuity::{self, ContinuitySheet, MAX_JOKES, Nemesis, Recurring};
 use mrglglgl_core::db::Database;
 use mrglglgl_core::discovery::CharacterSource;
 use mrglglgl_core::milestones::Award;
@@ -117,7 +117,13 @@ fn facts_come_from_the_journal() {
             deaths: 2
         })
     );
-    assert_eq!(sheet.companions, vec!["Rowan"]);
+    assert_eq!(
+        sheet.companions,
+        vec![Recurring {
+            name: "Rowan".into(),
+            days: 2
+        }]
+    );
     assert_eq!(sheet.titles, vec!["Kept the Boot"]);
 }
 
@@ -228,10 +234,10 @@ fn memory_lines_leave_out_what_is_empty() {
         sheet.memory_lines(),
         vec![
             "Boots kept so far: 3",
-            "Deaths by murloc so far: 2",
+            "Deaths by murloc in total: 2",
+            "Recurring companion: Rowan (2 days together)",
             "Nemesis: Murloc Streamrunner (died to them 2 times)",
             "Milestones earned: Kept the Boot",
-            "Companions met more than once: Rowan",
         ]
     );
 }
