@@ -5,4 +5,8 @@ export type CharacterSummary = { character: StoredCharacter,
 /**
  * The game's journal file is gone; the character lives on in the archive.
  */
-archived: boolean, milestones: number, };
+archived: boolean, milestones: number, 
+/**
+ * Days and weeks with a draft waiting for the player.
+ */
+toReview: number, };

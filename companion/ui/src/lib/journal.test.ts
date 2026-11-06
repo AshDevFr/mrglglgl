@@ -13,6 +13,7 @@ function character(overrides: Partial<StoredCharacter>): CharacterSummary {
   return {
     archived: false,
     milestones: 0,
+    toReview: 0,
     character: {
       id: 1,
       flavor: "_forever_",

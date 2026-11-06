@@ -14,6 +14,7 @@ pub mod milestones;
 pub mod narrators;
 pub mod prompt;
 pub mod queue;
+pub mod review;
 pub mod schema;
 pub mod screenshots;
 pub mod stories;

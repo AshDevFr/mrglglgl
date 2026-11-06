@@ -135,10 +135,29 @@ fn add(
     )? > 0)
 }
 
-/// Queues every finished day of the journal that has no story yet, and every finished week
-/// with days in it and no chapter yet. A draft or a discarded draft counts as a story: the player
-/// decides what happens to those days. `today` is never queued, nor is its week. In review mode
-/// the jobs write drafts. Returns how many jobs were added.
+/// Every finished day of the journal and every finished week with days in it, oldest first,
+/// each week after its own days. `today` is never finished, nor is its week.
+pub fn finished_slots(journal: &Journal, today: &str) -> Vec<(StoryKind, String)> {
+    let mut slots = Vec::new();
+    let mut weeks = BTreeMap::new();
+    for day in journal.days.keys().filter(|d| d.as_str() < today) {
+        slots.push((StoryKind::Day, day.clone()));
+        if let Some(monday) = prompt::week_start(day) {
+            weeks.insert(monday, ());
+        }
+    }
+    for monday in weeks.into_keys() {
+        let sunday = prompt::week_days(&monday).pop().unwrap_or_default();
+        if sunday.as_str() < today {
+            slots.push((StoryKind::Week, monday));
+        }
+    }
+    slots
+}
+
+/// Queues every finished day and week that has no story yet. A draft or a discarded draft
+/// counts as a story: the player decides what happens to those days. In review mode the jobs
+/// write drafts. Returns how many jobs were added.
 pub fn enqueue_finished(
     db: &Database,
     character_id: i64,
@@ -146,23 +165,11 @@ pub fn enqueue_finished(
     today: &str,
 ) -> Result<usize, DbError> {
     let written = stories::slots(db, character_id)?;
-    let has_story = |kind: StoryKind, day: &str| written.contains(&(kind, day.to_string()));
     let draft = db.settings()?.writing.review;
     let mut added = 0;
-    let mut weeks = BTreeMap::new();
-    for day in journal.days.keys().filter(|d| d.as_str() < today) {
-        if !has_story(StoryKind::Day, day) && add(db, character_id, StoryKind::Day, day, draft)? {
-            added += 1;
-        }
-        if let Some(monday) = prompt::week_start(day) {
-            weeks.insert(monday, ());
-        }
-    }
-    for monday in weeks.keys() {
-        let sunday = prompt::week_days(monday).pop().unwrap_or_default();
-        if sunday.as_str() < today
-            && !has_story(StoryKind::Week, monday)
-            && add(db, character_id, StoryKind::Week, monday, draft)?
+    for (kind, start_day) in finished_slots(journal, today) {
+        if !written.contains(&(kind, start_day.clone()))
+            && add(db, character_id, kind, &start_day, draft)?
         {
             added += 1;
         }

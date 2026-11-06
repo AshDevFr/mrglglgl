@@ -14,6 +14,7 @@ import { SettingsForm } from "./SettingsForm";
 const wren: CharacterSummary = {
   archived: false,
   milestones: 2,
+  toReview: 0,
   character: {
     id: 1,
     flavor: "_forever_",

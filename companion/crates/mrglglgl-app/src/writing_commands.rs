@@ -9,11 +9,12 @@ use mrglglgl_core::export;
 use mrglglgl_core::milestones;
 use mrglglgl_core::narrators::{self, NarratorInfo};
 use mrglglgl_core::queue::{self, Job};
+use mrglglgl_core::review::{self, ReviewItem};
 use mrglglgl_core::stories::{self, Story, StoryKind};
 use mrglglgl_llm::CancellationToken;
 use mrglglgl_llm::catalogue::{self, Advice, Shortfall};
 use mrglglgl_llm::endpoint::{self, EndpointConfig, EndpointProvider};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, State};
 use ts_rs::TS;
 
@@ -29,7 +30,75 @@ pub fn character_stories(
     character_id: i64,
 ) -> Result<Vec<Story>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    stories::all(&db, character_id).map_err(|e| e.to_string())
+    stories::accepted(&db, character_id).map_err(|e| e.to_string())
+}
+
+/// The character's To review list, newest first.
+#[tauri::command]
+pub fn review_list(
+    state: State<'_, AppState>,
+    character_id: i64,
+) -> Result<Vec<ReviewItem>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let Some(journal) = archive::load(&db, character_id).map_err(|e| e.to_string())? else {
+        return Ok(Vec::new());
+    };
+    review::items(&db, character_id, &journal, &writing::today()).map_err(|e| e.to_string())
+}
+
+/// Puts a draft in the journal; the other drafts for that day or week are discarded.
+#[tauri::command]
+pub fn accept_draft(
+    state: State<'_, AppState>,
+    character_id: i64,
+    story_id: i64,
+) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    stories::accept(&db, character_id, story_id).map_err(|e| e.to_string())
+}
+
+/// Throws a draft away; the day stays on the To review list until written again.
+#[tauri::command]
+pub fn discard_draft(
+    state: State<'_, AppState>,
+    character_id: i64,
+    story_id: i64,
+) -> Result<bool, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    stories::discard(&db, character_id, story_id).map_err(|e| e.to_string())
+}
+
+/// A day or week to write.
+#[derive(Debug, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct Slot {
+    pub kind: StoryKind,
+    pub start_day: String,
+}
+
+/// Writes days and weeks as drafts, ahead of the backlog: a selection from the To review list,
+/// or one rewrite with the player's note.
+#[tauri::command]
+pub fn write_drafts(
+    state: State<'_, AppState>,
+    character_id: i64,
+    slots: Vec<Slot>,
+    narrator: Option<String>,
+    note: Option<String>,
+) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let ask = queue::Ask {
+        narrator: narrator.as_deref(),
+        draft: true,
+        note: note.as_deref(),
+    };
+    for slot in &slots {
+        queue::request(&db, character_id, slot.kind, &slot.start_day, &ask)
+            .map_err(|e| e.to_string())?;
+    }
+    state.control.wake();
+    Ok(())
 }
 
 #[derive(Debug, Serialize, TS)]
@@ -371,7 +440,7 @@ pub fn copy_entry_text(
         .map_err(|e| e.to_string())?
         .writing
         .copy_footer;
-    let story = stories::all(&db, character_id)
+    let story = stories::accepted(&db, character_id)
         .map_err(|e| e.to_string())?
         .into_iter()
         .find(|s| s.id == story_id)
@@ -421,7 +490,7 @@ pub fn export_character(
     let journal = archive::load(&db, character_id)
         .map_err(|e| e.to_string())?
         .ok_or("this character has no journal yet")?;
-    let stories = stories::all(&db, character_id).map_err(|e| e.to_string())?;
+    let stories = stories::accepted(&db, character_id).map_err(|e| e.to_string())?;
     let awards = milestones::awards(&db, character_id).map_err(|e| e.to_string())?;
     let mut game_folders: Vec<std::path::PathBuf> = discovery::discover(&DiscoveryOverrides {
         wow_root: settings.wow_root_override.clone(),

@@ -39,6 +39,8 @@ pub struct CharacterSummary {
     /// The game's journal file is gone; the character lives on in the archive.
     pub archived: bool,
     pub milestones: u32,
+    /// Days and weeks with a draft waiting for the player.
+    pub to_review: u32,
 }
 
 #[tauri::command]
@@ -51,9 +53,12 @@ pub fn list_characters(state: State<'_, AppState>) -> Result<Vec<CharacterSummar
             let milestones = milestones::awards(&db, character.id)
                 .map_err(|e| e.to_string())?
                 .len() as u32;
+            let to_review = mrglglgl_core::review::waiting(&db, character.id)
+                .map_err(|e| e.to_string())? as u32;
             Ok(CharacterSummary {
                 archived: !character.journal_path.is_file(),
                 milestones,
+                to_review,
                 character,
             })
         })
