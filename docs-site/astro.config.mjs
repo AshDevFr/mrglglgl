@@ -8,6 +8,10 @@ export default defineConfig({
   integrations: [
     starlight({
       title: "Mrglglgl",
+      logo: { src: "./src/assets/murloc/head.png", alt: "" },
+      favicon: "/favicon.png",
+      // The 404 page is src/content/docs/404.md, with the sleeping murloc.
+      disable404Route: true,
       description:
         "A journal of your World of Warcraft: Forever character's life, kept by a murloc.",
       social: [

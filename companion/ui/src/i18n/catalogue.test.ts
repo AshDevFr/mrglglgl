@@ -35,13 +35,20 @@ function files(dir: string): string[] {
 }
 
 describe("bundled assets", () => {
-  it("ships no images, sounds or fonts of its own in the frontend source", () => {
-    // The look is CSS; the reading font comes from an open-licence package. Any asset added
-    // here must be the project's own, never extracted from the game.
+  it("ships no images, sounds or fonts but the project's own murloc drawings", () => {
+    // The look is CSS; the reading font comes from an open-licence package. The only pictures
+    // are the baby murloc drawings made for the project (generated, never extracted from the
+    // game), listed here by name so nothing else slips in.
     const root = join(import.meta.dirname, "..");
+    const allowed = [
+      "fishing.webp",
+      "scribe.webp",
+      "sleep.webp",
+      "wave.webp",
+    ].map((name) => join(root, "assets", "murloc", name));
     const media = files(root).filter((f) =>
       /\.(png|jpe?g|gif|webp|blp|tga|svg|mp3|ogg|wav|ttf|otf|woff2?)$/i.test(f),
     );
-    expect(media).toEqual([]);
+    expect(media.sort()).toEqual(allowed.sort());
   });
 });

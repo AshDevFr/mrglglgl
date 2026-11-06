@@ -12,7 +12,11 @@ type Args = Record<string, unknown>;
 
 const answers: Record<string, (args: Args) => unknown> = {
   app_info: () => ({ version: "0.1.0" }),
-  list_characters: () => data.characters,
+  // "?empty" shows the app as on a first run, before any journal arrives.
+  list_characters: () =>
+    new URLSearchParams(window.location.search).has("empty")
+      ? []
+      : data.characters,
   character_journal: () => data.journal,
   character_milestones: () => data.awards,
   character_screenshots: () => ({}),

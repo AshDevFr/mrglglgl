@@ -185,7 +185,9 @@ export function CharacterPage({
             writing={writingFor("day", selected, selected)}
           />
         ) : (
-          <EmptyState title={t("week.empty")}>{t("week.emptyHelp")}</EmptyState>
+          <EmptyState title={t("week.empty")} art="sleep">
+            {t("week.emptyHelp")}
+          </EmptyState>
         )}
       </Stack>
     </div>

@@ -99,7 +99,8 @@ export function ReviewList({ characterId }: { characterId: number }) {
 
   if (items.isPending) return <EmptyState title={t("loading")} />;
   const list = items.data ?? [];
-  if (list.length === 0) return <EmptyState title={t("review.empty")} />;
+  if (list.length === 0)
+    return <EmptyState title={t("review.empty")} art="wave" />;
 
   const chosen = list.filter((i) => selected.has(keyOf(i)));
   const toggle = (key: Key) =>

@@ -12,7 +12,8 @@ const TILTS = [-6, 4, -2, 7, -4];
 
 export function MilestoneList({ awards }: { awards: Award[] }) {
   const { t, i18n } = useTranslation();
-  if (awards.length === 0) return <EmptyState title={t("milestones.none")} />;
+  if (awards.length === 0)
+    return <EmptyState title={t("milestones.none")} art="wave" />;
   return (
     <Stack gap="lg">
       {awards.map((award, i) => (

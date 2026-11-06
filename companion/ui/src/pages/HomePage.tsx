@@ -1,10 +1,11 @@
-import { Alert, Stack, Text } from "@mantine/core";
+import { Alert, Group, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { appInfo, listCharacters, models } from "@/api/commands";
 import { AddonSummary } from "@/components/AddonSummary";
 import { EmptyState } from "@/components/EmptyState";
 import { FirstRun } from "@/components/FirstRun";
+import { MurlocArt } from "@/components/MurlocArt";
 import { problem } from "@/i18n/problems";
 import { rememberSettingsTab } from "@/lib/settingsTab";
 
@@ -29,7 +30,10 @@ export function HomePage({
   return (
     <div className="desk" style={{ padding: "2rem 2.5rem" }}>
       <Stack maw="40rem">
-        <h1 className="character-name">{t("app.title")}</h1>
+        <Group justify="space-between" align="center" wrap="nowrap">
+          <h1 className="character-name">{t("app.title")}</h1>
+          <MurlocArt pose="scribe" size={150} />
+        </Group>
         {characters.isPending && <EmptyState title={t("loading")} />}
         {characters.isError && (
           <Alert color="red">
@@ -37,7 +41,9 @@ export function HomePage({
           </Alert>
         )}
         {empty && (
-          <EmptyState title={t("home.empty")}>{t("home.emptyHelp")}</EmptyState>
+          <EmptyState title={t("home.empty")} art="fishing">
+            {t("home.emptyHelp")}
+          </EmptyState>
         )}
         <AddonSummary
           onOpen={() => {
