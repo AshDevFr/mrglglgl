@@ -85,6 +85,20 @@ describe("Quests", function()
 		assert.equals(os.date("%Y-%m-%d", Mock.now), _G.MrglglglCharDB.quests[749].last)
 	end)
 
+	it("learns the title at turn-in of a quest accepted before the addon was there", function()
+		Mock.questTitles = { [749] = "The Ravaged Caravan" }
+		Mock.fire("QUEST_TURNED_IN", 749, 450, 75)
+		assert.same({ title = "The Ravaged Caravan", last = os.date("%Y-%m-%d", Mock.now) },
+			_G.MrglglglCharDB.quests[749])
+	end)
+
+	it("stores nothing for a turn-in whose title the client does not know", function()
+		Mock.questTitles = {}
+		Mock.fire("QUEST_TURNED_IN", 749, 450, 75)
+		assert.is_nil(_G.MrglglglCharDB.quests[749])
+		assert.equals(749, events("quest_turnin")[1].q)
+	end)
+
 	it("records nothing when quests are off", function()
 		_G.MrglglglDB.settings.record.quests = false
 		offer(749, "The Ravaged Caravan", "Text.")

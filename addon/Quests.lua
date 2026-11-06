@@ -40,7 +40,17 @@ end)
 ns.On("QUEST_TURNED_IN", function(_, questId, xp, money)
 	if Storage.records("quests") then
 		Day.append("quest_turnin", { q = questId, xp = xp, money = money })
-		local quest = Storage.journal().quests[questId]
+		local quests = Storage.journal().quests
+		local quest = quests[questId]
+		if not quest then
+			-- Accepted before the addon was installed: learn the title now, so the turn-in can be
+			-- told by name. Without a title there is nothing worth keeping.
+			local title = C_QuestLog.GetTitleForQuestID(questId)
+			if title then
+				quest = { title = title }
+				quests[questId] = quest
+			end
+		end
 		if quest then
 			quest.last = Day.key(time())
 		end
