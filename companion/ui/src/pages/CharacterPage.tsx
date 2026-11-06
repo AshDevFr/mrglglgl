@@ -1,4 +1,13 @@
-import { Alert, Button, Group, Modal, Stack, Text } from "@mantine/core";
+import {
+  ActionIcon,
+  Alert,
+  Button,
+  Group,
+  Menu,
+  Modal,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -21,6 +30,7 @@ import {
 } from "@/api/commands";
 import type { StoryKind } from "@/bindings/StoryKind";
 import { CharacterHeader } from "@/components/CharacterHeader";
+import { CharacterTabs } from "@/components/CharacterTabs";
 import { EmptyState } from "@/components/EmptyState";
 import { type DayWriting, JournalPage } from "@/components/JournalPage";
 import { CopyEntryButton, ExportDialog } from "@/components/Sharing";
@@ -29,6 +39,8 @@ import { WeekNav } from "@/components/WeekNav";
 import { WritingBanner } from "@/components/WritingBanner";
 import { type Problem, problem } from "@/i18n/problems";
 import { daysNewestFirst, displayName } from "@/lib/journal";
+import { rememberDay } from "@/lib/lastDay";
+import { useCharacterNav } from "@/lib/useCharacterNav";
 import { useWriting } from "@/lib/useWriting";
 import { dayKey, weekDays, weekStart } from "@/lib/weeks";
 import { jobFor, slot, versionsOf } from "@/lib/writing";
@@ -50,6 +62,7 @@ export function CharacterPage({
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const go = useCharacterNav(characterId);
 
   const characters = useQuery({
     queryKey: ["characters"],
@@ -147,6 +160,7 @@ export function CharacterPage({
   const status = summary.character.status;
 
   function show(target: string) {
+    rememberDay(characterId, target);
     navigate({
       to: "/characters/$characterId",
       params: { characterId: String(characterId) },
@@ -162,64 +176,47 @@ export function CharacterPage({
             character={summary.character}
             journal={journal.data ?? null}
           />
-          <Group gap="xs" wrap="wrap">
-            <Button
-              variant="subtle"
-              color="gray"
-              onClick={() =>
-                navigate({
-                  to: "/characters/$characterId/milestones",
-                  params: { characterId: String(characterId) },
-                })
-              }
-            >
-              {t("nav.milestones")}
-            </Button>
-            <Button
-              variant="subtle"
-              color="gray"
-              onClick={() =>
-                navigate({
-                  to: "/characters/$characterId/review",
-                  params: { characterId: String(characterId) },
-                })
-              }
-            >
-              {summary.toReview > 0
-                ? t("nav.reviewCount", { count: summary.toReview })
-                : t("nav.review")}
-            </Button>
-            {writingState.data && (
-              <Button
-                variant="subtle"
-                color="gray"
-                onClick={() =>
-                  void setWritingPaused(!writingState.data.paused).then(
-                    refreshStatus,
-                  )
-                }
-              >
-                {writingState.data.paused
-                  ? t("writing.resume")
-                  : t("writing.pause")}
-              </Button>
-            )}
-            <Button
-              variant="subtle"
-              color="gray"
-              onClick={() => setExporting(true)}
-            >
+          <Group gap="xs" wrap="nowrap">
+            <Button variant="default" onClick={() => setExporting(true)}>
               {t("share.exportButton")}
             </Button>
-            <Button
-              variant="subtle"
-              color="red"
-              onClick={() => setConfirming(true)}
-            >
-              {t("character.remove")}
-            </Button>
+            <Menu position="bottom-end" withinPortal>
+              <Menu.Target>
+                <ActionIcon
+                  variant="default"
+                  size="lg"
+                  aria-label={t("nav.more")}
+                >
+                  ⋯
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                {writingState.data && (
+                  <Menu.Item
+                    onClick={() =>
+                      void setWritingPaused(!writingState.data.paused).then(
+                        refreshStatus,
+                      )
+                    }
+                  >
+                    {writingState.data.paused
+                      ? t("writing.resume")
+                      : t("writing.pause")}
+                  </Menu.Item>
+                )}
+                <Menu.Divider />
+                <Menu.Item color="red" onClick={() => setConfirming(true)}>
+                  {t("character.remove")}
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           </Group>
         </Group>
+        <CharacterTabs
+          current="journal"
+          toReview={summary.toReview}
+          onSelect={(tab) => void go(tab)}
+        />
         {summary.archived && <Alert>{t("sync.archivedHelp")}</Alert>}
         {status && (
           <Alert color="yellow">

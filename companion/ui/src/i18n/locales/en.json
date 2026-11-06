@@ -13,7 +13,9 @@
     "skip": "Skip to the journal",
     "back": "Back",
     "review": "To review",
-    "reviewCount": "To review ({{count}})"
+    "reviewCount": "To review ({{count}})",
+    "characterPages": "Character pages",
+    "more": "More actions"
   },
   "loading": "Mrgl… drying the pages.",
   "home": {

@@ -394,3 +394,31 @@
     transform: translateY(-3px) rotate(2deg);
   }
 }
+
+/* A character's pages, as tabs under the name: the open one is underlined in stamp ink. */
+.character-tabs {
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 15%, transparent);
+}
+
+.character-tab {
+  padding: 0.4rem 0 0.55rem;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-faded);
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.character-tab:hover {
+  color: var(--ink);
+}
+
+.character-tab[aria-current="page"] {
+  color: var(--ink);
+  border-bottom-color: var(--stamp);
+}
+
+.character-tab:focus-visible {
+  outline: 2px solid var(--stamp);
+  outline-offset: 3px;
+}
