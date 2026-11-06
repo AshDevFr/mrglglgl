@@ -1,4 +1,5 @@
 import { Button, Group, Stack, Text } from "@mantine/core";
+import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { parseDay } from "@/lib/format";
 import { shiftWeek, weekDays } from "@/lib/weeks";
@@ -27,6 +28,32 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
     ),
   });
   const weekday = new Intl.DateTimeFormat(i18n.language, { weekday: "short" });
+
+  // Arrow keys step through the days that can be opened; Home and End jump to the ends.
+  function onDayKey(e: KeyboardEvent<HTMLButtonElement>) {
+    const open = days.filter((d) => written.has(d) || d === today);
+    const at = open.indexOf(selected);
+    const target =
+      e.key === "ArrowRight"
+        ? open[at + 1]
+        : e.key === "ArrowLeft"
+          ? open[at - 1]
+          : e.key === "Home"
+            ? open[0]
+            : e.key === "End"
+              ? open.at(-1)
+              : undefined;
+    if (!target) return;
+    e.preventDefault();
+    onSelect(target);
+    const strip = e.currentTarget.parentElement;
+    // The selected day keeps the focus once the strip redraws.
+    requestAnimationFrame(() =>
+      strip
+        ?.querySelector<HTMLButtonElement>(`[data-day="${target}"]`)
+        ?.focus(),
+    );
+  }
 
   return (
     <Stack gap="xs" component="nav" aria-label={range}>
@@ -61,11 +88,13 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
               key={day}
               type="button"
               className={hasEntry ? "week-day written" : "week-day"}
+              data-day={day}
               aria-pressed={day === selected}
               aria-current={day === today ? "date" : undefined}
               aria-label={`${new Intl.DateTimeFormat(i18n.language, { dateStyle: "full" }).format(date)}${hasEntry ? "" : `, ${t("week.noEntry")}`}`}
               disabled={!hasEntry && day !== today}
               onClick={() => onSelect(day)}
+              onKeyDown={onDayKey}
             >
               <span className="weekday">{weekday.format(date)}</span>
               <span className="date">{date.getDate()}</span>

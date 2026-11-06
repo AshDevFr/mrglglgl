@@ -21,6 +21,7 @@ import {
 } from "@/api/commands";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
 import type { ModelView } from "@/bindings/ModelView";
+import { problem } from "@/i18n/problems";
 
 /** Gigabytes with two decimals, as model sizes are told. */
 export function gigabytes(bytes: number): string {
@@ -114,7 +115,7 @@ export function ModelsPanel({ onChoose }: Props) {
       )}
       {advice.kind === "notEnoughMemory" && (
         <Alert color="yellow">
-          {t("models.notEnoughMemory", {
+          {problem(t, "models.notEnoughMemory", {
             has: advice.hasGb,
             needed: advice.neededGb,
           })}
@@ -122,14 +123,16 @@ export function ModelsPanel({ onChoose }: Props) {
       )}
       {advice.kind === "notEnoughDisk" && (
         <Alert color="yellow">
-          {t("models.notEnoughDisk", {
+          {problem(t, "models.notEnoughDisk", {
             free: advice.freeGb,
             needed: advice.neededGb,
           })}
         </Alert>
       )}
       {error && (
-        <Alert color="red">{t("models.failed", { message: error })}</Alert>
+        <Alert color="red">
+          {problem(t, "models.failed", { message: error })}
+        </Alert>
       )}
 
       {view.data.models.map((m) => {

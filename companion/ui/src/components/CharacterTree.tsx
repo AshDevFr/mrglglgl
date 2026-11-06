@@ -21,9 +21,15 @@ export function CharacterTree({ characters, selectedId, onSelect }: Props) {
             {account.account}
           </Text>
           {account.realms.map((realm) => (
-            <NavLink key={realm.realm} label={realm.realm} defaultOpened>
+            <NavLink
+              component="button"
+              key={realm.realm}
+              label={realm.realm}
+              defaultOpened
+            >
               {realm.characters.map(({ character, archived }) => (
                 <NavLink
+                  component="button"
                   key={character.id}
                   active={character.id === selectedId}
                   onClick={() => onSelect(character.id)}

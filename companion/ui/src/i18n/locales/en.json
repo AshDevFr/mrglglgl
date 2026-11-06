@@ -9,7 +9,8 @@
     "milestones": "Milestones",
     "journal": "Journal",
     "syncNow": "Check for new journal entries",
-    "theme": "Switch between light and dark"
+    "theme": "Switch between light and dark",
+    "skip": "Skip to the journal"
   },
   "loading": "Mrgl… drying the pages.",
   "home": {
@@ -25,9 +26,12 @@
     "archived": "Archived",
     "archivedHelp": "This character's game files are gone. Their journal is kept here.",
     "status": {
-      "older": "Saved by an older addon version. Log in once with the current addon to update it.",
-      "newer": "Saved by a newer addon version. Update the app to read it.",
-      "unreadable": "This journal file could not be read. The last readable copy is shown."
+      "older": "Saved by an older addon version.",
+      "newer": "Saved by a newer addon version.",
+      "unreadable": "This journal file could not be read. The last readable copy is shown.",
+      "olderNext": "Log in once with the current addon to update it.",
+      "newerNext": "Update the app to read it.",
+      "unreadableNext": "Log in and out once in the game so it saves the file again."
     }
   },
   "character": {
@@ -228,7 +232,12 @@
     "connectionFailed": "Test failed: {{message}}",
     "disclosure": "This address is not on this computer. When writing, the app sends {{host}}: your character's name, the names of people you grouped with, and the text of quests you touched that day, along with what happened that day.",
     "pseudonyms": "Send stand-in names for the people you grouped with",
-    "pseudonymsHelp": "Their real names are put back in the entry when it comes back."
+    "pseudonymsHelp": "Their real names are put back in the entry when it comes back.",
+    "foundNoneNext": "Enter the game folder above (the one containing _forever_), then save.",
+    "errorNext": "Check that the folder above exists, then save again.",
+    "connectionFailedNext": "Check the address (it usually ends in /v1), that the server is running and the model name, then test again.",
+    "writeOnBattery": "Write while on battery",
+    "writeOnBatteryHelp": "Off by default: writing uses the processor hard and drains a laptop. When off, writing waits until the charger is plugged in. Checked on macOS and Windows laptops."
   },
   "writing": {
     "loading": {
@@ -240,16 +249,25 @@
     "outcome": {
       "cancelled": "Cancelled. Nothing was saved.",
       "timedOut": "Stopped: writing took too long. Nothing was saved.",
-      "failed": "The murloc could not write this: {{message}}"
+      "failed": "The murloc could not write this: {{message}}",
+      "cancelledNext": "Press Write now when you want this one written.",
+      "timedOutNext": "Press Write again to retry, or pick a smaller model in Settings.",
+      "failedNext": "It is tried again on its own in a moment; you can also press Write now."
     },
     "facts": "What happened",
-    "setAside": "The murloc's entry was set aside because it {{reason}}. Here is what happened instead.",
+    "setAside": "The murloc's entry was set aside because it {{reason}}.",
     "notYet": "The murloc hasn't written this one yet. It is number {{position}} in line.",
     "blocked": {
       "paused": "Writing is paused.",
-      "noModel": "Writing starts once a writing model is downloaded in Settings.",
-      "noEndpoint": "Writing starts once the endpoint is set up in Settings.",
-      "gameRunning": "Writing waits until the game is closed, so the game keeps running smoothly."
+      "noModel": "No writing model is downloaded yet.",
+      "noEndpoint": "The endpoint is not set up yet.",
+      "gameRunning": "Writing waits while the game is running, so the game keeps running smoothly.",
+      "pausedNext": "Press Resume writing at the top of this page.",
+      "noModelNext": "Download one in Settings, under Writing models.",
+      "noEndpointNext": "Enter its address and model in Settings, under Who writes.",
+      "gameRunningNext": "Close the game, or allow writing while playing in Settings.",
+      "onBattery": "Writing waits while this computer runs on battery.",
+      "onBatteryNext": "Plug in the charger, or allow writing on battery in Settings."
     },
     "stillGoing": {
       "day": "This day isn't over yet. The murloc writes it once it is.",
@@ -258,7 +276,10 @@
     "reason": {
       "cancelled": "You cancelled this one.",
       "timedOut": "Writing took too long and was stopped.",
-      "other": "Writing failed: {{message}}"
+      "other": "Writing failed: {{message}}",
+      "cancelledNext": "Press Try again to write it.",
+      "timedOutNext": "Press Try again, or pick a smaller model in Settings.",
+      "otherNext": "Press Try again; if it fails again, check who writes in Settings."
     },
     "retry": "Try again",
     "older": "Older",
@@ -274,7 +295,8 @@
     "pause": "Pause writing",
     "resume": "Resume writing",
     "chapter": "Chapter for the week of {{date}}",
-    "chapterTitle": "This week's chapter"
+    "chapterTitle": "This week's chapter",
+    "setAsideNext": "Here is what happened instead. Press Write again for a new attempt."
   },
   "models": {
     "title": "Writing models",
@@ -294,15 +316,18 @@
     "progress": "{{done}} of {{total}} GB",
     "delete": "Delete",
     "failed": "The download failed: {{message}}",
+    "notEnoughMemory": "This computer has {{has}} GB of memory; the writing models need {{needed}} GB.",
+    "notEnoughDisk": "There is {{free}} GB free on this disk; a writing model needs about {{needed}} GB.",
+    "failedNext": "Check the internet connection and free disk space, then press Resume download: it continues where it stopped.",
+    "notEnoughMemoryNext": "Use an endpoint instead (a model running on another machine or a service): choose it under Who writes, below.",
+    "notEnoughDiskNext": "Free some space and come back, or use an endpoint under Who writes, below.",
     "firstRun": "To write your journal, the app needs a writing model. {{name}} suits this computer.",
-    "firstRunAction": "Download {{name}} ({{size}} GB)",
-    "notEnoughMemory": "This computer has {{has}} GB of memory; the writing models need {{needed}} GB. You can use an endpoint instead: a model running on another machine or a service.",
-    "notEnoughDisk": "There is {{free}} GB free on this disk; a writing model needs about {{needed}} GB. Free some space, or use an endpoint instead."
+    "firstRunAction": "Download {{name}} ({{size}} GB)"
   },
   "share": {
     "copy": "Copy entry",
     "copied": "Copied",
-    "copyFailed": "Could not copy",
+    "copyFailed": "Could not copy the entry.",
     "exportButton": "Export",
     "exportTitle": "Export this journal",
     "exportHelp": "Saves the whole journal as a Markdown file and as a single web page you can open anywhere. Days the murloc has not written yet appear with their notes.",
@@ -310,6 +335,23 @@
     "export": "Export",
     "close": "Close",
     "exported": "Saved {{markdown}} and {{html}}.",
-    "exportFailed": "The export was not saved: {{message}}"
+    "exportFailed": "The export was not saved: {{message}}",
+    "copyFailedNext": "Select the entry's text and copy it with the keyboard instead.",
+    "exportFailedNext": "Pick a folder you can write to, outside the World of Warcraft folder, then export again."
+  },
+  "errors": {
+    "load": "The app could not read its data: {{message}}",
+    "loadNext": "Restart the app. If it happens again, report it on the project page with this message."
+  },
+  "firstRun": {
+    "title": "Getting started",
+    "folderFound": "Found your game at {{path}}.",
+    "folderLabel": "World of Warcraft folder",
+    "saveFolder": "Use this folder",
+    "syncTitle": "How journals arrive",
+    "modelTitle": "Writing your journal",
+    "modelReady": "Writing is set up.",
+    "modelOffer": "When you are ready, the app can download {{name}} ({{size}} GB) to write your journal on this computer. Nothing is downloaded until you choose to.",
+    "chooseModel": "Choose a writing model"
   }
 }

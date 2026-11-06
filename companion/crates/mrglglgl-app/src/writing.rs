@@ -192,6 +192,10 @@ pub async fn run(app: AppHandle) {
             queue::idle(&control, GAME_CHECK).await;
             continue;
         }
+        if !settings.writing.write_on_battery && crate::power::on_battery() {
+            queue::idle(&control, GAME_CHECK).await;
+            continue;
+        }
         let Some(provider) = provider(&state, &settings) else {
             queue::idle(&control, IDLE_CHECK).await;
             continue;
@@ -281,4 +285,5 @@ mod tests {
         eprintln!("took {:?}\n{result:#?}", started.elapsed());
         assert!(matches!(result, WriteResult::Written { .. }));
     }
+
 }

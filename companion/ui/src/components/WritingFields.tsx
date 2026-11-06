@@ -63,6 +63,12 @@ export function WritingFields({ value, onChange, narrators }: Props) {
         onChange={(e) => set({ writeWhilePlaying: e.currentTarget.checked })}
       />
       <Switch
+        label={t("settings.writeOnBattery")}
+        description={t("settings.writeOnBatteryHelp")}
+        checked={value.writeOnBattery}
+        onChange={(e) => set({ writeOnBattery: e.currentTarget.checked })}
+      />
+      <Switch
         label={t("settings.paused")}
         checked={value.paused}
         onChange={(e) => set({ paused: e.currentTarget.checked })}

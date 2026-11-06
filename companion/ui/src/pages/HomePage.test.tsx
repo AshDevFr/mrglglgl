@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { renderWithProviders } from "@/test/render";
+import { defaultWriting, renderWithProviders } from "@/test/render";
 import { HomePage } from "./HomePage";
 
 const commands = vi.hoisted(() => ({
@@ -10,6 +10,25 @@ const commands = vi.hoisted(() => ({
 vi.mock("@/api/commands", () => ({
   appInfo: () => Promise.resolve({ version: "9.9.9" }),
   listCharacters: () => Promise.resolve(commands.characters),
+  getSettings: () =>
+    Promise.resolve({
+      settings: {
+        wowRootOverride: null,
+        backupRetention: "days90",
+        uiLanguage: null,
+        writing: defaultWriting,
+      },
+      roots: [
+        { path: "/Applications/World of Warcraft", source: "defaultPath" },
+      ],
+    }),
+  models: () =>
+    Promise.resolve({
+      chosenId: null,
+      advice: { kind: "recommend", id: "x" },
+      models: [],
+    }),
+  saveSettings: vi.fn(),
 }));
 
 describe("HomePage", () => {

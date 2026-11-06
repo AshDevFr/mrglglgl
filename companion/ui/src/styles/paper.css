@@ -8,8 +8,8 @@
   --page: #e3e6de;
   --page-edge: #c9d0c8;
   --ink: #1c2a34;
-  --ink-faded: #5d6a71;
-  --stamp: #2e6b58;
+  --ink-faded: #4f5b61;
+  --stamp: #2a6351;
   --tide: #a9bdb4;
   --photo-frame: #f6f6f1;
   --reading-font: "Literata Variable", Georgia, "Times New Roman", serif;
@@ -252,6 +252,23 @@
     animation: bob 3.2s ease-in-out infinite;
     transform-origin: 50% 90%;
   }
+}
+
+/* Hidden until a keyboard user tabs onto it, then the first thing on screen. */
+.skip-link {
+  position: absolute;
+  left: 0.75rem;
+  top: -3rem;
+  z-index: 1000;
+  padding: 0.5rem 0.875rem;
+  background: var(--page);
+  color: var(--ink);
+  border: 2px solid var(--stamp);
+  border-radius: 4px;
+}
+
+.skip-link:focus {
+  top: 0.75rem;
 }
 
 /* The murloc's margin note: set apart, in stamp ink, a little askew. */

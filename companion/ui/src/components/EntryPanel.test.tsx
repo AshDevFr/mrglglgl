@@ -127,7 +127,9 @@ describe("EntryPanel", () => {
       live: { text: "", active: false, outcome: "cancelled", message: null },
     });
     expect(
-      screen.getByText("Cancelled. Nothing was saved."),
+      screen.getByText(
+        "Cancelled. Nothing was saved. Press Write now when you want this one written.",
+      ),
     ).toBeInTheDocument();
   });
 
@@ -136,7 +138,9 @@ describe("EntryPanel", () => {
       live: { text: "", active: false, outcome: "timedOut", message: null },
     });
     expect(
-      screen.getByText("Stopped: writing took too long. Nothing was saved."),
+      screen.getByText(
+        /^Stopped: writing took too long\. Nothing was saved\. Press Write again/,
+      ),
     ).toBeInTheDocument();
   });
 
@@ -178,7 +182,7 @@ describe("EntryPanel", () => {
     expect(screen.getByText("Killed 23 Prairie Wolves.")).toBeInTheDocument();
     expect(
       screen.getByText(
-        /The murloc hasn't written this one yet\. It is number 3 in line\. Writing waits until the game is closed/,
+        /The murloc hasn't written this one yet\. It is number 3 in line\. Writing waits while the game is running, so the game keeps running smoothly\. Close the game, or allow writing while playing in Settings\./,
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Write now" })).toBeEnabled();
@@ -213,7 +217,9 @@ describe("EntryPanel", () => {
       }),
     });
     expect(
-      screen.getByText("Writing failed: could not reach gpu-box"),
+      screen.getByText(
+        "Writing failed: could not reach gpu-box. Press Try again; if it fails again, check who writes in Settings.",
+      ),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
     expect(onRetry).toHaveBeenCalled();

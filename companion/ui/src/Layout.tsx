@@ -6,6 +6,7 @@ import {
   ScrollArea,
   Text,
   Title,
+  UnstyledButton,
   useMantineColorScheme,
 } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,17 +47,17 @@ export function Layout() {
 
   return (
     <AppShell navbar={{ width: 280, breakpoint: "sm" }} padding={0}>
+      <a href="#journal" className="skip-link">
+        {t("nav.skip")}
+      </a>
       <AppShell.Navbar p="sm">
         <AppShell.Section>
           <Group justify="space-between" mb="sm">
-            <Title
-              order={3}
-              className="reading"
-              style={{ cursor: "pointer" }}
-              onClick={() => navigate({ to: "/" })}
-            >
-              {t("app.title")}
-            </Title>
+            <UnstyledButton onClick={() => navigate({ to: "/" })}>
+              <Title order={3} className="reading">
+                {t("app.title")}
+              </Title>
+            </UnstyledButton>
             <ActionIcon
               variant="subtle"
               onClick={toggleColorScheme}
@@ -85,6 +86,7 @@ export function Layout() {
         </AppShell.Section>
         <AppShell.Section>
           <NavLink
+            component="button"
             label={t("nav.syncNow")}
             onClick={async () => {
               await syncNow();
@@ -92,12 +94,13 @@ export function Layout() {
             }}
           />
           <NavLink
+            component="button"
             label={t("nav.settings")}
             onClick={() => navigate({ to: "/settings" })}
           />
         </AppShell.Section>
       </AppShell.Navbar>
-      <AppShell.Main h="100vh">
+      <AppShell.Main h="100vh" id="journal" tabIndex={-1}>
         <Outlet />
       </AppShell.Main>
     </AppShell>

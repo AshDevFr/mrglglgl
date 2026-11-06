@@ -24,6 +24,7 @@ import { type DayWriting, JournalPage } from "@/components/JournalPage";
 import { CopyEntryButton, ExportDialog } from "@/components/Sharing";
 import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
+import { type Problem, problem } from "@/i18n/problems";
 import { daysNewestFirst, displayName } from "@/lib/journal";
 import { useWriting } from "@/lib/useWriting";
 import { dayKey, weekDays, weekStart } from "@/lib/weeks";
@@ -107,6 +108,17 @@ export function CharacterPage({
   });
 
   const summary = characters.data?.find((c) => c.character.id === characterId);
+  if (journal.isError || characters.isError) {
+    return (
+      <div className="desk" style={{ padding: "2rem" }}>
+        <Alert color="red">
+          {problem(t, "errors.load", {
+            message: String(journal.error ?? characters.error),
+          })}
+        </Alert>
+      </div>
+    );
+  }
   if (journal.isPending || !summary) {
     return (
       <div className="desk" style={{ padding: "2rem" }}>
@@ -183,7 +195,11 @@ export function CharacterPage({
           </Group>
         </Group>
         {summary.archived && <Alert>{t("sync.archivedHelp")}</Alert>}
-        {status && <Alert color="yellow">{t(`sync.status.${status}`)}</Alert>}
+        {status && (
+          <Alert color="yellow">
+            {problem(t, `sync.status.${status}` as Problem)}
+          </Alert>
+        )}
         <WeekNav
           selected={selected}
           written={written}

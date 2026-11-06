@@ -282,7 +282,7 @@ fn base64(bytes: &[u8]) -> String {
 
 const STYLE: &str = "
 :root { --desk: #cdd3cf; --page: #e3e6de; --edge: #c9d0c8; --ink: #1c2a34;
-  --faded: #5d6a71; --stamp: #2e6b58; }
+  --faded: #4f5b61; --stamp: #2a6351; }
 @media (prefers-color-scheme: dark) {
   :root { --desk: #121819; --page: #1e2628; --edge: #283335; --ink: #dce4df;
     --faded: #93a39e; --stamp: #78bfa4; }

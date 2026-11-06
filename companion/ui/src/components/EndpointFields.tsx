@@ -21,6 +21,7 @@ import {
 } from "@/api/commands";
 import type { ProviderChoice } from "@/bindings/ProviderChoice";
 import type { WritingSettings } from "@/bindings/WritingSettings";
+import { problem } from "@/i18n/problems";
 
 interface Props {
   value: WritingSettings;
@@ -145,7 +146,9 @@ export function EndpointFields({ value, onChange }: Props) {
           )}
           {test.state === "failed" && (
             <Text size="sm" c="red" role="status">
-              {t("settings.connectionFailed", { message: test.message })}
+              {problem(t, "settings.connectionFailed", {
+                message: test.message,
+              })}
             </Text>
           )}
           <Switch

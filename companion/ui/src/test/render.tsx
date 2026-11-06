@@ -23,6 +23,7 @@ export const defaultWriting: WritingSettings = {
   endpointModel: null,
   pseudonyms: false,
   writeWhilePlaying: false,
+  writeOnBattery: false,
   paused: false,
   copyFooter: true,
 };

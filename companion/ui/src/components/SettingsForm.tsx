@@ -15,6 +15,7 @@ import type { BackupRetention } from "@/bindings/BackupRetention";
 import type { Settings } from "@/bindings/Settings";
 import type { SettingsView } from "@/bindings/SettingsView";
 import type { WritingSettings } from "@/bindings/WritingSettings";
+import { problem } from "@/i18n/problems";
 import { EndpointFields } from "./EndpointFields";
 import { WritingFields } from "./WritingFields";
 
@@ -69,7 +70,7 @@ export function SettingsForm({ view, onSave }: Props) {
         onChange={(e) => setFolder(e.currentTarget.value)}
       />
       {view.roots.length === 0 ? (
-        <Text size="sm">{t("settings.foundNone")}</Text>
+        <Text size="sm">{problem(t, "settings.foundNone")}</Text>
       ) : (
         <div>
           <Text size="sm">
@@ -118,7 +119,9 @@ export function SettingsForm({ view, onSave }: Props) {
         {t("settings.forgetting")}
       </Text>
       {error && (
-        <Alert color="red">{t("settings.error", { message: error })}</Alert>
+        <Alert color="red">
+          {problem(t, "settings.error", { message: error })}
+        </Alert>
       )}
       {state === "saved" && <Alert color="green">{t("settings.saved")}</Alert>}
       <Button onClick={save} loading={state === "saving"} w="fit-content">

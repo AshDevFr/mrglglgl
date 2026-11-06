@@ -66,7 +66,7 @@ describe("EndpointFields", () => {
     fireEvent.click(screen.getByRole("button", { name: "Test connection" }));
     expect(
       await screen.findByText(
-        "Test failed: the endpoint refused the key (unauthorised)",
+        /^Test failed: the endpoint refused the key \(unauthorised\)\. Check the address/,
       ),
     ).toBeInTheDocument();
   });
@@ -153,7 +153,7 @@ describe("ModelsPanel", () => {
     renderWithProviders(<ModelsPanel onChoose={vi.fn()} />);
     expect(
       await screen.findByText(
-        /This computer has 4 GB of memory; the writing models need 8 GB\. You can use an endpoint instead/,
+        /This computer has 4 GB of memory; the writing models need 8 GB\. Use an endpoint instead/,
       ),
     ).toBeInTheDocument();
     expect(screen.queryByText(/suits this computer/)).not.toBeInTheDocument();

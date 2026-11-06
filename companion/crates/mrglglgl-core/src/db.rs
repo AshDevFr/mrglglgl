@@ -206,6 +206,9 @@ pub struct WritingSettings {
     /// Write in the background even while the game is running. Off by default: inference uses
     /// the CPU the game needs.
     pub write_while_playing: bool,
+    /// Write in the background while the computer runs on battery. Off by default: a minute of
+    /// full processor per entry drains a laptop.
+    pub write_on_battery: bool,
     /// The background queue is paused.
     pub paused: bool,
     /// "Copy entry" adds a one-line "via Mrglglgl" footer.
@@ -224,6 +227,7 @@ impl Default for WritingSettings {
             endpoint_model: None,
             pseudonyms: false,
             write_while_playing: false,
+            write_on_battery: false,
             paused: false,
             copy_footer: true,
         }

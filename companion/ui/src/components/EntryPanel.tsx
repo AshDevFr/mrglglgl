@@ -6,6 +6,7 @@ import type { Job } from "@/bindings/Job";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { Story } from "@/bindings/Story";
 import type { StoryKind } from "@/bindings/StoryKind";
+import { type Problem, problem } from "@/i18n/problems";
 import { formatTime } from "@/lib/format";
 import { type Live, loadingKey } from "@/lib/writing";
 
@@ -54,9 +55,9 @@ interface Props {
 }
 
 function failure(t: TFunction, reason: string | null) {
-  if (reason === "cancelled") return t("writing.reason.cancelled");
-  if (reason === "timedOut") return t("writing.reason.timedOut");
-  return t("writing.reason.other", { message: reason ?? "" });
+  if (reason === "cancelled") return problem(t, "writing.reason.cancelled");
+  if (reason === "timedOut") return problem(t, "writing.reason.timedOut");
+  return problem(t, "writing.reason.other", { message: reason ?? "" });
 }
 
 export function EntryPanel({
@@ -108,17 +109,19 @@ export function EntryPanel({
     <div className="entry-panel">
       {live?.outcome === "cancelled" && (
         <Alert color="gray" role="status">
-          {t("writing.outcome.cancelled")}
+          {problem(t, "writing.outcome.cancelled")}
         </Alert>
       )}
       {live?.outcome === "timedOut" && (
         <Alert color="yellow" role="status">
-          {t("writing.outcome.timedOut")}
+          {problem(t, "writing.outcome.timedOut")}
         </Alert>
       )}
       {live?.outcome === "failed" && (
         <Alert color="red" role="status">
-          {t("writing.outcome.failed", { message: live.message ?? "" })}
+          {problem(t, "writing.outcome.failed", {
+            message: live.message ?? "",
+          })}
         </Alert>
       )}
 
@@ -136,14 +139,17 @@ export function EntryPanel({
         <>
           {shown?.check === "failed" && (
             <Text className="note">
-              {t("writing.setAside", { reason: shown.checkReason ?? "" })}
+              {problem(t, "writing.setAside", {
+                reason: shown.checkReason ?? "",
+              })}
             </Text>
           )}
           {facts}
           {!shown && finished && job?.state === "pending" && (
             <Text className="note">
               {t("writing.notYet", { position: job.position ?? 1 })}
-              {blocked && ` ${t(`writing.blocked.${blocked}`)}`}
+              {blocked &&
+                ` ${problem(t, `writing.blocked.${blocked}` as Problem)}`}
             </Text>
           )}
           {!shown && finished && job?.state === "running" && (
