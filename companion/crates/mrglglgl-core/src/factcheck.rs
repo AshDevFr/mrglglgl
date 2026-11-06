@@ -299,8 +299,12 @@ impl FactSet {
         if word.chars().all(|c| c.is_ascii_digit()) {
             return true;
         }
+        let lower = word.to_lowercase().replace('’', "'");
+        // "I've", "I'm", "I'd", "I'll": the narrator, not a name.
+        if lower.starts_with("i'") {
+            return true;
+        }
         // Murloc-speak gurgles: "Mrrrgl", "Aaaaaughibbrgubugbugrguburgle".
-        let lower = word.to_lowercase();
         if lower.starts_with("mrr") || lower.starts_with("mrgl") || lower.starts_with("aaaa") {
             return true;
         }

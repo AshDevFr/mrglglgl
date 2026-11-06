@@ -217,3 +217,68 @@ pub async fn run(app: AppHandle) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use std::time::Duration;
+
+    use mrglglgl_core::beats::Thresholds;
+    use mrglglgl_core::narrators::{self, DEFAULT_NARRATOR};
+    use mrglglgl_core::prompt::{DayRequest, Meddling, day_prompt};
+    use mrglglgl_core::writer::{WriteOptions, WriteResult, write};
+    use mrglglgl_core::{milestones, schema};
+    use mrglglgl_llm::CancellationToken;
+    use mrglglgl_llm::local::{LocalOptions, LocalProvider};
+
+    /// One fixture day through the whole pipeline on a real model: beats, prompt, the bundled
+    /// llama.cpp provider and the fact check. Models are gigabytes and never in the repository,
+    /// so this runs only when `MRGLGLGL_TEST_MODEL` points at a GGUF (with
+    /// `MRGLGLGL_TEST_MODEL_REASONING=1` for Qwen3.5 and SmolLM3) and is skipped otherwise.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn a_real_model_writes_a_fixture_day() {
+        let Some(path) = std::env::var_os("MRGLGLGL_TEST_MODEL") else {
+            eprintln!("skipped: set MRGLGLGL_TEST_MODEL to a GGUF file to run this test");
+            return;
+        };
+        let reasoning = std::env::var_os("MRGLGLGL_TEST_MODEL_REASONING").is_some();
+        let text = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../../fixtures/savedvariables/synthetic-character.lua"),
+        )
+        .unwrap();
+        let journal = schema::journal_from_text(&text).unwrap();
+        let awards = milestones::compute(&journal);
+        let language = std::env::var("MRGLGLGL_TEST_LANGUAGE").unwrap_or_else(|_| "en".into());
+        let prompt = day_prompt(&DayRequest {
+            character_id: 1,
+            journal: &journal,
+            day: "2026-11-08",
+            awards: &awards,
+            running_jokes: &[],
+            narrator: narrators::get(DEFAULT_NARRATOR, &language),
+            language: &language,
+            meddling: Meddling::Sometimes,
+            pseudonyms: false,
+            thresholds: &Thresholds::default(),
+        });
+        let provider = LocalProvider::new(LocalOptions::new(path, "test", reasoning));
+        let started = std::time::Instant::now();
+        let result = write(
+            &provider,
+            &prompt,
+            &WriteOptions {
+                language: language.clone(),
+                max_tokens: 400,
+                temperature: mrglglgl_llm::DEFAULT_TEMPERATURE,
+                timeout: Duration::from_secs(600),
+                allowed: vec!["Horde".into()],
+            },
+            &CancellationToken::new(),
+            None,
+        )
+        .await
+        .unwrap();
+        eprintln!("took {:?}\n{result:#?}", started.elapsed());
+        assert!(matches!(result, WriteResult::Written { .. }));
+    }
+}

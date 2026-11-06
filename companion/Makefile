@@ -64,7 +64,7 @@ core-test: ## Run one mrglglgl-core integration test target: make core-test T=sv
 	$(CARGO) test -p mrglglgl-core --test $(T) $(CARGO_JOBS)
 
 app-test: ## Run the app crate's tests (also writes its TypeScript command types)
-	$(CARGO) test -p mrglglgl-app $(CARGO_JOBS)
+	$(CARGO) test -p mrglglgl-app $(CARGO_JOBS) $(ARGS)
 
 llm-test: ## Run one mrglglgl-llm integration test target: make llm-test T=provider
 	@test -n "$(T)" || { echo "T is empty"; exit 1; }

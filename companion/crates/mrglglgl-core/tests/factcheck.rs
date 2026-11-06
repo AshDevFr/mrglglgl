@@ -58,6 +58,19 @@ fn an_entry_that_sticks_to_the_notes_passes() {
     // Feelings, the light and ordinary sentence openers are not claims.
     let cosy = "Morning light lay over the grass. Then Prairie Wolves came, twenty-three of \
         them. I felt tired but proud, and one small fish would have been nice.";
+    // Written by Qwen3.5 4B on this very day: the narrator's "I've" is not a name.
+    let real = "The air in Red Rocks tasted of dust, a place I've never seen before. I'm sure I'll \
+        be back, and I'd bring a lantern.";
+    assert_eq!(check(real, &facts), Vec::<String>::new());
+    let whole = "The air in Red Rocks tasted of dust, a place I've never seen before where Prairie \
+        Wolves waited like grumpy neighbors. I spent the morning clearing the path, killing \
+        twenty-three of them and a Murloc Streamrunner, until the elite Flatland Cougar decided to \
+        test my patience. Then came Hogger, a tough fight that ended with a Carving Knife in my \
+        pack, a quiet treasure for a Tauren like me.\n\nBut the day turned sour when a Murloc \
+        Streamrunner finally caught me in Red Rocks, sending me back to the start. Reaching level \
+        6 felt like a warm sun after a cold rain, and seeing the milestones \"First Blood (Fishy)\" \
+        and \"Mrglglgl'd\" stamped on my record made the stumble worth it.";
+    assert_eq!(check(whole, &facts), Vec::<String>::new());
     assert_eq!(check(cosy, &facts), Vec::<String>::new());
 }
 
