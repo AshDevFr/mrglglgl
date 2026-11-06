@@ -29,6 +29,33 @@
   --photo-frame: #d9ddd6;
 }
 
+/*
+ * Parchment: cream rag paper browned at the edges, sepia ink, stamps in red sealing-wax ink. The
+ * tide mark becomes an old stain. Chosen in Settings; an export carries the same paper.
+ */
+[data-paper="parchment"],
+.paper-light[data-paper="parchment"] {
+  --desk: #d4c19a;
+  --page: #f1e4c6;
+  --page-edge: #d4b986;
+  --ink: #3a2816;
+  --ink-faded: #5a4630;
+  --stamp: #8c2f1e;
+  --tide: #c4a165;
+  --photo-frame: #faf3e1;
+}
+
+[data-paper="parchment"][data-mantine-color-scheme="dark"] {
+  --desk: #16120d;
+  --page: #2a2117;
+  --page-edge: #3b2e1f;
+  --ink: #ecdfc4;
+  --ink-faded: #b9a585;
+  --stamp: #df8b6f;
+  --tide: #4d3b24;
+  --photo-frame: #e8dcc2;
+}
+
 .desk {
   background: var(--desk);
   min-height: 100%;

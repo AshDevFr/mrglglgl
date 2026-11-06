@@ -11,6 +11,7 @@ import {
 } from "@/api/commands";
 import { type ExportData, ExportDocument } from "@/components/ExportDocument";
 import { displayName } from "@/lib/journal";
+import { savedPaper } from "@/lib/paper";
 import exportCss from "@/styles/export.css?raw";
 import paperCss from "@/styles/paper.css?raw";
 
@@ -52,5 +53,6 @@ export async function loadExportData(
     stories,
     awards,
     photos,
+    paper: savedPaper(),
   };
 }

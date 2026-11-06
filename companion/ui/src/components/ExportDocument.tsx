@@ -4,6 +4,7 @@ import type { Journal } from "@/bindings/Journal";
 import type { Story } from "@/bindings/Story";
 import { formatDay } from "@/lib/format";
 import { dayFacts } from "@/lib/journal";
+import type { Paper } from "@/lib/paper";
 import { daySentences } from "@/lib/sentences";
 import { weekStart } from "@/lib/weeks";
 import { versionsOf } from "@/lib/writing";
@@ -20,6 +21,8 @@ export interface ExportData {
   awards: Award[];
   /** Picture sources by day: embedded data for a file, asset URLs for printing. */
   photos: Record<string, string[]>;
+  /** The paper chosen in Settings, always in its light version. */
+  paper: Paper;
 }
 
 /** The whole journal as a book, oldest day first, with the pages, stamps and photos the app
@@ -30,6 +33,7 @@ export function ExportDocument({
   stories,
   awards,
   photos,
+  paper,
 }: ExportData) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
@@ -47,7 +51,7 @@ export function ExportDocument({
   const meta = [c.race, c.realm].filter(Boolean).join(" · ");
 
   return (
-    <main className="export paper-light">
+    <main className="export paper-light" data-paper={paper}>
       <header className="export-header">
         <h1>{title}</h1>
         {meta && <p>{meta}</p>}

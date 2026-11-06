@@ -6,6 +6,7 @@ import { getSettings, saveSettings } from "@/api/commands";
 import type { Settings } from "@/bindings/Settings";
 import { ModelsPanel } from "@/components/ModelsPanel";
 import { NarratorsPanel } from "@/components/NarratorsPanel";
+import { PaperField } from "@/components/PaperField";
 import { SettingsForm } from "@/components/SettingsForm";
 import { ZoomField } from "@/components/ZoomField";
 import { applyLanguage } from "@/i18n";
@@ -41,6 +42,7 @@ export function SettingsPage() {
       )}
       {view.data ? (
         <Stack gap="xl" maw={640}>
+          <PaperField />
           <ZoomField />
           <ModelsPanel onChoose={(id) => void choose(id)} />
           <SettingsForm view={view.data} onSave={save} />

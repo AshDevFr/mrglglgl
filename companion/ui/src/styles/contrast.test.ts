@@ -19,6 +19,14 @@ function tokens(selector: string): Record<string, string> {
 // The light block is `:root, .paper-light`; the export keeps light paper with the second name.
 const light = tokens(".paper-light");
 const dark = { ...light, ...tokens('[data-mantine-color-scheme="dark"]') };
+const parchment = {
+  ...light,
+  ...tokens('.paper-light[data-paper="parchment"]'),
+};
+const parchmentDark = {
+  ...parchment,
+  ...tokens('[data-paper="parchment"][data-mantine-color-scheme="dark"]'),
+};
 
 /** WCAG relative luminance of an sRGB colour. */
 function luminance(hex: string): number {
@@ -52,9 +60,16 @@ describe("contrast", () => {
     expect(contrast("#777777", "#ffffff")).toBeCloseTo(4.48, 2);
   });
 
+  it("gives parchment colours of its own, light and dark", () => {
+    expect(parchment.page).not.toBe(light.page);
+    expect(parchmentDark.page).not.toBe(parchment.page);
+  });
+
   for (const [name, theme] of [
     ["light", light],
     ["dark", dark],
+    ["parchment", parchment],
+    ["dark parchment", parchmentDark],
   ] as const) {
     it(`keeps every text colour readable in the ${name} theme`, () => {
       const failing = TEXT_PAIRS.filter(([fg, bg]) => {

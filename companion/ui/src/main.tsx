@@ -10,6 +10,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { getSettings } from "./api/commands";
 import { applyLanguage, initI18n } from "./i18n";
+import { applyPaper, savedPaper } from "./lib/paper";
 import { applyZoom, savedZoom } from "./lib/zoom";
 import { router } from "./router";
 
@@ -25,6 +26,7 @@ const theme = createTheme({
   primaryColor: "teal",
 });
 
+applyPaper(savedPaper());
 void applyZoom(savedZoom());
 
 initI18n()

@@ -47,6 +47,7 @@ const data = {
     story(4, "week", "2026-11-02", "A week of wolves and water."),
   ],
   photos: { "2026-11-08": ["data:image/jpeg;base64,AAAA"] },
+  paper: "parchment" as const,
 };
 
 describe("ExportDocument", () => {
@@ -87,6 +88,7 @@ describe("ExportDocument", () => {
   it("becomes a page body and its own look, with nothing of the app around it", () => {
     const page = exportPage(data);
     expect(page.body).toContain('class="export paper-light"');
+    expect(page.body).toContain('data-paper="parchment"');
     expect(page.body).toContain("ink-stamp");
     expect(page.body).not.toContain("mantine");
     expect(page.css).toContain(".journal-page");

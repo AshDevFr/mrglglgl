@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ExportDocument } from "@/components/ExportDocument";
 import { problem } from "@/i18n/problems";
 import { loadExportData } from "@/lib/exportPage";
+import { savedPaper } from "@/lib/paper";
 import "@/styles/export.css";
 
 /** The journal laid out for paper, on its own, outside the app's frame. The print dialog opens
@@ -45,7 +46,11 @@ export function PrintPage({ characterId }: { characterId: number }) {
     });
 
   return (
-    <div ref={page} className="paper-light print-sheet">
+    <div
+      ref={page}
+      className="paper-light print-sheet"
+      data-paper={data.data?.paper ?? savedPaper()}
+    >
       <Group className="no-print" justify="space-between" p="md">
         <Button variant="subtle" color="gray" onClick={back}>
           ← {t("nav.back")}

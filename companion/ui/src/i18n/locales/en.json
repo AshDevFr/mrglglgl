@@ -248,7 +248,13 @@
     "review": "Let me review entries first",
     "reviewHelp": "New entries wait in To review until you accept them. Off: they go straight into the journal.",
     "zoom": "Interface size",
-    "zoomHelp": "Text and layout together, on this computer. ⌘ or Ctrl with + and − change it too; with 0 it goes back to 100%."
+    "zoomHelp": "Text and layout together, on this computer. ⌘ or Ctrl with + and − change it too; with 0 it goes back to 100%.",
+    "paper": "Paper",
+    "paperHelp": "How the journal's pages look, on this computer. Exports and PDFs use it too.",
+    "papers": {
+      "tide": "Tide-marked rag paper",
+      "parchment": "Parchment"
+    }
   },
   "writing": {
     "loading": {
