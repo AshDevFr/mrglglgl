@@ -669,22 +669,34 @@ pub fn default_export_folder() -> Option<String> {
         .map(|p| p.to_string_lossy().into_owned())
 }
 
-#[derive(Debug, Serialize, TS)]
+/// What a journal is exported as.
+#[derive(Debug, Clone, Copy, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
-pub struct ExportedFiles {
-    pub markdown: String,
-    pub html: String,
+pub enum ExportFormat {
+    Markdown,
+    /// One web page: the window lays it out from the journal's own components and sends it here.
+    Html,
 }
 
-/// Writes a character's journal as Markdown and as one HTML page into `folder`, refusing any
-/// folder inside a World of Warcraft install.
+/// The web page the window laid out: its body and its look.
+#[derive(Debug, Deserialize, TS)]
+#[ts(export)]
+pub struct ExportPage {
+    pub css: String,
+    pub body: String,
+}
+
+/// Writes a character's journal into `folder` as Markdown or as one web page, refusing any folder
+/// inside a World of Warcraft install. Returns the file's path.
 #[tauri::command]
 pub fn export_character(
     state: State<'_, AppState>,
     character_id: i64,
     folder: String,
-) -> Result<ExportedFiles, String> {
+    format: ExportFormat,
+    page: Option<ExportPage>,
+) -> Result<String, String> {
     let folder = std::path::PathBuf::from(folder.trim());
     if !folder.is_dir() {
         return Err(format!("{} is not a folder", folder.display()));
@@ -695,11 +707,6 @@ pub fn export_character(
         .character(character_id)
         .map_err(|e| e.to_string())?
         .ok_or("that character is not in the app any more")?;
-    let journal = archive::load(&db, character_id)
-        .map_err(|e| e.to_string())?
-        .ok_or("this character has no journal yet")?;
-    let stories = stories::accepted(&db, character_id).map_err(|e| e.to_string())?;
-    let awards = milestones::awards(&db, character_id).map_err(|e| e.to_string())?;
     let mut game_folders: Vec<std::path::PathBuf> = discovery::discover(&DiscoveryOverrides {
         wow_root: settings.wow_root_override.clone(),
     })
@@ -727,22 +734,63 @@ pub fn export_character(
     } else {
         title
     };
-    let files = export::write(
-        &folder,
-        &game_folders,
-        &export::ExportInput {
-            title: &title,
-            journal: &journal,
-            stories: &stories,
-            awards: &awards,
-            language: &writing::prose_language(&settings),
-        },
-    )
-    .map_err(|e| e.to_string())?;
-    Ok(ExportedFiles {
-        markdown: files.markdown.to_string_lossy().into_owned(),
-        html: files.html.to_string_lossy().into_owned(),
+    let language = writing::prose_language(&settings);
+    let (extension, content) = match format {
+        ExportFormat::Markdown => {
+            let journal = archive::load(&db, character_id)
+                .map_err(|e| e.to_string())?
+                .ok_or("this character has no journal yet")?;
+            let stories = stories::accepted(&db, character_id).map_err(|e| e.to_string())?;
+            let awards = milestones::awards(&db, character_id).map_err(|e| e.to_string())?;
+            let input = export::ExportInput {
+                title: &title,
+                journal: &journal,
+                stories: &stories,
+                awards: &awards,
+                language: &language,
+            };
+            ("md", export::markdown(&input))
+        }
+        ExportFormat::Html => {
+            let page = page.ok_or("the page to export is missing")?;
+            (
+                "html",
+                export::page_document(&title, &language, &page.css, &page.body),
+            )
+        }
+    };
+    let path = export::write_file(&folder, &game_folders, &title, extension, &content)
+        .map_err(|e| e.to_string())?;
+    Ok(path.to_string_lossy().into_owned())
+}
+
+/// One of the character's screenshots, scaled to page width, as a `data:` URL for an export.
+/// Only a file the character's screenshots list holds is read.
+#[tauri::command]
+pub async fn screenshot_data(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    character_id: i64,
+    path: String,
+) -> Result<String, String> {
+    let known = crate::commands::character_screenshots(app, state, character_id)?
+        .values()
+        .flatten()
+        .any(|s| s.path.to_string_lossy() == path);
+    if !known {
+        return Err("that picture is not one of this character's screenshots".into());
+    }
+    tauri::async_runtime::spawn_blocking(move || {
+        mrglglgl_core::screenshots::embed(std::path::Path::new(&path)).map_err(|e| e.to_string())
     })
+    .await
+    .map_err(|e| e.to_string())?
+}
+
+/// Opens the system print dialog for the window, where the page can be saved as a PDF.
+#[tauri::command]
+pub fn print_page(window: tauri::WebviewWindow) -> Result<(), String> {
+    window.print().map_err(|e| e.to_string())
 }
 
 /// Whether entries sent to this address leave the machine; the settings then say what is sent.

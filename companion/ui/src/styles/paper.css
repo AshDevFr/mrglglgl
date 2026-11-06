@@ -3,7 +3,9 @@
  * iron-gall ink, kelp-green stamp ink. No game art is used anywhere.
  */
 
-:root {
+/* Light paper; an export keeps it whatever the app's theme (.paper-light). */
+:root,
+.paper-light {
   --desk: #cdd3cf;
   --page: #e3e6de;
   --page-edge: #c9d0c8;

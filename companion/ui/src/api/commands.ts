@@ -4,7 +4,8 @@ import type { AppInfo } from "@/bindings/AppInfo";
 import type { Award } from "@/bindings/Award";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
-import type { ExportedFiles } from "@/bindings/ExportedFiles";
+import type { ExportFormat } from "@/bindings/ExportFormat";
+import type { ExportPage } from "@/bindings/ExportPage";
 import type { Journal } from "@/bindings/Journal";
 import type { ModelsView } from "@/bindings/ModelsView";
 import type { Narrator } from "@/bindings/Narrator";
@@ -287,10 +288,31 @@ export function defaultExportFolder(): Promise<string | null> {
   return invoke<string | null>("default_export_folder");
 }
 
-/** Writes the character's journal as Markdown and HTML into `folder`. */
+/** Writes the character's journal into `folder` as Markdown, or as the web page the window
+ * laid out; answers the file's path. */
 export function exportCharacter(
   characterId: number,
   folder: string,
-): Promise<ExportedFiles> {
-  return invoke<ExportedFiles>("export_character", { characterId, folder });
+  format: ExportFormat,
+  page: ExportPage | null,
+): Promise<string> {
+  return invoke<string>("export_character", {
+    characterId,
+    folder,
+    format,
+    page,
+  });
+}
+
+/** One of the character's screenshots, scaled to page width, as data an export can carry. */
+export function screenshotData(
+  characterId: number,
+  path: string,
+): Promise<string> {
+  return invoke<string>("screenshot_data", { characterId, path });
+}
+
+/** Opens the system print dialog for the window, where it can be saved as a PDF. */
+export function printPage(): Promise<void> {
+  return invoke<void>("print_page");
 }

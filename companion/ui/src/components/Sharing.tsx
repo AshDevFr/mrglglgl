@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Modal, Stack, Text } from "@mantine/core";
+import { Alert, Button, Group, Modal, Radio, Stack, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -6,9 +6,9 @@ import {
   defaultExportFolder,
   exportCharacter,
 } from "@/api/commands";
-import type { ExportedFiles } from "@/bindings/ExportedFiles";
 import type { Story } from "@/bindings/Story";
 import { problem } from "@/i18n/problems";
+import { exportPage, loadExportData } from "@/lib/exportPage";
 import { FolderField } from "./FolderField";
 
 /** Copies an entry, with its day and the footer, as plain text. */
@@ -43,20 +43,27 @@ export function CopyEntryButton({ story }: { story: Story }) {
   );
 }
 
-/** Saves the whole journal as Markdown and as one HTML page, in a folder the player picks. */
+type Format = "html" | "markdown" | "pdf";
+
+/** Exports the whole journal: as one web page laid out like the app (pictures inside), as
+ * Markdown, or as a PDF through the system print dialog. */
 export function ExportDialog({
   characterId,
   opened,
   onClose,
+  onPrint,
 }: {
   characterId: number;
   opened: boolean;
   onClose: () => void;
+  /** Opens the journal laid out for paper, where the print dialog saves a PDF. */
+  onPrint: () => void;
 }) {
   const { t } = useTranslation();
+  const [format, setFormat] = useState<Format>("html");
   const [folder, setFolder] = useState("");
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<ExportedFiles | null>(null);
+  const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -69,10 +76,26 @@ export function ExportDialog({
   }, [opened]);
 
   async function save() {
+    if (format === "pdf") {
+      onPrint();
+      return;
+    }
     setBusy(true);
     setError(null);
+    setDone(null);
     try {
-      setDone(await exportCharacter(characterId, folder));
+      const page =
+        format === "html"
+          ? exportPage(await loadExportData(characterId, true))
+          : null;
+      setDone(
+        await exportCharacter(
+          characterId,
+          folder,
+          format === "html" ? "html" : "markdown",
+          page,
+        ),
+      );
     } catch (e) {
       setError(String(e));
     } finally {
@@ -83,21 +106,36 @@ export function ExportDialog({
   return (
     <Modal opened={opened} onClose={onClose} title={t("share.exportTitle")}>
       <Stack>
-        <Text size="sm">{t("share.exportHelp")}</Text>
-        <FolderField
-          label={t("share.folder")}
-          value={folder}
-          onChange={setFolder}
-        />
+        <Radio.Group
+          label={t("share.format")}
+          value={format}
+          onChange={(v) => {
+            setFormat(v as Format);
+            setDone(null);
+            setError(null);
+          }}
+        >
+          <Stack gap="xs" mt="xs">
+            <Radio value="html" label={t("share.formats.html")} />
+            <Radio value="pdf" label={t("share.formats.pdf")} />
+            <Radio value="markdown" label={t("share.formats.markdown")} />
+          </Stack>
+        </Radio.Group>
+        <Text size="sm">{t(`share.formatHelp.${format}`)}</Text>
+        {format !== "pdf" && (
+          <FolderField
+            label={t("share.folder")}
+            value={folder}
+            onChange={setFolder}
+          />
+        )}
         {error && (
           <Alert color="red">
             {problem(t, "share.exportFailed", { message: error })}
           </Alert>
         )}
         {done && (
-          <Alert color="green">
-            {t("share.exported", { markdown: done.markdown, html: done.html })}
-          </Alert>
+          <Alert color="green">{t("share.exported", { path: done })}</Alert>
         )}
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose}>
@@ -105,10 +143,10 @@ export function ExportDialog({
           </Button>
           <Button
             loading={busy}
-            disabled={folder.trim() === ""}
+            disabled={format !== "pdf" && folder.trim() === ""}
             onClick={() => void save()}
           >
-            {t("share.export")}
+            {format === "pdf" ? t("share.print") : t("share.export")}
           </Button>
         </Group>
       </Stack>

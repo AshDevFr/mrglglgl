@@ -152,30 +152,27 @@ fn drafts_and_discarded_drafts_are_never_exported() {
 }
 
 #[test]
-fn html_is_one_self_contained_page_with_an_open_licence_font() {
-    let j = journal();
-    let awards = milestones::compute(&j);
-    let stories = vec![story(
-        1,
-        StoryKind::Day,
-        "2026-11-08",
-        "Wolves & <murlocs>.",
-        CheckStatus::Passed,
-    )];
-    let page = export::html(&input(&j, &stories, &awards));
+fn a_web_page_is_one_self_contained_file_with_an_open_licence_font() {
+    let page = export::page_document(
+        "Wren & co",
+        "en",
+        ".journal-page { color: red; }",
+        "<article class=\"journal-page\"><p>Wolves.</p></article>",
+    );
     assert!(page.starts_with("<!doctype html>"));
-    assert!(page.contains("<title>Wren Hollowbrook</title>"));
+    assert!(page.contains("<html lang=\"en\">"));
+    assert!(
+        page.contains("<title>Wren &amp; co</title>"),
+        "the title is escaped"
+    );
     assert!(
         page.contains("src: url(data:font/woff2;base64,d09GMg"),
         "Literata is embedded"
     );
-    assert!(
-        page.contains("<p>Wolves &amp; &lt;murlocs&gt;.</p>"),
-        "text is escaped"
-    );
-    // Nothing is fetched from elsewhere.
+    assert!(page.contains(".journal-page { color: red; }"));
+    assert!(page.contains("<p>Wolves.</p>"));
+    // The page carries everything: nothing is fetched from elsewhere.
     assert!(!page.contains("http://") && !page.contains("https://"));
-    assert!(!page.contains("<script"));
     assert!(!page.contains("<link"));
 }
 
@@ -194,29 +191,25 @@ fn exports_are_written_outside_the_game_folder_only() {
     let elsewhere = tempfile::tempdir().unwrap();
     let roots = vec![game.path().to_path_buf()];
 
-    let files = export::write(elsewhere.path(), &roots, &input(&j, &stories, &awards)).unwrap();
-    assert_eq!(
-        files.markdown,
-        elsewhere.path().join("Wren-Hollowbrook-journal.md")
-    );
-    assert_eq!(
-        files.html,
-        elsewhere.path().join("Wren-Hollowbrook-journal.html")
-    );
+    let markdown = export::markdown(&input(&j, &stories, &awards));
+    let file = export::write_file(
+        elsewhere.path(),
+        &roots,
+        "Wren Hollowbrook",
+        "md",
+        &markdown,
+    )
+    .unwrap();
+    assert_eq!(file, elsewhere.path().join("Wren-Hollowbrook-journal.md"));
     assert!(
-        std::fs::read_to_string(&files.markdown)
+        std::fs::read_to_string(&file)
             .unwrap()
             .contains(ENTRY.lines().next().unwrap())
-    );
-    assert!(
-        std::fs::read_to_string(&files.html)
-            .unwrap()
-            .contains("<html")
     );
 
     let inside = game.path().join("Screenshots");
     std::fs::create_dir_all(&inside).unwrap();
-    let refused = export::write(&inside, &roots, &input(&j, &stories, &awards));
+    let refused = export::write_file(&inside, &roots, "Wren Hollowbrook", "html", "<html>");
     assert!(matches!(refused, Err(ExportError::InsideGameFolder(_))));
     assert_eq!(
         std::fs::read_dir(&inside).unwrap().count(),

@@ -255,16 +255,7 @@ fn escape(text: &str) -> String {
         .replace('"', "&quot;")
 }
 
-fn paragraphs(text: &str) -> String {
-    text.split("\n\n")
-        .map(str::trim)
-        .filter(|p| !p.is_empty())
-        .map(|p| format!("<p>{}</p>", escape(p).replace('\n', "<br>")))
-        .collect::<Vec<_>>()
-        .join("\n")
-}
-
-fn base64(bytes: &[u8]) -> String {
+pub(crate) fn base64(bytes: &[u8]) -> String {
     const TABLE: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
     let mut out = String::with_capacity(bytes.len().div_ceil(3) * 4);
     for chunk in bytes.chunks(3) {
@@ -285,87 +276,20 @@ fn base64(bytes: &[u8]) -> String {
     out
 }
 
-const STYLE: &str = "
-:root { --desk: #cdd3cf; --page: #e3e6de; --edge: #c9d0c8; --ink: #1c2a34;
-  --faded: #4f5b61; --stamp: #2a6351; }
-@media (prefers-color-scheme: dark) {
-  :root { --desk: #121819; --page: #1e2628; --edge: #283335; --ink: #dce4df;
-    --faded: #93a39e; --stamp: #78bfa4; }
-}
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--desk); color: var(--ink);
-  font-family: Literata, Georgia, serif; line-height: 1.75; }
-main { max-width: 44rem; margin: 2rem auto; padding: 0 16px; }
-h1 { font-size: 2.4rem; line-height: 1.1; margin: 1rem 0 2rem; }
-section.week { margin-bottom: 3rem; }
-h2 { font-size: 1.1rem; font-weight: 600; color: var(--faded); margin: 0 0 1rem; }
-.chapter { font-style: italic; margin-bottom: 1.5rem; }
-article { background: var(--page); border-radius: 2px; padding: 2.5rem 3rem;
-  margin-bottom: 1.5rem; box-shadow: 0 1px 0 var(--edge); }
-h3 { font-size: 1.6rem; line-height: 1.2; margin: 0 0 1.25rem; }
-p { margin: 0 0 1em; max-width: 34em; font-size: 1.1rem; }
-.notes { color: var(--faded); font-size: 0.95rem; }
-.stamps { color: var(--stamp); font-size: 0.9rem; margin: 1rem 0 0; }
-footer { color: var(--faded); font-size: 0.85rem; text-align: center; margin: 3rem 0; }
-@media (max-width: 40rem) { article { padding: 1.75rem 1.25rem; } }
-";
-
-/// The whole journal as one HTML file with its font and styles inside, for any browser.
-pub fn html(input: &ExportInput) -> String {
-    let lang = input.language;
-    let mut body = String::new();
-    for week in parts(input) {
-        body.push_str(&format!(
-            "<section class=\"week\">\n<h2>{}</h2>\n",
-            escape(&week_heading(&week.monday, lang))
-        ));
-        if let Some(chapter) = &week.chapter {
-            body.push_str(&format!(
-                "<div class=\"chapter\">{}</div>\n",
-                paragraphs(chapter)
-            ));
-        }
-        for day in &week.days {
-            body.push_str(&format!(
-                "<article>\n<h3>{}</h3>\n",
-                escape(&long_date(&day.day, lang))
-            ));
-            match &day.body {
-                Body::Entry(text) => body.push_str(&paragraphs(text)),
-                Body::Notes(notes) => {
-                    body.push_str(&format!(
-                        "<div class=\"notes\"><p>{}</p><ul>{}</ul></div>",
-                        escape(notes_label(lang)),
-                        notes
-                            .iter()
-                            .map(|n| format!("<li>{}</li>", escape(n)))
-                            .collect::<String>()
-                    ));
-                }
-            }
-            if !day.stamps.is_empty() {
-                body.push_str(&format!(
-                    "\n<p class=\"stamps\">{}: {}</p>",
-                    escape(stamps_label(lang)),
-                    escape(&day.stamps.join(", "))
-                ));
-            }
-            body.push_str("\n</article>\n");
-        }
-        body.push_str("</section>\n");
-    }
+/// A page the window laid out, as one HTML file with its font inside, for any browser and for
+/// printing. The window builds the body from the same components it shows, so an export looks
+/// like the journal in the app; `css` is that look.
+pub fn page_document(title: &str, lang: &str, css: &str, body: &str) -> String {
     format!(
         "<!doctype html>\n<html lang=\"{lang}\">\n<head>\n<meta charset=\"utf-8\">\n\
          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\
-         <title>{title}</title>\n<style>\n@font-face {{ font-family: Literata; \
+         <title>{title}</title>\n<style>\n@font-face {{ font-family: \"Literata Variable\"; \
          font-weight: 200 900; font-display: swap; \
-         src: url(data:font/woff2;base64,{font}) format(\"woff2\"); }}{STYLE}</style>\n\
-         </head>\n<body>\n<main>\n<h1>{title}</h1>\n{body}<footer>{footer}</footer>\n\
-         </main>\n</body>\n</html>\n",
+         src: url(data:font/woff2;base64,{font}) format(\"woff2\"); }}\n{css}\n</style>\n\
+         </head>\n<body class=\"export-body\">\n{body}\n</body>\n</html>\n",
         lang = escape(lang),
-        title = escape(input.title),
+        title = escape(title),
         font = base64(LITERATA),
-        footer = escape(written_with(lang)),
     )
 }
 
@@ -380,13 +304,6 @@ pub enum ExportError {
         path: PathBuf,
         source: std::io::Error,
     },
-}
-
-/// The two files written.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ExportFiles {
-    pub markdown: PathBuf,
-    pub html: PathBuf,
 }
 
 fn file_stem(title: &str) -> String {
@@ -407,29 +324,22 @@ fn inside(path: &Path, root: &Path) -> bool {
     canonical(path).starts_with(canonical(root))
 }
 
-/// Writes the Markdown and HTML exports into `folder`, which must not be inside any of the game
-/// folders: the app never writes there.
-pub fn write(
+/// Writes one export, `<title>-journal.<extension>`, into `folder`, which must not be inside any
+/// of the game folders: the app never writes there. Returns the file's path.
+pub fn write_file(
     folder: &Path,
     game_folders: &[PathBuf],
-    input: &ExportInput,
-) -> Result<ExportFiles, ExportError> {
+    title: &str,
+    extension: &str,
+    content: &str,
+) -> Result<PathBuf, ExportError> {
     if let Some(root) = game_folders.iter().find(|root| inside(folder, root)) {
         return Err(ExportError::InsideGameFolder(root.clone()));
     }
-    let stem = file_stem(input.title);
-    let files = ExportFiles {
-        markdown: folder.join(format!("{stem}.md")),
-        html: folder.join(format!("{stem}.html")),
-    };
-    for (path, content) in [
-        (&files.markdown, markdown(input)),
-        (&files.html, html(input)),
-    ] {
-        std::fs::write(path, content).map_err(|source| ExportError::Write {
-            path: path.clone(),
-            source,
-        })?;
-    }
-    Ok(files)
+    let path = folder.join(format!("{}.{extension}", file_stem(title)));
+    std::fs::write(&path, content).map_err(|source| ExportError::Write {
+        path: path.clone(),
+        source,
+    })?;
+    Ok(path)
 }

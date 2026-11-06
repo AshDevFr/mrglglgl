@@ -27,6 +27,8 @@ tauri = { version = "2.12", features = ["protocol-asset"] }
 tauri-build = { version = "2.7", features = [] }
 # Native folder picker for exports.
 tauri-plugin-dialog = "2.8.3"
+# Scales screenshots to page width for exports; only the formats the game saves.
+image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "tga"] }
 
 # TypeScript bindings for the types Tauri commands exchange. tauri-specta's
 # Tauri 2 line is still a release candidate, so the stable ts-rs generates

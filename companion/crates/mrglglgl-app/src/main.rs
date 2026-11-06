@@ -83,6 +83,8 @@ fn main() {
             writing_commands::copy_entry_text,
             writing_commands::default_export_folder,
             writing_commands::export_character,
+            writing_commands::screenshot_data,
+            writing_commands::print_page,
         ])
         .run(tauri::generate_context!())
         .expect("the Mrglglgl window failed to start");

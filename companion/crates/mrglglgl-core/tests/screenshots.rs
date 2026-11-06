@@ -168,3 +168,29 @@ fn reading_screenshots_changes_nothing_in_the_game_folder() {
     assert_eq!(matched["2026-11-05"].len(), 1);
     assert_eq!(snapshot(wow.path()), before);
 }
+
+#[test]
+fn a_screenshot_is_embedded_scaled_to_page_width() {
+    use mrglglgl_core::screenshots::{EMBED_WIDTH, embed, scaled_jpeg};
+    let dir = tempfile::tempdir().unwrap();
+    let big = dir.path().join("WoWScrnShot_110526_202955.png");
+    image::RgbImage::from_pixel(2400, 1200, image::Rgb([40, 90, 80]))
+        .save(&big)
+        .unwrap();
+    let shrunk = image::load_from_memory(&scaled_jpeg(&big).unwrap()).unwrap();
+    assert_eq!((shrunk.width(), shrunk.height()), (EMBED_WIDTH, 600));
+    assert!(
+        embed(&big)
+            .unwrap()
+            .starts_with("data:image/jpeg;base64,/9j/")
+    );
+
+    let small = dir.path().join("small.png");
+    image::RgbImage::from_pixel(640, 480, image::Rgb([1, 2, 3]))
+        .save(&small)
+        .unwrap();
+    let kept = image::load_from_memory(&scaled_jpeg(&small).unwrap()).unwrap();
+    assert_eq!(kept.width(), 640, "never enlarged");
+
+    assert!(embed(&dir.path().join("gone.jpg")).is_err());
+}

@@ -14,6 +14,12 @@ const commands = vi.hoisted(() => ({
 }));
 vi.mock("@/api/commands", () => commands);
 
+const pages = vi.hoisted(() => ({
+  loadExportData: vi.fn(async () => ({ title: "Wren Hollowbrook" })),
+  exportPage: vi.fn(() => ({ css: ".journal-page{}", body: "<main></main>" })),
+}));
+vi.mock("@/lib/exportPage", () => pages);
+
 const story = { id: 7, characterId: 1 } as Story;
 
 describe("sharing", () => {
@@ -38,16 +44,20 @@ describe("sharing", () => {
     commands.exportCharacter.mockRejectedValueOnce(
       "exports cannot be saved inside the World of Warcraft folder (/Games/World of Warcraft); pick another folder",
     );
-    commands.exportCharacter.mockResolvedValueOnce({
-      markdown: "/Users/wren/Documents/Wren-Hollowbrook-journal.md",
-      html: "/Users/wren/Documents/Wren-Hollowbrook-journal.html",
-    });
-    renderWithProviders(
-      <ExportDialog characterId={1} opened onClose={vi.fn()} />,
+    commands.exportCharacter.mockResolvedValueOnce(
+      "/Users/wren/Documents/Wren-Hollowbrook-journal.md",
     );
+    renderWithProviders(
+      <ExportDialog
+        characterId={1}
+        opened
+        onClose={vi.fn()}
+        onPrint={vi.fn()}
+      />,
+    );
+    fireEvent.click(await screen.findByRole("radio", { name: /Markdown/ }));
     const folder = await screen.findByLabelText("Folder");
     await waitFor(() => expect(folder).toHaveValue("/Users/wren/Documents"));
-
     fireEvent.change(folder, {
       target: { value: "/Games/World of Warcraft/_forever_" },
     });
@@ -57,17 +67,69 @@ describe("sharing", () => {
         /The export was not saved: exports cannot be saved inside the World of Warcraft folder/,
       ),
     ).toBeInTheDocument();
-
     fireEvent.change(folder, { target: { value: "/Users/wren/Documents" } });
     fireEvent.click(screen.getByRole("button", { name: "Export" }));
     expect(
       await screen.findByText(
-        /Saved \/Users\/wren\/Documents\/Wren-Hollowbrook-journal\.md and/,
+        "Saved /Users/wren/Documents/Wren-Hollowbrook-journal.md.",
       ),
     ).toBeInTheDocument();
     expect(commands.exportCharacter).toHaveBeenLastCalledWith(
       1,
       "/Users/wren/Documents",
+      "markdown",
+      null,
     );
+  });
+
+  it("exports a web page laid out like the app, pictures inside", async () => {
+    commands.exportCharacter.mockResolvedValueOnce(
+      "/Users/wren/Documents/Wren-Hollowbrook-journal.html",
+    );
+    renderWithProviders(
+      <ExportDialog
+        characterId={1}
+        opened
+        onClose={vi.fn()}
+        onPrint={vi.fn()}
+      />,
+    );
+    expect(
+      await screen.findByRole("radio", { name: /Web page/ }),
+    ).toBeChecked();
+    await waitFor(() =>
+      expect(screen.getByLabelText("Folder")).toHaveValue(
+        "/Users/wren/Documents",
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Export" }));
+    await waitFor(() =>
+      expect(commands.exportCharacter).toHaveBeenLastCalledWith(
+        1,
+        "/Users/wren/Documents",
+        "html",
+        { css: ".journal-page{}", body: "<main></main>" },
+      ),
+    );
+    expect(pages.loadExportData).toHaveBeenCalledWith(1, true);
+  });
+
+  it("sends a PDF through the print dialog, with no folder to pick", async () => {
+    const onPrint = vi.fn();
+    renderWithProviders(
+      <ExportDialog
+        characterId={1}
+        opened
+        onClose={vi.fn()}
+        onPrint={onPrint}
+      />,
+    );
+    fireEvent.click(await screen.findByRole("radio", { name: /PDF/ }));
+    expect(screen.queryByLabelText("Folder")).toBeNull();
+    expect(screen.getByText(/Save as PDF/)).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Open the print dialog" }),
+    );
+    expect(onPrint).toHaveBeenCalled();
   });
 });

@@ -1,0 +1,117 @@
+/*
+ * An exported journal: the app's pages on their own, always on light paper, laid out as a book
+ * for a browser and for print. Added after paper.css, whose page, stamp and photo styles it uses.
+ * Scoped to the exported file's body and the print page, so the app around them is untouched.
+ */
+
+.export-body,
+.print-sheet {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--desk);
+  font-family: var(--reading-font);
+}
+
+.export {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1.25rem 4rem;
+  color: var(--ink);
+}
+
+.export-header {
+  width: 100%;
+  max-width: 44rem;
+  margin-bottom: 2rem;
+}
+
+.export-header h1 {
+  margin: 0;
+  font-size: 2.6rem;
+  font-weight: 600;
+}
+
+.export-header p,
+.export-week-label,
+.export-footer {
+  margin: 0.25rem 0 0;
+  color: var(--ink-faded);
+  font-family: system-ui, sans-serif;
+  font-size: 0.9rem;
+}
+
+.export-week {
+  width: 100%;
+  max-width: 44rem;
+  margin-top: 2.5rem;
+}
+
+.export-week-label {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--page-edge);
+}
+
+.export-chapter .entry {
+  margin: 1.25rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  font-style: italic;
+}
+
+.export .journal-page {
+  margin: 2.75rem 0 0;
+}
+
+.export .journal-page .entry + .entry {
+  margin-top: 1em;
+}
+
+.export .margin-note {
+  margin: 1.25rem 0 0;
+  max-width: 30em;
+  font-style: italic;
+  color: var(--stamp);
+  transform: rotate(-0.6deg);
+}
+
+/* Photos: larger than on screen, where a click opens them. */
+.export .photo {
+  margin: 0;
+  cursor: default;
+}
+
+.export .photo img {
+  width: 18rem;
+  height: auto;
+  aspect-ratio: auto;
+}
+
+/* Light paper whatever the app's theme, so a print or a shared page reads the same. */
+.paper-light .ink-stamp {
+  mix-blend-mode: multiply;
+}
+
+.export-footer {
+  margin-top: 3rem;
+}
+
+@media print {
+  .export-body,
+  .print-sheet {
+    background: none;
+  }
+  .export {
+    padding: 0;
+  }
+  .export .journal-page {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+  .export-chapter {
+    break-inside: avoid;
+  }
+  .print-sheet .no-print {
+    display: none;
+  }
+}

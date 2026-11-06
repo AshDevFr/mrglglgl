@@ -16,7 +16,8 @@ function tokens(selector: string): Record<string, string> {
   );
 }
 
-const light = tokens(":root");
+// The light block is `:root, .paper-light`; the export keeps light paper with the second name.
+const light = tokens(".paper-light");
 const dark = { ...light, ...tokens('[data-mantine-color-scheme="dark"]') };
 
 /** WCAG relative luminance of an sRGB colour. */

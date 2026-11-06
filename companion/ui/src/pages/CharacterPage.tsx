@@ -261,6 +261,12 @@ export function CharacterPage({
         characterId={characterId}
         opened={exporting}
         onClose={() => setExporting(false)}
+        onPrint={() =>
+          navigate({
+            to: "/print/$characterId",
+            params: { characterId: String(characterId) },
+          })
+        }
       />
       <Modal
         opened={confirming}

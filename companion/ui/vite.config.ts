@@ -38,6 +38,7 @@ export default defineConfig({
     globals: true,
     environment: "jsdom",
     setupFiles: "./src/test/setup.ts",
-    css: false,
+    // Only the stylesheets an export embeds as text are processed, so tests can see them.
+    css: { include: [/styles\/(paper|export)\.css/] },
   },
 });
