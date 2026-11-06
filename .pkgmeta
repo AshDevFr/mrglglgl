@@ -1,0 +1,24 @@
+package-as: Mrglglgl
+
+# The addon lives in addon/ of a monorepo: its contents become the package root.
+move-folders:
+  Mrglglgl/addon: Mrglglgl
+
+ignore:
+  - .cargo
+  - .claude
+  - .github
+  - .gitignore
+  - .pre-commit-config.yaml
+  - CLAUDE.md
+  - companion
+  - docs
+  - fixtures
+  - addon/spec
+  - addon/tools
+  - addon/Makefile
+  - addon/README.md
+  - addon/.busted
+  - addon/.luacheckrc
+  - addon/.gitignore
+  - addon/.rocks

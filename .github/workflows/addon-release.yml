@@ -23,9 +23,8 @@ jobs:
       - name: Lint, test and check the package definition
         working-directory: addon
         run: make check package-check LUA=luajit LUA_DIR=
+      # Runs from the repository root: .pkgmeta there moves addon/ to the package root.
       - uses: BigWigsMods/packager@v2
-        with:
-          args: -t addon
         env:
           GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
           CF_API_KEY: ${{ secrets.CF_API_KEY }}

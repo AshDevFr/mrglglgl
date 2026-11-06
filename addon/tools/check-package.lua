@@ -2,7 +2,12 @@
 -- excluded by .pkgmeta, the TOC carries what the packager and the client need, and nothing used
 -- only for development is left in the package.
 --
+-- The package definition is the repository's .pkgmeta: the addon sits in addon/ of a monorepo,
+-- so its paths there carry that prefix.
+--
 -- Usage, from addon/: luajit tools/check-package.lua
+local PKGMETA = "../.pkgmeta"
+local PREFIX = "addon/"
 local problems = 0
 
 local function fail(message)
@@ -20,7 +25,7 @@ local function exists(path)
 end
 
 local ignored = {}
-for line in io.lines(".pkgmeta") do
+for line in io.lines(PKGMETA) do
 	local entry = line:match("^%s*%-%s*(%S+)%s*$")
 	if entry then
 		ignored[#ignored + 1] = entry
@@ -28,6 +33,7 @@ for line in io.lines(".pkgmeta") do
 end
 
 local function isIgnored(path)
+	path = PREFIX .. path
 	for _, entry in ipairs(ignored) do
 		if path == entry or path:sub(1, #entry + 1) == entry .. "/" then
 			return true
@@ -64,6 +70,16 @@ for _, path in ipairs(files) do
 	elseif isIgnored(path) then
 		fail("TOC lists " .. path .. ", which .pkgmeta excludes from the package")
 	end
+end
+
+local moved = false
+for line in io.lines(PKGMETA) do
+	if line:match("^%s*Mrglglgl/addon:%s*Mrglglgl%s*$") then
+		moved = true
+	end
+end
+if not moved then
+	fail(".pkgmeta does not move addon/ to the package root")
 end
 
 for _, devOnly in ipairs({ "spec", "tools", "Makefile", ".rocks" }) do
