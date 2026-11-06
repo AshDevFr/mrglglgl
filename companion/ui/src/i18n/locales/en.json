@@ -22,7 +22,14 @@
     "empty": "No journals yet. The murloc is waiting by the water.",
     "emptyHelp": "Play with the Mrglglgl addon installed, then log out or type /reload: the game saves the journal at those moments, and it appears here.",
     "noInstall": "No World of Warcraft folder was found. Choose it in Settings.",
-    "pick": "Choose a character on the left to read their journal."
+    "pick": "Choose a character on the left to read their journal.",
+    "addonMissingTitle": "The addon is not installed",
+    "addonMissing": "Without it in the game, nothing is recorded and there is nothing to write about. The app can install it for you.",
+    "addonInstall": "Install the addon",
+    "addonAttention": "The addon needs a look: an update to load, errors, or nothing recorded for a while.",
+    "addonOpen": "Open the addon settings",
+    "addonLine": "Addon: {{line}}",
+    "addonLastNoted": "last noted by {{character}} on {{when}}"
   },
   "sync": {
     "explain": "The game saves journals only when you log out or type /reload. New entries show up here a few seconds after that.",

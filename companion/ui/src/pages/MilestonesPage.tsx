@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { characterMilestones } from "@/api/commands";
 import type { Award } from "@/bindings/Award";
-import { CharacterTitle } from "@/components/CharacterTitle";
+import { CharacterTop } from "@/components/CharacterTop";
 import { EmptyState } from "@/components/EmptyState";
 import { InkStamp } from "@/components/InkStamp";
 import { formatDay } from "@/lib/format";
@@ -45,7 +45,9 @@ export function MilestonesPage({ characterId }: { characterId: number }) {
   });
   return (
     <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
-      <CharacterTitle characterId={characterId} current="milestones" />
+      <Stack gap="lg" maw="48rem" mb="xl">
+        <CharacterTop characterId={characterId} current="milestones" />
+      </Stack>
       <article className="journal-page">
         <h2>{t("milestones.title")}</h2>
         {awards.isPending ? (

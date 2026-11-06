@@ -2,9 +2,11 @@ import { Alert, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { appInfo, listCharacters, models } from "@/api/commands";
+import { AddonSummary } from "@/components/AddonSummary";
 import { EmptyState } from "@/components/EmptyState";
 import { FirstRun } from "@/components/FirstRun";
 import { problem } from "@/i18n/problems";
+import { rememberSettingsTab } from "@/lib/settingsTab";
 
 export function HomePage({
   onOpenSettings = () => {},
@@ -37,6 +39,12 @@ export function HomePage({
         {empty && (
           <EmptyState title={t("home.empty")}>{t("home.emptyHelp")}</EmptyState>
         )}
+        <AddonSummary
+          onOpen={() => {
+            rememberSettingsTab("addon");
+            onOpenSettings();
+          }}
+        />
         {characters.isSuccess && !empty && <Text>{t("home.pick")}</Text>}
         {(empty || noModel) && <FirstRun onOpenSettings={onOpenSettings} />}
         {!empty && !noModel && (

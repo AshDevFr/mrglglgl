@@ -15,36 +15,27 @@ import { WebsitePanel } from "@/components/WebsitePanel";
 import { ZoomField } from "@/components/ZoomField";
 import { applyLanguage } from "@/i18n";
 import { problem } from "@/i18n/problems";
+import {
+  rememberedSettingsTab,
+  rememberSettingsTab,
+  SETTINGS_TABS,
+  type SettingsTab,
+} from "@/lib/settingsTab";
 
-const TABS = ["general", "writing", "narrators", "website", "addon"] as const;
-type Tab = (typeof TABS)[number];
-const TAB_KEY = "mrglglgl.settingsTab";
-
-/** The tab last open, so coming back from a narrator's page lands where the player was. */
-function rememberedTab(): Tab {
-  try {
-    const saved = sessionStorage.getItem(TAB_KEY);
-    return TABS.find((tab) => tab === saved) ?? "general";
-  } catch {
-    return "general";
-  }
-}
+const TABS = SETTINGS_TABS;
+type Tab = SettingsTab;
 
 export function SettingsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const view = useQuery({ queryKey: ["settings"], queryFn: getSettings });
-  const [tab, setTab] = useState<Tab>(rememberedTab);
+  const [tab, setTab] = useState<Tab>(rememberedSettingsTab);
 
   function openTab(value: string | null) {
     const next = TABS.find((t) => t === value) ?? "general";
     setTab(next);
-    try {
-      sessionStorage.setItem(TAB_KEY, next);
-    } catch {
-      // Not remembered; the tab still opens.
-    }
+    rememberSettingsTab(next);
   }
 
   async function save(settings: Settings) {

@@ -1,16 +1,6 @@
-import {
-  ActionIcon,
-  Alert,
-  Button,
-  Group,
-  Menu,
-  Modal,
-  Stack,
-  Text,
-} from "@mantine/core";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Alert, Stack } from "@mantine/core";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   cancelWriting,
@@ -18,30 +8,26 @@ import {
   characterMilestones,
   characterScreenshots,
   characterStories,
-  deleteCharacter,
   editStory,
   listCharacters,
   listNarrators,
   retryWriting,
   reviewList,
-  setWritingPaused,
   writeNow,
   writeSoFar,
   writingStatus,
 } from "@/api/commands";
 import type { StoryKind } from "@/bindings/StoryKind";
-import { CharacterHeader } from "@/components/CharacterHeader";
-import { CharacterTabs } from "@/components/CharacterTabs";
+import { CharacterTop } from "@/components/CharacterTop";
 import { EmptyState } from "@/components/EmptyState";
 import { type DayWriting, JournalPage } from "@/components/JournalPage";
-import { CopyEntryButton, ExportDialog } from "@/components/Sharing";
+import { CopyEntryButton } from "@/components/Sharing";
 import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
 import { WritingBanner } from "@/components/WritingBanner";
 import { type Problem, problem } from "@/i18n/problems";
-import { daysNewestFirst, displayName } from "@/lib/journal";
+import { daysNewestFirst } from "@/lib/journal";
 import { rememberDay } from "@/lib/lastDay";
-import { useCharacterNav } from "@/lib/useCharacterNav";
 import { useWriting } from "@/lib/useWriting";
 import { dayKey, weekDays, weekStart } from "@/lib/weeks";
 import { jobFor, slot, versionsOf } from "@/lib/writing";
@@ -61,9 +47,6 @@ export function CharacterPage({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [confirming, setConfirming] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const go = useCharacterNav(characterId);
 
   const characters = useQuery({
     queryKey: ["characters"],
@@ -129,15 +112,6 @@ export function CharacterPage({
     };
   }
 
-  const remove = useMutation({
-    mutationFn: () => deleteCharacter(characterId),
-    onSuccess: async () => {
-      setConfirming(false);
-      await queryClient.invalidateQueries();
-      await navigate({ to: "/" });
-    },
-  });
-
   const summary = characters.data?.find((c) => c.character.id === characterId);
   if (journal.isError || characters.isError) {
     return (
@@ -160,7 +134,6 @@ export function CharacterPage({
   const days = journal.data ? daysNewestFirst(journal.data) : [];
   const written = new Set(days);
   const selected = day ?? days[0] ?? today;
-  const name = displayName(summary.character);
   const monday = weekStart(selected);
   const sunday = weekDays(selected)[6];
   const status = summary.character.status;
@@ -177,52 +150,7 @@ export function CharacterPage({
   return (
     <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
       <Stack gap="lg" maw="48rem">
-        <Group justify="space-between" align="flex-start" wrap="wrap">
-          <CharacterHeader
-            character={summary.character}
-            journal={journal.data ?? null}
-          />
-          <Group gap="xs" wrap="nowrap">
-            <Button variant="default" onClick={() => setExporting(true)}>
-              {t("share.exportButton")}
-            </Button>
-            <Menu position="bottom-end" withinPortal>
-              <Menu.Target>
-                <ActionIcon
-                  variant="default"
-                  size="lg"
-                  aria-label={t("nav.more")}
-                >
-                  ⋯
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                {writingState.data && (
-                  <Menu.Item
-                    onClick={() =>
-                      void setWritingPaused(!writingState.data.paused).then(
-                        refreshStatus,
-                      )
-                    }
-                  >
-                    {writingState.data.paused
-                      ? t("writing.resume")
-                      : t("writing.pause")}
-                  </Menu.Item>
-                )}
-                <Menu.Divider />
-                <Menu.Item color="red" onClick={() => setConfirming(true)}>
-                  {t("character.remove")}
-                </Menu.Item>
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
-        </Group>
-        <CharacterTabs
-          current="journal"
-          toReview={summary.toReview}
-          onSelect={(tab) => void go(tab)}
-        />
+        <CharacterTop characterId={characterId} current="journal" />
         {summary.archived && <Alert>{t("sync.archivedHelp")}</Alert>}
         {status && (
           <Alert color="yellow">
@@ -260,38 +188,6 @@ export function CharacterPage({
           <EmptyState title={t("week.empty")}>{t("week.emptyHelp")}</EmptyState>
         )}
       </Stack>
-      <ExportDialog
-        characterId={characterId}
-        opened={exporting}
-        onClose={() => setExporting(false)}
-        onPrint={() =>
-          navigate({
-            to: "/print/$characterId",
-            params: { characterId: String(characterId) },
-          })
-        }
-      />
-      <Modal
-        opened={confirming}
-        onClose={() => setConfirming(false)}
-        title={t("character.removeTitle", { name })}
-      >
-        <Stack>
-          <Text size="sm">{t("character.removeBody")}</Text>
-          <Group justify="flex-end">
-            <Button variant="default" onClick={() => setConfirming(false)}>
-              {t("character.cancel")}
-            </Button>
-            <Button
-              color="red"
-              loading={remove.isPending}
-              onClick={() => remove.mutate()}
-            >
-              {t("character.removeConfirm")}
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
     </div>
   );
 }
