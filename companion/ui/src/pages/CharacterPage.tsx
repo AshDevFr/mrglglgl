@@ -16,6 +16,7 @@ import {
   reviewList,
   setWritingPaused,
   writeNow,
+  writeSoFar,
   writingStatus,
 } from "@/api/commands";
 import type { StoryKind } from "@/bindings/StoryKind";
@@ -97,6 +98,11 @@ export function CharacterPage({
       narrators: narrators.data ?? [],
       onWrite: (narrator) =>
         void writeNow(characterId, kind, start, narrator).then(refreshStatus),
+      onWriteSoFar:
+        kind === "day" && start === today
+          ? (narrator) =>
+              void writeSoFar(characterId, narrator).then(refreshStatus)
+          : undefined,
       onCancel: () => void cancelWriting(characterId, kind, start),
       onRetry: () =>
         void retryWriting(characterId, kind, start).then(refreshStatus),

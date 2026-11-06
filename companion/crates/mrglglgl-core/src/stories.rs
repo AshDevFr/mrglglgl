@@ -92,6 +92,8 @@ pub struct Story {
     pub status: StoryStatus,
     /// What the player asked of this version when they asked for a rewrite.
     pub note: Option<String>,
+    /// Written while the day was still going: what happened so far.
+    pub partial: bool,
 }
 
 /// A story about to be stored.
@@ -111,6 +113,7 @@ pub struct NewStory {
     pub check_reason: Option<String>,
     pub status: StoryStatus,
     pub note: Option<String>,
+    pub partial: bool,
 }
 
 /// Stores a new version and returns its id.
@@ -118,8 +121,8 @@ pub fn save(db: &Database, story: &NewStory) -> Result<i64, DbError> {
     Ok(db.conn().query_row(
         "INSERT INTO stories (character_id, kind, start_day, end_day, narrator, language,
              provider, model, prompt_hash, text, created_at, check_status, check_reason, status,
-             note)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)
+             note, partial)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)
          RETURNING id",
         params![
             story.character_id,
@@ -137,13 +140,15 @@ pub fn save(db: &Database, story: &NewStory) -> Result<i64, DbError> {
             story.check_reason,
             story.status.key(),
             story.note,
+            story.partial,
         ],
         |row| row.get(0),
     )?)
 }
 
 const COLUMNS: &str = "id, character_id, kind, start_day, end_day, narrator, language, provider,
-     model, prompt_hash, text, created_at, check_status, check_reason, status, note";
+     model, prompt_hash, text, created_at, check_status, check_reason, status, note,
+     partial";
 
 fn read(row: &rusqlite::Row) -> rusqlite::Result<Story> {
     Ok(Story {
@@ -163,6 +168,7 @@ fn read(row: &rusqlite::Row) -> rusqlite::Result<Story> {
         check_reason: row.get(13)?,
         status: StoryStatus::from_key(&row.get::<_, String>(14)?),
         note: row.get(15)?,
+        partial: row.get(16)?,
     })
 }
 
@@ -222,16 +228,18 @@ pub fn latest(
 pub fn day_entries(db: &Database, character_id: i64) -> Result<BTreeMap<String, String>, DbError> {
     Ok(latest(db, character_id, StoryKind::Day)?
         .into_iter()
-        .filter(|(_, s)| s.check != CheckStatus::Failed)
+        .filter(|(_, s)| s.check != CheckStatus::Failed && !s.partial)
         .map(|(day, s)| (day, s.text))
         .collect())
 }
 
 /// Every day and week with a story of any status: the background writer leaves these alone, so a
-/// draft is not written twice and a discarded day is only written again when the player asks.
+/// draft is not written twice and a discarded day is only written again when the player asks. A
+/// day told only so far does not count: its full entry is still to be written.
 pub fn slots(db: &Database, character_id: i64) -> Result<BTreeSet<(StoryKind, String)>, DbError> {
     Ok(all(db, character_id)?
         .into_iter()
+        .filter(|s| !s.partial)
         .map(|s| (s.kind, s.start_day))
         .collect())
 }

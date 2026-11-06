@@ -311,7 +311,11 @@
     "resume": "Resume writing",
     "chapter": "Chapter for the week of {{date}}",
     "chapterTitle": "This week's chapter",
-    "setAsideNext": "Here is what happened instead. Press Write again for a new attempt."
+    "setAsideNext": "Here is what happened instead. Press Write again for a new attempt.",
+    "soFar": "Write what happened so far",
+    "soFarAgain": "Tell it again so far",
+    "soFarByline": "Told so far by {{narrator}}, {{when}}",
+    "soFarNote": "The day goes on. The full entry is written once the day is over."
   },
   "models": {
     "title": "Writing models",

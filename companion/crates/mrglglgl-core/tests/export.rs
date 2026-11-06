@@ -30,6 +30,7 @@ fn story(id: i64, kind: StoryKind, day: &str, text: &str, check: CheckStatus) ->
         check_reason: None,
         status: StoryStatus::Accepted,
         note: None,
+        partial: false,
     }
 }
 

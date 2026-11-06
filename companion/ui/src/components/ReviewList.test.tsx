@@ -44,6 +44,7 @@ function draft(id: number, day: string, text: string): Story {
     checkReason: null,
     status: "draft",
     note: "shorter",
+    partial: false,
   };
 }
 

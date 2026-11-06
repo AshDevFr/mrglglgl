@@ -23,6 +23,10 @@ draft: boolean,
  */
 note: string | null, 
 /**
+ * Tells the day so far, while it is still going.
+ */
+partial: boolean, 
+/**
  * Place in the line among the jobs waiting, from 1; `None` when failed or running.
  */
 position: number | null, };

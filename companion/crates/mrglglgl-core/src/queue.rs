@@ -40,6 +40,9 @@ const DAY_TOKENS: u32 = 400;
 /// Tokens a weekly chapter may use.
 const WEEK_TOKENS: u32 = 800;
 
+/// What the writer is told about a day still going, so the entry does not close the day.
+const SO_FAR_NOTE: &str = "The day is not over yet: tell it so far, without ending it.";
+
 /// What the player sees for a job they cancelled.
 pub const CANCELLED: &str = "cancelled";
 /// What the player sees for a job that ran out of time.
@@ -90,6 +93,8 @@ pub struct Job {
     pub draft: bool,
     /// What the player asked of a rewrite.
     pub note: Option<String>,
+    /// Tells the day so far, while it is still going.
+    pub partial: bool,
     /// Place in the line among the jobs waiting, from 1; `None` when failed or running.
     pub position: Option<u32>,
 }
@@ -114,12 +119,13 @@ fn read_job(row: &rusqlite::Row) -> rusqlite::Result<Job> {
         narrator: row.get(6)?,
         draft: row.get(7)?,
         note: row.get(8)?,
+        partial: row.get(9)?,
         position: None,
     })
 }
 
 const JOB_COLUMNS: &str =
-    "character_id, kind, start_day, state, attempts, last_error, narrator, draft, note";
+    "character_id, kind, start_day, state, attempts, last_error, narrator, draft, note, partial";
 
 /// Adds a job unless it is already queued.
 fn add(
@@ -187,6 +193,9 @@ pub struct Ask<'a> {
     pub draft: bool,
     /// What the player asks of this version, for a rewrite.
     pub note: Option<&'a str>,
+    /// Tell the day so far, while it is still going: shown on the page at once, and never in
+    /// place of the full entry.
+    pub partial: bool,
 }
 
 /// Queues a day or week to be written (again) ahead of the backlog. A failed job is given a
@@ -200,19 +209,21 @@ pub fn request(
 ) -> Result<(), DbError> {
     db.conn().execute(
         "INSERT INTO write_queue
-             (character_id, kind, start_day, state, priority, narrator, draft, note)
-         VALUES (?1, ?2, ?3, 'pending', 1, ?4, ?5, ?6)
+             (character_id, kind, start_day, state, priority, narrator, draft, note, partial)
+         VALUES (?1, ?2, ?3, 'pending', 1, ?4, ?5, ?6, ?7)
          ON CONFLICT (character_id, kind, start_day) DO UPDATE SET
              state = CASE state WHEN 'running' THEN 'running' ELSE 'pending' END,
              attempts = 0, last_error = NULL, not_before = 0, priority = 1,
-             narrator = excluded.narrator, draft = excluded.draft, note = excluded.note",
+             narrator = excluded.narrator, draft = excluded.draft, note = excluded.note,
+             partial = excluded.partial",
         params![
             character_id,
             kind.key(),
             start_day,
             ask.narrator,
             ask.draft,
-            ask.note
+            ask.note,
+            ask.partial
         ],
     )?;
     Ok(())
@@ -538,7 +549,11 @@ fn prepare(
                 meddling: settings.meddling,
                 pseudonyms,
                 thresholds: &thresholds,
-                note: job.note.as_deref(),
+                note: if job.partial {
+                    Some(job.note.as_deref().unwrap_or(SO_FAR_NOTE))
+                } else {
+                    job.note.as_deref()
+                },
             }),
             job.start_day.clone(),
         ),
@@ -687,12 +702,14 @@ pub async fn run_next(
                     text,
                     check,
                     check_reason: reason.clone(),
-                    status: if job.draft {
+                    // A day told so far is asked for to be read now, so it is never a draft.
+                    status: if job.draft && !job.partial {
                         StoryStatus::Draft
                     } else {
                         StoryStatus::Accepted
                     },
                     note: job.note.clone(),
+                    partial: job.partial,
                 },
             )?;
             let awards = milestones::awards(&db, character_id)?;

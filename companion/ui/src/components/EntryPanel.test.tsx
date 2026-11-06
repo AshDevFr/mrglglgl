@@ -35,6 +35,7 @@ function story(id: number, text: string, extra: Partial<Story> = {}): Story {
     checkReason: null,
     status: "accepted",
     note: null,
+    partial: false,
     ...extra,
   };
 }
@@ -50,6 +51,7 @@ function job(extra: Partial<Job>): Job {
     narrator: null,
     draft: false,
     note: null,
+    partial: false,
     position: 3,
     ...extra,
   };
@@ -253,5 +255,37 @@ describe("EntryPanel", () => {
     expect(
       screen.queryByRole("button", { name: "Write now" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("offers to tell today so far, and says the full entry still comes", () => {
+    const onWriteSoFar = vi.fn();
+    panel({ finished: false, onWriteSoFar });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Write what happened so far" }),
+    );
+    expect(onWriteSoFar).toHaveBeenCalledWith(null);
+  });
+
+  it("marks an entry told so far as such", () => {
+    panel({
+      finished: false,
+      onWriteSoFar: vi.fn(),
+      versions: [story(1, "The morning was kind.", { partial: true })],
+    });
+    expect(screen.getByText("The morning was kind.")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Told so far by The murloc scribe/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/The full entry is written once the day is over/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Tell it again so far" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a day told so far waiting in line", () => {
+    panel({ finished: false, onWriteSoFar: vi.fn(), job: job({}) });
+    expect(screen.getByText(/number 3 in line/)).toBeInTheDocument();
   });
 });

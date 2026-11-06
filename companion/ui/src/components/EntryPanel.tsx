@@ -49,6 +49,8 @@ interface Props {
   /** The plain facts: shown when there is no entry to read, folded away when there is. */
   facts?: ReactNode;
   onWrite: (narrator: string | null) => void;
+  /** Tells a day that is still going so far; offered only on such a day. */
+  onWriteSoFar?: (narrator: string | null) => void;
   onCancel: () => void;
   onRetry: () => void;
   /** Extra actions for the entry shown, such as copying it. */
@@ -72,6 +74,7 @@ export function EntryPanel({
   narrators,
   facts,
   onWrite,
+  onWriteSoFar,
   onCancel,
   onRetry,
   actions,
@@ -128,6 +131,9 @@ export function EntryPanel({
       {readable ? (
         <>
           <EntryText text={shown.text} />
+          {shown.partial && !finished && (
+            <Text className="note">{t("writing.soFarNote")}</Text>
+          )}
           {facts && (
             <details className="facts">
               <summary>{t("writing.facts")}</summary>
@@ -145,14 +151,14 @@ export function EntryPanel({
             </Text>
           )}
           {facts}
-          {!shown && finished && job?.state === "pending" && (
+          {!shown && job?.state === "pending" && (
             <Text className="note">
               {t("writing.notYet", { position: job.position ?? 1 })}
               {blocked &&
                 ` ${problem(t, `writing.blocked.${blocked}` as Problem)}`}
             </Text>
           )}
-          {!shown && finished && job?.state === "running" && (
+          {!shown && job?.state === "running" && (
             <Text className="note">{t(loadingKey(day))}</Text>
           )}
           {!shown && !finished && (
@@ -200,14 +206,14 @@ export function EntryPanel({
       )}
       {shown && (
         <Text size="xs" c="dimmed">
-          {t("writing.byline", {
+          {t(shown.partial ? "writing.soFarByline" : "writing.byline", {
             narrator: narratorName(shown.narrator),
             when: formatTime(shown.createdAt, i18n.language),
           })}
         </Text>
       )}
 
-      {finished && (
+      {(finished || onWriteSoFar) && (
         <Group gap="xs" mt="sm" wrap="wrap">
           <Select
             aria-label={t(`writing.narratorFor.${kind}`)}
@@ -223,9 +229,17 @@ export function EntryPanel({
             size="xs"
             variant="light"
             disabled={job?.state === "running"}
-            onClick={() => onWrite(narrator)}
+            onClick={() =>
+              finished ? onWrite(narrator) : onWriteSoFar?.(narrator)
+            }
           >
-            {shown ? t("writing.again") : t("writing.now")}
+            {finished
+              ? shown
+                ? t("writing.again")
+                : t("writing.now")
+              : shown
+                ? t("writing.soFarAgain")
+                : t("writing.soFar")}
           </Button>
           {readable && actions?.(shown)}
         </Group>

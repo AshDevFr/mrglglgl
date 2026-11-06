@@ -163,6 +163,10 @@ const MIGRATIONS: &[&str] = &[
     ALTER TABLE stories ADD COLUMN note TEXT;
     ALTER TABLE write_queue ADD COLUMN draft INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE write_queue ADD COLUMN note TEXT;",
+    // A day told so far, while it is still going: shown at once, but it never stands in for the
+    // full entry, which is still written once the day is over.
+    "ALTER TABLE stories ADD COLUMN partial INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE write_queue ADD COLUMN partial INTEGER NOT NULL DEFAULT 0;",
 ];
 
 /// The schema version this build creates and understands.

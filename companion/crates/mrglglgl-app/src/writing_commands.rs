@@ -93,6 +93,7 @@ pub fn write_drafts(
         narrator: narrator.as_deref(),
         draft: true,
         note: note.as_deref(),
+        partial: false,
     };
     for slot in &slots {
         queue::request(&db, character_id, slot.kind, &slot.start_day, &ask)
@@ -170,8 +171,29 @@ pub fn write_now(
         narrator: narrator.as_deref(),
         draft,
         note: None,
+        partial: false,
     };
     queue::request(&db, character_id, kind, &start_day, &ask).map_err(|e| e.to_string())?;
+    state.control.wake();
+    Ok(())
+}
+
+/// Writes today as it stands, while it is still going, ahead of the backlog. It shows on the
+/// page at once; the full entry is still written once the day is over.
+#[tauri::command]
+pub fn write_so_far(
+    state: State<'_, AppState>,
+    character_id: i64,
+    narrator: Option<String>,
+) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let ask = queue::Ask {
+        narrator: narrator.as_deref(),
+        partial: true,
+        ..queue::Ask::default()
+    };
+    queue::request(&db, character_id, StoryKind::Day, &writing::today(), &ask)
+        .map_err(|e| e.to_string())?;
     state.control.wake();
     Ok(())
 }

@@ -16,6 +16,7 @@ function job(startDay: string, state: Job["state"]): Job {
     narrator: null,
     draft: false,
     note: null,
+    partial: false,
     position: state === "pending" ? 1 : null,
   };
 }

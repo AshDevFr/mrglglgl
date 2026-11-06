@@ -61,6 +61,7 @@ fn save(db: &Database, id: i64, kind: StoryKind, day: &str, status: StoryStatus)
             check_reason: None,
             status,
             note: None,
+            partial: false,
         },
     )
     .unwrap()

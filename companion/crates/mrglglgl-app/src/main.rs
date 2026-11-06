@@ -58,6 +58,7 @@ fn main() {
             writing_commands::write_drafts,
             writing_commands::writing_status,
             writing_commands::write_now,
+            writing_commands::write_so_far,
             writing_commands::cancel_writing,
             writing_commands::retry_writing,
             writing_commands::set_writing_paused,

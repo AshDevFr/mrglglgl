@@ -23,4 +23,8 @@ checkReason: string | null, status: StoryStatus,
 /**
  * What the player asked of this version when they asked for a rewrite.
  */
-note: string | null, };
+note: string | null, 
+/**
+ * Written while the day was still going: what happened so far.
+ */
+partial: boolean, };

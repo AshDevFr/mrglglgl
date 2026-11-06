@@ -139,6 +139,15 @@ export function writeNow(
   return invoke<void>("write_now", { characterId, kind, startDay, narrator });
 }
 
+/** Writes today as it stands, while it is still going; the full entry still comes once it is
+ * over. */
+export function writeSoFar(
+  characterId: number,
+  narrator: string | null,
+): Promise<void> {
+  return invoke<void>("write_so_far", { characterId, narrator });
+}
+
 export function cancelWriting(
   characterId: number,
   kind: StoryKind,

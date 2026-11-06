@@ -50,7 +50,10 @@ pub fn items(
             .filter(|s| s.status == StoryStatus::Draft)
             .map(|s| (*s).clone())
             .collect();
-        let has_entry = has(StoryStatus::Accepted);
+        // A day told only so far still waits for its full entry.
+        let has_entry = here
+            .iter()
+            .any(|s| s.status == StoryStatus::Accepted && !s.partial);
         if has_entry && drafts.is_empty() {
             continue;
         }

@@ -449,6 +449,7 @@ async fn a_draft_asked_for_carries_its_note_even_in_automatic_mode() {
         narrator: Some("grumpy_dwarf"),
         draft: true,
         note: Some("shorter, please"),
+        partial: false,
     };
     queue::request(&db.lock().unwrap(), id, StoryKind::Day, DAYS[0], &ask).unwrap();
     let provider = FakeProvider::new([ENTRY]);
@@ -520,6 +521,7 @@ fn accepting_a_draft_puts_it_in_the_journal_and_sets_its_rivals_aside() {
                 check_reason: None,
                 status,
                 note: None,
+                partial: false,
             },
         )
         .unwrap()
@@ -659,4 +661,47 @@ async fn a_preview_can_be_cancelled() {
     .await
     .unwrap();
     assert_eq!(result, WriteResult::Cancelled);
+}
+
+#[tokio::test]
+async fn a_day_told_so_far_is_shown_now_and_written_in_full_once_it_is_over() {
+    let (db, id) = setup();
+    review_mode(&db.lock().unwrap());
+    let ask = Ask {
+        partial: true,
+        ..Ask::default()
+    };
+    queue::request(&db.lock().unwrap(), id, StoryKind::Day, TODAY, &ask).unwrap();
+    let provider = FakeProvider::new([ENTRY, "The whole day, told at last."]);
+    let control = Control::new(false);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &control, "en", &on_event)
+        .await
+        .unwrap();
+    assert!(
+        provider.requests()[0].user.contains("not over"),
+        "the writer is told the day goes on"
+    );
+    {
+        let db = db.lock().unwrap();
+        let so_far = &stories::latest(&db, id, StoryKind::Day).unwrap()[TODAY];
+        assert!(so_far.partial);
+        assert_eq!(
+            so_far.status,
+            StoryStatus::Accepted,
+            "shown on the page at once, even in review mode"
+        );
+        assert!(
+            !stories::day_entries(&db, id).unwrap().contains_key(TODAY),
+            "a weekly chapter never reads a day told so far"
+        );
+        // The next day, the full entry is queued as if nothing had been written.
+        queue::enqueue_finished(&db, id, &journal(), "2026-11-08").unwrap();
+        assert!(
+            queue::jobs(&db, id)
+                .unwrap()
+                .iter()
+                .any(|j| j.start_day == TODAY && !j.partial)
+        );
+    }
 }
