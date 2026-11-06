@@ -17,7 +17,7 @@ export function CharacterTree({ characters, selectedId, onSelect }: Props) {
     <Stack gap="xs">
       {groupCharacters(characters).map((account) => (
         <div key={account.account}>
-          <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+          <Text size="sm" c="dimmed" fw={600}>
             {account.account}
           </Text>
           {account.realms.map((realm) => (

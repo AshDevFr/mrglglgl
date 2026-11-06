@@ -65,7 +65,7 @@ export function Layout() {
               ◐
             </ActionIcon>
           </Group>
-          <Text size="xs" c="dimmed" tt="uppercase" fw={600} mb={4}>
+          <Text size="sm" c="dimmed" fw={600} mb={4}>
             {t("nav.characters")}
           </Text>
         </AppShell.Section>

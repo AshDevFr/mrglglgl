@@ -1,7 +1,8 @@
-import { Container, Stack, Text, Title } from "@mantine/core";
+import { Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { appInfo, listCharacters } from "@/api/commands";
+import { EmptyState } from "@/components/EmptyState";
 
 export function HomePage() {
   const { t } = useTranslation();
@@ -13,26 +14,25 @@ export function HomePage() {
   const empty = characters.isSuccess && characters.data.length === 0;
 
   return (
-    <Container py="xl" className="reading">
-      <Stack>
-        <Title order={1}>{t("app.title")}</Title>
-        {characters.isPending && <Text>{t("loading")}</Text>}
+    <div className="desk" style={{ padding: "2rem 2.5rem" }}>
+      <Stack maw="40rem">
+        <h1 className="character-name">{t("app.title")}</h1>
+        {characters.isPending && <EmptyState title={t("loading")} />}
         {empty && (
-          <>
-            <Text>{t("home.empty")}</Text>
-            <Text>{t("home.emptyHelp")}</Text>
-          </>
+          <EmptyState title={t("home.empty")}>{t("home.emptyHelp")}</EmptyState>
         )}
         {characters.isSuccess && !empty && <Text>{t("home.pick")}</Text>}
-        <Text size="sm" c="dimmed">
-          {t("sync.explain")}
-        </Text>
+        {!empty && (
+          <Text size="sm" c="dimmed">
+            {t("sync.explain")}
+          </Text>
+        )}
         {info.data && (
           <Text size="sm" c="dimmed">
             {t("app.version", { version: info.data.version })}
           </Text>
         )}
       </Stack>
-    </Container>
+    </div>
   );
 }

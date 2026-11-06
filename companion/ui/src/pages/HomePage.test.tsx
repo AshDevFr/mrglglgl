@@ -17,7 +17,7 @@ describe("HomePage", () => {
     commands.characters = [];
     renderWithProviders(<HomePage />);
     expect(
-      await screen.findByText(/No journals yet\. Mrgl/),
+      await screen.findByText(/No journals yet\. The murloc is waiting/),
     ).toBeInTheDocument();
     expect(
       screen.getAllByText(/log out or type \/reload/).length,
