@@ -310,6 +310,45 @@
   transform: rotate(-0.6deg);
 }
 
+/* What happened, as recorded: a label column and the items under each other. */
+.fact-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 1.25em;
+  row-gap: 0.5em;
+  margin: 0;
+  max-width: 40em;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+details.facts .fact-list {
+  margin: 0.5em 0 0.75em;
+}
+.fact-list .fact-row {
+  display: contents;
+}
+.fact-list dt {
+  color: var(--ink-faded);
+  font-variant: small-caps;
+  letter-spacing: 0.02em;
+}
+.fact-list dd {
+  margin: 0;
+}
+.fact-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+@media (max-width: 560px) {
+  .fact-list {
+    grid-template-columns: 1fr;
+  }
+  .fact-list dd {
+    margin-bottom: 0.5em;
+  }
+}
+
 .entry-panel .entry + .entry {
   margin-top: 1em;
 }

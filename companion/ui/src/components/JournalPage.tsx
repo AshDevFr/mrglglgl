@@ -5,10 +5,12 @@ import { screenshotUrl } from "@/api/commands";
 import type { Award } from "@/bindings/Award";
 import type { Journal } from "@/bindings/Journal";
 import type { Screenshot } from "@/bindings/Screenshot";
+import { dayFactRows } from "@/lib/factList";
 import { formatDay } from "@/lib/format";
 import { dayFacts } from "@/lib/journal";
 import { daySentences } from "@/lib/sentences";
 import { EntryPanel } from "./EntryPanel";
+import { FactList } from "./FactList";
 import { InkStamp } from "./InkStamp";
 
 const TILTS = [-7, 5, -3, 8];
@@ -76,7 +78,13 @@ export function JournalPage({
   const facts = dayFacts(journal, journal.days[day]);
   const sentences = daySentences(facts, t, i18n.language);
   const stamps = awards.filter((a) => a.day === day);
-  const plain = <p className="entry">{sentences.join(" ")}</p>;
+  // The day as recorded, item by item; when nothing was, the plain sentence that says so.
+  const plain = (
+    <FactList
+      rows={facts.nothingHappened ? [] : dayFactRows(facts, t)}
+      empty={sentences.join(" ")}
+    />
+  );
   return (
     <article
       className="journal-page"

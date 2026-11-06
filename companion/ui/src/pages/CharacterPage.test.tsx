@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { StoredCharacter } from "@/bindings/StoredCharacter";
 import { CharacterHeader } from "@/components/CharacterHeader";
@@ -34,7 +34,7 @@ const wren: StoredCharacter = {
 };
 
 describe("JournalPage", () => {
-  it("reads a day as a page: the date, then what happened in sentences", () => {
+  it("reads a day as a page: the date, then what happened as labelled lists", () => {
     renderWithProviders(
       <JournalPage
         journal={syntheticJournal}
@@ -45,11 +45,18 @@ describe("JournalPage", () => {
     expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent(
       "Sunday, November 8, 2026",
     );
-    const entry = screen.getByText(/Killed 23 Prairie Wolves/);
-    expect(entry).toHaveTextContent(
-      "Died to a Murloc Streamrunner in Red Rocks.",
+    const list = screen.getByLabelText("What happened, as recorded");
+    const row = (label: string) => {
+      const term = within(list).getByText(label, { selector: "dt" });
+      return term.nextElementSibling as HTMLElement;
+    };
+    expect(row("Killed")).toHaveTextContent("Prairie Wolf × 23");
+    expect(row("Deaths")).toHaveTextContent(
+      "Murloc Streamrunner, at Red Rocks",
     );
-    expect(entry).toHaveTextContent("Grouped with Tamsin Reedwater.");
+    expect(row("Grouped with")).toHaveTextContent("Tamsin Reedwater");
+    expect(row("Level")).toHaveTextContent("5 → 6");
+    expect(row("Discovered")).toHaveTextContent("Thunder Bluff");
   });
 
   it("presses the day's milestones onto the page as stamps", () => {
