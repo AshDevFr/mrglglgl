@@ -15,4 +15,4 @@ Cloudflare Pages, Netlify or GitHub Pages, with nothing to build.
 - The site only shows finished days and accepted entries: never today, never an entry told so far.
 
 To change how the site looks, from a few colours to every template, see
-[Website themes](/mrglglgl/reference/website-themes/).
+[Website themes](/reference/website-themes/).

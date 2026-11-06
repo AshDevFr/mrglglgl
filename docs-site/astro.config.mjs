@@ -1,10 +1,10 @@
-// The Mrglglgl documentation, published to GitHub Pages by .github/workflows/docs.yml.
+// The Mrglglgl documentation, built by .github/workflows/docs.yml (which takes its screenshots)
+// and uploaded to Cloudflare Pages, which only hosts it.
 import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  site: "https://ashdevfr.github.io",
-  base: "/mrglglgl",
+  site: "https://mrglglgl.pages.dev",
   integrations: [
     starlight({
       title: "Mrglglgl",

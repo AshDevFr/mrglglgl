@@ -17,7 +17,7 @@ Mrglglgl has two parts:
   app; no account or online service is needed. A remote model you choose (any OpenAI-compatible
   endpoint, such as Ollama, LM Studio or a cloud provider) is optional.
 
-Documentation, with screenshots: **https://ashdevfr.github.io/mrglglgl/**
+Documentation, with screenshots: **https://mrglglgl.pages.dev**
 
 ## Install
 

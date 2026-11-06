@@ -46,9 +46,9 @@ To have entries written, open **Settings**, **Writing**, and choose who writes:
   before anything downloads). Nothing you write leaves your computer. This needs at least 8 GB of
   memory; the app tells you if your computer has less and suggests a model that fits.
 - **An endpoint you run or pay for:** any OpenAI-compatible address, such as Ollama or LM Studio
-  on your own machine, or a cloud provider. See [Your data and privacy](/mrglglgl/guide/your-data/).
+  on your own machine, or a cloud provider. See [Your data and privacy](/guide/your-data/).
 
 ![The Writing tab of Settings: the writing model, narrator, margin notes and writing preferences.](../../assets/screenshots/settings-writing.png)
 
 Finished days are then written in the background, oldest first. Open a character to read them:
-see [Reading your journal](/mrglglgl/guide/reading/).
+see [Reading your journal](/guide/reading/).

@@ -8,7 +8,7 @@ The addon and the app are released separately, each from its own tag on `main`.
 | App | `companion-vX.Y.Z` (prerelease: `companion-vX.Y.Z-beta.N`) | `companion-release.yml` | A GitHub release with the macOS `.dmg` and the Windows installer, and a changelog of the app's own commits |
 
 The documentation site (`docs-site/`, Starlight) is not tagged: `docs.yml` rebuilds it and
-publishes it to GitHub Pages on every push to `main` that touches it or the app's interface. Its
+uploads it to Cloudflare Pages on every push to `main` that touches it or the app's interface. Its
 screenshots are taken in that run from the interface in demo mode (`npm --prefix companion/ui run
 demo` shows the same thing locally; `npm --prefix docs-site run screenshots` takes them).
 

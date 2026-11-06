@@ -36,7 +36,7 @@ happened.
 
 The editor has a field for each part of a narrator: who they are, how they sound, how the murloc
 shows, the worked example, and hints for particular kinds of day. **Preview** writes a sample day
-with the narrator before you save it. See [Narrator files](/mrglglgl/reference/narrator-files/) for
+with the narrator before you save it. See [Narrator files](/reference/narrator-files/) for
 what each field does and what makes a narrator write well.
 
 ![Editing a narrator of your own.](../../../assets/screenshots/narrator-editor.png)

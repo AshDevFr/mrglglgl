@@ -22,4 +22,4 @@ Only accepted entries are exported, never drafts. A day without an entry exports
 ## A website of your journals
 
 The app can also keep a whole website of your journals up to date: see
-[The journal website](/mrglglgl/guide/website/).
+[The journal website](/guide/website/).
