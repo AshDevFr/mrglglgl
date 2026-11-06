@@ -175,6 +175,9 @@ pub fn restore_names(text: &str, aliases: &[Alias]) -> String {
 pub struct Prompt {
     pub system: String,
     pub user: String,
+    /// The user text without the player's rewrite note: what the fact check takes as true. A
+    /// note may name anything, and naming it must not make it a fact.
+    pub facts: String,
     /// Identifies the exact prompt a story was written from.
     pub hash: String,
     /// Whether this prompt asks for a murloc margin note.
@@ -190,6 +193,7 @@ impl Prompt {
         meddling: bool,
         names: &[String],
         pseudonyms: bool,
+        note: &str,
     ) -> Self {
         let present: Vec<String> = names
             .iter()
@@ -205,7 +209,16 @@ impl Prompt {
         } else {
             (user, Vec::new())
         };
+        let note = aliases.iter().fold(note.to_string(), |acc, a| {
+            replace_word(&acc, &a.real, &a.alias)
+        });
+        let facts = if note.is_empty() {
+            user.clone()
+        } else {
+            user.replacen(&note, "", 1)
+        };
         Self {
+            facts,
             hash: sha256_hex(&format!("{system}\u{0}{user}")),
             system,
             user,
@@ -230,6 +243,8 @@ pub struct DayRequest<'a> {
     /// Send companions under stand-in names.
     pub pseudonyms: bool,
     pub thresholds: &'a Thresholds,
+    /// What the player asks of this version, for a rewrite.
+    pub note: Option<&'a str>,
 }
 
 /// What a weekly chapter is built from.
@@ -247,6 +262,8 @@ pub struct WeekRequest<'a> {
     pub meddling: Meddling,
     pub pseudonyms: bool,
     pub thresholds: &'a Thresholds,
+    /// What the player asks of this version, for a rewrite.
+    pub note: Option<&'a str>,
 }
 
 #[derive(Clone, Copy)]
@@ -426,6 +443,28 @@ fn companion_names(records: &[&DayRecord], sheet: &ContinuitySheet) -> Vec<Strin
     names
 }
 
+/// The longest rewrite note sent, in characters.
+pub const NOTE_CHARS: usize = 120;
+
+/// The player's rewrite note as one line before the closing instruction, or nothing. The note
+/// may steer tone, length or focus; the fact rule still decides what may happen in the entry,
+/// and the fact check still holds the result to it.
+fn note_line(note: Option<&str>) -> String {
+    let flat = note
+        .unwrap_or_default()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    if flat.is_empty() {
+        return String::new();
+    }
+    let capped: String = flat.chars().take(NOTE_CHARS).collect();
+    format!(
+        "The player asks this of this version: \"{capped}\". It may change the tone, length or \
+         focus, never the events: every event must still come from the notes above.\n\n"
+    )
+}
+
 /// The prompt for one day's entry.
 pub fn day_prompt(r: &DayRequest) -> Prompt {
     let record = r
@@ -488,7 +527,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         "\nMilestones stamped today: {milestones}\n\n\
          Quests touched today:\n{quests}\n\n\
          Earlier days (memory only, not today):\n{memory}\n\n\
-         Write today's entry in {language}, about {DAY_WORDS} words.",
+         {note}Write today's entry in {language}, about {DAY_WORDS} words.",
         milestones = if milestones_today.is_empty() {
             "none".to_string()
         } else {
@@ -496,6 +535,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         },
         quests = bullets(&quest_lines(r.journal, &record)),
         memory = memory_block(&memory),
+        note = note_line(r.note),
         language = language_name(r.language),
     ));
 
@@ -505,6 +545,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         meddling,
         &companion_names(&[&record], &sheet),
         r.pseudonyms,
+        &note_line(r.note),
     )
 }
 
@@ -584,7 +625,7 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
          Milestones stamped this week: {milestones}\n\n\
          Quests touched this week:\n{quests}\n\n\
          Before this week (memory only):\n{memory}\n\n\
-         Write this week's chapter in {language}, about {WEEK_WORDS} words.",
+         {note}Write this week's chapter in {language}, about {WEEK_WORDS} words.",
         from = dated(r.start_day),
         to = dated(&end),
         adventurer = adventurer(r.journal, level),
@@ -605,6 +646,7 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
         },
         quests = bullets(&quests),
         memory = memory_block(&sheet.memory_lines()),
+        note = note_line(r.note),
         language = language_name(r.language),
     );
     let record_refs: Vec<&DayRecord> = records.iter().collect();
@@ -614,6 +656,7 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
         meddling,
         &companion_names(&record_refs, &sheet),
         r.pseudonyms,
+        &note_line(r.note),
     )
 }
 
@@ -632,6 +675,7 @@ pub fn rewrite_prompt(original: &Prompt, entry: &str, claims: &[String]) -> Prom
         hash: sha256_hex(&format!("{}\u{0}{user}", original.system)),
         system: original.system.clone(),
         user,
+        facts: original.facts.clone(),
         meddling: original.meddling,
         aliases: original.aliases.clone(),
     }

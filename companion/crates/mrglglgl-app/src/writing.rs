@@ -264,6 +264,7 @@ mod tests {
             meddling: Meddling::Sometimes,
             pseudonyms: false,
             thresholds: &Thresholds::default(),
+            note: None,
         });
         let provider = LocalProvider::new(LocalOptions::new(path, "test", reasoning));
         let started = std::time::Instant::now();
@@ -329,6 +330,7 @@ mod tests {
                         meddling: Meddling::Sometimes,
                         pseudonyms: false,
                         thresholds: &Thresholds::default(),
+                        note: None,
                     });
                     let started = std::time::Instant::now();
                     let result = write(

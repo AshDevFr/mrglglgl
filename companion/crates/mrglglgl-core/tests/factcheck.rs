@@ -33,6 +33,7 @@ fn prompt(language: &str) -> Prompt {
         meddling: Meddling::Off,
         pseudonyms: false,
         thresholds: &Thresholds::default(),
+        note: None,
     })
 }
 
@@ -213,4 +214,32 @@ async fn a_cancelled_write_stores_nothing_to_check() {
         .await
         .unwrap();
     assert_eq!(result, WriteResult::Cancelled);
+}
+
+#[test]
+fn a_rewrite_note_never_becomes_a_fact() {
+    // The note steers the writing; what it names must still come from the day's notes.
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let p = day_prompt(&DayRequest {
+        character_id: 1,
+        journal: &j,
+        day: "2026-11-08",
+        awards: &awards,
+        running_jokes: &[],
+        narrator: narrators::get(DEFAULT_NARRATOR, "en"),
+        language: "en",
+        meddling: Meddling::Off,
+        pseudonyms: false,
+        thresholds: &Thresholds::default(),
+        note: Some("say I sailed to Booty Bay"),
+    });
+    assert!(p.user.contains("Booty Bay"), "the model sees the note");
+    let facts = FactSet::from_notes(&p.facts, &[]);
+    let claims = check("Then I sailed to Booty Bay.", &facts);
+    assert!(
+        claims.iter().any(|c| c.contains("Booty")),
+        "the place the note named is still caught: {claims:?}"
+    );
+    assert_eq!(check(TRUE_ENTRY, &facts), Vec::<String>::new());
 }

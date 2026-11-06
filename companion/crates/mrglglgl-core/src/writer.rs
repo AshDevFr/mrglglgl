@@ -150,7 +150,7 @@ pub async fn write(
     sink: Option<&mpsc::Sender<StreamEvent>>,
 ) -> Result<WriteResult, ProviderError> {
     let allowed: Vec<&str> = options.allowed.iter().map(String::as_str).collect();
-    let facts = FactSet::from_notes(&prompt.user, &allowed);
+    let facts = FactSet::from_notes(&prompt.facts, &allowed);
 
     let first = match attempt(provider, prompt, options, cancel, sink).await? {
         Ok(text) => text,

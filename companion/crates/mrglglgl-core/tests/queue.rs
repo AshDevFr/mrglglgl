@@ -461,6 +461,10 @@ async fn a_draft_asked_for_carries_its_note_even_in_automatic_mode() {
     assert_eq!(story.status, StoryStatus::Draft);
     assert_eq!(story.note.as_deref(), Some("shorter, please"));
     assert_eq!(story.narrator, "grumpy_dwarf");
+    assert!(
+        provider.requests()[0].user.contains("\"shorter, please\""),
+        "the note reaches the model"
+    );
 }
 
 #[tokio::test]

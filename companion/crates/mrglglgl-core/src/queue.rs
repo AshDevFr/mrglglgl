@@ -496,6 +496,7 @@ fn prepare(
                 meddling: settings.meddling,
                 pseudonyms,
                 thresholds: &thresholds,
+                note: job.note.as_deref(),
             }),
             job.start_day.clone(),
         ),
@@ -514,6 +515,7 @@ fn prepare(
                     meddling: settings.meddling,
                     pseudonyms,
                     thresholds: &thresholds,
+                    note: job.note.as_deref(),
                 }),
                 prompt::week_days(&job.start_day).pop().unwrap_or_default(),
             )

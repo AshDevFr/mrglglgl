@@ -61,6 +61,7 @@ fn day(
         meddling: Meddling::Sometimes,
         pseudonyms,
         thresholds: &Thresholds::default(),
+        note: None,
     })
 }
 
@@ -82,6 +83,7 @@ fn week(journal: &Journal, awards: &[Award], language: &str, meddling: Meddling)
         meddling,
         pseudonyms: false,
         thresholds: &Thresholds::default(),
+        note: None,
     })
 }
 
@@ -278,6 +280,7 @@ fn companions_can_be_sent_under_stand_in_names() {
             meddling: Meddling::Off,
             pseudonyms,
             thresholds: &all,
+            note: None,
         })
     };
     let plain = request(false);
@@ -331,6 +334,7 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
             meddling: Meddling::Often,
             pseudonyms: false,
             thresholds: &Thresholds::default(),
+            note: None,
         });
         assert!(p.meddling);
         let expected = tested(language, "## System")
@@ -395,4 +399,77 @@ fn five_narrators_ship_and_unknown_ones_fall_back_to_the_scribe() {
         prompt::week_start("2026-11-15").as_deref(),
         Some("2026-11-09")
     );
+}
+
+#[test]
+fn a_rewrite_note_asks_for_tone_and_length_inside_the_fact_rules() {
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let thresholds = Thresholds::default();
+    let base = || DayRequest {
+        character_id: 1,
+        journal: &j,
+        day: "2026-11-08",
+        awards: &awards,
+        running_jokes: &[],
+        narrator: narrators::get(DEFAULT_NARRATOR, "en"),
+        language: "en",
+        meddling: Meddling::Sometimes,
+        pseudonyms: false,
+        thresholds: &thresholds,
+        note: None,
+    };
+    let plain = day_prompt(&base());
+    let noted = day_prompt(&DayRequest {
+        note: Some("  shorter,\nand about the boot  "),
+        ..base()
+    });
+    let line = "The player asks this of this version: \"shorter, and about the boot\". \
+                It may change the tone, length or focus, never the events: every event must \
+                still come from the notes above.";
+    assert!(noted.user.contains(line), "{}", noted.user);
+    let at = noted.user.find(line).unwrap();
+    assert!(at > noted.user.find("What happened today").unwrap());
+    assert!(
+        noted.user[at..].contains("Write today's entry"),
+        "the last instruction stays last"
+    );
+    assert_ne!(noted.hash, plain.hash);
+    assert_eq!(noted.system, plain.system);
+
+    let long = "a".repeat(300);
+    let capped = day_prompt(&DayRequest {
+        note: Some(&long),
+        ..base()
+    });
+    assert!(
+        capped
+            .user
+            .contains(&format!("\"{}\"", "a".repeat(prompt::NOTE_CHARS)))
+    );
+    assert!(!capped.user.contains(&"a".repeat(prompt::NOTE_CHARS + 1)));
+
+    let blank = day_prompt(&DayRequest {
+        note: Some("   "),
+        ..base()
+    });
+    assert_eq!(blank, plain, "a blank note is no note");
+
+    let mut entries = BTreeMap::new();
+    entries.insert("2026-11-09".to_string(), "Quiet plains.".to_string());
+    let chapter = week_prompt(&WeekRequest {
+        character_id: 1,
+        journal: &j,
+        start_day: "2026-11-09",
+        awards: &awards,
+        running_jokes: &[],
+        entries: &entries,
+        narrator: narrators::get(DEFAULT_NARRATOR, "en"),
+        language: "en",
+        meddling: Meddling::Off,
+        pseudonyms: false,
+        thresholds: &Thresholds::default(),
+        note: Some("more about the wolves"),
+    });
+    assert!(chapter.user.contains("\"more about the wolves\""));
 }
