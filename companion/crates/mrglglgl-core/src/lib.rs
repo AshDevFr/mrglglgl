@@ -6,3 +6,4 @@ pub mod db;
 pub mod discovery;
 pub mod schema;
 pub mod sv;
+pub mod watch;
