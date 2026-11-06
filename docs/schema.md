@@ -7,7 +7,11 @@ reads them. The client writes them to disk on logout and `/reload`:
 - `WTF/Account/<account>/<number>/<Firstname>-<Surname>/SavedVariables/Mrglglgl.lua` holds
   `MrglglglCharDB` (one character's journal)
 
-**Current journal schema: 1.** **Current settings schema: 1.**
+**Current journal schema: 1.** **Current settings schema: 2** (version 1 had a 14-day default
+retention and offered 7 days).
+
+The addon's TOC names the journal schema it writes, as `## X-Mrglglgl-Schema: 1`, so the app can
+tell from the installed copy alone whether it will be able to read what that addon records.
 
 ## Versioning rules
 

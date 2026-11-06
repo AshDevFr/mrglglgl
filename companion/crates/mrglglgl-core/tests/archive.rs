@@ -729,3 +729,15 @@ fn the_database_is_snapshotted_weekly_and_four_are_kept() {
         .unwrap();
     assert_eq!(days as usize, synthetic().days.len());
 }
+
+#[test]
+fn the_addons_notes_are_read_without_the_days() {
+    let dir = tempfile::tempdir().unwrap();
+    let (db, id, _) = archived(dir.path());
+    let journal = synthetic();
+    let (heartbeat, errors) = archive::addon_notes(&db, id).unwrap();
+    assert_eq!(heartbeat, journal.addon);
+    assert_eq!(errors, journal.errors);
+    assert!(heartbeat.is_some(), "the sample journal notes its addon");
+    assert_eq!(archive::addon_notes(&db, id + 1).unwrap(), (None, None));
+}

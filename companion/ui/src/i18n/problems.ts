@@ -36,6 +36,10 @@ export const PROBLEMS = [
   "narrators.previewFailed",
   "narrators.fileFailed",
   "site.buildFailed",
+  "addon.problem.newerSchema",
+  "addon.problem.updatePending",
+  "addon.problem.outOfDate",
+  "addon.problem.errors",
 ] as const;
 
 export type Problem = (typeof PROBLEMS)[number];

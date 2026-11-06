@@ -64,6 +64,15 @@ if headers.Version ~= "@project-version@" then
 	fail("TOC version should be the packager keyword @project-version@")
 end
 
+-- The app reads this field to tell whether it can read what the installed addon writes.
+local current
+for line in io.lines("Migrate.lua") do
+	current = current or line:match("^Migrate%.CURRENT = (%d+)")
+end
+if headers["X-Mrglglgl-Schema"] ~= current then
+	fail("TOC X-Mrglglgl-Schema should be the journal schema, " .. tostring(current))
+end
+
 for _, path in ipairs(files) do
 	if not exists(path) then
 		fail("TOC lists " .. path .. ", which does not exist")

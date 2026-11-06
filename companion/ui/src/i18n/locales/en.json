@@ -558,5 +558,34 @@
     "built": "Built {{when}}: {{written}} files written, {{unchanged}} unchanged, {{removed}} removed.",
     "buildFailed": "The website was not built: {{message}}",
     "buildFailedNext": "Check the site folder and the theme folder, then build again. A template error names its file and line."
+  },
+  "addon": {
+    "title": "The addon",
+    "noFlavor": "No WoW: Forever folder found, so there is no addon to look at yet.",
+    "version": "Version {{version}}",
+    "development": "Development copy",
+    "client": "Game version {{version}}",
+    "state": {
+      "notInstalled": "Not installed",
+      "waiting": "Installed",
+      "recording": "Recording",
+      "quiet": "Quiet"
+    },
+    "next": {
+      "notInstalled": "The addon is not in {{folder}}. Install it there, then log in with a character.",
+      "waiting": "Nothing recorded yet. Log in with a character and the addon starts its journal.",
+      "recording": "Last noted by {{character}} on {{when}}.",
+      "quiet": "Nothing noted since {{character}} on {{when}}. If you have played since, check that Mrglglgl is enabled in the AddOns list on the character screen."
+    },
+    "problem": {
+      "newerSchema": "The installed addon writes a journal newer than this app can read",
+      "newerSchemaNext": "Update the app; until then, what the addon records waits in the game's files.",
+      "updatePending": "The game is still running version {{running}}; version {{installed}} is installed",
+      "updatePendingNext": "Type /reload in the game, or log in again, to load the new version.",
+      "outOfDate": "The game is newer than the installed addon, so it lists the addon as out of date",
+      "outOfDateNext": "Update the addon, or tick \"Load out of date AddOns\" on the character screen.",
+      "errors": "The addon caught an error on {{when}}: {{message}}",
+      "errorsNext": "Recording carried on. If it happens again, please report it with this message."
+    }
   }
 }

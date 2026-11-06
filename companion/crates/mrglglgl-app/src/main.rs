@@ -56,6 +56,7 @@ fn main() {
             commands::character_milestones,
             commands::character_screenshots,
             commands::get_settings,
+            commands::addon_status,
             commands::save_settings,
             commands::sync_now,
             commands::delete_character,

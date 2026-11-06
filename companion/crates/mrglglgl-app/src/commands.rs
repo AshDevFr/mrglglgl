@@ -5,6 +5,7 @@
 
 use std::collections::BTreeMap;
 
+use mrglglgl_core::addon_status::{self, CharacterRun, FlavorAddon};
 use mrglglgl_core::archive;
 use mrglglgl_core::db::{Settings, StoredCharacter};
 use mrglglgl_core::discovery::{self, DiscoveryOverrides, WowRoot};
@@ -130,6 +131,54 @@ pub fn get_settings(state: State<'_, AppState>) -> Result<SettingsView, String> 
         wow_root: settings.wow_root_override.clone(),
     });
     Ok(SettingsView { settings, roots })
+}
+
+/// The addon in each WoW: Forever flavor found: installed or not, which version, and whether it
+/// has been recording, from the installed TOC and what the addon noted in the archived journals.
+#[tauri::command]
+pub fn addon_status(state: State<'_, AppState>) -> Result<Vec<FlavorAddon>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let settings = db.settings().map_err(|e| e.to_string())?;
+    let characters = db.characters().map_err(|e| e.to_string())?;
+    let mut notes = Vec::new();
+    for character in &characters {
+        let (heartbeat, errors) =
+            archive::addon_notes(&db, character.id).map_err(|e| e.to_string())?;
+        notes.push((character, heartbeat, errors));
+    }
+    let now = mrglglgl_core::watch::now_unix();
+    let mut found = Vec::new();
+    for root in discovery::discover(&DiscoveryOverrides {
+        wow_root: settings.wow_root_override.clone(),
+    }) {
+        for flavor in discovery::flavors(&root) {
+            if !addon_status::is_forever(&flavor) {
+                continue;
+            }
+            let client = addon_status::product(&flavor)
+                .and_then(|product| addon_status::client_version(&root.path, &product));
+            let runs: Vec<CharacterRun<'_>> = notes
+                .iter()
+                .filter(|(character, _, _)| character.journal_path.starts_with(&flavor.path))
+                .map(|(character, heartbeat, errors)| CharacterRun {
+                    character: character
+                        .name
+                        .as_deref()
+                        .unwrap_or(&character.character_folder),
+                    heartbeat: heartbeat.as_ref(),
+                    errors: errors.as_ref(),
+                })
+                .collect();
+            found.push(addon_status::assess(
+                &flavor,
+                client,
+                addon_status::installed(&flavor),
+                &runs,
+                now,
+            ));
+        }
+    }
+    Ok(found)
 }
 
 #[tauri::command]

@@ -509,6 +509,26 @@ pub fn load(db: &Database, character_id: i64) -> Result<Option<Journal>, Archive
     Ok(load_checked(db, character_id)?.map(|loaded| loaded.journal))
 }
 
+/// What the addon last noted in a character's journal: its login heartbeat and the errors it
+/// caught. Reads the journal's record only, not its days.
+pub fn addon_notes(
+    db: &Database,
+    character_id: i64,
+) -> Result<(Option<AddonHeartbeat>, Option<AddonErrors>), ArchiveError> {
+    let record: Option<(String, i64)> = db
+        .conn()
+        .query_row(
+            "SELECT data_json, format FROM archive_journals WHERE character_id = ?1",
+            [character_id],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .optional()?;
+    Ok(record
+        .and_then(|(json, format)| read_row::<JournalRecord>(&json, format))
+        .map(|record| (record.addon, record.errors))
+        .unwrap_or_default())
+}
+
 /// The archived journal, with the days that could not be read.
 pub fn load_checked(db: &Database, character_id: i64) -> Result<Option<Loaded>, ArchiveError> {
     let conn = db.conn();

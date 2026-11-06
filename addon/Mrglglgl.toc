@@ -3,6 +3,7 @@
 ## Notes: Quietly keeps a soggy journal of your character's life, for the Mrglglgl app to write up.
 ## Author: AshDevFr
 ## Version: @project-version@
+## X-Mrglglgl-Schema: 1
 ## X-Website: https://github.com/AshDevFr/mrglglgl
 ## SavedVariables: MrglglglDB
 ## SavedVariablesPerCharacter: MrglglglCharDB

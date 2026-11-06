@@ -4,6 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { getSettings, saveSettings } from "@/api/commands";
 import type { Settings } from "@/bindings/Settings";
+import { AddonPanel } from "@/components/AddonPanel";
 import { ModelsPanel } from "@/components/ModelsPanel";
 import { NarratorsPanel } from "@/components/NarratorsPanel";
 import { PaperField } from "@/components/PaperField";
@@ -47,6 +48,7 @@ export function SettingsPage() {
           <ZoomField />
           <ModelsPanel onChoose={(id) => void choose(id)} />
           <SettingsForm view={view.data} onSave={save} />
+          <AddonPanel />
           <NarratorsPanel
             onEdit={(narratorId) =>
               navigate({

@@ -7,6 +7,7 @@ import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
 import type { ExportFormat } from "@/bindings/ExportFormat";
 import type { ExportPage } from "@/bindings/ExportPage";
+import type { FlavorAddon } from "@/bindings/FlavorAddon";
 import type { Journal } from "@/bindings/Journal";
 import type { ModelsView } from "@/bindings/ModelsView";
 import type { Narrator } from "@/bindings/Narrator";
@@ -61,6 +62,10 @@ export function characterScreenshots(
 /** A URL the window may load a local screenshot from. */
 export function screenshotUrl(path: string): string {
   return convertFileSrc(path);
+}
+
+export function addonStatus(): Promise<FlavorAddon[]> {
+  return invoke<FlavorAddon[]>("addon_status");
 }
 
 export function getSettings(): Promise<SettingsView> {
