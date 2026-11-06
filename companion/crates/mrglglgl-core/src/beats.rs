@@ -133,7 +133,11 @@ pub struct DayRecord {
     pub anon_kills: i64,
     pub deaths: Vec<DeathLine>,
     pub fish: i64,
+    /// Junk among the fish, boots included.
+    pub junk: i64,
     pub boots: i64,
+    /// Murlocs slain; exact even when a digest lists only some kills.
+    pub murlocs: i64,
     pub catches: Vec<CatchLine>,
     pub loot: Vec<LootLine>,
     /// Character names without their realm.
@@ -269,7 +273,12 @@ impl DayRecord {
                         murloc: k.murloc,
                     })
                     .collect();
-                r.anon_kills = d.counts.anon_kills;
+                // A digest's lists are highlights and its counts are exact: kills beyond the
+                // listed ones are told as other creatures.
+                let listed: i64 = d.kills.iter().map(|k| k.count).sum();
+                r.anon_kills =
+                    d.counts.anon_kills + (d.counts.kills - d.counts.anon_kills - listed).max(0);
+                r.murlocs = d.counts.murlocs;
                 r.deaths = d
                     .deaths
                     .iter()
@@ -280,7 +289,16 @@ impl DayRecord {
                         place: place(&death.zone, &death.subzone),
                     })
                     .collect();
+                // Deaths beyond the listed ones are told without a cause.
+                let unlisted = (d.counts.deaths - r.deaths.len() as i64).max(0);
+                r.deaths.extend((0..unlisted).map(|_| DeathLine {
+                    killer: None,
+                    murloc: false,
+                    environment: None,
+                    place: None,
+                }));
                 r.fish = d.counts.fish;
+                r.junk = d.counts.junk;
                 r.boots = d.counts.boots;
                 r.catches = d
                     .fish
@@ -385,6 +403,8 @@ impl DayRecord {
             }
         }
         r.catches = catches.into_iter().map(|(_, line)| line).collect();
+        r.junk = r.catches.iter().filter(|c| c.junk).map(|c| c.count).sum();
+        r.murlocs = r.kills.iter().filter(|k| k.murloc).map(|k| k.count).sum();
         r.sort_kills();
         r
     }
@@ -395,11 +415,7 @@ impl DayRecord {
     }
 
     pub fn murloc_kills(&self) -> i64 {
-        self.kills
-            .iter()
-            .filter(|k| k.murloc)
-            .map(|k| k.count)
-            .sum()
+        self.murlocs
     }
 
     /// Every place the day touched.
@@ -826,17 +842,8 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
     if record.fish > 0 {
         let streak = fishing_streak(journal, day);
         beats.push(Beat::Fishing {
-            fish: record
-                .catches
-                .iter()
-                .filter(|c| !c.junk)
-                .map(|c| c.count)
-                .sum::<i64>()
-                .max(if record.catches.is_empty() {
-                    record.fish
-                } else {
-                    0
-                }),
+            // From the counts, which are exact; a digest lists only some catches.
+            fish: record.fish - record.junk,
             junk: record
                 .catches
                 .iter()

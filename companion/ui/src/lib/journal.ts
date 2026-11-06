@@ -232,7 +232,15 @@ function eventFacts(
       kills,
       notable: kills.filter((k) => NOTABLE.has(k.classification)),
       murlocs: d?.counts.murlocs ?? 0,
-      anonKills: d?.counts.anonKills ?? 0,
+      // A digest lists only the main kills; the rest are counted as nameless foes.
+      anonKills:
+        (d?.counts.anonKills ?? 0) +
+        Math.max(
+          0,
+          (d?.counts.kills ?? 0) -
+            (d?.counts.anonKills ?? 0) -
+            kills.reduce((n, k) => n + k.count, 0),
+        ),
       deaths: (d?.deaths ?? []).map((death) => ({
         killer: death.killer?.name ?? null,
         environment: death.environment,

@@ -340,6 +340,64 @@ fn a_compacted_day_is_read_from_its_digest() {
 }
 
 #[test]
+fn a_thin_digest_is_told_from_its_exact_counts() {
+    // An old day: the digest keeps highlights in its lists, and the counts stay exact.
+    let day = Day {
+        events: None,
+        digest: Some(Digest {
+            version: 2,
+            thin: true,
+            counts: DigestCounts {
+                kills: 40,
+                anon_kills: 2,
+                murlocs: 15,
+                deaths: 3,
+                fish: 12,
+                junk: 2,
+                ..DigestCounts::default()
+            },
+            kills: vec![mrglglgl_core::schema::DigestKill {
+                npc_id: Some(126),
+                name: Some("Murloc Coastrunner".into()),
+                count: 10,
+                classification: "normal".into(),
+                murloc: true,
+            }],
+            deaths: vec![DigestDeath {
+                killer: Some(Killer {
+                    name: Some("Murloc Coastrunner".into()),
+                    npc_id: Some(126),
+                    murloc: true,
+                }),
+                environment: None,
+                zone: Some("Westfall".into()),
+                subzone: None,
+            }],
+            ..Digest::default()
+        }),
+        ..Day::default()
+    };
+    let record = DayRecord::of(&day);
+    assert_eq!(record.murloc_kills(), 15, "the count, not the listed 10");
+    assert_eq!(record.deaths.len(), 3);
+    let j = journal(vec![("2026-08-01", day)]);
+    let day = beats::extract(&j, "2026-08-01", &[], &Thresholds::default());
+    let texts = day.texts();
+    assert!(
+        texts.contains(&"Killed Murloc Coastrunner ×10 and 30 other creatures".to_string()),
+        "{texts:?}"
+    );
+    assert!(texts.contains(&"Died to a Murloc Coastrunner in Westfall".to_string()));
+    assert!(texts.contains(&"Died (2 times)".to_string()), "{texts:?}");
+    assert!(
+        texts.contains(&"Went fishing and caught 10 fish".to_string()),
+        "{texts:?}"
+    );
+    assert!(day.patterns.contains(&Pattern::MurlocHeavy));
+    assert!(day.patterns.contains(&Pattern::ManyDeaths));
+}
+
+#[test]
 fn a_day_missing_from_the_journal_has_no_beats() {
     let j = journal(vec![]);
     assert!(
