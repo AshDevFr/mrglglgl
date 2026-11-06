@@ -8,7 +8,7 @@ globals = { "MrglglglDB", "MrglglglCharDB" }
 
 -- Client API the addon reads. Each is documented in docs/forever-api.md.
 read_globals = {
-	"C_DeathRecap", "C_Item", "C_Map", "C_QuestLog", "C_Timer",
+	"C_ChatInfo", "C_DeathRecap", "C_Item", "C_Map", "C_QuestLog", "C_Timer",
 	"CreateFrame", "GetBuildInfo", "GetLocale", "GetLootSlotLink", "GetNumGroupMembers", "GetNumLootItems",
 	"GetItemInfo", "GetQuestID", "GetQuestText", "GetRealmID", "GetRealmName", "GetSubZoneText", "GetTime", "GetTitleText",
 	"GetZoneText", "IsFishingLoot", "IsInGroup", "IsInRaid", "Screenshot", "Settings", "SlashCmdList",

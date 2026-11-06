@@ -46,6 +46,26 @@ end
 
 local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
 
+-- Returns name, quality for an item link, or nil while the item is not cached yet; the client then
+-- sends GET_ITEM_INFO_RECEIVED with the item ID.
+function Compat.GetItemNameAndQuality(itemLink)
+	local name, _, quality = GetItemInfo(itemLink)
+	if name == nil then
+		return nil
+	end
+	return name, quality
+end
+
+function Compat.ItemIdFromLink(itemLink)
+	return tonumber(itemLink:match("item:(%d+)"))
+end
+
+-- True while the client withholds chat text from addons (dungeons, raids, encounters, PvP).
+function Compat.InChatLockdown()
+	return C_ChatInfo ~= nil and C_ChatInfo.InChatMessagingLockdown ~= nil
+		and C_ChatInfo.InChatMessagingLockdown() == true
+end
+
 local function hints(key)
 	local list = {}
 	for hint in L[key]:gmatch("[^|]+") do

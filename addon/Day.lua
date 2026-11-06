@@ -20,24 +20,31 @@ function Day.get(journal, key)
 	return day
 end
 
--- Appends an event of kind k to the day it happens in, stamped with time, zone, subzone, map ID
--- and level. fields may add or override any of them. Callers check the recording gate first.
-function Day.append(kind, fields)
-	local t = time()
-	local event = {
-		t = t,
-		k = kind,
+-- Where and when the player is now: the stamp every event carries. Taken early for an event that
+-- can only be appended later, so it records where it happened rather than where the player is
+-- by then.
+function Day.snapshot()
+	return {
+		t = time(),
 		z = GetZoneText(),
 		sz = GetSubZoneText(),
 		m = C_Map.GetBestMapForUnit("player"),
 		lv = UnitLevel("player"),
 	}
+end
+
+-- Appends an event of kind k to the day it happens in, stamped with time, zone, subzone, map ID
+-- and level. fields may add or override any of them; an event completed later passes the
+-- snapshot taken when it happened, and lands in that day. Callers check the recording gate.
+function Day.append(kind, fields)
+	local event = Day.snapshot()
+	event.k = kind
 	if fields then
 		for key, value in pairs(fields) do
 			event[key] = value
 		end
 	end
-	local events = Day.get(ns.Storage.journal(), Day.key(t)).ev
+	local events = Day.get(ns.Storage.journal(), Day.key(event.t)).ev
 	events[#events + 1] = event
 	return event
 end

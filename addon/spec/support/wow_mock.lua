@@ -153,6 +153,11 @@ function Mock.install()
 	_G.C_QuestLog = { GetTitleForQuestID = function(id) return Mock.questTitles[id] end }
 	_G.SelectQuestLogEntry = function() Mock.questLogSelections = Mock.questLogSelections + 1 end
 	_G.C_QuestLog.SetSelectedQuest = _G.SelectQuestLogEntry
+	Mock.loot, Mock.fishing, Mock.chatLockdown = {}, false, false
+	_G.GetNumLootItems = function() return #Mock.loot end
+	_G.GetLootSlotLink = function(slot) return Mock.loot[slot] end
+	_G.IsFishingLoot = function() return Mock.fishing end
+	_G.C_ChatInfo = { InChatMessagingLockdown = function() return Mock.chatLockdown end }
 	_G.Screenshot = function() Mock.screenshots = Mock.screenshots + 1 end
 	_G.Settings = {
 		RegisterCanvasLayoutCategory = function(frame, name) return { frame = frame, name = name } end,
