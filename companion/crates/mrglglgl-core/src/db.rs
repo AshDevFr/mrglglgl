@@ -44,6 +44,28 @@ const MIGRATIONS: &[&str] = &[
         last_synced INTEGER,
         UNIQUE (flavor, account, realm_folder, character_folder)
     );",
+    // The archive: everything the app has seen of each character, so in-game retention can stay
+    // short and a character survives its game files. A day is stored whole as JSON; it is only
+    // ever read whole. `status` records why a character's latest journal could not be read.
+    "ALTER TABLE characters ADD COLUMN status TEXT;
+    CREATE TABLE archive_days (
+        character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+        day TEXT NOT NULL,
+        data_json TEXT NOT NULL,
+        source_mtime INTEGER NOT NULL,
+        PRIMARY KEY (character_id, day)
+    );
+    CREATE TABLE archive_journals (
+        character_id INTEGER PRIMARY KEY REFERENCES characters(id) ON DELETE CASCADE,
+        data_json TEXT NOT NULL,
+        source_mtime INTEGER NOT NULL
+    );
+    CREATE TABLE milestones (
+        character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+        id TEXT NOT NULL,
+        day TEXT NOT NULL,
+        PRIMARY KEY (character_id, id)
+    );",
 ];
 
 /// The schema version this build creates and understands.
@@ -104,6 +126,8 @@ pub struct StoredCharacter {
     pub locale: Option<String>,
     /// Unix time the journal file was last read.
     pub last_synced: Option<i64>,
+    /// Why the latest journal could not be read (`"older"`, `"newer"`, `"unreadable"`), if so.
+    pub status: Option<String>,
 }
 
 pub struct Database {
@@ -127,6 +151,10 @@ impl Database {
     /// An in-memory database, for tests and previews.
     pub fn open_in_memory() -> Result<Self, DbError> {
         Self::prepare(Connection::open_in_memory()?)
+    }
+
+    pub(crate) fn conn(&self) -> &Connection {
+        &self.conn
     }
 
     fn prepare(mut conn: Connection) -> Result<Self, DbError> {
@@ -237,7 +265,7 @@ impl Database {
     pub fn characters(&self) -> Result<Vec<StoredCharacter>, DbError> {
         let mut stmt = self.conn.prepare(
             "SELECT id, flavor, account, realm_folder, character_folder, journal_path, name,
-                    surname, realm, race, class, faction, locale, last_synced
+                    surname, realm, race, class, faction, locale, last_synced, status
              FROM characters
              ORDER BY flavor, account, coalesce(realm, realm_folder), coalesce(name, character_folder)",
         )?;
@@ -257,9 +285,33 @@ impl Database {
                 faction: row.get(11)?,
                 locale: row.get(12)?,
                 last_synced: row.get(13)?,
+                status: row.get(14)?,
             })
         })?;
         Ok(rows.collect::<Result<_, _>>()?)
+    }
+}
+
+impl Database {
+    /// Records why a character's latest journal could not be read, or clears it.
+    pub fn set_character_status(&self, id: i64, status: Option<&str>) -> Result<(), DbError> {
+        self.conn.execute(
+            "UPDATE characters SET status = ?2 WHERE id = ?1",
+            params![id, status],
+        )?;
+        Ok(())
+    }
+
+    /// Forgets a character and everything archived for it. Backups on disk are the archive's to
+    /// remove.
+    pub fn delete_character(&self, id: i64) -> Result<(), DbError> {
+        self.conn
+            .execute("DELETE FROM characters WHERE id = ?1", [id])?;
+        Ok(())
+    }
+
+    pub fn character(&self, id: i64) -> Result<Option<StoredCharacter>, DbError> {
+        Ok(self.characters()?.into_iter().find(|c| c.id == id))
     }
 }
 

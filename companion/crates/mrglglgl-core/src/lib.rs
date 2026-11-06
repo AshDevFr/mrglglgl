@@ -2,6 +2,7 @@
 //! Mrglglgl addon writes, and keeping the journal archive. It never writes under the WoW folder
 //! and never executes Lua.
 
+pub mod archive;
 pub mod db;
 pub mod discovery;
 pub mod schema;
