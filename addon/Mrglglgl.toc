@@ -26,3 +26,4 @@ Loot.lua
 Group.lua
 Digest.lua
 Compact.lua
+Slash.lua
