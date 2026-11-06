@@ -20,7 +20,7 @@ homepage = "https://github.com/AshDevFr/mrglglgl"
 # Workspace crates (one crate per concern; new domains get their own
 # mrglglgl-* crate declared here and consumed with `workspace = true`)
 mrglglgl-core = { path = "crates/mrglglgl-core" }
-mrglglgl-llm = { path = "crates/mrglglgl-llm" }
+mrglglgl-llm = { path = "crates/mrglglgl-llm", default-features = false }
 
 # Desktop shell
 tauri = { version = "2.12", features = ["protocol-asset"] }
@@ -33,7 +33,12 @@ ts-rs = "12"
 
 # Runtime
 tokio = { version = "1", features = ["full"] }
+tokio-util = "0.7"
 async-trait = "0.1"
+
+# Local inference: llama.cpp, CPU only. Default features add OpenMP and the `common` library,
+# neither needed for plain generation.
+llama-cpp-2 = { version = "0.1.161", default-features = false }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -44,6 +49,10 @@ anyhow = "1"
 thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# HTTP: model downloads and OpenAI-compatible endpoints. rustls avoids a system OpenSSL.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
+futures-util = "0.3"
 
 # Storage and files
 rusqlite = { version = "0.41", features = ["bundled"] }

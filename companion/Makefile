@@ -63,6 +63,10 @@ core-test: ## Run one mrglglgl-core integration test target: make core-test T=sv
 	@test -n "$(T)" || { echo "T is empty"; exit 1; }
 	$(CARGO) test -p mrglglgl-core --test $(T) $(CARGO_JOBS)
 
+llm-test: ## Run one mrglglgl-llm integration test target: make llm-test T=provider
+	@test -n "$(T)" || { echo "T is empty"; exit 1; }
+	$(CARGO) test -p mrglglgl-llm --test $(T) $(CARGO_JOBS)
+
 check: ui-build ui-lint ## Build, lint and test everything
 	cargo fmt --all -- --check
 	$(CARGO) build --workspace $(CARGO_JOBS)
