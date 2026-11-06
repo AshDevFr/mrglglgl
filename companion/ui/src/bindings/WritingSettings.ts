@@ -24,6 +24,11 @@ pseudonyms: boolean,
  */
 writeWhilePlaying: boolean, 
 /**
+ * Write in the background while the computer runs on battery. Off by default: a minute of
+ * full processor per entry drains a laptop.
+ */
+writeOnBattery: boolean, 
+/**
  * The background queue is paused.
  */
 paused: boolean, 

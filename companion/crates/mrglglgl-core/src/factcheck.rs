@@ -315,6 +315,12 @@ impl FactSet {
     }
 }
 
+/// The narrator's "I", and its contractions.
+fn is_i(word: &str) -> bool {
+    let w = word.replace('’', "'");
+    w == "I" || w.starts_with("I'")
+}
+
 fn capitalised(word: &str) -> bool {
     word.chars().next().is_some_and(char::is_uppercase)
 }
@@ -344,9 +350,17 @@ pub fn check(entry: &str, facts: &FactSet) -> Vec<String> {
             i += 1;
             continue;
         }
-        // A run of capitalised words is one name.
+        // A run of capitalised words is one name. "I" is never part of one ("Though I").
+        if is_i(word) {
+            i += 1;
+            continue;
+        }
         let mut end = i + 1;
-        while end < words.len() && capitalised(&words[end].0) && !words[end].1 {
+        while end < words.len()
+            && capitalised(&words[end].0)
+            && !words[end].1
+            && !is_i(&words[end].0)
+        {
             end += 1;
         }
         let mut run: Vec<&str> = words[i..end].iter().map(|(w, _)| w.as_str()).collect();

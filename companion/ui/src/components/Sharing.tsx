@@ -16,6 +16,7 @@ import {
 } from "@/api/commands";
 import type { ExportedFiles } from "@/bindings/ExportedFiles";
 import type { Story } from "@/bindings/Story";
+import { problem } from "@/i18n/problems";
 
 /** Copies an entry, with its day and the footer, as plain text. */
 export function CopyEntryButton({ story }: { story: Story }) {
@@ -31,13 +32,21 @@ export function CopyEntryButton({ story }: { story: Story }) {
     }
   }
   return (
-    <Button size="xs" variant="subtle" color="gray" onClick={() => void copy()}>
-      {state === "copied"
-        ? t("share.copied")
-        : state === "failed"
-          ? t("share.copyFailed")
-          : t("share.copy")}
-    </Button>
+    <>
+      <Button
+        size="xs"
+        variant="subtle"
+        color="gray"
+        onClick={() => void copy()}
+      >
+        {state === "copied" ? t("share.copied") : t("share.copy")}
+      </Button>
+      {state === "failed" && (
+        <Text size="xs" c="red" role="status">
+          {problem(t, "share.copyFailed")}
+        </Text>
+      )}
+    </>
   );
 }
 
@@ -89,7 +98,7 @@ export function ExportDialog({
         />
         {error && (
           <Alert color="red">
-            {t("share.exportFailed", { message: error })}
+            {problem(t, "share.exportFailed", { message: error })}
           </Alert>
         )}
         {done && (

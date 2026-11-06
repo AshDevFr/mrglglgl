@@ -42,7 +42,7 @@ pub struct WritingStatus {
     /// This character's waiting and failed jobs.
     pub jobs: Vec<Job>,
     /// Why nothing is being written, if something stands in the way: `"paused"`, `"noModel"`,
-    /// `"noEndpoint"` or `"gameRunning"`.
+    /// `"noEndpoint"`, `"gameRunning"` or `"onBattery"`.
     pub blocked: Option<String>,
 }
 
@@ -71,6 +71,8 @@ pub fn writing_status(
         })
     } else if !settings.writing.write_while_playing && !jobs.is_empty() && writing::game_running() {
         Some("gameRunning")
+    } else if !settings.writing.write_on_battery && !jobs.is_empty() && crate::power::on_battery() {
+        Some("onBattery")
     } else {
         None
     };

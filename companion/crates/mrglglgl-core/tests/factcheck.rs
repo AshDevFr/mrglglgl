@@ -62,6 +62,14 @@ fn an_entry_that_sticks_to_the_notes_passes() {
     let real = "The air in Red Rocks tasted of dust, a place I've never seen before. I'm sure I'll \
         be back, and I'd bring a lantern.";
     assert_eq!(check(real, &facts), Vec::<String>::new());
+    // From the narrator samples: a sentence opener followed by "I" is not a name.
+    assert_eq!(
+        check(
+            "Though I fell, I rose. Finally I rested in Red Rocks. Still, I'd do it again.",
+            &facts
+        ),
+        Vec::<String>::new()
+    );
     let whole = "The air in Red Rocks tasted of dust, a place I've never seen before where Prairie \
         Wolves waited like grumpy neighbors. I spent the morning clearing the path, killing \
         twenty-three of them and a Murloc Streamrunner, until the elite Flatland Cougar decided to \
@@ -171,6 +179,28 @@ async fn reasoning_blocks_and_padding_are_stripped() {
         result,
         WriteResult::Written { ref text, check: CheckStatus::Passed, .. } if text == TRUE_ENTRY
     ));
+}
+
+#[tokio::test]
+async fn a_copied_notes_paragraph_and_entry_label_are_dropped() {
+    // Shapes Qwen3.5 4B produced in the narrator samples, copying the worked example's layout.
+    let p = prompt("en");
+    let shapes = [
+        format!("Notes: Killed 23 Prairie Wolf, died in Red Rocks.\n\nEntry:\n{TRUE_ENTRY}"),
+        format!("Notes: Killed 23 Prairie Wolf.\nEntry: {TRUE_ENTRY}"),
+        format!("Notes: Killed 23 Prairie Wolf, died in Red Rocks.\n\n{TRUE_ENTRY}"),
+        format!("Notes : Pêche dans Mulgore.\n\nEntrée :\n{TRUE_ENTRY}"),
+    ];
+    for shape in shapes {
+        let provider = FakeProvider::new([shape.as_str()]);
+        let result = write(&provider, &p, &options(), &CancellationToken::new(), None)
+            .await
+            .unwrap();
+        assert!(
+            matches!(&result, WriteResult::Written { text, .. } if text == TRUE_ENTRY),
+            "{shape:?} gave {result:?}"
+        );
+    }
 }
 
 #[tokio::test]

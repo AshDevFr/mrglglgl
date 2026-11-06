@@ -2,6 +2,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  useNavigate,
 } from "@tanstack/react-router";
 import { Layout } from "@/Layout";
 import { CharacterPage } from "@/pages/CharacterPage";
@@ -15,7 +16,10 @@ const rootRoute = createRootRoute({ component: Layout });
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
-  component: HomePage,
+  component: function Home() {
+    const navigate = useNavigate();
+    return <HomePage onOpenSettings={() => navigate({ to: "/settings" })} />;
+  },
 });
 
 const characterRoute = createRoute({

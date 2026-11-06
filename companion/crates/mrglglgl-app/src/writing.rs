@@ -192,6 +192,10 @@ pub async fn run(app: AppHandle) {
             queue::idle(&control, GAME_CHECK).await;
             continue;
         }
+        if !settings.writing.write_on_battery && crate::power::on_battery() {
+            queue::idle(&control, GAME_CHECK).await;
+            continue;
+        }
         let Some(provider) = provider(&state, &settings) else {
             queue::idle(&control, IDLE_CHECK).await;
             continue;
@@ -280,5 +284,99 @@ mod tests {
         .unwrap();
         eprintln!("took {:?}\n{result:#?}", started.elapsed());
         assert!(matches!(result, WriteResult::Written { .. }));
+    }
+
+    /// Samples for the owner's prose review: every day of the shared fixture, written by each
+    /// shipped narrator in English and French through the real pipeline, one plain text file per
+    /// entry named `<narrator>-<day>-<lang>.txt`, with the fact check's outcome on the first line.
+    ///
+    /// Run by hand, since it takes a model and some minutes:
+    /// `MRGLGLGL_TEST_MODEL=<gguf> MRGLGLGL_TEST_MODEL_REASONING=1 MRGLGLGL_SAMPLES_DIR=<folder>
+    /// cargo test -p mrglglgl-app narrator_samples -- --ignored --nocapture`
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    #[ignore = "writes samples with a real model; needs MRGLGLGL_TEST_MODEL and MRGLGLGL_SAMPLES_DIR"]
+    async fn narrator_samples() {
+        let (Some(path), Some(out)) = (
+            std::env::var_os("MRGLGLGL_TEST_MODEL"),
+            std::env::var_os("MRGLGLGL_SAMPLES_DIR"),
+        ) else {
+            eprintln!("skipped: set MRGLGLGL_TEST_MODEL and MRGLGLGL_SAMPLES_DIR");
+            return;
+        };
+        let out = std::path::PathBuf::from(out);
+        std::fs::create_dir_all(&out).unwrap();
+        let reasoning = std::env::var_os("MRGLGLGL_TEST_MODEL_REASONING").is_some();
+        let text = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../../fixtures/savedvariables/synthetic-character.lua"),
+        )
+        .unwrap();
+        let journal = schema::journal_from_text(&text).unwrap();
+        let awards = milestones::compute(&journal);
+        let provider = LocalProvider::new(LocalOptions::new(path, "samples", reasoning));
+        let mut summary = Vec::new();
+        for narrator in narrators::list() {
+            for language in ["en", "fr"] {
+                for day in journal.days.keys() {
+                    let prompt = day_prompt(&DayRequest {
+                        character_id: 1,
+                        journal: &journal,
+                        day,
+                        awards: &awards,
+                        running_jokes: &[],
+                        narrator: narrators::get(&narrator.id, language),
+                        language,
+                        meddling: Meddling::Sometimes,
+                        pseudonyms: false,
+                        thresholds: &Thresholds::default(),
+                    });
+                    let started = std::time::Instant::now();
+                    let result = write(
+                        &provider,
+                        &prompt,
+                        &WriteOptions {
+                            language: language.to_string(),
+                            max_tokens: 400,
+                            temperature: mrglglgl_llm::DEFAULT_TEMPERATURE,
+                            timeout: Duration::from_secs(600),
+                            allowed: vec!["Horde".into()],
+                        },
+                        &CancellationToken::new(),
+                        None,
+                    )
+                    .await;
+                    let seconds = started.elapsed().as_secs_f32();
+                    let (first_line, body) = match result {
+                        Ok(WriteResult::Written {
+                            text,
+                            check,
+                            reason,
+                        }) => (
+                            match reason {
+                                Some(r) => format!("fact check: {} ({r})", check.key()),
+                                None => format!("fact check: {}", check.key()),
+                            },
+                            text,
+                        ),
+                        Ok(other) => (format!("not written: {other:?}"), String::new()),
+                        Err(e) => (format!("not written: {e}"), String::new()),
+                    };
+                    let name = format!("{}-{day}-{language}.txt", narrator.id);
+                    let margin = if prompt.meddling {
+                        "margin note asked for"
+                    } else {
+                        "no margin note asked for"
+                    };
+                    std::fs::write(
+                        out.join(&name),
+                        format!("{first_line}\n{margin}; {seconds:.1} s\n\n{body}\n"),
+                    )
+                    .unwrap();
+                    eprintln!("{name}: {first_line} in {seconds:.1} s");
+                    summary.push(format!("{name}\t{first_line}\t{seconds:.1} s"));
+                }
+            }
+        }
+        std::fs::write(out.join("summary.tsv"), summary.join("\n") + "\n").unwrap();
     }
 }

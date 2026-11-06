@@ -82,6 +82,28 @@ fn clean(text: &str) -> String {
         }
         out.replace_range(start..end + "</think>".len(), "");
     }
+    // Small models sometimes copy the worked example's layout: a "Notes:" paragraph restating
+    // the notes, then an "Entry:" label. Only what follows the label is the entry.
+    let is_label = |line: &str, word: &str| {
+        let l = line.trim().to_lowercase();
+        l.strip_prefix(word)
+            .is_some_and(|rest| rest.trim_start().starts_with(':'))
+    };
+    let lines: Vec<&str> = out.lines().collect();
+    if let Some(at) = lines
+        .iter()
+        .position(|l| is_label(l, "entry") || is_label(l, "entrée"))
+    {
+        let label = lines[at];
+        let after = label.split_once(':').map_or("", |(_, rest)| rest);
+        out = std::iter::once(after)
+            .chain(lines[at + 1..].iter().copied())
+            .collect::<Vec<_>>()
+            .join("\n");
+    } else if lines.first().is_some_and(|l| is_label(l, "notes")) {
+        let rest = out.split_once("\n\n").map_or("", |(_, rest)| rest);
+        out = rest.to_string();
+    }
     out.trim().to_string()
 }
 
