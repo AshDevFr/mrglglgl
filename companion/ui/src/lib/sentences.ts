@@ -103,6 +103,13 @@ export function daySentences(
     if (facts.boots > 0)
       sentences.push(t("page.keptBoot", { count: facts.boots }));
   }
+  if (facts.seenLoot.length > 0) {
+    sentences.push(
+      t("page.sawDrop", {
+        list: list(facts.seenLoot.map((name) => one(name))),
+      }),
+    );
+  }
   if (facts.loot.length > 0) {
     sentences.push(
       t("page.found", { list: list(facts.loot.map((name) => one(name))) }),

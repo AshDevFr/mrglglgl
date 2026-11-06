@@ -116,6 +116,8 @@ fn is_profession(id: Option<i64>, category: Option<&str>) -> bool {
 pub struct LootLine {
     pub name: Option<String>,
     pub quality: Option<i64>,
+    /// Seen in a group loot window: it dropped, not necessarily for the adventurer.
+    pub seen: bool,
 }
 
 /// One day's facts in one shape, from raw events when the archive has them and from the digest
@@ -331,6 +333,7 @@ impl DayRecord {
                     .map(|l| LootLine {
                         name: l.name.clone(),
                         quality: l.quality,
+                        seen: l.seen,
                     })
                     .collect();
                 r.companions = d.companions.iter().map(|c| companion_name(c)).collect();
@@ -402,9 +405,15 @@ impl DayRecord {
                         )),
                     }
                 }
-                EventKind::Loot { name, quality, .. } => r.loot.push(LootLine {
+                EventKind::Loot {
+                    name,
+                    quality,
+                    seen,
+                    ..
+                } => r.loot.push(LootLine {
                     name: name.clone(),
                     quality: *quality,
+                    seen: *seen,
                 }),
                 EventKind::GroupJoin { who: Some(who) } => {
                     push_unique(&mut r.companions, &companion_name(who))
@@ -517,6 +526,10 @@ pub enum Beat {
     Loot {
         items: Vec<String>,
     },
+    /// Rare items seen dropping in a group loot window, which may have gone to someone else.
+    SeenLoot {
+        items: Vec<String>,
+    },
     Death {
         killer: Option<String>,
         environment: Option<String>,
@@ -584,6 +597,7 @@ impl Beat {
             Beat::Bosses { .. } => 6,
             Beat::FirstVisit { .. } => 7,
             Beat::Loot { .. } => 8,
+            Beat::SeenLoot { .. } => 10,
             Beat::Fishing { .. } => 9,
             Beat::Profession { .. } => 9,
             Beat::Crafted { .. } => 9,
@@ -610,6 +624,7 @@ impl Beat {
             Beat::Fishing { .. } => 6,
             Beat::Boot { .. } => 7,
             Beat::Loot { .. } => 8,
+            Beat::SeenLoot { .. } => 8,
             Beat::QuestsDone { .. } => 8,
             Beat::Death { .. } => 9,
             Beat::LevelUp { .. } => 10,
@@ -685,6 +700,7 @@ impl Beat {
             }
             Beat::Boot { item, count } => format!("Fished up {item} ×{count} and kept them all"),
             Beat::Loot { items } => format!("Looted {}", and_list(items)),
+            Beat::SeenLoot { items } => format!("Saw {} drop", and_list(items)),
             Beat::Death {
                 killer,
                 environment,
@@ -939,16 +955,23 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         });
     }
 
-    let rare_loot: Vec<String> = record
-        .loot
-        .iter()
-        .filter(|l| l.quality.is_some_and(|q| q >= t.rare_loot_quality))
-        .filter_map(|l| l.name.clone())
-        .collect();
+    let rare = |seen: bool| -> Vec<String> {
+        record
+            .loot
+            .iter()
+            .filter(|l| l.seen == seen && l.quality.is_some_and(|q| q >= t.rare_loot_quality))
+            .filter_map(|l| l.name.clone())
+            .collect()
+    };
+    let rare_loot = rare(false);
     if !rare_loot.is_empty() {
         beats.push(Beat::Loot {
             items: rare_loot.clone(),
         });
+    }
+    let seen_loot = rare(true);
+    if !seen_loot.is_empty() {
+        beats.push(Beat::SeenLoot { items: seen_loot });
     }
 
     // Deaths collapse by cause and place, in the order they first happened.

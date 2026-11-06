@@ -19,7 +19,11 @@ ns.Kills = Kills
 
 local cache, cacheSize = {}, 0
 local groupGuids = {}
+-- The kill waiting for its name from the XP message that follows it. When a second unnamed
+-- creature type dies within the window, one XP message cannot say which kill it names: neither
+-- is named, rather than one taking the other's name (and murloc count).
 local unnamed, unnamedNpc, unnamedAt
+local ambiguous = false
 
 local function remember(unit)
 	local guid = UnitGUID(unit)
@@ -87,7 +91,13 @@ function Kills.onPartyKill(attackerGUID, targetGUID)
 	end
 	kill.n = kill.n + 1
 	if kill.name == nil then
-		unnamed, unnamedNpc, unnamedAt = kill, npcId, time()
+		local now = time()
+		if unnamed ~= nil and unnamedNpc ~= npcId and now - unnamedAt <= XP_NAME_WINDOW then
+			ambiguous = true
+		elseif unnamed == nil or now - unnamedAt > XP_NAME_WINDOW then
+			ambiguous = false
+		end
+		unnamed, unnamedNpc, unnamedAt = kill, npcId, now
 	end
 	kill.murloc = isMurloc(npcId, kill.name)
 	if kill.murloc then
@@ -103,16 +113,37 @@ ns.On("PARTY_KILL", function(_, attackerGUID, targetGUID)
 	Kills.onPartyKill(attackerGUID, targetGUID)
 end)
 
-local xpPattern
+-- The client's XP messages for a kill: alone, in a group, in a raid. Built once, from the
+-- client's own strings, so they follow its language.
+local xpPatterns
+local function namedByXp(text)
+	if xpPatterns == nil then
+		xpPatterns = {}
+		for _, format in ipairs({ COMBATLOG_XPGAIN_FIRSTPERSON, COMBATLOG_XPGAIN_FIRSTPERSON_GROUP,
+			COMBATLOG_XPGAIN_FIRSTPERSON_RAID }) do
+			if type(format) == "string" then
+				local escaped = format:gsub("[%^%$%(%)%.%[%]%*%+%-%?]", "%%%0")
+				xpPatterns[#xpPatterns + 1] = "^" .. escaped:gsub("%%s", "(.-)"):gsub("%%d", "%%d+") .. "$"
+			end
+		end
+	end
+	for i = 1, #xpPatterns do
+		local name = text:match(xpPatterns[i])
+		if name then
+			return name
+		end
+	end
+end
+
 ns.On("CHAT_MSG_COMBAT_XP_GAIN", function(_, text)
 	if unnamed == nil or time() - unnamedAt > XP_NAME_WINDOW or Compat.IsSecret(text) then
 		return
 	end
-	if xpPattern == nil and type(COMBATLOG_XPGAIN_FIRSTPERSON) == "string" then
-		local escaped = COMBATLOG_XPGAIN_FIRSTPERSON:gsub("[%^%$%(%)%.%[%]%*%+%-%?]", "%%%0")
-		xpPattern = "^" .. escaped:gsub("%%s", "(.-)"):gsub("%%d", "%%d+") .. "$"
+	if ambiguous then
+		unnamed, ambiguous = nil, false
+		return
 	end
-	local name = xpPattern and text:match(xpPattern)
+	local name = namedByXp(text)
 	if name then
 		unnamed.name = name
 		-- A murloc known only by name was not counted when the kill came in.

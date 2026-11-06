@@ -66,7 +66,7 @@ All `record` flags default to `true` and all `screenshots` flags to `false`.
 | `days` | table | Day records keyed by local calendar date `"YYYY-MM-DD"` |
 | `quests` | table | Quest text keyed by quest ID, stored once per quest |
 | `companions` | table | Group members met, keyed by `"Firstname-Surname"` |
-| `discovered` | table? | Areas (zone or subzone names) already recorded as discovered, as `name = true` |
+| `discovered` | table? | Areas (zone or subzone names) already recorded as discovered, as `name = true`; in the session that creates the journal of a character above level 1, places visited are added here without a `discover` event |
 | `stats.boots` | int | Junk boots fished, all time |
 | `stats.murlocsSlain` | int | Murlocs slain, all time |
 | `stats.deathsByMurloc` | int | Deaths to a murloc, all time |
@@ -121,7 +121,7 @@ Event kinds and their extra fields:
 | `quest_accept` | `q` int | Accepted quest `q`; its title and description are in `quests[q]` |
 | `quest_turnin` | `q` int, `xp` int, `money` int | Turned in quest `q`, with the XP and copper it rewarded |
 | `fish` | `item` int, `name` string?, `junk` bool?, `boot` bool? | A fishing catch. `name`, `junk` (poor quality) and `boot` are filled once the client has the item's data; a catch whose data never arrived has only `item` |
-| `loot` | `item` int, `name` string, `ql` int, `qty` int? | Received an item at or above `settings.lootQuality`; `qty` is absent when read from the loot window rather than the loot message |
+| `loot` | `item` int, `name` string, `ql` int, `qty` int?, `src` string? | An item at or above `settings.lootQuality`; `qty` is absent when read from the loot window rather than the loot message. `src = "window"` marks an item only seen in a loot window, which in a group may have gone to someone else; absent when the character received it |
 | `group_join` | `who` string | Grouped with `who` (`"Firstname-Surname"`) for the first time that day; see `companions[who]` |
 | `screenshot` | `moment` string | The addon took a screenshot: `"levelUp"`, `"death"`, `"bossKill"`, `"firstBoot"`, `"firstMurlocKill"` or `"firstDeathByMurloc"`. The file is `_forever_/Screenshots/WoWScrnShot_MMDDYY_HHMMSS.jpg` taken about a second after `t` |
 
@@ -175,7 +175,7 @@ lists hold the highlights: `kills` the 10 most killed, `deaths` 5, `loot`, `fish
 | `kills` | array | `{ npc, name?, n, cls, murloc }`, most killed first, ties by NPC ID |
 | `notableKills` | array | Kills of elite, rare, rare elite or world boss classification |
 | `fish` | array | `{ item, name?, n, junk?, boot? }` per item caught |
-| `loot` | array | `{ item, name, ql, qty? }` |
+| `loot` | array | `{ item, name, ql, qty?, src? }` |
 | `companions` | array | `"Firstname-Surname"` of members met that day |
 | `bosses` | array | Encounter names won |
 | `skills` | array | `{ skill, name, cat?, from, to }` per skill that rose |

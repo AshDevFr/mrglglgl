@@ -26,6 +26,7 @@ function facts(overrides: Partial<DayFacts>): DayFacts {
     boots: 0,
     catches: [],
     loot: [],
+    seenLoot: [],
     companions: [],
     bosses: [],
     skills: [],
@@ -404,5 +405,11 @@ describe("quests and skills on the page", () => {
     expect(text.match(/Herbalism/g)).toHaveLength(1);
     expect(text.match(/Skinning/g)).toHaveLength(1);
     expect(text).toContain("Also practised Staves (31 to 36).");
+  });
+
+  it("tells an item seen in a group loot window as seen, not found", () => {
+    expect(
+      say({ seenLoot: ["Gnarled Staff"], loot: ["Carving Knife"] }),
+    ).toEqual(["Saw a Gnarled Staff drop.", "Found a Carving Knife."]);
   });
 });

@@ -10,6 +10,12 @@ local SUBZONE_QUIET_SECONDS = 60
 local lastZone
 local subzoneSeen = {}
 
+-- A character already played before the addon was installed has been to many places; visiting
+-- them in the first recorded session is not discovering them. In that session a visit marks the
+-- place as known without an event. The client's discovery message is always a real discovery.
+-- A level 1 character with a new journal is new, so its first visits count.
+local seeding = false
+
 -- One discovery per area per character, whichever comes first: the client's discovery message or
 -- the character's first recorded visit (the fallback when the message is missed or absent).
 local function discover(area, source)
@@ -22,6 +28,9 @@ local function discover(area, source)
 		return
 	end
 	journal.discovered[area] = true
+	if seeding and source == "visit" then
+		return
+	end
 	Day.append("discover", { area = area, src = source })
 end
 
@@ -44,6 +53,10 @@ local function onZoneChanged()
 		discover(subzone, "visit")
 	end
 end
+
+ns.On("PLAYER_LOGIN", function()
+	seeding = Storage.fresh and UnitLevel("player") > 1
+end)
 
 ns.On("ZONE_CHANGED_NEW_AREA", onZoneChanged)
 ns.On("ZONE_CHANGED", onZoneChanged)

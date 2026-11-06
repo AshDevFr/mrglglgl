@@ -18,12 +18,23 @@ local function enter(zone, subzone)
 	Mock.fire("ZONE_CHANGED")
 end
 
+-- Starts a session; with a journal, as a character the addon has recorded before.
+local function start(journal, level)
+	Addon.load(Mock)
+	Mock.units.player.level = level or Mock.units.player.level
+	_G.MrglglglCharDB = journal
+	Mock.fire("ADDON_LOADED", "Mrglglgl")
+	Mock.fire("PLAYER_LOGIN")
+	Mock.fire("PLAYER_ENTERING_WORLD", true, false)
+end
+
+local function recorded()
+	return { schema = 1, char = {}, days = {}, quests = {}, companions = {}, stats = {} }
+end
+
 describe("Zones", function()
 	before_each(function()
-		Addon.load(Mock)
-		Mock.fire("ADDON_LOADED", "Mrglglgl")
-		Mock.fire("PLAYER_LOGIN")
-		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
+		start(recorded())
 	end)
 
 	it("records a zone change once, not on every subzone change inside it", function()
@@ -71,6 +82,25 @@ describe("Zones", function()
 		end
 		table.sort(areas)
 		assert.same({ "Mulgore/visit", "Red Rocks/visit" }, areas)
+	end)
+
+	it("knows the places of an already played character's first session without telling them as discoveries", function()
+		start(nil)
+		enter("Mulgore", "Red Rocks")
+		Mock.fire("UI_INFO_MESSAGE", 1, "Discovered: Thunder Bluff")
+		local areas = {}
+		for _, event in ipairs(events("discover")) do
+			areas[#areas + 1] = event.area
+		end
+		assert.same({ "Thunder Bluff" }, areas)
+		assert.is_true(_G.MrglglglCharDB.discovered["Red Rocks"])
+		assert.is_true(_G.MrglglglCharDB.discovered.Mulgore)
+	end)
+
+	it("tells a new level 1 character's first visits as discoveries", function()
+		start(nil, 1)
+		enter("Mulgore", "Camp Narache")
+		assert.equals(2, #events("discover"))
 	end)
 
 	it("records nothing when zones are off", function()

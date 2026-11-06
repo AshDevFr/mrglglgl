@@ -179,6 +179,8 @@ export interface DayFacts {
   boots: number;
   catches: CatchLine[];
   loot: string[];
+  /** Rare items seen dropping in a group loot window, which may have gone to someone else. */
+  seenLoot: string[];
   companions: string[];
   bosses: string[];
   skills: SkillLine[];
@@ -301,7 +303,12 @@ function eventFacts(
         junk: f.junk === true,
         boot: f.boot === true,
       })),
-      loot: (d?.loot ?? []).map((l) => l.name ?? `#${l.itemId}`),
+      loot: (d?.loot ?? [])
+        .filter((l) => !l.seen)
+        .map((l) => l.name ?? `#${l.itemId}`),
+      seenLoot: (d?.loot ?? [])
+        .filter((l) => l.seen)
+        .map((l) => l.name ?? `#${l.itemId}`),
       companions: (d?.companions ?? []).map(companionName),
       bosses: d?.bosses ?? [],
       screenshots: d?.counts.screenshots ?? 0,
@@ -340,6 +347,7 @@ function eventFacts(
     boots: 0,
     catches: [],
     loot: [],
+    seenLoot: [],
     companions: [],
     bosses: [],
     screenshots: 0,
@@ -395,7 +403,9 @@ function eventFacts(
         break;
       }
       case "loot":
-        facts.loot.push(kind.name ?? `#${kind.itemId}`);
+        (kind.seen ? facts.seenLoot : facts.loot).push(
+          kind.name ?? `#${kind.itemId}`,
+        );
         break;
       case "groupJoin":
         if (kind.who) facts.companions.push(companionName(kind.who));

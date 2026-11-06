@@ -42,6 +42,10 @@ end
 -- False until the journal is loaded and usable; stays false for a journal written by a newer addon.
 Storage.ready = false
 
+-- True for the session in which this character's journal was created: the addon was just
+-- installed, or the character is new. Never saved, so it lasts one session.
+Storage.fresh = false
+
 function Storage.settings()
 	return MrglglglDB.settings
 end
@@ -84,6 +88,7 @@ end
 local function loadJournal()
 	if MrglglglCharDB == nil then
 		MrglglglCharDB = { schema = ns.Migrate.CURRENT, char = {}, days = {}, quests = {}, companions = {}, stats = {} }
+		Storage.fresh = true
 	elseif not ns.Migrate.run(MrglglglCharDB) then
 		return false
 	end

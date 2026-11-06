@@ -15,7 +15,7 @@ read_globals = {
 	"GetZoneText", "IsFishingLoot", "IsInGroup", "IsInRaid", "Screenshot", "Settings",
 	"UnitClass", "UnitClassification", "UnitFactionGroup", "UnitFullName", "UnitGUID", "UnitIsUnit", "UnitLevel",
 	"UnitName", "UnitRace", "_G", "date", "issecretvalue", "time",
-	"COMBATLOG_XPGAIN_FIRSTPERSON", "ERR_ZONE_EXPLORED", "ERR_ZONE_EXPLORED_XP", "LOOT_ITEM_PUSHED_SELF",
+	"COMBATLOG_XPGAIN_FIRSTPERSON", "COMBATLOG_XPGAIN_FIRSTPERSON_GROUP", "COMBATLOG_XPGAIN_FIRSTPERSON_RAID", "ERR_ZONE_EXPLORED", "ERR_ZONE_EXPLORED_XP", "LOOT_ITEM_PUSHED_SELF",
 	"LOOT_ITEM_PUSHED_SELF_MULTIPLE", "LOOT_ITEM_SELF", "LOOT_ITEM_SELF_MULTIPLE",
 	"LOOT_ITEM_CREATED_SELF", "LOOT_ITEM_CREATED_SELF_MULTIPLE",
 }

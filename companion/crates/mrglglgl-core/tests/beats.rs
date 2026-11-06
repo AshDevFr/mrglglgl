@@ -130,7 +130,8 @@ fn a_crowded_day_is_cut_to_nine_beats_keeping_the_important_ones() {
         item_id: Some(1),
         name: Some("Gnarled Staff".into()),
         quality: Some(3),
-        quantity: None,
+        quantity: Some(1),
+        seen: false,
     }));
     events.push(event(EventKind::GroupJoin {
         who: Some("Rowan-Elm".into()),
@@ -525,5 +526,47 @@ fn a_profession_the_client_lists_twice_is_told_once() {
             .iter()
             .any(|t| t.starts_with("Practised") && t.contains("Skinning")),
         "{texts:?}"
+    );
+}
+
+#[test]
+fn an_item_seen_in_a_group_loot_window_is_told_as_seen_not_received() {
+    let loot = |name: &str, seen: bool| {
+        event(EventKind::Loot {
+            item_id: Some(1),
+            name: Some(name.into()),
+            quality: Some(3),
+            quantity: (!seen).then_some(1),
+            seen,
+        })
+    };
+    let day = Day {
+        events: Some(vec![
+            loot("Carving Knife", false),
+            loot("Gnarled Staff", true),
+        ]),
+        ..Day::default()
+    };
+    let j = journal(vec![("2026-11-17", day)]);
+    let told = beats::extract(&j, "2026-11-17", &[], &Thresholds::default());
+    let texts = told.texts();
+    assert!(
+        texts.contains(&"Looted Carving Knife".to_string()),
+        "{texts:?}"
+    );
+    assert!(
+        texts.contains(&"Saw Gnarled Staff drop".to_string()),
+        "{texts:?}"
+    );
+
+    let only_seen = Day {
+        events: Some(vec![loot("Gnarled Staff", true)]),
+        ..Day::default()
+    };
+    let j = journal(vec![("2026-11-17", only_seen)]);
+    let told = beats::extract(&j, "2026-11-17", &[], &Thresholds::default());
+    assert!(
+        !told.patterns.contains(&Pattern::RareLoot),
+        "a rare find is one the adventurer kept"
     );
 }

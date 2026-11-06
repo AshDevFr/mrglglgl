@@ -108,6 +108,7 @@
     "caught": "Caught {{list}}.",
     "keptBoot_one": "Kept the boot.",
     "keptBoot_other": "Kept the boots.",
+    "sawDrop": "Saw {{list}} drop.",
     "found": "Found {{list}}.",
     "grouped": "Grouped with {{list}}.",
     "defeated": "Defeated {{list}}.",

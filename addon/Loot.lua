@@ -12,12 +12,14 @@ local FISHING_ECHO_SECONDS = 2
 -- Items whose quality was unknown yet, by item ID, judged on GET_ITEM_INFO_RECEIVED.
 local waiting = {}
 
-local function consider(link, quantity, snapshot)
+-- `fromWindow`: read from the loot window, where the client hides chat. In a group that shows what
+-- dropped, not what the player received, so the item is marked `src = "window"`.
+local function consider(link, quantity, snapshot, fromWindow)
 	local name, quality = Compat.GetItemNameAndQuality(link)
 	local itemId = Compat.ItemIdFromLink(link)
 	if name == nil then
 		local list = waiting[itemId] or {}
-		list[#list + 1] = { link = link, quantity = quantity, snapshot = snapshot }
+		list[#list + 1] = { link = link, quantity = quantity, snapshot = snapshot, fromWindow = fromWindow }
 		waiting[itemId] = list
 		return
 	end
@@ -25,6 +27,9 @@ local function consider(link, quantity, snapshot)
 		return
 	end
 	snapshot.item, snapshot.name, snapshot.ql, snapshot.qty = itemId, name, quality, quantity
+	if fromWindow then
+		snapshot.src = "window"
+	end
 	Day.append("loot", snapshot)
 end
 
@@ -49,7 +54,7 @@ ns.On("LOOT_OPENED", function()
 	for slot = 1, GetNumLootItems() do
 		local link = GetLootSlotLink(slot)
 		if link and not Compat.IsSecret(link) then
-			consider(link, nil, Day.snapshot())
+			consider(link, nil, Day.snapshot(), true)
 		end
 	end
 end)
@@ -61,6 +66,6 @@ ns.On("GET_ITEM_INFO_RECEIVED", function(_, itemId, success)
 	end
 	waiting[itemId] = nil
 	for _, entry in ipairs(list) do
-		consider(entry.link, entry.quantity, entry.snapshot)
+		consider(entry.link, entry.quantity, entry.snapshot, entry.fromWindow)
 	end
 end)

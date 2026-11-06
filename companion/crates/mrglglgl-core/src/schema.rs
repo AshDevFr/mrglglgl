@@ -242,6 +242,10 @@ pub enum EventKind {
         name: Option<String>,
         quality: Option<i64>,
         quantity: Option<i64>,
+        /// Read from a group loot window (`src = "window"`): it dropped, not necessarily for
+        /// the player. Defaults for events archived before it existed.
+        #[serde(default)]
+        seen: bool,
     },
     GroupJoin {
         who: Option<String>,
@@ -417,6 +421,9 @@ pub struct DigestLoot {
     pub name: Option<String>,
     pub quality: Option<i64>,
     pub quantity: Option<i64>,
+    /// Seen in a group loot window rather than received.
+    #[serde(default)]
+    pub seen: bool,
 }
 
 /// The account-wide settings file. The app shows what the addon records; it never changes it.
@@ -547,6 +554,7 @@ fn event(t: &Table) -> Option<Event> {
             name: string(t, "name"),
             quality: int(t, "ql"),
             quantity: int(t, "qty"),
+            seen: string(t, "src").as_deref() == Some("window"),
         },
         "group_join" => EventKind::GroupJoin {
             who: string(t, "who"),
@@ -638,6 +646,7 @@ fn digest(t: &Table) -> Digest {
             name: string(l, "name"),
             quality: int(l, "ql"),
             quantity: int(l, "qty"),
+            seen: string(l, "src").as_deref() == Some("window"),
         }),
         companions: strings(t, "companions"),
         bosses: strings(t, "bosses"),

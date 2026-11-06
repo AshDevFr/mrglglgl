@@ -45,6 +45,20 @@ describe("Day", function()
 		assert.equals(7, days["2026-11-06"].ev[1].lv)
 	end)
 
+	it("stamps the session's end with where and at what level the session last was", function()
+		Mock.zone, Mock.subzone, Mock.mapId = "Mulgore", "Red Rocks", 7
+		Mock.fire("PLAYER_LEVEL_UP", 6)
+		-- At logout the client may answer with an empty place and a stale level.
+		Mock.zone, Mock.subzone, Mock.mapId = "", "", nil
+		Mock.units.player.level = 5
+		Mock.advance(30)
+		Mock.fire("PLAYER_LOGOUT")
+		local events = _G.MrglglglCharDB.days["2026-11-05"].ev
+		local last = events[#events]
+		assert.same({ "session_end", "Mulgore", "Red Rocks", 7, 6, Mock.now },
+			{ last.k, last.z, last.sz, last.m, last.lv, last.t })
+	end)
+
 	it("never stamps a level lower than one already seen, as the client reports at logout", function()
 		Mock.fire("PLAYER_LEVEL_UP", 6)
 		-- At logout the client can report the level from before the session's level-ups.

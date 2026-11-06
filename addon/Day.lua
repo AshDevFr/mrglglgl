@@ -20,6 +20,19 @@ function Day.get(journal, key)
 	return day
 end
 
+-- The session's last event, whose place and level stand for the session's end: at logout the
+-- client may answer with an empty place and a stale level.
+local lastEvent
+
+-- Where the session last was: the last event's zone, subzone, map and level, for a stamp taken
+-- when the client can no longer be trusted to say. Nil before the first event.
+function Day.lastPlace()
+	if lastEvent == nil then
+		return nil
+	end
+	return { z = lastEvent.z, sz = lastEvent.sz, m = lastEvent.m, lv = lastEvent.lv }
+end
+
 -- The highest level seen this session. A level never goes down, but at logout the client can
 -- report the level from before the session's level-ups.
 local highestLevel = 0
@@ -55,6 +68,7 @@ function Day.append(kind, fields)
 	if type(event.lv) == "number" and event.lv > highestLevel then
 		highestLevel = event.lv
 	end
+	lastEvent = event
 	local events = Day.get(ns.Storage.journal(), Day.key(event.t)).ev
 	events[#events + 1] = event
 	return event

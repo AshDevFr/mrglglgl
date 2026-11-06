@@ -17,8 +17,10 @@ local function loot()
 end
 
 describe("Loot", function()
+	local ns
+
 	before_each(function()
-		Addon.load(Mock)
+		ns = Addon.load(Mock)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
 		Mock.fire("PLAYER_LOGIN")
 		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
@@ -70,6 +72,10 @@ describe("Loot", function()
 		Mock.fire("LOOT_OPENED", false, false)
 		Mock.fire("CHAT_MSG_LOOT", Mock.SECRET, "Wren")
 		assert.equals(1, #loot())
+		-- In a group the window shows what dropped, not what the player received.
+		assert.equals("window", loot()[1].src)
+		local day = _G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)]
+		assert.equals("window", ns.Digest.build(day).loot[1].src)
 	end)
 
 	it("ignores the loot window when chat text is readable, so nothing is counted twice", function()

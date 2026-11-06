@@ -212,6 +212,8 @@ function Mock.install()
 	_G.ERR_ZONE_EXPLORED = "Discovered: %s"
 	_G.ERR_ZONE_EXPLORED_XP = "Discovered %s: %d experience gained"
 	_G.COMBATLOG_XPGAIN_FIRSTPERSON = "%s dies, you gain %d experience."
+	_G.COMBATLOG_XPGAIN_FIRSTPERSON_GROUP = "%s dies, you gain %d experience. (+%d group bonus)"
+	_G.COMBATLOG_XPGAIN_FIRSTPERSON_RAID = "%s dies, you gain %d experience. (-%d raid penalty)"
 	_G.C_Item = {
 		GetItemInfo = function(link)
 			local item = Mock.items and Mock.items[tonumber(link:match("item:(%d+)"))]

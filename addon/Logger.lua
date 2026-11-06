@@ -14,7 +14,7 @@ end)
 
 ns.On("PLAYER_LOGOUT", function()
 	if Storage.records("sessions") then
-		Day.append("session_end")
+		Day.append("session_end", Day.lastPlace())
 	end
 end)
 

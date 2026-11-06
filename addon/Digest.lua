@@ -110,7 +110,7 @@ function Digest.build(day)
 			entry.n = entry.n + 1
 		elseif k == "loot" then
 			counts.loot = counts.loot + 1
-			push(digest.loot, { item = e.item, name = e.name, ql = e.ql, qty = e.qty }, RECORD_CAPS.loot)
+			push(digest.loot, { item = e.item, name = e.name, ql = e.ql, qty = e.qty, src = e.src }, RECORD_CAPS.loot)
 		elseif k == "group_join" then
 			counts.group = counts.group + 1
 			push(digest.companions, e.who)

@@ -9,4 +9,9 @@ source: string | null, } | { "kind": "death", killer: Killer | null,
 /**
  * The environmental cause, e.g. `"Drowning"`.
  */
-environment: string | null, } | { "kind": "boss", encounterId: number | null, name: string | null, } | { "kind": "questAccept", questId: number | null, } | { "kind": "questTurnin", questId: number | null, xp: number | null, money: number | null, } | { "kind": "fish", itemId: number | null, name: string | null, junk: boolean | null, boot: boolean | null, } | { "kind": "loot", itemId: number | null, name: string | null, quality: number | null, quantity: number | null, } | { "kind": "groupJoin", who: string | null, } | { "kind": "screenshot", moment: string | null, } | { "kind": "unknown", name: string, };
+environment: string | null, } | { "kind": "boss", encounterId: number | null, name: string | null, } | { "kind": "questAccept", questId: number | null, } | { "kind": "questTurnin", questId: number | null, xp: number | null, money: number | null, } | { "kind": "fish", itemId: number | null, name: string | null, junk: boolean | null, boot: boolean | null, } | { "kind": "loot", itemId: number | null, name: string | null, quality: number | null, quantity: number | null, 
+/**
+ * Read from a group loot window (`src = "window"`): it dropped, not necessarily for
+ * the player. Defaults for events archived before it existed.
+ */
+seen: boolean, } | { "kind": "groupJoin", who: string | null, } | { "kind": "screenshot", moment: string | null, } | { "kind": "unknown", name: string, };
