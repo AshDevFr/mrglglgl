@@ -182,6 +182,28 @@ async fn reasoning_blocks_and_padding_are_stripped() {
 }
 
 #[tokio::test]
+async fn a_copied_notes_paragraph_and_entry_label_are_dropped() {
+    // Shapes Qwen3.5 4B produced in the narrator samples, copying the worked example's layout.
+    let p = prompt("en");
+    let shapes = [
+        format!("Notes: Killed 23 Prairie Wolf, died in Red Rocks.\n\nEntry:\n{TRUE_ENTRY}"),
+        format!("Notes: Killed 23 Prairie Wolf.\nEntry: {TRUE_ENTRY}"),
+        format!("Notes: Killed 23 Prairie Wolf, died in Red Rocks.\n\n{TRUE_ENTRY}"),
+        format!("Notes : Pêche dans Mulgore.\n\nEntrée :\n{TRUE_ENTRY}"),
+    ];
+    for shape in shapes {
+        let provider = FakeProvider::new([shape.as_str()]);
+        let result = write(&provider, &p, &options(), &CancellationToken::new(), None)
+            .await
+            .unwrap();
+        assert!(
+            matches!(&result, WriteResult::Written { text, .. } if text == TRUE_ENTRY),
+            "{shape:?} gave {result:?}"
+        );
+    }
+}
+
+#[tokio::test]
 async fn a_cancelled_write_stores_nothing_to_check() {
     let p = prompt("en");
     let provider = FakeProvider::new([TRUE_ENTRY]);
