@@ -45,6 +45,9 @@ local function record(attempt)
 		stats.drownings = stats.drownings + 1
 	elseif fields.killer and fields.killer.murloc then
 		stats.deathsByMurloc = stats.deathsByMurloc + 1
+		if stats.deathsByMurloc == 1 then
+			ns.Emit("firstDeathByMurloc")
+		end
 	end
 end
 

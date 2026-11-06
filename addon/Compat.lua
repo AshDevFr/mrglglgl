@@ -173,8 +173,47 @@ function Compat.TakeScreenshot()
 	return true
 end
 
-function Compat.RegisterSettingsPanel(frame, name)
-	local category = Settings.RegisterCanvasLayoutCategory(frame, name)
+-- The settings panel uses the client's own vertical settings layout, so it looks and searches like
+-- every other options page. Signatures are those of this client's Blizzard_Settings_Shared.
+
+function Compat.CreateSettingsCategory(name)
+	return Settings.RegisterVerticalLayoutCategory(name)
+end
+
+function Compat.AddSettingsHeader(layout, name)
+	layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(name))
+end
+
+function Compat.AddCheckbox(category, variable, name, tooltip, getValue, setValue, default)
+	local setting = Settings.RegisterProxySetting(category, variable, Settings.VarType.Boolean, name, default,
+		getValue, setValue)
+	Settings.CreateCheckbox(category, setting, tooltip)
+	return setting
+end
+
+-- choices: list of { value, label }.
+function Compat.AddDropdown(category, variable, name, tooltip, choices, getValue, setValue, default)
+	local setting = Settings.RegisterProxySetting(category, variable, Settings.VarType.Number, name, default,
+		getValue, setValue)
+	local function options()
+		local container = Settings.CreateControlTextContainer()
+		for _, choice in ipairs(choices) do
+			container:Add(choice[1], choice[2])
+		end
+		return container:GetData()
+	end
+	Settings.CreateDropdown(category, setting, options, tooltip)
+	return setting
+end
+
+function Compat.AddButton(layout, name, buttonText, onClick, tooltip)
+	layout:AddInitializer(CreateSettingsButtonInitializer(name, buttonText, onClick, tooltip, true))
+end
+
+function Compat.RegisterSettingsCategory(category)
 	Settings.RegisterAddOnCategory(category)
-	return category
+end
+
+function Compat.OpenSettings(category)
+	Settings.OpenToCategory(category:GetID())
 end

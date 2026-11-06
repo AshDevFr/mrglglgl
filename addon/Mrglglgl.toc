@@ -27,3 +27,5 @@ Group.lua
 Digest.lua
 Compact.lua
 Slash.lua
+Forget.lua
+Settings.lua

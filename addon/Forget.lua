@@ -1,0 +1,102 @@
+-- "Forget recorded ...": deletes one category from the journal on this character, from raw days
+-- and from the digests of compacted days. Copies the app has already archived are the app's to
+-- delete; its settings say so.
+local _, ns = ...
+
+local Digest = ns.Digest
+
+local Forget = {}
+ns.Forget = Forget
+
+-- Per category: the event kinds it owns, the digest counts and lists to clear on compacted days,
+-- and what to reset outside the days.
+local CATEGORIES = {
+	sessions = { kinds = { session_start = true, session_end = true }, counts = { "sessions" } },
+	levels = { kinds = { level = true }, counts = { "levels" } },
+	quests = {
+		kinds = { quest_accept = true, quest_turnin = true },
+		counts = { "accepted", "turnedIn" }, lists = { "accepted", "turnedIn" },
+		journal = function(journal) journal.quests = {} end,
+	},
+	questText = {
+		journal = function(journal)
+			for _, quest in pairs(journal.quests) do
+				quest.text = nil
+			end
+		end,
+	},
+	zones = {
+		kinds = { zone = true, subzone = true, discover = true },
+		counts = { "discoveries" }, lists = { "zones", "subzones", "discovered" },
+		journal = function(journal) journal.discovered = {} end,
+	},
+	kills = {
+		kinds = { boss = true }, raw = { "kills", "anonKills" },
+		counts = { "kills", "murlocs", "anonKills", "bosses" }, lists = { "kills", "notableKills", "bosses" },
+		journal = function(journal) journal.stats.murlocsSlain = 0 end,
+	},
+	deaths = {
+		kinds = { death = true }, counts = { "deaths" }, lists = { "deaths" },
+		journal = function(journal)
+			journal.stats.deathsByMurloc = 0
+			journal.stats.drownings = 0
+		end,
+	},
+	fishing = {
+		kinds = { fish = true }, counts = { "fish", "junk", "boots" }, lists = { "fish" },
+		journal = function(journal) journal.stats.boots = 0 end,
+	},
+	loot = { kinds = { loot = true }, counts = { "loot" }, lists = { "loot" } },
+	group = {
+		kinds = { group_join = true }, counts = { "group" }, lists = { "companions" },
+		journal = function(journal) journal.companions = {} end,
+	},
+}
+
+Forget.CATEGORIES = CATEGORIES
+
+local function scrubDigest(digest, spec)
+	for _, count in ipairs(spec.counts or {}) do
+		digest.counts[count] = 0
+	end
+	for _, list in ipairs(spec.lists or {}) do
+		digest[list] = {}
+	end
+	if spec.kinds and spec.kinds.fish then
+		digest.onlyFished = false
+	end
+end
+
+-- Removes category from every day and from the journal's running totals.
+function Forget.category(journal, category)
+	local spec = CATEGORIES[category]
+	if spec == nil then
+		error("unknown category " .. tostring(category), 2)
+	end
+	for _, day in pairs(journal.days) do
+		local hasRaw = day.ev ~= nil or day.kills ~= nil or day.anonKills ~= nil
+		if spec.kinds and day.ev then
+			local kept = {}
+			for _, event in ipairs(day.ev) do
+				if not spec.kinds[event.k] then
+					kept[#kept + 1] = event
+				end
+			end
+			day.ev = kept
+		end
+		for _, field in ipairs(spec.raw or {}) do
+			day[field] = nil
+		end
+		if hasRaw then
+			day.digest = Digest.build(day)
+		end
+		-- Scrubbed after a rebuild too: every event carries its zone, so a rebuilt digest would
+		-- still list the zones of a day whose zone events were forgotten.
+		if day.digest then
+			scrubDigest(day.digest, spec)
+		end
+	end
+	if spec.journal then
+		spec.journal(journal)
+	end
+end

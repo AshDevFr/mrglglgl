@@ -27,6 +27,9 @@ local function complete(event, link)
 		event.boot = true
 		local stats = Storage.journal().stats
 		stats.boots = stats.boots + 1
+		if stats.boots == 1 then
+			ns.Emit("firstBoot")
+		end
 	end
 end
 

@@ -106,7 +106,7 @@ addon code can pass them back to the client but cannot read, compare or print th
 | DATA-junk-boots | Item IDs of junk boots and other junk fishing catches on Forever | unconfirmed | fallback: a fishing catch of poor quality (quality 0) counts as junk, and a junk catch whose name matches the localized boot list counts as a boot (Compat.IsBootCatch) |
 | DATA-murloc-npcs | Murlocs are identified by NPC ID from the GUID (readable in the open world); a sourced list of murloc NPC IDs for Forever is still needed | unconfirmed | NPC IDs are readable (S-06). fallback: until the ID list is sourced, and where the GUID is secret, murlocs are recognised by name from a per-locale list (Compat.IsMurlocName) |
 
-## Compat interface (draft)
+## Compat interface
 
 The addon calls the client only through this module for anything that is unconfirmed, restricted
 or version-sensitive, so the rest of the code never branches on client details.
@@ -133,6 +133,18 @@ function Compat.IsMurlocName(name)       -- per-locale name list; false for secr
 -- Screenshots
 function Compat.TakeScreenshot()         -- calls Screenshot(); success arrives via SCREENSHOT_SUCCEEDED
 
--- Settings
-function Compat.RegisterSettingsPanel(frame, name) -- Settings.RegisterCanvasLayoutCategory + RegisterAddOnCategory
+-- Creatures and items
+function Compat.NpcIdFromGuid(guid)      -- sixth field of a creature GUID; nil for players and secrets
+function Compat.GetItemNameAndQuality(link) -- nil until the item is cached (GET_ITEM_INFO_RECEIVED)
+function Compat.ItemIdFromLink(link)
+function Compat.InChatLockdown()         -- C_ChatInfo.InChatMessagingLockdown
+
+-- Settings panel, on the client's vertical settings layout (Blizzard_Settings_Shared)
+function Compat.CreateSettingsCategory(name)  -- Settings.RegisterVerticalLayoutCategory
+function Compat.AddSettingsHeader(layout, name)
+function Compat.AddCheckbox(category, variable, name, tooltip, get, set, default)
+function Compat.AddDropdown(category, variable, name, tooltip, choices, get, set, default)
+function Compat.AddButton(layout, name, buttonText, onClick, tooltip)
+function Compat.RegisterSettingsCategory(category)
+function Compat.OpenSettings(category)
 ```
