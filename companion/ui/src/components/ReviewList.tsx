@@ -26,6 +26,7 @@ import { formatDay } from "@/lib/format";
 import { dayFacts } from "@/lib/journal";
 import { narratorLabel } from "@/lib/narrators";
 import { daySentences } from "@/lib/sentences";
+import { scheduleRebuild } from "@/lib/siteBuild";
 import { useWriting } from "@/lib/useWriting";
 import { type Live, slot } from "@/lib/writing";
 import { EmptyState } from "./EmptyState";
@@ -87,7 +88,12 @@ export function ReviewList({ characterId }: { characterId: number }) {
         who,
         note,
       ).then(refresh),
-    accept: (id) => void acceptDraft(characterId, id).then(refresh),
+    accept: (id) =>
+      void acceptDraft(characterId, id).then(() => {
+        // An accepted entry belongs on the website too.
+        scheduleRebuild();
+        return refresh();
+      }),
     discard: (id) => void discardDraft(characterId, id).then(refresh),
   };
 

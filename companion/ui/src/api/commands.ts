@@ -1,5 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type { Alias } from "@/bindings/Alias";
 import type { AppInfo } from "@/bindings/AppInfo";
 import type { Award } from "@/bindings/Award";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
@@ -19,10 +20,13 @@ import type { ReviewItem } from "@/bindings/ReviewItem";
 import type { Screenshot } from "@/bindings/Screenshot";
 import type { Settings } from "@/bindings/Settings";
 import type { SettingsView } from "@/bindings/SettingsView";
+import type { SiteData } from "@/bindings/SiteData";
+import type { SiteSettings } from "@/bindings/SiteSettings";
 import type { Slot } from "@/bindings/Slot";
 import type { Story } from "@/bindings/Story";
 import type { StoryKind } from "@/bindings/StoryKind";
 import type { SyncReport } from "@/bindings/SyncReport";
+import type { WriteReport } from "@/bindings/WriteReport";
 import type { WritingStatus } from "@/bindings/WritingStatus";
 
 // One typed wrapper per Tauri command. The types come from the Rust
@@ -315,4 +319,26 @@ export function screenshotData(
 /** Opens the system print dialog for the window, where it can be saved as a PDF. */
 export function printPage(): Promise<void> {
   return invoke<void>("print_page");
+}
+
+// ── Website ──────────────────────────────────────────────────────────────────
+
+/** Saves the website's settings alone; they need no rescan. */
+export function saveSiteSettings(site: SiteSettings): Promise<void> {
+  return invoke<void>("save_site_settings", { site });
+}
+
+/** Stand-in names for every other player these characters grouped with, by first name. */
+export function siteStandInNames(characterIds: number[]): Promise<Alias[]> {
+  return invoke<Alias[]>("site_stand_in_names", { characterIds });
+}
+
+/** Renders the prepared site through the chosen theme and writes the site folder. */
+export function buildSite(data: SiteData): Promise<WriteReport> {
+  return invoke<WriteReport>("build_site", { data });
+}
+
+/** Writes the default theme into a folder as a starting point; answers the files written. */
+export function copySiteTheme(folder: string): Promise<string[]> {
+  return invoke<string[]>("copy_site_theme", { folder });
 }

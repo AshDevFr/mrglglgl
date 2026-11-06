@@ -12,6 +12,8 @@ const commands = vi.hoisted(() => ({
   writeDrafts: vi.fn(() => Promise.resolve()),
 }));
 
+vi.mock("@/lib/siteBuild", () => ({ scheduleRebuild: vi.fn() }));
+
 vi.mock("@/api/commands", () => ({
   reviewList: () => Promise.resolve(commands.items),
   characterJournal: () => Promise.resolve(syntheticJournal),

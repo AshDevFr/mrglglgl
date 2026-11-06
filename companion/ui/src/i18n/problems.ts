@@ -35,6 +35,7 @@ export const PROBLEMS = [
   "narrators.previewSetAside",
   "narrators.previewFailed",
   "narrators.fileFailed",
+  "site.buildFailed",
 ] as const;
 
 export type Problem = (typeof PROBLEMS)[number];

@@ -17,9 +17,11 @@ import {
   listCharacters,
   onJournalUpdated,
   onScreenshotsUpdated,
+  onWriting,
   syncNow,
 } from "@/api/commands";
 import { CharacterTree } from "@/components/CharacterTree";
+import { scheduleRebuild } from "@/lib/siteBuild";
 import { applyZoom, savedZoom, stepZoom } from "@/lib/zoom";
 
 export function Layout() {
@@ -52,6 +54,18 @@ export function Layout() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // The website follows the journal: a new day's facts, an entry written or accepted.
+  useEffect(() => {
+    const journals = onJournalUpdated(() => scheduleRebuild());
+    const writing = onWriting((event) => {
+      if (event.type === "finished") scheduleRebuild();
+    });
+    return () => {
+      journals.then((stop) => stop());
+      writing.then((stop) => stop());
+    };
   }, []);
 
   // The game saved a journal or a screenshot: refresh what is on screen.

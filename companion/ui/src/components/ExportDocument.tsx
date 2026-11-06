@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import type { Award } from "@/bindings/Award";
 import type { Journal } from "@/bindings/Journal";
 import type { Story } from "@/bindings/Story";
+import { photoCaption } from "@/lib/captions";
 import { formatDay } from "@/lib/format";
 import { dayFacts } from "@/lib/journal";
 import type { Paper } from "@/lib/paper";
@@ -56,29 +57,8 @@ export function ExportDocument({
     if (last && last[0] === monday) last[1].push(day);
     else weeks.push([monday, [day]]);
   }
-  /** "Level up in Red Rocks, 9:41 PM": what was happening, where the day's events place it. */
-  const caption = (day: string, photo: ExportPhoto) => {
-    const before = (journal.days[day]?.events ?? []).filter(
-      (e) => e.time <= photo.taken && (e.subzone || e.zone),
-    );
-    const last = before[before.length - 1];
-    const place = last ? last.subzone || last.zone : null;
-    const time = new Intl.DateTimeFormat(lang, { timeStyle: "short" }).format(
-      new Date(photo.taken * 1000),
-    );
-    if (!photo.moment || photo.moment === "other") {
-      return place
-        ? t("export.captionPlace", { place, time })
-        : t("export.captionTime", { time });
-    }
-    const said = t(`photo.moment.${photo.moment}`, {
-      defaultValue: t("photo.moment.other"),
-    });
-    const moment = said.charAt(0).toLocaleUpperCase(lang) + said.slice(1);
-    return place
-      ? t("export.caption", { moment, place, time })
-      : t("export.captionNoPlace", { moment, time });
-  };
+  const caption = (day: string, photo: ExportPhoto) =>
+    photoCaption(t, lang, journal, day, photo);
   const c = journal.character;
   const meta = [c.race, c.realm].filter(Boolean).join(" · ");
 

@@ -387,3 +387,24 @@ fn other_players_get_stable_stand_in_names_that_are_never_a_real_one() {
     distinct.dedup();
     assert_eq!(distinct.len(), 3);
 }
+
+/// Writes the sample site with the default theme, to look at in a browser:
+/// `MRGLGLGL_SITE_DIR=<folder> cargo test -p mrglglgl-core --test site sample_site -- --ignored`
+#[test]
+#[ignore = "writes a sample site to look at; needs MRGLGLGL_SITE_DIR"]
+fn sample_site() {
+    let Some(out) = std::env::var_os("MRGLGLGL_SITE_DIR") else {
+        eprintln!("skipped: set MRGLGLGL_SITE_DIR");
+        return;
+    };
+    let out = PathBuf::from(out);
+    std::fs::create_dir_all(&out).unwrap();
+    let source = out.with_extension("screenshot.png");
+    image::RgbImage::from_fn(1600, 900, |x, y| {
+        image::Rgb([(x / 7) as u8, (y / 5) as u8, 120])
+    })
+    .save(&source)
+    .unwrap();
+    let files = site::render(&sample(&source), None).unwrap();
+    site::write(&out, &[], &files).unwrap();
+}

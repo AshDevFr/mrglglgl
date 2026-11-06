@@ -48,8 +48,15 @@ the app's own language.
 ## Sharing
 
 Copy an entry to paste it into Discord or a forum. The copy ends with "via Mrglglgl" unless you turn
-that off in Settings. You can also export a character's whole journal as a Markdown file or a single
-web page, to a folder of your choice.
+that off in Settings.
+
+Export a character's whole journal from its page: as one web page laid out like the journal
+(stamps and captioned screenshots inside), as a PDF through the print dialog, or as Markdown.
+
+To publish your journals, turn on Settings, Website: the app keeps a finished site up to date in a
+folder (a post per week, an archive, milestones, a feed), which you put online with Cloudflare
+Pages, Netlify or GitHub Pages. Other players appear under stand-in names unless you turn that off.
+To change how the site looks, see [Theming the journal website](site-themes.md).
 
 ## Your data
 

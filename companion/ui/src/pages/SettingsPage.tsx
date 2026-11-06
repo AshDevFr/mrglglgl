@@ -8,6 +8,7 @@ import { ModelsPanel } from "@/components/ModelsPanel";
 import { NarratorsPanel } from "@/components/NarratorsPanel";
 import { PaperField } from "@/components/PaperField";
 import { SettingsForm } from "@/components/SettingsForm";
+import { WebsitePanel } from "@/components/WebsitePanel";
 import { ZoomField } from "@/components/ZoomField";
 import { applyLanguage } from "@/i18n";
 import { problem } from "@/i18n/problems";
@@ -54,6 +55,7 @@ export function SettingsPage() {
               })
             }
           />
+          <WebsitePanel site={view.data.settings.site} />
         </Stack>
       ) : (
         <Text>{t("loading")}</Text>
