@@ -251,3 +251,17 @@ fn website_settings_default_to_off_with_stand_in_names_and_survive_a_restart() {
     let reopened = Database::open(dir.path()).unwrap().settings().unwrap().site;
     assert_eq!(reopened, settings.site);
 }
+
+#[test]
+fn addon_test_versions_are_off_until_chosen_and_survive_a_restart() {
+    let dir = tempfile::tempdir().unwrap();
+    {
+        let db = Database::open(dir.path()).unwrap();
+        assert!(!db.addon_prereleases().unwrap());
+        db.set_addon_prereleases(true).unwrap();
+    }
+    let db = Database::open(dir.path()).unwrap();
+    assert!(db.addon_prereleases().unwrap());
+    db.set_addon_prereleases(false).unwrap();
+    assert!(!db.addon_prereleases().unwrap());
+}

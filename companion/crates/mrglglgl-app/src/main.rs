@@ -1,6 +1,7 @@
 // Keeps a console window from opening next to the app on Windows release builds.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod addon_commands;
 mod commands;
 mod power;
 mod site_commands;
@@ -56,7 +57,12 @@ fn main() {
             commands::character_milestones,
             commands::character_screenshots,
             commands::get_settings,
-            commands::addon_status,
+            addon_commands::addon_views,
+            addon_commands::addon_release,
+            addon_commands::set_addon_prereleases,
+            addon_commands::install_addon,
+            addon_commands::remove_addon,
+            addon_commands::restore_addon,
             commands::save_settings,
             commands::sync_now,
             commands::delete_character,

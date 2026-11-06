@@ -5,7 +5,8 @@ murloc scribe write each day and each week as a short journal entry.
 
 ## First run
 
-1. Install the addon and play at least once. The game saves the addon's journal when you log out
+1. Install the addon (Settings, The addon, **Install**, or from CurseForge, Wago or the
+   releases page) and play at least once. The game saves the addon's journal when you log out
    or type `/reload`, and only then can the app see it.
 2. Open the app. It looks for World of Warcraft in the usual places. If it does not find it, open
    Settings and enter the game folder (the one containing `_forever_`) under
@@ -60,7 +61,11 @@ To change how the site looks, see [Theming the journal website](site-themes.md).
 
 ## Your data
 
-The app never writes anything into the World of Warcraft folder. Each time the game saves a
+The app writes nothing into the World of Warcraft folder except the addon itself, and only when
+you ask it to install, update or remove it in Settings, The addon (never while the game runs).
+Removing the addon removes only its folder: what it recorded stays in the game's files and in the
+app, and a copy is kept so you can put it back. A copy installed by an addon manager is left
+alone unless you choose to replace it. Each time the game saves a
 journal, the app keeps a copy in its own data folder; **Keep backups for** chooses how long those
 copies are kept (30 days, 90 days, 1 year or forever). Your journal's full history stays in the app
 whatever you choose: backups are only a safety net.

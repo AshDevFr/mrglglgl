@@ -481,6 +481,15 @@ impl Database {
         Ok(())
     }
 
+    /// Whether the addon's test versions are offered as well as its releases.
+    pub fn addon_prereleases(&self) -> Result<bool, DbError> {
+        Ok(self.setting("addon_prereleases")?.as_deref() == Some("1"))
+    }
+
+    pub fn set_addon_prereleases(&self, on: bool) -> Result<(), DbError> {
+        self.set_setting("addon_prereleases", on.then_some("1"))
+    }
+
     /// Records a character found on disk, with what its journal says about it when it was read.
     /// Returns the character's id, which stays the same for the same journal location.
     pub fn upsert_character(

@@ -1,7 +1,9 @@
 //! The app's data layer: finding World of Warcraft installs, reading the SavedVariables the
-//! Mrglglgl addon writes, and keeping the journal archive. It never writes under the WoW folder
-//! and never executes Lua.
+//! Mrglglgl addon writes, and keeping the journal archive. It never executes Lua, and never writes
+//! under the WoW folder except for one exception, in `addon_install`: installing, updating or
+//! removing the addon's own folder under `Interface/AddOns`, never while the game runs.
 
+pub mod addon_install;
 pub mod addon_status;
 pub mod archive;
 pub mod beats;

@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 use mrglglgl_core::addon_status::{self, CharacterRun, FlavorAddon};
 use mrglglgl_core::archive;
 use mrglglgl_core::db::{Settings, StoredCharacter};
-use mrglglgl_core::discovery::{self, DiscoveryOverrides, WowRoot};
+use mrglglgl_core::discovery::{self, DiscoveryOverrides, Flavor, WowRoot};
 use mrglglgl_core::milestones::{self, Award};
 use mrglglgl_core::schema::Journal;
 use mrglglgl_core::screenshots::{self, Screenshot};
@@ -135,8 +135,7 @@ pub fn get_settings(state: State<'_, AppState>) -> Result<SettingsView, String> 
 
 /// The addon in each WoW: Forever flavor found: installed or not, which version, and whether it
 /// has been recording, from the installed TOC and what the addon noted in the archived journals.
-#[tauri::command]
-pub fn addon_status(state: State<'_, AppState>) -> Result<Vec<FlavorAddon>, String> {
+pub fn addon_statuses(state: &AppState) -> Result<Vec<(Flavor, FlavorAddon)>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let settings = db.settings().map_err(|e| e.to_string())?;
     let characters = db.characters().map_err(|e| e.to_string())?;
@@ -169,13 +168,14 @@ pub fn addon_status(state: State<'_, AppState>) -> Result<Vec<FlavorAddon>, Stri
                     errors: errors.as_ref(),
                 })
                 .collect();
-            found.push(addon_status::assess(
+            let status = addon_status::assess(
                 &flavor,
                 client,
                 addon_status::installed(&flavor),
                 &runs,
                 now,
-            ));
+            );
+            found.push((flavor, status));
         }
     }
     Ok(found)

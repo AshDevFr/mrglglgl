@@ -40,6 +40,8 @@ export const PROBLEMS = [
   "addon.problem.updatePending",
   "addon.problem.outOfDate",
   "addon.problem.errors",
+  "addon.actionFailed",
+  "addon.releaseFailed",
 ] as const;
 
 export type Problem = (typeof PROBLEMS)[number];

@@ -1,5 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type { AddonView } from "@/bindings/AddonView";
 import type { Alias } from "@/bindings/Alias";
 import type { AppInfo } from "@/bindings/AppInfo";
 import type { Award } from "@/bindings/Award";
@@ -7,7 +8,7 @@ import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
 import type { ExportFormat } from "@/bindings/ExportFormat";
 import type { ExportPage } from "@/bindings/ExportPage";
-import type { FlavorAddon } from "@/bindings/FlavorAddon";
+import type { Installed } from "@/bindings/Installed";
 import type { Journal } from "@/bindings/Journal";
 import type { ModelsView } from "@/bindings/ModelsView";
 import type { Narrator } from "@/bindings/Narrator";
@@ -17,6 +18,7 @@ import type { PreviewDay } from "@/bindings/PreviewDay";
 import type { PreviewEvent } from "@/bindings/PreviewEvent";
 import type { PreviewResult } from "@/bindings/PreviewResult";
 import type { QueueEvent } from "@/bindings/QueueEvent";
+import type { ReleaseCheck } from "@/bindings/ReleaseCheck";
 import type { ReviewItem } from "@/bindings/ReviewItem";
 import type { Screenshot } from "@/bindings/Screenshot";
 import type { Settings } from "@/bindings/Settings";
@@ -64,8 +66,31 @@ export function screenshotUrl(path: string): string {
   return convertFileSrc(path);
 }
 
-export function addonStatus(): Promise<FlavorAddon[]> {
-  return invoke<FlavorAddon[]>("addon_status");
+export function addonViews(): Promise<AddonView[]> {
+  return invoke<AddonView[]>("addon_views");
+}
+
+export function addonRelease(force: boolean): Promise<ReleaseCheck> {
+  return invoke<ReleaseCheck>("addon_release", { force });
+}
+
+export function setAddonPrereleases(on: boolean): Promise<void> {
+  return invoke("set_addon_prereleases", { on });
+}
+
+export function installAddon(
+  flavor: string,
+  takeOver: boolean,
+): Promise<Installed> {
+  return invoke<Installed>("install_addon", { flavor, takeOver });
+}
+
+export function removeAddon(flavor: string, takeOver: boolean): Promise<void> {
+  return invoke("remove_addon", { flavor, takeOver });
+}
+
+export function restoreAddon(flavor: string): Promise<Installed> {
+  return invoke<Installed>("restore_addon", { flavor });
 }
 
 export function getSettings(): Promise<SettingsView> {

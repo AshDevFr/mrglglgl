@@ -572,7 +572,7 @@
       "quiet": "Quiet"
     },
     "next": {
-      "notInstalled": "The addon is not in {{folder}}. Install it there, then log in with a character.",
+      "notInstalled": "The addon is not in {{folder}} yet.",
       "waiting": "Nothing recorded yet. Log in with a character and the addon starts its journal.",
       "recording": "Last noted by {{character}} on {{when}}.",
       "quiet": "Nothing noted since {{character}} on {{when}}. If you have played since, check that Mrglglgl is enabled in the AddOns list on the character screen."
@@ -586,6 +586,34 @@
       "outOfDateNext": "Update the addon, or tick \"Load out of date AddOns\" on the character screen.",
       "errors": "The addon caught an error on {{when}}: {{message}}",
       "errorsNext": "Recording carried on. If it happens again, please report it with this message."
-    }
+    },
+    "latest": "Newest release: {{version}} (checked {{when}}).",
+    "noRelease": "No release of the addon was found for this channel.",
+    "checkAgain": "Check again",
+    "prereleases": "Offer test versions",
+    "prereleasesHelp": "Test versions come before a release and may still have rough edges. Off, only releases are installed.",
+    "install": "Install version {{version}}",
+    "update": "Update to {{version}}",
+    "takeOver": "Replace with version {{version}} and look after it",
+    "restore": "Put back version {{version}}",
+    "restoreUnknown": "Put back the earlier copy",
+    "remove": "Remove the addon",
+    "removeTitle": "Remove the addon from {{flavor}}?",
+    "removeExplain": "Only the addon's folder is removed. Everything it recorded stays: in the game's WTF folder and in this app's journal. A copy is kept so you can put it back.",
+    "removeConfirm": "Remove it",
+    "cancel": "Keep it",
+    "ownership": {
+      "foreign": "Installed by something else (an addon manager or by hand). The app leaves it alone unless you choose to replace it.",
+      "changed": "Installed by the app, then changed outside it.",
+      "development": "A linked development copy: the app never writes to it."
+    },
+    "done": {
+      "installed": "Version {{version}} is installed. Type /reload in the game, or log in, to load it.",
+      "removed": "The addon was removed. Your journals are untouched."
+    },
+    "actionFailed": "The addon was not changed: {{message}}",
+    "actionFailedNext": "The game folder was left as it was. Close the game if it is running, then try again.",
+    "releaseFailed": "Could not look up the addon's releases: {{message}}",
+    "releaseFailedNext": "Check the connection, then press Check again; what is installed keeps working."
   }
 }

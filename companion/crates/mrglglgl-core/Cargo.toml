@@ -22,6 +22,7 @@ toml = { workspace = true }
 image = { workspace = true }
 minijinja = { workspace = true }
 tracing = { workspace = true }
+zip = { workspace = true }
 ts-rs = { workspace = true, optional = true }
 
 [features]

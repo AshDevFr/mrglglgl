@@ -29,6 +29,8 @@ dirs = { workspace = true }
 keyring = { workspace = true }
 sysinfo = { workspace = true }
 tokio = { workspace = true }
+reqwest = { workspace = true }
+futures-util = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 # Whether a laptop runs on battery, to hold background writing until it is plugged in.
