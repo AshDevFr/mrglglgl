@@ -47,10 +47,10 @@ end
 local function addRetention(layout)
 	Compat.AddSettingsHeader(layout, L.SETTINGS_RETENTION_HEADER)
 	Compat.AddDropdown(category, "MRGLGLGL_RETENTION", L.SETTINGS_RETENTION, L.TIP_RETENTION,
-		{ { 7, L.DAYS_7 }, { 14, L.DAYS_14 }, { 30, L.DAYS_30 } },
+		{ { 14, L.DAYS_14 }, { 30, L.DAYS_30 }, { 60, L.DAYS_60 }, { 90, L.DAYS_90 } },
 		function() return settings().retentionDays end,
 		function(value) settings().retentionDays = value end,
-		14)
+		30)
 end
 
 local function addScreenshots(layout)

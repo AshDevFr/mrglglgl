@@ -85,19 +85,20 @@ local function yearSize(profile, keep)
 		return bytes
 end
 
--- The guard: a heavy year at the default retention stays under this. Owner decision pending on
--- whether to aim lower, which needs schema-level changes (see the spec's progress notes).
-local HEAVY_DEFAULT_LIMIT = 2 * 1024 * 1024
+-- The guard: a heavy year at the default retention stays under this. Owner decision
+-- (2026-11-06): compacted days keep their key events and aggregates, so the budget is 8 MB
+-- (about 6.8 MB measured); whether the client loads a file this size quickly is an in-game check.
+local HEAVY_DEFAULT_LIMIT = 8 * 1024 * 1024
 
 describe("SavedVariables size", function()
-	it("keeps a heavy year at the default 14-day retention under 2 MB", function()
-		local bytes = yearSize("heavy", 14)
+	it("keeps a heavy year at the default 30-day retention under 8 MB", function()
+		local bytes = yearSize("heavy", 30)
 		assert.is_true(bytes < HEAVY_DEFAULT_LIMIT, ("%.0f KB"):format(bytes / 1024))
 	end)
 
 	it("reports a year at every retention setting", function()
 		for _, profile in ipairs({ "heavy", "extreme" }) do
-			for _, keep in ipairs({ 7, 14, 30 }) do
+			for _, keep in ipairs({ 14, 30, 60, 90 }) do
 				yearSize(profile, keep)
 			end
 		end

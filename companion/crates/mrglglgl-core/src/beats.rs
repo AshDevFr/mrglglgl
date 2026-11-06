@@ -269,7 +269,8 @@ impl DayRecord {
             nothing_happened: facts.nothing_happened,
             ..DayRecord::default()
         };
-        let Some(events) = &day.events else {
+        // A compacted day keeps a few key events; its digest is what the whole day was.
+        let Some(events) = day.events.as_ref().filter(|_| !day.compacted) else {
             if let Some(d) = &day.digest {
                 r.zones = d.zones.clone();
                 r.subzones = d.subzones.clone();

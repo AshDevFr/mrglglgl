@@ -20,8 +20,8 @@ describe("Storage", function()
 
 	it("creates both databases with defaults on a fresh character, silently", function()
 		start()
-		assert.equals(1, _G.MrglglglDB.schema)
-		assert.equals(14, _G.MrglglglDB.settings.retentionDays)
+		assert.equals(2, _G.MrglglglDB.schema)
+		assert.equals(30, _G.MrglglglDB.settings.retentionDays)
 		assert.equals(3, _G.MrglglglDB.settings.lootQuality)
 		assert.is_false(_G.MrglglglDB.settings.screenshots.levelUp)
 		assert.equals(1, _G.MrglglglCharDB.schema)
@@ -76,6 +76,20 @@ describe("Storage", function()
 
 	it("records nothing before the journal is loaded", function()
 		assert.is_false(ns.Storage.records("kills"))
+	end)
+
+	it("keeps 30 days in full by default, moving the old 14-day default to it", function()
+		start()
+		assert.equals(30, _G.MrglglglDB.settings.retentionDays)
+	end)
+
+	it("moves settings from before the 30-day default, and clamps any other value", function()
+		for _, case in ipairs({ { 14, 30 }, { 7, 14 }, { 60, 60 }, { 0, 30 }, { 500, 30 }, { "x", 30 } }) do
+			ns = Addon.load(Mock)
+			_G.MrglglglDB = { schema = 1, settings = { retentionDays = case[1] } }
+			start()
+			assert.equals(case[2], _G.MrglglglDB.settings.retentionDays, tostring(case[1]))
+		end
 	end)
 
 	it("notes which addon and client last wrote the journal, at each login", function()

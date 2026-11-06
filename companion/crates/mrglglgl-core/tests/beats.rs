@@ -328,6 +328,28 @@ fn a_compacted_day_is_read_from_its_digest() {
         ..Day::default()
     };
     assert_eq!(DayRecord::of(&day).murloc_kills(), 12);
+    // A compacted day that kept its key events (here a session start) is still told from its
+    // digest, which counted everything the day held.
+    let mut kept = day.clone();
+    kept.compacted = true;
+    kept.events = Some(vec![event(EventKind::SessionStart)]);
+    assert_eq!(DayRecord::of(&kept).murloc_kills(), 12);
+    assert_eq!(
+        beats::extract(
+            &journal(vec![("2026-11-17", kept)]),
+            "2026-11-17",
+            &[],
+            &Thresholds::default()
+        )
+        .texts(),
+        beats::extract(
+            &journal(vec![("2026-11-17", day.clone())]),
+            "2026-11-17",
+            &[],
+            &Thresholds::default()
+        )
+        .texts(),
+    );
     let j = journal(vec![("2026-11-17", day)]);
     let day = beats::extract(&j, "2026-11-17", &[], &Thresholds::default());
     assert!(day.patterns.contains(&Pattern::MurlocHeavy));

@@ -5,7 +5,9 @@ local addonName, ns = ...
 local Storage = {}
 ns.Storage = Storage
 
-local SETTINGS_SCHEMA = 1
+local SETTINGS_SCHEMA = 2
+-- The days a player may keep in full; the first is the shortest allowed.
+local RETENTION_CHOICES = { 14, 30, 60, 90 }
 
 local DEFAULT_SETTINGS = {
 	record = {
@@ -13,7 +15,7 @@ local DEFAULT_SETTINGS = {
 		kills = true, deaths = true, fishing = true, loot = true, group = true, professions = true,
 	},
 	lootQuality = 3,
-	retentionDays = 14,
+	retentionDays = 30,
 	screenshots = {
 		levelUp = false, death = false, bossKill = false,
 		firstBoot = false, firstMurlocKill = false, firstDeathByMurloc = false,
@@ -57,7 +59,26 @@ local function loadSettings()
 	MrglglglDB = MrglglglDB or {}
 	MrglglglDB.schema = MrglglglDB.schema or SETTINGS_SCHEMA
 	MrglglglDB.settings = MrglglglDB.settings or {}
-	fillDefaults(MrglglglDB.settings, DEFAULT_SETTINGS)
+	local settings = MrglglglDB.settings
+	-- Version 1 stored the old 14-day default for everyone, and offered 7 days: the new default
+	-- is 30, and 14 the shortest.
+	if MrglglglDB.schema < 2 then
+		if settings.retentionDays == 14 then
+			settings.retentionDays = 30
+		elseif settings.retentionDays == 7 then
+			settings.retentionDays = 14
+		end
+		MrglglglDB.schema = 2
+	end
+	fillDefaults(settings, DEFAULT_SETTINGS)
+	-- A value outside the choices (an edited file, an older addon) would compact the wrong days.
+	local valid = false
+	for _, days in ipairs(RETENTION_CHOICES) do
+		valid = valid or settings.retentionDays == days
+	end
+	if not valid then
+		settings.retentionDays = DEFAULT_SETTINGS.retentionDays
+	end
 end
 
 local function loadJournal()

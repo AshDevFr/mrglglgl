@@ -11,9 +11,11 @@ Digest.VERSION = 2
 
 -- Caps keep a busy day's digest small: a summary needs the highlights, and counts stay exact.
 -- Record lists cost far more per entry than name lists, so they get tighter caps.
-local TOP_KILLS = 10
-local LIST_CAP = 20
-local RECORD_CAPS = { deaths = 5, loot = 8, fish = 8, notableKills = 8 }
+-- Raised well above a real day's numbers: a compacted day's digest is what the app tells the day
+-- from, possibly weeks later.
+local TOP_KILLS = 40
+local LIST_CAP = 60
+local RECORD_CAPS = { deaths = 20, loot = 30, fish = 30, notableKills = 30 }
 
 local NOTABLE_CLASSIFICATIONS = { elite = true, rare = true, rareelite = true, worldboss = true }
 

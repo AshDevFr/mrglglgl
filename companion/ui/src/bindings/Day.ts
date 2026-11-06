@@ -21,4 +21,9 @@ crafted: { [key in number]: ItemCount },
 /**
  * Items gathered from nodes and corpses that day, by item ID.
  */
-gathered: { [key in number]: ItemCount }, digest: Digest | null, };
+gathered: { [key in number]: ItemCount }, digest: Digest | null, 
+/**
+ * The game compacted the day: `events` holds only its key moments, and the digest is what
+ * the whole day was.
+ */
+compacted: boolean, };

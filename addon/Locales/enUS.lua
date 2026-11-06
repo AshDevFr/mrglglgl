@@ -55,10 +55,11 @@ ns.RegisterLocale("enUS", {
 
 	SETTINGS_RETENTION_HEADER = "Storage",
 	SETTINGS_RETENTION = "Keep full detail for",
-	TIP_RETENTION = "Older days keep only their daily summary. The Mrglglgl app keeps the full history once it has seen it.",
-	DAYS_7 = "7 days",
+	TIP_RETENTION = "Older days keep their key moments and a daily summary. The Mrglglgl app keeps the full history once it has seen it.",
 	DAYS_14 = "14 days",
 	DAYS_30 = "30 days",
+	DAYS_60 = "60 days",
+	DAYS_90 = "90 days",
 
 	SETTINGS_SCREENSHOTS_HEADER = "Screenshots",
 	TIP_SCREENSHOTS = "Takes a game screenshot at this moment, for the app to show with the day. Off by default.",

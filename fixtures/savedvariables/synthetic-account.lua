@@ -1,6 +1,6 @@
 
 MrglglglDB = {
-["schema"] = 1,
+["schema"] = 2,
 ["settings"] = {
 ["lootQuality"] = 3,
 ["record"] = {
@@ -16,7 +16,7 @@ MrglglglDB = {
 ["sessions"] = true,
 ["zones"] = true,
 },
-["retentionDays"] = 7,
+["retentionDays"] = 30,
 ["screenshots"] = {
 ["bossKill"] = false,
 ["death"] = false,

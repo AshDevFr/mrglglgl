@@ -668,7 +668,29 @@ fn an_archived_day_in_format_one_still_reads_every_field() {
     let text = fs::read_to_string(&path).unwrap();
     let original: serde_json::Value = serde_json::from_str(&text).unwrap();
     let day: schema::Day = serde_json::from_str(&text).unwrap();
-    assert_eq!(serde_json::to_value(&day).unwrap(), original);
+    // Every value the old row held reads back the same; fields added since may appear beside them.
+    assert_kept(&original, &serde_json::to_value(&day).unwrap(), "day");
+}
+
+fn assert_kept(old: &serde_json::Value, new: &serde_json::Value, at: &str) {
+    match (old, new) {
+        (serde_json::Value::Object(o), serde_json::Value::Object(n)) => {
+            for (key, value) in o {
+                let path = format!("{at}.{key}");
+                let read = n
+                    .get(key)
+                    .unwrap_or_else(|| panic!("{path} was not read back"));
+                assert_kept(value, read, &path);
+            }
+        }
+        (serde_json::Value::Array(o), serde_json::Value::Array(n)) => {
+            assert_eq!(o.len(), n.len(), "{at} changed length");
+            for (i, (a, b)) in o.iter().zip(n).enumerate() {
+                assert_kept(a, b, &format!("{at}[{i}]"));
+            }
+        }
+        _ => assert_eq!(old, new, "{at} reads back differently"),
+    }
 }
 
 #[test]

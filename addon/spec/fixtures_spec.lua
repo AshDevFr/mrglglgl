@@ -45,7 +45,7 @@ describe("Shared fixtures", function()
 
 	it("include a compacted day, a day of only fishing and a day where nothing happened", function()
 		local days = journal("synthetic-character.lua").days
-		assert.is_nil(days["2026-11-01"].ev)
+		assert.is_true(days["2026-11-01"].c)
 		assert.is_table(days["2026-11-01"].digest)
 		assert.is_true(days["2026-11-09"].digest.onlyFished)
 		assert.is_true(days["2026-11-10"].digest.nothingHappened)

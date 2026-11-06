@@ -1,7 +1,9 @@
--- Bounded storage: every day with raw events gets a fresh digest, and days older than the
--- retention setting then drop their raw events, keeping only the digest. Runs at login and
--- logout. The app backs up and archives full history, so dropping raw events here loses nothing
--- the app has already seen.
+-- Bounded storage: every whole day gets a fresh digest, and days older than the retention setting
+-- are then compacted: they keep their key events (with times and places), their aggregates
+-- (kills, skills, crafting, gathering) and the digest, and drop the bulk events the digest counts
+-- (zone changes, fishing, loot). A compacted day is marked `c` and its digest is never rebuilt.
+-- Runs at login and logout. The app archives what it sees, but a player may not open it for
+-- weeks, so a compacted day keeps what the app needs to tell it.
 local _, ns = ...
 
 local Storage, Day, Digest = ns.Storage, ns.Day, ns.Digest
@@ -11,7 +13,13 @@ ns.Compact = Compact
 
 local SECONDS_PER_DAY = 86400
 -- Days older than this keep a thinned digest (Digest.thin).
-local THIN_AFTER_DAYS = 90
+local THIN_AFTER_DAYS = 365
+
+-- The events a compacted day keeps: few per day, and each one a moment of the story.
+local KEPT_KINDS = {
+	session_start = true, session_end = true, level = true, death = true, boss = true,
+	discover = true, quest_accept = true, quest_turnin = true, screenshot = true, group_join = true,
+}
 
 -- Day keys sort as strings, so a day is older than the cutoff when its key sorts before it.
 -- Counting back from noon keeps a daylight saving change from shifting the cutoff by a day.
@@ -21,7 +29,7 @@ local function cutoffKey(now, keepDays)
 	return Day.key(time(today) - (keepDays - 1) * SECONDS_PER_DAY)
 end
 
--- Per-day fields that hold raw data: dropped when a day is compacted.
+-- Per-day fields that hold raw data, as opposed to the digest.
 local RAW_FIELDS = { "ev", "kills", "anonKills", "skills", "crafted", "gathered" }
 
 function Compact.hasRaw(day)
@@ -40,17 +48,24 @@ function Compact.run(journal, now, keepDays)
 	local thinCutoff = cutoffKey(now, THIN_AFTER_DAYS)
 	local compacted = 0
 	for key, day in pairs(journal.days) do
-		local hasRaw = Compact.hasRaw(day)
-		if hasRaw then
+		-- A compacted day's digest was built from the whole day; what is left is not enough to
+		-- rebuild it, even when a late event lands in the day.
+		local whole = not day.c and Compact.hasRaw(day)
+		if whole then
 			day.digest = Digest.build(day)
 		end
-		if key < cutoff and hasRaw then
-			for _, field in ipairs(RAW_FIELDS) do
-				day[field] = nil
+		if key < cutoff and whole then
+			local kept = {}
+			for _, event in ipairs(day.ev or {}) do
+				if KEPT_KINDS[event.k] then
+					kept[#kept + 1] = event
+				end
 			end
+			day.ev = #kept > 0 and kept or nil
+			day.c = true
 			compacted = compacted + 1
 		end
-		if key < thinCutoff and not Compact.hasRaw(day) and day.digest then
+		if key < thinCutoff and day.digest and (day.c or not Compact.hasRaw(day)) then
 			Digest.thin(day.digest)
 		end
 	end

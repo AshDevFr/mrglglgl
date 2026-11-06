@@ -28,6 +28,7 @@ MrglglglCharDB = {
 },
 ["days"] = {
 ["2026-11-01"] = {
+["c"] = true,
 ["digest"] = {
 ["accepted"] = {
 },
@@ -112,6 +113,60 @@ MrglglglCharDB = {
 ["v"] = 2,
 ["zones"] = {
 "Mulgore",
+},
+},
+["ev"] = {
+{
+["k"] = "session_start",
+["lv"] = 5,
+["m"] = 7,
+["sz"] = "Bloodhoof Village",
+["t"] = 1793556000,
+["z"] = "Mulgore",
+},
+{
+["area"] = "Mulgore",
+["k"] = "discover",
+["lv"] = 5,
+["m"] = 7,
+["src"] = "visit",
+["sz"] = "Red Cloud Mesa",
+["t"] = 1793556000,
+["z"] = "Mulgore",
+},
+{
+["area"] = "Red Cloud Mesa",
+["k"] = "discover",
+["lv"] = 5,
+["m"] = 7,
+["src"] = "visit",
+["sz"] = "Red Cloud Mesa",
+["t"] = 1793556000,
+["z"] = "Mulgore",
+},
+{
+["env"] = "Drowning",
+["k"] = "death",
+["lv"] = 5,
+["m"] = 7,
+["sz"] = "Red Cloud Mesa",
+["t"] = 1793556150.5,
+["z"] = "Mulgore",
+},
+{
+["k"] = "session_end",
+["lv"] = 5,
+["m"] = 7,
+["sz"] = "Red Cloud Mesa",
+["t"] = 1793556212,
+["z"] = "Mulgore",
+},
+},
+["kills"] = {
+[2958] = {
+["cls"] = "unknown",
+["murloc"] = false,
+["n"] = 1,
 },
 },
 },

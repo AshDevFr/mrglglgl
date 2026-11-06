@@ -84,13 +84,14 @@ A day is a local calendar date. Each event belongs to the day of its own timesta
 
 | Field | Type | Meaning |
 |---|---|---|
-| `ev` | array? | Raw events in time order; absent once the day is compacted |
+| `ev` | array? | Raw events in time order; once compacted, only the key moments (sessions, levels, deaths, bosses, discoveries, quests taken and handed in, screenshots, group joins), absent if there were none |
+| `c` | bool? | `true` once the day is compacted: `ev` holds only key moments and `digest` is what the whole day was |
 | `kills` | table? | Kill aggregates keyed by NPC ID |
 | `anonKills` | int? | Kills whose target the client withheld (dungeons, raids, encounters, PvP) |
 | `skills` | table? | Skills that rose that day, keyed by skill ID |
 | `crafted` | table? | Items crafted that day, keyed by item ID |
 | `gathered` | table? | Items mined, picked or skinned that day, keyed by item ID |
-| `digest` | table? | The day's summary; kept after compaction |
+| `digest` | table? | The day's summary, built from the whole day; never rebuilt after compaction |
 
 ### Event (`days[key].ev[i]`)
 

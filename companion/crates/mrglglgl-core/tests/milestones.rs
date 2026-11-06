@@ -148,7 +148,8 @@ fn a_bad_day_and_a_tourist_day() {
 fn facts_read_a_compacted_day_from_its_digest() {
     let journal = synthetic();
     let compacted = &journal.days["2026-11-01"];
-    assert!(compacted.events.is_none());
+    // The game kept the day's key moments; its facts still come from the digest.
+    assert!(compacted.compacted);
     let f = facts(compacted);
     assert_eq!((f.boots, f.drownings, f.deaths, f.fish), (1, 1, 1, 2));
 }

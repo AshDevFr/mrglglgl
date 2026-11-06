@@ -133,7 +133,7 @@ pub fn name(id: &str) -> &str {
 /// The facts of one day, from raw events when present, from the digest otherwise.
 pub fn facts(day: &Day) -> DayFacts {
     let digest = day.digest.as_ref();
-    let Some(events) = &day.events else {
+    let Some(events) = day.events.as_ref().filter(|_| !day.compacted) else {
         let Some(d) = digest else {
             return DayFacts::default();
         };

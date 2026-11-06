@@ -38,31 +38,73 @@ describe("Compact", function()
 		ns = Addon.load(Mock)
 	end)
 
-	for _, keep in ipairs({ 7, 14, 30 }) do
-		it(("keeps %d days raw and compacts the rest, digests unchanged"):format(keep), function()
+	for _, keep in ipairs({ 14, 30, 60 }) do
+		it(("keeps %d days whole and compacts the rest, digests unchanged"):format(keep), function()
 			local now = noon(2026, 11, 20)
-			local journal = journalWithDays(now, 40)
+			local journal = journalWithDays(now, 80)
 			local expected = {}
 			for key, day in pairs(journal.days) do
 				expected[key] = ns.Digest.build(deepCopy(day))
 			end
 
-			assert.equals(40 - keep, ns.Compact.run(journal, now, keep))
+			assert.equals(80 - keep, ns.Compact.run(journal, now, keep))
 
-			local raw = 0
+			local whole = 0
 			for key, day in pairs(journal.days) do
 				assert.same(expected[key], day.digest, key)
-				if day.ev then
-					raw = raw + 1
+				assert.is_table(day.kills, "kill counts are kept: " .. key)
+				if day.c then
+					assert.is_nil(day.ev, "nothing but fishing to keep: " .. key)
 				else
-					assert.is_nil(day.kills, key)
+					whole = whole + 1
 				end
 			end
-			assert.equals(keep, raw)
-			assert.is_table(journal.days[os.date("%Y-%m-%d", now)].ev)
-			assert.is_nil(journal.days[os.date("%Y-%m-%d", now - keep * DAY)].ev)
+			assert.equals(keep, whole)
+			assert.is_nil(journal.days[os.date("%Y-%m-%d", now)].c)
+			assert.is_true(journal.days[os.date("%Y-%m-%d", now - keep * DAY)].c)
 		end)
 	end
+
+	it("keeps a compacted day's key events with their times and places, and drops the rest", function()
+		local now = noon(2026, 11, 20)
+		local key = os.date("%Y-%m-%d", now - 40 * DAY)
+		local t = now - 40 * DAY
+		local journal = { days = { [key] = {
+			ev = {
+				{ t = t, k = "session_start", z = "Mulgore", sz = "", lv = 5 },
+				{ t = t + 1, k = "zone", z = "Mulgore", sz = "", lv = 5 },
+				{ t = t + 2, k = "fish", z = "Mulgore", sz = "", lv = 5, item = 6303, name = "Fish" },
+				{ t = t + 3, k = "death", z = "Mulgore", sz = "Red Rocks", lv = 5, killer = { name = "Murloc" } },
+				{ t = t + 4, k = "screenshot", z = "Mulgore", sz = "Red Rocks", lv = 6, moment = "levelUp" },
+				{ t = t + 5, k = "loot", z = "Mulgore", sz = "", lv = 6, item = 1, name = "Knife", ql = 3 },
+				{ t = t + 6, k = "session_end", z = "Mulgore", sz = "", lv = 6 },
+			},
+			skills = { [182] = { name = "Herbalism", cat = "Professions", from = 1, to = 5 } },
+		} } }
+		ns.Compact.run(journal, now, 30)
+		local day = journal.days[key]
+		assert.is_true(day.c)
+		local kinds = {}
+		for _, e in ipairs(day.ev) do
+			kinds[#kinds + 1] = e.k
+		end
+		assert.same({ "session_start", "death", "screenshot", "session_end" }, kinds)
+		assert.equals("Red Rocks", day.ev[2].sz)
+		assert.equals(t + 4, day.ev[3].t)
+		assert.equals(1, day.digest.counts.fish, "the digest still counts what was dropped")
+		assert.equals(5, day.skills[182].to)
+	end)
+
+	it("never rebuilds a compacted day's digest, even after a late event lands in it", function()
+		local now = noon(2026, 11, 20)
+		local journal = journalWithDays(now, 40)
+		ns.Compact.run(journal, now, 14)
+		local key = os.date("%Y-%m-%d", now - 30 * DAY)
+		local before = deepCopy(journal.days[key].digest)
+		journal.days[key].ev = { { t = now - 30 * DAY, k = "level", z = "Mulgore", sz = "", lv = 7 } }
+		assert.equals(0, ns.Compact.run(journal, now, 14))
+		assert.same(before, journal.days[key].digest)
+	end)
 
 	it("leaves a compacted day's digest alone on later runs", function()
 		local now = noon(2026, 11, 20)
@@ -89,10 +131,10 @@ describe("Compact", function()
 			journal.quests[3].title })
 	end)
 
-	it("thins the digests of days older than 90 days to their highlights, counts kept", function()
+	it("thins the digests of days older than a year to their highlights, counts kept", function()
 		local now = noon(2026, 11, 20)
-		local journal = journalWithDays(now, 120)
-		local old = journal.days[os.date("%Y-%m-%d", now - 100 * DAY)]
+		local journal = journalWithDays(now, 400)
+		local old = journal.days[os.date("%Y-%m-%d", now - 380 * DAY)]
 		for i = 1, 10 do
 			old.ev[#old.ev + 1] = { t = 0, k = "loot", z = "Mulgore", sz = "", lv = 5, item = 9000 + i, name = "Item", ql = 3 }
 		end
@@ -102,21 +144,23 @@ describe("Compact", function()
 		assert.equals(3, #d.loot)
 		assert.equals(10, d.counts.loot)
 		assert.same({}, d.subzones)
-		local recent = journal.days[os.date("%Y-%m-%d", now - 30 * DAY)].digest
-		assert.is_nil(recent.thin)
+		local recent = journal.days[os.date("%Y-%m-%d", now - 200 * DAY)].digest
+		assert.is_nil(recent.thin, "half a year old keeps its whole digest")
 	end)
 
 	it("runs at logout with the retention setting, after the session end is recorded", function()
 		Mock.now = noon(2026, 11, 20)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")
-		_G.MrglglglDB.settings.retentionDays = 7
-		_G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now - 10 * DAY)] = { ev = { { t = 0, k = "level", lv = 4 } } }
+		_G.MrglglglDB.settings.retentionDays = 14
+		_G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now - 20 * DAY)] = { ev = { { t = 0, k = "level", lv = 4 } } }
 		Mock.fire("PLAYER_LOGIN")
 		Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 		Mock.fire("PLAYER_LOGOUT")
 		local today = _G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)]
 		assert.equals(1, today.digest.counts.sessions)
 		assert.equals("session_end", today.ev[#today.ev].k)
-		assert.is_nil(_G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now - 10 * DAY)].ev)
+		local old = _G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now - 20 * DAY)]
+		assert.is_true(old.c)
+		assert.equals("level", old.ev[1].k, "a compacted day keeps its level-up")
 	end)
 end)

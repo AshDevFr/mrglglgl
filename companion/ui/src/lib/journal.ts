@@ -257,7 +257,8 @@ function eventFacts(
   day: Day,
 ): Omit<DayFacts, "skills" | "crafted" | "gathered"> {
   const digest = day.digest;
-  if (day.events === null) {
+  // A compacted day keeps a few key events; its digest is what the whole day was.
+  if (day.events === null || day.compacted) {
     const d = digest;
     const kills: KillLine[] = (d?.kills ?? []).map((k) => ({
       name: k.name,

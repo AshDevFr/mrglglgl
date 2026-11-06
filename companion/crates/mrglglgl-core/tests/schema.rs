@@ -106,11 +106,7 @@ fn reads_every_event_kind_kills_and_stats() {
         }
     );
 
-    let wolves = journal
-        .days
-        .values()
-        .find_map(|d| d.kills.get(&2958))
-        .unwrap();
+    let wolves = &journal.days["2026-11-08"].kills[&2958];
     assert_eq!(wolves.count, 23);
     assert_eq!(wolves.classification, "normal");
 }
@@ -119,7 +115,7 @@ fn reads_every_event_kind_kills_and_stats() {
 fn reads_a_compacted_day_from_its_digest() {
     let journal = schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
     let day = &journal.days["2026-11-01"];
-    assert!(day.events.is_none(), "a compacted day has no raw events");
+    assert!(day.compacted, "the game compacted the day");
     let digest = day.digest.as_ref().unwrap();
     assert_eq!(digest.version, 2);
     assert_eq!(digest.counts.boots, 1);
@@ -205,7 +201,7 @@ fn a_file_without_a_journal_is_not_a_journal() {
 fn reads_the_account_settings() {
     let file = sv::parse(&shared("synthetic-account.lua")).unwrap();
     let settings = schema::account_settings_from(&file).unwrap();
-    assert_eq!(settings.retention_days, Some(7));
+    assert_eq!(settings.retention_days, Some(30));
     assert_eq!(settings.loot_quality, Some(3));
     assert_eq!(settings.record.get("kills"), Some(&true));
     assert_eq!(settings.screenshots.get("levelUp"), Some(&true));
@@ -298,6 +294,7 @@ fn reads_every_documented_field() {
         "ev",
         "kills",
         "anonKills",
+        "c",
         "skills",
         "crafted",
         "gathered",

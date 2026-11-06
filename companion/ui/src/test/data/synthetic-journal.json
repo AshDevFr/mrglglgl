@@ -12,8 +12,72 @@
   },
   "days": {
     "2026-11-01": {
-      "events": null,
-      "kills": {},
+      "events": [
+        {
+          "time": 1793556000,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "sessionStart"
+          }
+        },
+        {
+          "time": 1793556000,
+          "zone": "Mulgore",
+          "subzone": "Red Cloud Mesa",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "discover",
+            "area": "Mulgore",
+            "source": "visit"
+          }
+        },
+        {
+          "time": 1793556000,
+          "zone": "Mulgore",
+          "subzone": "Red Cloud Mesa",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "discover",
+            "area": "Red Cloud Mesa",
+            "source": "visit"
+          }
+        },
+        {
+          "time": 1793556150,
+          "zone": "Mulgore",
+          "subzone": "Red Cloud Mesa",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "death",
+            "killer": null,
+            "environment": "Drowning"
+          }
+        },
+        {
+          "time": 1793556212,
+          "zone": "Mulgore",
+          "subzone": "Red Cloud Mesa",
+          "mapId": 7,
+          "level": 5,
+          "kind": {
+            "kind": "sessionEnd"
+          }
+        }
+      ],
+      "kills": {
+        "2958": {
+          "count": 1,
+          "name": null,
+          "classification": "unknown",
+          "murloc": false
+        }
+      },
       "anonKills": 0,
       "skills": {},
       "crafted": {},
@@ -98,7 +162,8 @@
         "onlyFished": false,
         "nothingHappened": false,
         "thin": false
-      }
+      },
+      "compacted": true
     },
     "2026-11-08": {
       "events": [
@@ -460,7 +525,8 @@
         "onlyFished": false,
         "nothingHappened": false,
         "thin": false
-      }
+      },
+      "compacted": false
     },
     "2026-11-09": {
       "events": [
@@ -571,7 +637,8 @@
         "onlyFished": true,
         "nothingHappened": false,
         "thin": false
-      }
+      },
+      "compacted": false
     },
     "2026-11-10": {
       "events": [
@@ -646,7 +713,8 @@
         "onlyFished": false,
         "nothingHappened": true,
         "thin": false
-      }
+      },
+      "compacted": false
     }
   },
   "quests": {

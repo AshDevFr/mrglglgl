@@ -308,6 +308,8 @@ fn merge_day(stored: Day, incoming: Day, incoming_newer: bool) -> Day {
         crafted: items(stored.crafted, incoming.crafted),
         gathered: items(stored.gathered, incoming.gathered),
         digest,
+        // The longer event list is kept, and a whole day's is longer than a compacted one's.
+        compacted: stored.compacted && incoming.compacted,
     }
 }
 

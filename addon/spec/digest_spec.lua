@@ -62,12 +62,12 @@ describe("Digest", function()
 
 	it("caps record lists to the highlights and keeps exact counts", function()
 		local day = { ev = {} }
-		for i = 1, 12 do
+		for i = 1, 35 do
 			day.ev[#day.ev + 1] = ev("loot", { item = 9000 + i, name = "Item " .. i, ql = 3, qty = 1 })
 			day.ev[#day.ev + 1] = ev("death", { env = "Drowning" })
 		end
 		local d = Digest.build(day)
-		assert.same({ 8, 12, 5, 12 }, { #d.loot, d.counts.loot, #d.deaths, d.counts.deaths })
+		assert.same({ 30, 35, 20, 35 }, { #d.loot, d.counts.loot, #d.deaths, d.counts.deaths })
 	end)
 
 	it("flags a day of nothing but fishing", function()

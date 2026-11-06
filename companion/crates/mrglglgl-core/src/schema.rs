@@ -156,6 +156,9 @@ pub struct Day {
     /// Items gathered from nodes and corpses that day, by item ID.
     pub gathered: BTreeMap<i64, ItemCount>,
     pub digest: Option<Digest>,
+    /// The game compacted the day: `events` holds only its key moments, and the digest is what
+    /// the whole day was.
+    pub compacted: bool,
 }
 
 /// A skill's rise over one day: the first rank seen and the last.
@@ -707,6 +710,7 @@ fn day(t: &Table) -> Day {
         crafted: by_id(t, "crafted", item_count),
         gathered: by_id(t, "gathered", item_count),
         digest: table(t, "digest").map(digest),
+        compacted: boolean(t, "c").unwrap_or(false),
     }
 }
 

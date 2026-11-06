@@ -33,12 +33,16 @@ describe("Settings panel", function()
 		end
 	end)
 
-	it("offers retention of 7, 14 or 30 days and stores the choice", function()
+	it("offers retention of 14, 30, 60 or 90 days, 30 by default, and stores the choice", function()
 		local retention = Mock.controls.MRGLGLGL_RETENTION
-		assert.same({ 7, 14, 30 }, { retention.options[1].value, retention.options[2].value, retention.options[3].value })
-		assert.equals(14, retention.setting:GetValue())
-		retention.setting:SetValue(30)
-		assert.equals(30, _G.MrglglglDB.settings.retentionDays)
+		local values = {}
+		for i, option in ipairs(retention.options) do
+			values[i] = option.value
+		end
+		assert.same({ 14, 30, 60, 90 }, values)
+		assert.equals(30, retention.setting:GetValue())
+		retention.setting:SetValue(60)
+		assert.equals(60, _G.MrglglglDB.settings.retentionDays)
 	end)
 
 	it("offers every screenshot moment, all off by default", function()
