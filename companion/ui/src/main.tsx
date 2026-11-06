@@ -29,7 +29,15 @@ const theme = createTheme({
 applyPaper(savedPaper());
 void applyZoom(savedZoom());
 
-initI18n()
+// The documentation's screenshots run the interface in a browser with made-up answers; the
+// condition is a build-time constant, so the shipped app does not contain the demo.
+const demo =
+  import.meta.env.VITE_DEMO === "1"
+    ? import("./demo/install")
+    : Promise.resolve();
+
+demo
+  .then(() => initI18n())
   .then(() => getSettings())
   .then((view) => applyLanguage(view.settings.uiLanguage))
   .catch(() => {

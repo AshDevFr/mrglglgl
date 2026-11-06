@@ -1,4 +1,7 @@
-# Theming the journal website
+---
+title: Website themes
+description: Restyle the journal website, override a template, or write a whole theme.
+---
 
 The app can keep a website of your journals up to date in a folder (Settings, Website). The site is
 finished HTML, ready for Cloudflare Pages, Netlify or GitHub Pages, with nothing to build. How it

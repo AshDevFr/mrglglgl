@@ -7,6 +7,11 @@ The addon and the app are released separately, each from its own tag on `main`.
 | Addon | `addon-vX.Y.Z` (prerelease: `addon-vX.Y.Z-beta.N`) | `addon-release.yml` | A GitHub release with `Mrglglgl-<tag>-forever.zip`; CurseForge and Wago too once their project IDs are in the TOC and `CF_API_KEY` / `WAGO_API_TOKEN` are repository secrets |
 | App | `companion-vX.Y.Z` (prerelease: `companion-vX.Y.Z-beta.N`) | `companion-release.yml` | A GitHub release with the macOS `.dmg` and the Windows installer, and a changelog of the app's own commits |
 
+The documentation site (`docs-site/`, Starlight) is not tagged: `docs.yml` rebuilds it and
+publishes it to GitHub Pages on every push to `main` that touches it or the app's interface. Its
+screenshots are taken in that run from the interface in demo mode (`npm --prefix companion/ui run
+demo` shows the same thing locally; `npm --prefix docs-site run screenshots` takes them).
+
 ## Before tagging
 
 1. `main` is green: the `addon` and `companion` workflows pass on the commit you will tag.

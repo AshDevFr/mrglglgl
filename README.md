@@ -17,11 +17,14 @@ Mrglglgl has two parts:
   app; no account or online service is needed. A remote model you choose (any OpenAI-compatible
   endpoint, such as Ollama, LM Studio or a cloud provider) is optional.
 
+Documentation, with screenshots: **https://ashdevfr.github.io/mrglglgl/**
+
 ## Install
 
 **Addon:** download the latest `Mrglglgl-addon-…-forever.zip` from the
 [releases](https://github.com/AshDevFr/mrglglgl/releases), extract it into
-`World of Warcraft/_forever_/Interface/AddOns/`, and restart the game. It needs no setup.
+`World of Warcraft/_forever_/Interface/AddOns/`, and restart the game. It needs no setup. Or let
+the app install and update it: Settings, Addon, Install.
 
 **App:** download the installer for your system from the same releases page. The builds are not
 signed yet, so your system asks once whether to trust them: on macOS, open the app with right-click
@@ -30,8 +33,9 @@ then Run anyway in the SmartScreen prompt.
 
 ## Privacy
 
-The addon writes only to the game's own SavedVariables files. The app reads those files and never
-writes anything into the World of Warcraft folder. With the built-in local model, nothing leaves
+The addon writes only to the game's own SavedVariables files. The app reads those files and writes
+nothing into the World of Warcraft folder except the addon's own folder, when you ask it to
+install, update or remove the addon, and never while the game runs. With the built-in local model, nothing leaves
 your computer. If you configure a remote endpoint that is not on your own machine, the day's
 journal facts, including your character's name, the names of people you grouped with, and quest
 descriptions, are sent to that endpoint to write the entry; the app's settings say so before you
@@ -43,6 +47,7 @@ use it.
 |---|---|
 | `addon/` | The Lua addon (see `addon/README.md` for development) |
 | `companion/` | The Rust and Tauri app (see `companion/README.md`) |
+| `docs-site/` | The documentation site (Starlight); its screenshots are taken in CI from the app's demo mode |
 | `docs/schema.md` | The data the addon writes: the contract between the two parts |
 | `docs/forever-api.md` | What the addon relies on in the Forever client, and how each fact was verified |
 | `fixtures/` | Journal files shared by both parts' tests |

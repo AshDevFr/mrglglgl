@@ -26,7 +26,7 @@ Thanks for helping the murloc. A few things keep the two halves of Mrglglgl work
 
 ## Narrators and translations
 
-New journal voices are data files; see `docs/narrators.md`. A translation of the addon is a new file
+New journal voices are data files; see the narrator files reference (`docs-site/src/content/docs/reference/narrator-files.md`). A translation of the addon is a new file
 in `addon/Locales/`; a translation of the app is a new catalogue next to `en.json`.
 
 ## Commits

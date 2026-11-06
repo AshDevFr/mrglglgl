@@ -1,0 +1,42 @@
+---
+title: Mrglglgl
+description: A journal of your World of Warcraft Forever character's life, kept by a murloc who writes better than you would expect.
+template: splash
+hero:
+  tagline: A journal of your World of Warcraft Forever character's life, kept by a murloc who writes better than you would expect.
+  actions:
+    - text: Get started
+      link: /mrglglgl/getting-started/
+      icon: right-arrow
+    - text: Download
+      link: https://github.com/AshDevFr/mrglglgl/releases
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components";
+import { Image } from "astro:assets";
+import journal from "../../assets/screenshots/journal.png";
+
+> Day 12. Slew 23 wolves near the Brackwell Pumpkin Patch. Went fishing. Caught a boot. Kept the boot.
+
+<Image src={journal} alt="A character's journal in the app: the week's chapter and a written day with milestone stamps." />
+
+<CardGrid>
+  <Card title="The addon records" icon="pencil">
+    Quests, kills and what killed you, fishing (boots included), professions, places discovered,
+    notable loot and the people you grouped with. It stays quiet in game and needs no setup.
+  </Card>
+  <Card title="The app writes" icon="open-book">
+    Each finished day and week becomes a short journal entry, written by the narrator you choose,
+    checked against what actually happened.
+  </Card>
+  <Card title="On your computer" icon="laptop">
+    Writing runs on a small model on your own computer: no account, no online service. A model
+    you run or pay for elsewhere is optional.
+  </Card>
+  <Card title="Yours to share" icon="rocket">
+    Copy an entry for Discord, export the whole journal as a web page, a PDF or Markdown, or keep
+    a website of your journals up to date.
+  </Card>
+</CardGrid>

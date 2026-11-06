@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Checks the user documentation: every guide exists, and the app guide's privacy section quotes the
+# Checks the user documentation: every guide exists, and the privacy page quotes the
 # app's own endpoint disclosure word for word, so the two cannot drift apart.
 #
 # Usage, from anywhere: companion/scripts/check-docs.sh
@@ -9,8 +9,10 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 failures=0
 fail() { echo "docs: $*" >&2; failures=$((failures + 1)); }
 
-for doc in README.md CONTRIBUTING.md LICENSE docs/app-guide.md docs/narrators.md docs/releasing.md \
-  docs/schema.md docs/forever-api.md addon/README.md companion/README.md; do
+guide="docs-site/src/content/docs"
+for doc in README.md CONTRIBUTING.md LICENSE docs/releasing.md docs/schema.md docs/forever-api.md \
+  addon/README.md companion/README.md "$guide/getting-started.md" "$guide/guide/your-data.md" \
+  "$guide/reference/narrator-files.md" "$guide/reference/website-themes.md"; do
   [[ -s "$root/$doc" ]] || fail "$doc is missing or empty"
 done
 
@@ -19,8 +21,8 @@ disclosure="$(node -e '
   const en = require(process.argv[1]);
   process.stdout.write(en.settings.disclosure.replace("{{host}}", "that address"));
 ' "$root/companion/ui/src/i18n/locales/en.json")"
-grep -qF "> $disclosure" "$root/docs/app-guide.md" \
-  || fail "docs/app-guide.md does not quote the app's endpoint disclosure word for word"
+grep -qF "> $disclosure" "$root/$guide/guide/your-data.md" \
+  || fail "$guide/guide/your-data.md does not quote the app's endpoint disclosure word for word"
 
 if (( failures > 0 )); then exit 1; fi
 echo "docs: ok"

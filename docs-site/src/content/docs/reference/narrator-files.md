@@ -1,4 +1,11 @@
-# Writing a narrator
+---
+title: Narrator files
+description: What each part of a narrator does, and what makes one write well.
+---
+
+The narrators you make in **Settings**, **Narrators** are the same kind of file: **Export** saves
+one to share, **Import** adds one someone shared. The editor has a field for each entry in the
+table below.
 
 A narrator is who writes the journal: the murloc scribe by default, or a style a player picks. Each
 narrator is a data file, one per narrator and prose language, in

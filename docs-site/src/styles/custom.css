@@ -1,0 +1,15 @@
+/* The app's teal and parchment, so the docs and the app read as one thing. */
+:root {
+  --sl-color-accent-low: #0d3b36;
+  --sl-color-accent: #12b886;
+  --sl-color-accent-high: #c3fae8;
+}
+:root[data-theme="light"] {
+  --sl-color-accent-low: #c3fae8;
+  --sl-color-accent: #0c8599;
+  --sl-color-accent-high: #0b4f4a;
+}
+.sl-markdown-content img {
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgb(0 0 0 / 0.18);
+}
