@@ -13,6 +13,7 @@ import {
   listCharacters,
   listNarrators,
   retryWriting,
+  reviewList,
   setWritingPaused,
   writeNow,
   writingStatus,
@@ -76,6 +77,10 @@ export function CharacterPage({
   const narrators = useQuery({
     queryKey: ["narrators"],
     queryFn: listNarrators,
+  });
+  const review = useQuery({
+    queryKey: ["review", characterId],
+    queryFn: () => reviewList(characterId),
   });
   const live = useWriting(characterId);
   const refreshStatus = () =>
@@ -164,6 +169,20 @@ export function CharacterPage({
             >
               {t("nav.milestones")}
             </Button>
+            <Button
+              variant="subtle"
+              color="gray"
+              onClick={() =>
+                navigate({
+                  to: "/characters/$characterId/review",
+                  params: { characterId: String(characterId) },
+                })
+              }
+            >
+              {summary.toReview > 0
+                ? t("nav.reviewCount", { count: summary.toReview })
+                : t("nav.review")}
+            </Button>
             {writingState.data && (
               <Button
                 variant="subtle"
@@ -201,7 +220,9 @@ export function CharacterPage({
             {problem(t, `sync.status.${status}` as Problem)}
           </Alert>
         )}
-        {writingState.data && <WritingBanner status={writingState.data} />}
+        {writingState.data && (
+          <WritingBanner status={writingState.data} drafts={summary.toReview} />
+        )}
         <WeekNav
           selected={selected}
           written={written}
@@ -214,6 +235,10 @@ export function CharacterPage({
             {...writingFor("week", monday, sunday)}
           />
         )}
+        {review.data?.some(
+          (i) =>
+            i.kind === "day" && i.startDay === selected && i.drafts.length > 0,
+        ) && <Alert color="teal">{t("review.draftWaitingHere")}</Alert>}
         {journal.data && written.has(selected) ? (
           <JournalPage
             journal={journal.data}

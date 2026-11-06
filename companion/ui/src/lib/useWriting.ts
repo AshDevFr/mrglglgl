@@ -17,9 +17,13 @@ export function useWriting(characterId: number): LiveMap {
       if (event.type === "finished" || event.type === "started") {
         void queryClient.invalidateQueries({ queryKey: ["writing"] });
         if (event.characterId === characterId) {
-          void queryClient.invalidateQueries({
-            queryKey: ["stories", characterId],
-          });
+          for (const queryKey of [
+            ["stories", characterId],
+            ["review", characterId],
+            ["characters"],
+          ]) {
+            void queryClient.invalidateQueries({ queryKey });
+          }
         }
       }
     }).then((unlisten) => {

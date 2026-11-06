@@ -57,6 +57,12 @@ export function WritingFields({ value, onChange, narrators }: Props) {
         allowDeselect={false}
       />
       <Switch
+        label={t("settings.review")}
+        description={t("settings.reviewHelp")}
+        checked={value.review}
+        onChange={(e) => set({ review: e.currentTarget.checked })}
+      />
+      <Switch
         label={t("settings.writeWhilePlaying")}
         description={t("settings.writeWhilePlayingHelp")}
         checked={value.writeWhilePlaying}

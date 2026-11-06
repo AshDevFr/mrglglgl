@@ -11,7 +11,9 @@
     "syncNow": "Check for new journal entries",
     "theme": "Switch between light and dark",
     "skip": "Skip to the journal",
-    "back": "Back"
+    "back": "Back",
+    "review": "To review",
+    "reviewCount": "To review ({{count}})"
   },
   "loading": "Mrgl… drying the pages.",
   "home": {
@@ -238,7 +240,9 @@
     "errorNext": "Check that the folder above exists, then save again.",
     "connectionFailedNext": "Check the address (it usually ends in /v1), that the server is running and the model name, then test again.",
     "writeOnBattery": "Write while on battery",
-    "writeOnBatteryHelp": "Off by default: writing uses the processor hard and drains a laptop. When off, writing waits until the charger is plugged in. Checked on macOS and Windows laptops."
+    "writeOnBatteryHelp": "Off by default: writing uses the processor hard and drains a laptop. When off, writing waits until the charger is plugged in. Checked on macOS and Windows laptops.",
+    "review": "Let me review entries first",
+    "reviewHelp": "New entries wait in To review until you accept them. Off: they go straight into the journal."
   },
   "writing": {
     "loading": {
@@ -360,5 +364,36 @@
     "modelReady": "Writing is set up.",
     "modelOffer": "When you are ready, the app can download {{name}} ({{size}} GB) to write your journal on this computer. Nothing is downloaded until you choose to.",
     "chooseModel": "Choose a writing model"
+  },
+  "review": {
+    "title": "To review",
+    "intro": "Finished days and weeks without an entry in the journal, and drafts waiting for you. A draft goes into the journal only when you accept it.",
+    "empty": "Nothing to review. Every finished day has its entry.",
+    "notWritten": "Not written yet.",
+    "discarded": "You threw the last draft away.",
+    "replaces": "The journal already has an entry here; accepting this draft replaces it.",
+    "draftBy": "Draft by {{narrator}}",
+    "asked": "You asked: “{{note}}”",
+    "waiting": "Waiting to be written, number {{position}} in line.",
+    "running": "Being written now.",
+    "accept": "Accept",
+    "discard": "Discard",
+    "rewrite": "Rewrite",
+    "write": "Write a draft",
+    "note": "What should change? (optional)",
+    "noteHelp": "Tone, length or focus, up to 120 characters. The events stay the day's own.",
+    "notePlaceholder": "Shorter, or more about the boot",
+    "writeDraft": "Write the draft",
+    "cancel": "Cancel",
+    "select": "Select {{day}}",
+    "narrator": "Narrator for new drafts",
+    "usualNarrator": "Your usual narrator",
+    "writeSelected": "Write {{count}} selected",
+    "acceptSelected": "Accept selected",
+    "discardSelected": "Discard selected",
+    "facts": "What happened",
+    "draftsWaiting_one": "{{count}} draft is waiting in To review.",
+    "draftsWaiting_other": "{{count}} drafts are waiting in To review.",
+    "draftWaitingHere": "A draft for this day is waiting in To review."
   }
 }

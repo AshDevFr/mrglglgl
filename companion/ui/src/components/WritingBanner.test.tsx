@@ -51,6 +51,13 @@ describe("WritingBanner", () => {
     expect(banner).toHaveTextContent("1 entry could not be written");
   });
 
+  it("points at drafts waiting in To review", () => {
+    renderWithProviders(<WritingBanner status={status({})} drafts={2} />);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "2 drafts are waiting in To review.",
+    );
+  });
+
   it("stays out of the way when there is nothing to say", () => {
     renderWithProviders(<WritingBanner status={status({})} />);
     expect(screen.queryByRole("status")).toBeNull();

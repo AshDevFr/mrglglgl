@@ -8,6 +8,7 @@ import { Layout } from "@/Layout";
 import { CharacterPage } from "@/pages/CharacterPage";
 import { HomePage } from "@/pages/HomePage";
 import { MilestonesPage } from "@/pages/MilestonesPage";
+import { ReviewPage } from "@/pages/ReviewPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 
 // Code-based routing keeps the app self-contained (no router codegen plugin).
@@ -44,6 +45,15 @@ const milestonesRoute = createRoute({
   },
 });
 
+const reviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/characters/$characterId/review",
+  component: function Review() {
+    const { characterId } = reviewRoute.useParams();
+    return <ReviewPage characterId={Number(characterId)} />;
+  },
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/settings",
@@ -54,6 +64,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   characterRoute,
   milestonesRoute,
+  reviewRoute,
   settingsRoute,
 ]);
 

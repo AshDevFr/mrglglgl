@@ -8,7 +8,14 @@ import { type Problem, problem } from "@/i18n/problems";
  * and how many entries are waiting. A missing model or endpoint is shown even before any day is
  * waiting, so an empty journal never leaves the player guessing.
  */
-export function WritingBanner({ status }: { status: WritingStatus }) {
+export function WritingBanner({
+  status,
+  drafts = 0,
+}: {
+  status: WritingStatus;
+  /** Days and weeks with a draft waiting in To review. */
+  drafts?: number;
+}) {
   const { t } = useTranslation();
   const waiting = status.jobs.filter((j) => j.state !== "failed").length;
   const failed = status.jobs.filter((j) => j.state === "failed").length;
@@ -18,11 +25,12 @@ export function WritingBanner({ status }: { status: WritingStatus }) {
     (waiting > 0 || !["gameRunning", "onBattery"].includes(status.blocked))
       ? status.blocked
       : null;
-  if (!blocked && waiting === 0 && failed === 0) return null;
+  if (!blocked && waiting === 0 && failed === 0 && drafts === 0) return null;
 
   const lines = [
     waiting > 0 && t("writing.backlog.waiting", { count: waiting }),
     failed > 0 && t("writing.backlog.failed", { count: failed }),
+    drafts > 0 && t("review.draftsWaiting", { count: drafts }),
     blocked && problem(t, `writing.blocked.${blocked}` as Problem),
   ].filter(Boolean);
   return (

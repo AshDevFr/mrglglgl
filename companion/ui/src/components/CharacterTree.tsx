@@ -27,7 +27,7 @@ export function CharacterTree({ characters, selectedId, onSelect }: Props) {
               label={realm.realm}
               defaultOpened
             >
-              {realm.characters.map(({ character, archived }) => (
+              {realm.characters.map(({ character, archived, toReview }) => (
                 <NavLink
                   component="button"
                   key={character.id}
@@ -36,6 +36,18 @@ export function CharacterTree({ characters, selectedId, onSelect }: Props) {
                   label={
                     <Group gap={6}>
                       <span>{displayName(character)}</span>
+                      {toReview > 0 && (
+                        <Badge
+                          size="xs"
+                          color="teal"
+                          title={t("review.draftsWaiting", { count: toReview })}
+                          aria-label={t("review.draftsWaiting", {
+                            count: toReview,
+                          })}
+                        >
+                          {toReview}
+                        </Badge>
+                      )}
                       {archived && (
                         <Badge
                           size="xs"

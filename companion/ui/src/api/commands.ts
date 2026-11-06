@@ -9,9 +9,11 @@ import type { Journal } from "@/bindings/Journal";
 import type { ModelsView } from "@/bindings/ModelsView";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { QueueEvent } from "@/bindings/QueueEvent";
+import type { ReviewItem } from "@/bindings/ReviewItem";
 import type { Screenshot } from "@/bindings/Screenshot";
 import type { Settings } from "@/bindings/Settings";
 import type { SettingsView } from "@/bindings/SettingsView";
+import type { Slot } from "@/bindings/Slot";
 import type { Story } from "@/bindings/Story";
 import type { StoryKind } from "@/bindings/StoryKind";
 import type { SyncReport } from "@/bindings/SyncReport";
@@ -83,9 +85,39 @@ export function onScreenshotsUpdated(handler: () => void): Promise<UnlistenFn> {
 
 // ── Writing ──────────────────────────────────────────────────────────────────
 
-/** Every written version of a character's days and weeks, newest first within each. */
+/** Every accepted version of a character's days and weeks, newest first within each. */
 export function characterStories(characterId: number): Promise<Story[]> {
   return invoke<Story[]>("character_stories", { characterId });
+}
+
+/** Finished days and weeks with no accepted entry, or with a draft waiting, newest first. */
+export function reviewList(characterId: number): Promise<ReviewItem[]> {
+  return invoke<ReviewItem[]>("review_list", { characterId });
+}
+
+/** Puts a draft in the journal; the other drafts for that day or week are discarded. */
+export function acceptDraft(
+  characterId: number,
+  storyId: number,
+): Promise<boolean> {
+  return invoke<boolean>("accept_draft", { characterId, storyId });
+}
+
+export function discardDraft(
+  characterId: number,
+  storyId: number,
+): Promise<boolean> {
+  return invoke<boolean>("discard_draft", { characterId, storyId });
+}
+
+/** Writes days and weeks as drafts ahead of the backlog; a note only for a rewrite. */
+export function writeDrafts(
+  characterId: number,
+  slots: Slot[],
+  narrator: string | null,
+  note: string | null,
+): Promise<void> {
+  return invoke<void>("write_drafts", { characterId, slots, narrator, note });
 }
 
 export function writingStatus(characterId: number): Promise<WritingStatus> {
