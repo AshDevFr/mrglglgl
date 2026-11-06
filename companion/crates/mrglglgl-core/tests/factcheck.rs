@@ -62,6 +62,14 @@ fn an_entry_that_sticks_to_the_notes_passes() {
     let real = "The air in Red Rocks tasted of dust, a place I've never seen before. I'm sure I'll \
         be back, and I'd bring a lantern.";
     assert_eq!(check(real, &facts), Vec::<String>::new());
+    // From the narrator samples: a sentence opener followed by "I" is not a name.
+    assert_eq!(
+        check(
+            "Though I fell, I rose. Finally I rested in Red Rocks. Still, I'd do it again.",
+            &facts
+        ),
+        Vec::<String>::new()
+    );
     let whole = "The air in Red Rocks tasted of dust, a place I've never seen before where Prairie \
         Wolves waited like grumpy neighbors. I spent the morning clearing the path, killing \
         twenty-three of them and a Murloc Streamrunner, until the elite Flatland Cougar decided to \
