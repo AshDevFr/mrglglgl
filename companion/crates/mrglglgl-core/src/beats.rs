@@ -541,6 +541,16 @@ pub enum Beat {
     Practice {
         skills: Vec<(String, i64, i64)>,
     },
+    /// Quests handed in; `unnamed` counts those whose title the journal never learned.
+    QuestsDone {
+        titles: Vec<String>,
+        unnamed: i64,
+    },
+    /// Quests taken on and not finished the same day.
+    QuestsTaken {
+        titles: Vec<String>,
+        unnamed: i64,
+    },
 }
 
 impl Beat {
@@ -553,6 +563,8 @@ impl Beat {
             // What the day was mostly spent doing; it must survive a crowded day.
             Beat::Kills { .. } => 3,
             Beat::LevelUp { .. } => 4,
+            // A finished quest is often what the day was for.
+            Beat::QuestsDone { .. } => 4,
             Beat::Notable { .. } => 5,
             Beat::Bosses { .. } => 6,
             Beat::FirstVisit { .. } => 7,
@@ -562,6 +574,7 @@ impl Beat {
             Beat::Crafted { .. } => 9,
             Beat::Gathered { .. } => 9,
             Beat::Companions { .. } => 10,
+            Beat::QuestsTaken { .. } => 10,
             Beat::Travelled { .. } => 11,
             Beat::Practice { .. } => 12,
         }
@@ -573,6 +586,7 @@ impl Beat {
             Beat::Travelled { .. } => 0,
             Beat::FirstVisit { .. } => 1,
             Beat::Companions { .. } => 2,
+            Beat::QuestsTaken { .. } => 2,
             Beat::Kills { .. } => 3,
             Beat::Notable { .. } => 4,
             Beat::Bosses { .. } => 5,
@@ -581,6 +595,7 @@ impl Beat {
             Beat::Fishing { .. } => 6,
             Beat::Boot { .. } => 7,
             Beat::Loot { .. } => 8,
+            Beat::QuestsDone { .. } => 8,
             Beat::Death { .. } => 9,
             Beat::LevelUp { .. } => 10,
             Beat::Profession { .. } => 10,
@@ -714,6 +729,12 @@ impl Beat {
                 Some(skill) => format!("Gathered {} ({skill})", and_list(&counted(items))),
                 None => format!("Gathered {}", and_list(&counted(items))),
             },
+            Beat::QuestsDone { titles, unnamed } => {
+                format!("Completed {}", quest_list(titles, *unnamed))
+            }
+            Beat::QuestsTaken { titles, unnamed } => {
+                format!("Took on {}", quest_list(titles, *unnamed))
+            }
             Beat::Practice { skills } => {
                 let parts: Vec<String> = skills
                     .iter()
@@ -722,6 +743,32 @@ impl Beat {
                 format!("Practised {}", and_list(&parts))
             }
         }
+    }
+}
+
+/// "the quest \"A\"", "the quests \"A\" and \"B\", and 1 other quest", "2 quests".
+fn quest_list(titles: &[String], unnamed: i64) -> String {
+    let others = |n: i64, other: bool| {
+        let kind = if other { "other quest" } else { "quest" };
+        if n == 1 {
+            format!("1 {kind}")
+        } else {
+            format!("{n} {kind}s")
+        }
+    };
+    if titles.is_empty() {
+        return others(unnamed, false);
+    }
+    let quoted: Vec<String> = titles.iter().map(|t| format!("\"{t}\"")).collect();
+    let named = if titles.len() == 1 {
+        format!("the quest {}", quoted[0])
+    } else {
+        format!("the quests {}", and_list(&quoted))
+    };
+    if unnamed > 0 {
+        format!("{named}, and {}", others(unnamed, true))
+    } else {
+        named
     }
 }
 
@@ -949,6 +996,39 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
     }
     for (via, items) in gathered {
         beats.push(Beat::Gathered { via, items });
+    }
+    // A quest taken and handed in the same day is told once, as completed.
+    let titled = |ids: &[i64]| {
+        let mut titles: Vec<String> = Vec::new();
+        let mut unnamed = 0;
+        for id in ids {
+            match journal.quests.get(id).and_then(|q| q.title.clone()) {
+                Some(title) if !titles.contains(&title) => titles.push(title),
+                Some(_) => {}
+                None => unnamed += 1,
+            }
+        }
+        (titles, unnamed)
+    };
+    let mut done: Vec<i64> = Vec::new();
+    for id in &record.turned_in {
+        if !done.contains(id) {
+            done.push(*id);
+        }
+    }
+    let mut taken: Vec<i64> = Vec::new();
+    for id in &record.accepted {
+        if !done.contains(id) && !taken.contains(id) {
+            taken.push(*id);
+        }
+    }
+    if !done.is_empty() {
+        let (titles, unnamed) = titled(&done);
+        beats.push(Beat::QuestsDone { titles, unnamed });
+    }
+    if !taken.is_empty() {
+        let (titles, unnamed) = titled(&taken);
+        beats.push(Beat::QuestsTaken { titles, unnamed });
     }
     let practice: Vec<(String, i64, i64)> = record
         .skills

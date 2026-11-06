@@ -1,5 +1,5 @@
 meddling: false
-hash: f5db5747985359fe047b4d3295307c41555290df54a8d11e154b7be743654d61
+hash: e5271397da5405af933e527a65f0cae9ebaeece5cc37c26b1dcbe5a1512959d0
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as one short journal entry, in the first person, as the adventurer.
@@ -29,6 +29,7 @@ What happened today (the only events you may write about):
 - Killed Flatland Cougar, an elite
 - Defeated Hogger
 - Looted Carving Knife
+- Completed the quest "The Ravaged Caravan"
 - Died to a Murloc Streamrunner in Red Rocks
 - Reached level 6
 - Earned the milestones "First Blood (Fishy)" and "Mrglglgl'd"

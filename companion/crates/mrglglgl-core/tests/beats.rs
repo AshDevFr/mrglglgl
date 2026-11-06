@@ -5,7 +5,7 @@ use mrglglgl_core::beats::{self, Beat, DayRecord, Pattern, Thresholds};
 use mrglglgl_core::milestones::Award;
 use mrglglgl_core::schema::{
     Day, Digest, DigestCounts, DigestDeath, Event, EventKind, Journal, KillAggregate, Killer,
-    SkillRecord, journal_from_text,
+    Quest, SkillRecord, journal_from_text,
 };
 
 fn event(kind: EventKind) -> Event {
@@ -85,7 +85,7 @@ fn award(id: &str, day: &str) -> Award {
 #[test]
 fn thresholds_come_from_the_data_file() {
     let t = Thresholds::default();
-    assert_eq!(t.max_beats, 8);
+    assert_eq!(t.max_beats, 9);
     assert_eq!(t.many_deaths, 3);
 }
 
@@ -118,7 +118,7 @@ fn a_prowler_day_keeps_the_boot_and_the_murloc_death() {
 }
 
 #[test]
-fn a_crowded_day_is_cut_to_eight_beats_keeping_the_important_ones() {
+fn a_crowded_day_is_cut_to_nine_beats_keeping_the_important_ones() {
     let mut day = prowler_day();
     let events = day.events.as_mut().unwrap();
     events.push(event(EventKind::Level));
@@ -159,7 +159,7 @@ fn a_crowded_day_is_cut_to_eight_beats_keeping_the_important_ones() {
     let awards = [award("kept_the_boot", "2026-11-17")];
     let day = beats::extract(&j, "2026-11-17", &awards, &Thresholds::default());
 
-    assert_eq!(day.beats.len(), 8);
+    assert_eq!(day.beats.len(), 9);
     let has = |f: fn(&Beat) -> bool| day.beats.iter().any(f);
     assert!(has(|b| matches!(b, Beat::Boot { .. })));
     assert!(has(|b| matches!(b, Beat::Death { .. })));
@@ -168,6 +168,10 @@ fn a_crowded_day_is_cut_to_eight_beats_keeping_the_important_ones() {
     // Weapon practice is the first thing dropped from a busy day.
     assert!(!has(|b| matches!(b, Beat::Practice { .. })));
     assert!(day.patterns.contains(&Pattern::RareLoot));
+    assert!(
+        has(|b| matches!(b, Beat::Loot { .. })),
+        "the rare find the pattern speaks of is in the notes"
+    );
     assert!(day.patterns.contains(&Pattern::BigLevelJump));
     assert!(day.patterns.contains(&Pattern::NewZone));
 }
@@ -404,5 +408,66 @@ fn a_day_missing_from_the_journal_has_no_beats() {
         beats::extract(&j, "2026-11-17", &[], &Thresholds::default())
             .beats
             .is_empty()
+    );
+}
+
+#[test]
+fn completed_and_new_quests_are_events_of_the_day() {
+    let accept = |q| event(EventKind::QuestAccept { quest_id: Some(q) });
+    let turnin = |q| {
+        event(EventKind::QuestTurnin {
+            quest_id: Some(q),
+            xp: Some(450),
+            money: Some(75),
+        })
+    };
+    let day = Day {
+        // Taken and finished the same day (1); finished, taken earlier (2); finished with no
+        // title known (3, taken before the addon); taken and still open (4).
+        events: Some(vec![accept(1), turnin(1), turnin(2), turnin(3), accept(4)]),
+        ..Day::default()
+    };
+    let mut j = journal(vec![("2026-11-17", day)]);
+    for (id, title) in [
+        (1, "The Ravaged Caravan"),
+        (2, "Wildmane Totem"),
+        (4, "Swoop Hunting"),
+    ] {
+        j.quests.insert(
+            id,
+            Quest {
+                title: Some(title.into()),
+                ..Quest::default()
+            },
+        );
+    }
+    let texts = beats::extract(&j, "2026-11-17", &[], &Thresholds::default()).texts();
+    assert!(
+        texts.contains(
+            &"Completed the quests \"The Ravaged Caravan\" and \"Wildmane Totem\", and 1 other quest"
+                .to_string()
+        ),
+        "{texts:?}"
+    );
+    assert!(
+        texts.contains(&"Took on the quest \"Swoop Hunting\"".to_string()),
+        "a quest finished the same day is told once, as completed: {texts:?}"
+    );
+}
+
+#[test]
+fn a_completed_quest_survives_a_crowded_day() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../fixtures/savedvariables/synthetic-character.lua");
+    let j = journal_from_text(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let awards = mrglglgl_core::milestones::compute(&j);
+    let texts = beats::extract(&j, "2026-11-08", &awards, &Thresholds::default()).texts();
+    assert!(
+        texts.contains(&"Completed the quest \"The Ravaged Caravan\"".to_string()),
+        "{texts:?}"
+    );
+    assert!(
+        texts.contains(&"Looted Carving Knife".to_string()),
+        "the rare find stays too: {texts:?}"
     );
 }
