@@ -24,5 +24,5 @@ files["spec/**"] = {
 	globals = { "_G" },
 	read_globals = { "jit" },
 }
-files["tools/**"] = { std = "luajit" }
+files["tools/**"] = { std = "luajit", globals = { "_G" } }
 files["Locales/**"] = { max_line_length = false }
