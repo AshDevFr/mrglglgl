@@ -16,3 +16,6 @@ Storage.lua
 Day.lua
 Logger.lua
 Zones.lua
+data\Murlocs.lua
+Kills.lua
+Deaths.lua

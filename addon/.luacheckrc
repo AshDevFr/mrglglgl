@@ -21,5 +21,6 @@ read_globals = {
 files["spec/**"] = {
 	std = "+busted",
 	globals = { "_G" },
+	read_globals = { "jit" },
 }
 files["tools/**"] = { std = "luajit" }

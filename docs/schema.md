@@ -104,6 +104,22 @@ Event kinds and their extra fields:
 | `zone` | | Entered zone `z` |
 | `subzone` | | Entered subzone `sz` (at most once per subzone per minute) |
 | `discover` | `area` string, `src` string | First time this character found `area`: `src` is `"message"` (the client's discovery message) or `"visit"` (first recorded visit) |
+| `death` | `killer` table?, `env` string? | The player died. `killer` = `{ name, npc?, murloc }` for a creature (`npc` is its NPC ID when readable); `env` is the environmental cause from the client, e.g. `"Drowning"`, `"Falling"`. Neither is present when the client withheld or had no death recap |
+| `boss` | `enc` int, `name` string | A boss encounter was won (`BOSS_KILL`) |
+
+### Kill aggregate (`days[key].kills[npcID]`)
+
+Kills by the player or a party member, one record per creature type per day, keyed by NPC ID (the
+sixth field of the creature GUID), so it does not depend on the client's language.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `n` | int | Kills that day |
+| `name` | string? | Creature name, in the client's language; absent when never seen and no XP message named it |
+| `cls` | string | `"normal"`, `"elite"`, `"rare"`, `"rareelite"`, `"worldboss"`, `"trivial"`, `"minus"` or `"unknown"` |
+| `murloc` | bool | Identified as a murloc, by NPC ID or by name |
+
+`anonKills` counts kills whose target the client withheld from addons; they have no aggregate.
 
 Fields added by later work (digest contents, more event kinds) are documented here as they land.
 

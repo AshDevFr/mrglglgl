@@ -55,13 +55,20 @@ function Mock.isRegistered(event)
 end
 
 -- Moves the clock forward and runs timers that came due, in order.
+-- Timers scheduled by a timer run too, at their own due time, as in the client.
 function Mock.advance(seconds)
-	Mock.now = Mock.now + seconds
-	table.sort(timers, function(a, b) return a.due < b.due end)
-	while timers[1] and timers[1].due <= Mock.now do
-		local timer = table.remove(timers, 1)
+	local target = Mock.now + seconds
+	while true do
+		table.sort(timers, function(a, b) return a.due < b.due end)
+		local timer = timers[1]
+		if timer == nil or timer.due > target then
+			break
+		end
+		table.remove(timers, 1)
+		Mock.now = math.max(Mock.now, timer.due)
 		timer.fn()
 	end
+	Mock.now = target
 end
 
 -- Sets what the unit functions return for a unit token, e.g. Mock.setUnit("target", {
@@ -131,6 +138,14 @@ function Mock.install()
 	_G.UnitFactionGroup = function(token) return unitField(token, "faction") end
 	_G.GetRealmName = function() return "Test Realm" end
 	_G.GetRealmID = function() return 1 end
+	Mock.groupSize, Mock.inRaid, Mock.recap = 0, false, nil
+	_G.GetNumGroupMembers = function() return Mock.groupSize end
+	_G.IsInRaid = function() return Mock.inRaid end
+	_G.IsInGroup = function() return Mock.groupSize > 0 end
+	_G.C_DeathRecap = {
+		HasRecapEvents = function() return Mock.recap ~= nil and Mock.recap[1] ~= nil end,
+		GetRecapEvents = function() return Mock.recap or {} end,
+	}
 	_G.Screenshot = function() Mock.screenshots = Mock.screenshots + 1 end
 	_G.Settings = {
 		RegisterCanvasLayoutCategory = function(frame, name) return { frame = frame, name = name } end,
