@@ -26,6 +26,9 @@ function facts(overrides: Partial<DayFacts>): DayFacts {
     loot: [],
     companions: [],
     bosses: [],
+    skills: [],
+    crafted: [],
+    gathered: [],
     screenshots: 0,
     onlyFished: false,
     nothingHappened: false,
@@ -239,6 +242,41 @@ describe("day sentences", () => {
     ]);
   });
 
+  it("tells professions, crafting and gathering", () => {
+    expect(
+      say({
+        skills: [
+          { name: "Mining", profession: true, from: 40, to: 41 },
+          { name: "Axes", profession: false, from: 40, to: 43 },
+          { name: "Daggers", profession: false, from: 12, to: 13 },
+        ],
+        crafted: [
+          { name: "Linen Bandage", count: 5, via: null },
+          { name: "Rough Sharpening Stone", count: 1, via: null },
+        ],
+        gathered: [
+          { name: "Copper Ore", count: 3, via: "Mining" },
+          { name: "Rough Stone", count: 2, via: "Mining" },
+          { name: "Peacebloom", count: 1, via: "Herb Gathering" },
+          { name: "Ruined Leather Scraps", count: 1, via: null },
+        ],
+      }),
+    ).toEqual([
+      "Mining rose from 40 to 41.",
+      "Also practised Axes (40 to 43) and Daggers (12 to 13).",
+      "Crafted 5 Linen Bandages and a Rough Sharpening Stone.",
+      "Mined Copper Ore and Rough Stone.",
+      "Picked Peacebloom.",
+      "Gathered Ruined Leather Scraps.",
+    ]);
+  });
+
+  it("gathers with an unfamiliar skill in plain words", () => {
+    expect(
+      say({ gathered: [{ name: "Thorium Ore", count: 1, via: "Minage" }] }),
+    ).toEqual(["Gathered Thorium Ore."]);
+  });
+
   it("marks a fishing-only day and a day where nothing happened", () => {
     expect(say({ onlyFished: true, fish: 2 }).at(-1)).toBe(
       "Spent the whole day fishing.",
@@ -261,6 +299,10 @@ describe("day sentences", () => {
     ).toBe(true);
     expect(sentences).toContain("Died to a Murloc Streamrunner in Red Rocks.");
     expect(sentences).toContain("Among them was an elite Flatland Cougar.");
+    expect(sentences).toContain("Mining rose from 40 to 41.");
+    expect(sentences).toContain("First Aid rose from 30 to 35.");
+    expect(sentences).toContain("Crafted 5 Linen Bandages.");
+    expect(sentences).toContain("Mined Copper Ore and Rough Stone.");
   });
 
   it("reads a compacted day from its digest", () => {

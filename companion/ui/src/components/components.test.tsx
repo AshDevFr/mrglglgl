@@ -3,7 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { Settings } from "@/bindings/Settings";
 import { MilestoneList } from "@/pages/MilestonesPage";
-import { renderWithProviders, syntheticAwards } from "@/test/render";
+import {
+  defaultWriting,
+  renderWithProviders,
+  syntheticAwards,
+} from "@/test/render";
 import { CharacterTree } from "./CharacterTree";
 import { SettingsForm } from "./SettingsForm";
 
@@ -93,6 +97,7 @@ describe("SettingsForm", () => {
             wowRootOverride: null,
             backupRetention: "days90",
             uiLanguage: null,
+            writing: defaultWriting,
           },
           roots: [
             { path: "/Applications/World of Warcraft", source: "defaultPath" },
@@ -122,6 +127,7 @@ describe("SettingsForm", () => {
       wowRootOverride: "/Games/World of Warcraft",
       backupRetention: "days90",
       uiLanguage: null,
+      writing: defaultWriting,
     });
   });
 
@@ -134,6 +140,7 @@ describe("SettingsForm", () => {
             wowRootOverride: null,
             backupRetention: "days90",
             uiLanguage: null,
+            writing: defaultWriting,
           },
           roots: [],
         }}

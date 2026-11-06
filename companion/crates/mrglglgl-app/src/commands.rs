@@ -137,6 +137,8 @@ pub fn save_settings(
         let db = state.db.lock().map_err(|e| e.to_string())?;
         db.save_settings(&settings).map_err(|e| e.to_string())?;
     }
+    // The writer reads the settings each time round; a pause or a new provider applies now.
+    state.control.set_paused(settings.writing.paused);
     let report = sync::sync_all(&state)?;
     sync::start_watching(&app)?;
     Ok(report)

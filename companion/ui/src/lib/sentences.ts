@@ -94,6 +94,48 @@ export function daySentences(
       t("page.found", { list: list(facts.loot.map((name) => one(name))) }),
     );
   }
+  for (const skill of facts.skills.filter((k) => k.profession)) {
+    sentences.push(
+      t("page.skillRose", {
+        skill: skill.name,
+        from: skill.from,
+        to: skill.to,
+      }),
+    );
+  }
+  const practice = facts.skills.filter((k) => !k.profession);
+  if (practice.length > 0) {
+    sentences.push(
+      t("page.practised", {
+        list: list(
+          practice.map((k) =>
+            t("page.practice", { skill: k.name, from: k.from, to: k.to }),
+          ),
+        ),
+      }),
+    );
+  }
+  if (facts.crafted.length > 0) {
+    sentences.push(
+      t("page.crafted", {
+        list: list(facts.crafted.map((i) => one(i.name, i.count))),
+      }),
+    );
+  }
+  // Gathered counts are loot slots, not items, so only the names are told, by gathering skill.
+  const byVia = new Map<string, string[]>();
+  for (const item of facts.gathered) {
+    const via = item.via ?? "";
+    byVia.set(via, [...(byVia.get(via) ?? []), item.name]);
+  }
+  for (const [via, names] of byVia) {
+    sentences.push(
+      t(`page.gatheredVia.${via}`, {
+        list: list(names),
+        defaultValue: t("page.gathered", { list: list(names) }),
+      }),
+    );
+  }
   if (facts.companions.length > 0) {
     sentences.push(t("page.grouped", { list: list(facts.companions) }));
   }

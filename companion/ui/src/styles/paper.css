@@ -254,6 +254,91 @@
   }
 }
 
+/* The murloc's margin note: set apart, in stamp ink, a little askew. */
+.entry-panel .margin-note {
+  margin: 1.25rem 0 0;
+  max-width: 30em;
+  font-family: var(--reading-font);
+  font-style: italic;
+  color: var(--stamp);
+  transform: rotate(-0.6deg);
+}
+
+.entry-panel .entry + .entry {
+  margin-top: 1em;
+}
+
+.entry-panel .streaming::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 1em;
+  margin-left: 0.1em;
+  vertical-align: text-bottom;
+  background: var(--ink-faded);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .entry-panel .streaming::after {
+    animation: blink 1s steps(2, start) infinite;
+  }
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.entry-panel .writing-status {
+  font-family: var(--reading-font);
+  font-style: italic;
+  color: var(--ink-faded);
+  margin-bottom: 0.75rem;
+}
+
+.week-chapter .entry-panel .entry {
+  font-family: var(--reading-font);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 34em;
+}
+
+/* The plain facts, folded under an entry. */
+.entry-panel details.facts {
+  margin-top: 1.5rem;
+  color: var(--ink-faded);
+}
+
+.entry-panel details.facts summary {
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.entry-panel details.facts .entry {
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.entry-panel .versions {
+  margin-top: 1.25rem;
+}
+
+/* The week's chapter sits on the desk above the day, quieter than a page. */
+.week-chapter {
+  max-width: 44rem;
+  padding: 1.5rem 0 0.5rem;
+  border-top: 1px solid var(--page-edge);
+  color: var(--ink);
+}
+
+.week-chapter h3 {
+  margin: 0 0 0.75rem;
+  font-family: var(--reading-font);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
 @keyframes bob {
   0%,
   100% {

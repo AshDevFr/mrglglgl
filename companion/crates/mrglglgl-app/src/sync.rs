@@ -30,6 +30,8 @@ pub struct AppState {
     pub control: Arc<Control>,
     /// The provider in use, kept with a key naming it so it is rebuilt only when it changes.
     pub provider: Mutex<Option<(String, Arc<dyn Provider>)>>,
+    /// Cancels the model download in progress.
+    pub download: Mutex<Option<mrglglgl_llm::CancellationToken>>,
 }
 
 impl AppState {
@@ -41,6 +43,7 @@ impl AppState {
             watchers: Mutex::new(Vec::new()),
             control: Arc::new(Control::new(paused)),
             provider: Mutex::new(None),
+            download: Mutex::new(None),
         }
     }
 }

@@ -59,6 +59,81 @@ export interface DeathLine {
   place: string | null;
 }
 
+export interface SkillLine {
+  name: string;
+  /** A trade or secondary skill, as opposed to weapon practice and the like. */
+  profession: boolean;
+  from: number;
+  to: number;
+}
+
+export interface ItemLine {
+  name: string;
+  count: number;
+  /** For gathered items: the gathering skill used, e.g. "Mining". */
+  via: string | null;
+}
+
+/**
+ * Skill IDs of the trade and secondary skills. IDs do not depend on the client's language; the
+ * skill list headings do, so the heading is only a fallback when an ID is missing.
+ */
+const PROFESSION_SKILLS = new Set([
+  129, 164, 165, 171, 182, 185, 186, 197, 202, 333, 356, 393,
+]);
+
+function isProfession(id: number | null, category: string | null): boolean {
+  return id !== null
+    ? PROFESSION_SKILLS.has(id)
+    : category === "Professions" || category === "Secondary Skills";
+}
+
+/** Skills, crafting and gathering: the day's own maps while it has them, else the digest. */
+function professions(
+  day: Day,
+): Pick<DayFacts, "skills" | "crafted" | "gathered"> {
+  const d = day.digest;
+  const ownSkills = Object.entries(day.skills ?? {});
+  const skills: SkillLine[] = (
+    ownSkills.length > 0
+      ? ownSkills.map(([id, s]) => ({
+          name: s.name ?? "",
+          profession: isProfession(Number(id), s.category),
+          from: s.from,
+          to: s.to,
+        }))
+      : (d?.skills ?? []).map((s) => ({
+          name: s.name ?? "",
+          profession: isProfession(s.skillId, s.category),
+          from: s.from,
+          to: s.to,
+        }))
+  )
+    .filter((s) => s.name !== "" && s.to > s.from)
+    // Stable: professions first, each group in skill ID order.
+    .sort((a, b) => Number(b.profession) - Number(a.profession));
+  const items = (
+    own: Record<
+      string,
+      { name: string | null; count: number; via: string | null }
+    >,
+    digested:
+      | { name: string | null; count: number; via: string | null }[]
+      | undefined,
+  ): ItemLine[] => {
+    const list =
+      Object.keys(own).length > 0 ? Object.values(own) : (digested ?? []);
+    return list
+      .filter((i) => i.name !== null)
+      .map((i) => ({ name: i.name as string, count: i.count, via: i.via }));
+  };
+  return {
+    skills,
+    crafted: items(day.crafted ?? {}, d?.crafted),
+    gathered: items(day.gathered ?? {}, d?.gathered),
+  };
+}
+
 export interface CatchLine {
   name: string | null;
   itemId: number | null;
@@ -88,6 +163,9 @@ export interface DayFacts {
   loot: string[];
   companions: string[];
   bosses: string[];
+  skills: SkillLine[];
+  crafted: ItemLine[];
+  gathered: ItemLine[];
   screenshots: number;
   onlyFished: boolean;
   nothingHappened: boolean;
@@ -115,6 +193,23 @@ function place(zone: string | null, subzone: string | null): string | null {
 
 /** Facts from raw events when the archive has them, from the digest otherwise. */
 export function dayFacts(journal: Journal, day: Day): DayFacts {
+  const facts = eventFacts(journal, day);
+  const work = professions(day);
+  const busy =
+    work.skills.length > 0 ||
+    work.crafted.length > 0 ||
+    work.gathered.length > 0;
+  return {
+    ...facts,
+    ...work,
+    nothingHappened: facts.nothingHappened && !busy,
+  };
+}
+
+function eventFacts(
+  journal: Journal,
+  day: Day,
+): Omit<DayFacts, "skills" | "crafted" | "gathered"> {
   const digest = day.digest;
   if (day.events === null) {
     const d = digest;
@@ -171,7 +266,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
       murloc: k.murloc,
     }))
     .sort((a, b) => b.count - a.count || (a.npcId ?? 0) - (b.npcId ?? 0));
-  const facts: DayFacts = {
+  const facts: Omit<DayFacts, "skills" | "crafted" | "gathered"> = {
     levelFrom: null,
     levelTo: null,
     leveledUp: false,

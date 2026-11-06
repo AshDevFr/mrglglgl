@@ -4,18 +4,29 @@ import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  cancelWriting,
   characterJournal,
   characterMilestones,
   characterScreenshots,
+  characterStories,
   deleteCharacter,
   listCharacters,
+  listNarrators,
+  retryWriting,
+  setWritingPaused,
+  writeNow,
+  writingStatus,
 } from "@/api/commands";
+import type { StoryKind } from "@/bindings/StoryKind";
 import { CharacterHeader } from "@/components/CharacterHeader";
 import { EmptyState } from "@/components/EmptyState";
-import { JournalPage } from "@/components/JournalPage";
+import { type DayWriting, JournalPage } from "@/components/JournalPage";
+import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
 import { daysNewestFirst, displayName } from "@/lib/journal";
-import { dayKey } from "@/lib/weeks";
+import { useWriting } from "@/lib/useWriting";
+import { dayKey, weekDays, weekStart } from "@/lib/weeks";
+import { jobFor, slot, versionsOf } from "@/lib/writing";
 
 interface Props {
   characterId: number;
@@ -50,6 +61,39 @@ export function CharacterPage({
     queryKey: ["screenshots", characterId],
     queryFn: () => characterScreenshots(characterId),
   });
+  const stories = useQuery({
+    queryKey: ["stories", characterId],
+    queryFn: () => characterStories(characterId),
+  });
+  const writingState = useQuery({
+    queryKey: ["writing", characterId],
+    queryFn: () => writingStatus(characterId),
+  });
+  const narrators = useQuery({
+    queryKey: ["narrators"],
+    queryFn: listNarrators,
+  });
+  const live = useWriting(characterId);
+  const refreshStatus = () =>
+    queryClient.invalidateQueries({ queryKey: ["writing", characterId] });
+
+  /** What the entry panel needs for one day or week. */
+  function writingFor(kind: StoryKind, start: string, end: string): DayWriting {
+    return {
+      finished: end < today,
+      versions: versionsOf(stories.data ?? [], kind, start),
+      live: live[slot(kind, start)],
+      job: jobFor(writingState.data?.jobs ?? [], kind, start),
+      blocked: writingState.data?.blocked ?? null,
+      narrators: narrators.data ?? [],
+      onWrite: (narrator) =>
+        void writeNow(characterId, kind, start, narrator).then(refreshStatus),
+      onCancel: () => void cancelWriting(characterId, kind, start),
+      onRetry: () =>
+        void retryWriting(characterId, kind, start).then(refreshStatus),
+    };
+  }
+
   const remove = useMutation({
     mutationFn: () => deleteCharacter(characterId),
     onSuccess: async () => {
@@ -71,6 +115,8 @@ export function CharacterPage({
   const written = new Set(days);
   const selected = day ?? days[0] ?? today;
   const name = displayName(summary.character);
+  const monday = weekStart(selected);
+  const sunday = weekDays(selected)[6];
   const status = summary.character.status;
 
   function show(target: string) {
@@ -102,6 +148,21 @@ export function CharacterPage({
             >
               {t("nav.milestones")}
             </Button>
+            {writingState.data && (
+              <Button
+                variant="subtle"
+                color="gray"
+                onClick={() =>
+                  void setWritingPaused(!writingState.data.paused).then(
+                    refreshStatus,
+                  )
+                }
+              >
+                {writingState.data.paused
+                  ? t("writing.resume")
+                  : t("writing.pause")}
+              </Button>
+            )}
             <Button
               variant="subtle"
               color="red"
@@ -119,12 +180,19 @@ export function CharacterPage({
           today={today}
           onSelect={show}
         />
+        {journal.data && (
+          <WeekChapter
+            monday={monday}
+            {...writingFor("week", monday, sunday)}
+          />
+        )}
         {journal.data && written.has(selected) ? (
           <JournalPage
             journal={journal.data}
             day={selected}
             awards={awards.data ?? []}
             screenshots={screenshots.data?.[selected] ?? []}
+            writing={writingFor("day", selected, selected)}
           />
         ) : (
           <EmptyState title={t("week.empty")}>{t("week.emptyHelp")}</EmptyState>

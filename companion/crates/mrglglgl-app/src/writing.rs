@@ -64,6 +64,18 @@ pub fn api_key() -> Option<String> {
         .ok()
 }
 
+/// Stores the endpoint key in the system keychain, or removes it when empty.
+pub fn set_api_key(key: Option<&str>) -> Result<(), String> {
+    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY).map_err(|e| e.to_string())?;
+    match key.filter(|k| !k.is_empty()) {
+        Some(k) => entry.set_password(k).map_err(|e| e.to_string()),
+        None => match entry.delete_credential() {
+            Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
+            Err(e) => Err(e.to_string()),
+        },
+    }
+}
+
 pub fn endpoint_config(settings: &Settings) -> Option<EndpointConfig> {
     Some(EndpointConfig {
         base_url: settings
