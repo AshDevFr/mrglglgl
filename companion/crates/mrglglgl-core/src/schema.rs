@@ -243,6 +243,9 @@ pub struct KillAggregate {
 pub struct Quest {
     pub title: Option<String>,
     pub text: Option<String>,
+    /// Day the quest was last accepted or turned in; its text is dropped in game once this falls
+    /// outside the retention window.
+    pub last: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -279,6 +282,8 @@ pub struct Digest {
     pub gathered: Vec<DigestItem>,
     pub only_fished: bool,
     pub nothing_happened: bool,
+    /// Older than 90 days: the lists hold only the highlights; counts are exact.
+    pub thin: bool,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -604,6 +609,7 @@ fn digest(t: &Table) -> Digest {
         gathered: records(t, "gathered", digest_item),
         only_fished: boolean(t, "onlyFished").unwrap_or(false),
         nothing_happened: boolean(t, "nothingHappened").unwrap_or(false),
+        thin: boolean(t, "thin").unwrap_or(false),
     }
 }
 
@@ -716,6 +722,7 @@ pub fn journal_from(file: &SavedVariables) -> Result<Journal, JournalError> {
                         Quest {
                             title: string(q, "title"),
                             text: string(q, "text"),
+                            last: string(q, "last"),
                         },
                     ))
                 })

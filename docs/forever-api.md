@@ -123,12 +123,14 @@ function Compat.GetQuestDetailText()     -- questID, title, description
 function Compat.IsFishingLoot()          -- false if the API is missing
 function Compat.IsBootCatch(itemLink)    -- poor quality and name in the localized boot list
 function Compat.ParseLootMessage(text)   -- itemLink, quantity; nil if secret or patterns missing
+function Compat.ParseCreateMessage(text) -- "You create" message: itemLink, quantity; nil otherwise
 
 -- Zones
 function Compat.IsDiscoveryMessage(text) -- false if the discovery strings are missing
 
--- Creatures
+-- Creatures and professions
 function Compat.IsMurlocName(name)       -- per-locale name list; false for secret names
+function Compat.IsGatheringSpell(name)   -- mining, herb gathering, skinning, by localized name
 
 -- Screenshots
 function Compat.TakeScreenshot()         -- calls Screenshot(); success arrives via SCREENSHOT_SUCCEEDED
@@ -148,3 +150,11 @@ function Compat.AddButton(layout, name, buttonText, onClick, tooltip)
 function Compat.RegisterSettingsCategory(category)
 function Compat.OpenSettings(category)
 ```
+
+## Professions
+
+| ID | Item | Status | Evidence |
+|---|---|---|---|
+| API-skill-lines | `C_SkillInfo.GetNumSkillLines()` and `C_SkillInfo.GetSkillLineInfo(index)` return `{ skillID, name, isHeader, rank, maxRank, ... }`; `SKILL_LINES_CHANGED` signals a change | verified-by-source | API docs (SkillInfo, environment All); Forever's own `Camelot/SkillsFrame.lua` reads them |
+| API-crafted-result | `TRADE_SKILL_ITEM_CRAFTED_RESULT(data)` with `data.itemID`, `data.quantity`, `data.hyperlink` | verified-by-source | API docs (TradeSkillUI, `CraftingItemResultData`); used by the client's professions output log. Whether it fires from Forever's professions window is an in-game check (S-12) |
+| API-spellcast-succeeded | `UNIT_SPELLCAST_SUCCEEDED(unitTarget, castGUID, spellID)`; `C_Spell.GetSpellName(spellID)` | verified-by-source | API docs (Unit, Spell). Gathering spell names as the client reports them are an in-game check (S-12) |

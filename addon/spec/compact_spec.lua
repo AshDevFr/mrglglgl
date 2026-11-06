@@ -76,6 +76,36 @@ describe("Compact", function()
 		assert.equals(digest, journal.days[old].digest)
 	end)
 
+	it("drops quest descriptions outside the window and keeps titles", function()
+		local now = noon(2026, 11, 20)
+		local journal = { days = {}, quests = {
+			[1] = { title = "Recent", text = "Kept.", last = os.date("%Y-%m-%d", now - 3 * DAY) },
+			[2] = { title = "Old", text = "Dropped.", last = os.date("%Y-%m-%d", now - 40 * DAY) },
+			[3] = { title = "Unknown age", text = "Dropped." },
+		} }
+		ns.Compact.run(journal, now, 14)
+		assert.same({ "Kept.", nil, nil }, { journal.quests[1].text, journal.quests[2].text, journal.quests[3].text })
+		assert.same({ "Recent", "Old", "Unknown age" }, { journal.quests[1].title, journal.quests[2].title,
+			journal.quests[3].title })
+	end)
+
+	it("thins the digests of days older than 90 days to their highlights, counts kept", function()
+		local now = noon(2026, 11, 20)
+		local journal = journalWithDays(now, 120)
+		local old = journal.days[os.date("%Y-%m-%d", now - 100 * DAY)]
+		for i = 1, 10 do
+			old.ev[#old.ev + 1] = { t = 0, k = "loot", z = "Mulgore", sz = "", lv = 5, item = 9000 + i, name = "Item", ql = 3 }
+		end
+		ns.Compact.run(journal, now, 14)
+		local d = old.digest
+		assert.is_true(d.thin)
+		assert.equals(3, #d.loot)
+		assert.equals(10, d.counts.loot)
+		assert.same({}, d.subzones)
+		local recent = journal.days[os.date("%Y-%m-%d", now - 30 * DAY)].digest
+		assert.is_nil(recent.thin)
+	end)
+
 	it("runs at logout with the retention setting, after the session end is recorded", function()
 		Mock.now = noon(2026, 11, 20)
 		Mock.fire("ADDON_LOADED", "Mrglglgl")

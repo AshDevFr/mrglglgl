@@ -22,6 +22,7 @@ local function storeQuest(questId)
 	quests[questId] = quest
 	local detail = pending and pending.id == questId and pending or nil
 	quest.title = quest.title or (detail and detail.title) or C_QuestLog.GetTitleForQuestID(questId)
+	quest.last = ns.Day.key(time())
 	if quest.text == nil and detail and Storage.records("questText") then
 		quest.text = detail.text
 	end
@@ -39,5 +40,9 @@ end)
 ns.On("QUEST_TURNED_IN", function(_, questId, xp, money)
 	if Storage.records("quests") then
 		Day.append("quest_turnin", { q = questId, xp = xp, money = money })
+		local quest = Storage.journal().quests[questId]
+		if quest then
+			quest.last = Day.key(time())
+		end
 	end
 end)
