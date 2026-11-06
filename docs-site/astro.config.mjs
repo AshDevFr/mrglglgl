@@ -10,6 +10,12 @@ export default defineConfig({
       title: "Mrglglgl",
       logo: { src: "./src/assets/murloc/head.png", alt: "" },
       favicon: "/favicon.png",
+      head: [
+        {
+          tag: "link",
+          attrs: { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+        },
+      ],
       // The 404 page is src/content/docs/404.md, with the sleeping murloc.
       disable404Route: true,
       description:
