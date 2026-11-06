@@ -386,3 +386,186 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
     files.extend(images);
     Ok(files)
 }
+
+/// The file listing what the app wrote into a site folder, and a fingerprint of each.
+pub const MANIFEST: &str = ".mrglglgl-site.json";
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+struct Manifest {
+    files: BTreeMap<String, String>,
+}
+
+/// What a write did.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+pub struct WriteReport {
+    pub written: usize,
+    pub unchanged: usize,
+    pub removed: usize,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum WriteError {
+    #[error("{0} is not a folder")]
+    NotAFolder(PathBuf),
+    #[error(
+        "the site cannot be saved inside the World of Warcraft folder ({0}); pick another folder"
+    )]
+    InsideGameFolder(PathBuf),
+    #[error(
+        "the folder already has {0}, which Mrglglgl did not make; pick an empty folder or one Mrglglgl built"
+    )]
+    NotOurs(String),
+    #[error("{0} is not a path inside the site")]
+    BadPath(String),
+    #[error("could not read the screenshot {path}: {message}")]
+    Image { path: PathBuf, message: String },
+    #[error("could not write {path}: {source}")]
+    Io {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+}
+
+fn io(path: &Path) -> impl FnOnce(std::io::Error) -> WriteError + '_ {
+    move |source| WriteError::Io {
+        path: path.to_path_buf(),
+        source,
+    }
+}
+
+/// What a file will be, to tell whether it changed without reading or scaling anything again.
+fn fingerprint(content: &SiteContent) -> String {
+    use sha2::{Digest, Sha256};
+    let hex = |bytes: &[u8]| -> String {
+        Sha256::digest(bytes)
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect()
+    };
+    match content {
+        SiteContent::Text(text) => hex(text.as_bytes()),
+        SiteContent::Bytes(bytes) => hex(bytes),
+        SiteContent::Image(source) => {
+            let meta = std::fs::metadata(source).ok();
+            let modified = meta
+                .as_ref()
+                .and_then(|m| m.modified().ok())
+                .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
+                .map_or(0, |d| d.as_secs());
+            let size = meta.map_or(0, |m| m.len());
+            format!("image:{}:{modified}:{size}", source.display())
+        }
+    }
+}
+
+fn inside_site(path: &str) -> bool {
+    !path.is_empty()
+        && !path.contains('\\')
+        && !path.starts_with('/')
+        && path.split('/').all(|p| !p.is_empty() && p != "..")
+}
+
+/// Writes the site into `folder`: only files that changed, removing the pages it made before and
+/// no longer makes, and never touching a file it did not make. Refuses folders inside a game
+/// folder, and refuses, writing nothing, when a file it would write is already there and is not
+/// its own.
+pub fn write(
+    folder: &Path,
+    game_folders: &[PathBuf],
+    files: &[SiteFile],
+) -> Result<WriteReport, WriteError> {
+    if !folder.is_dir() {
+        return Err(WriteError::NotAFolder(folder.to_path_buf()));
+    }
+    if let Some(root) = game_folders
+        .iter()
+        .find(|root| crate::export::inside(folder, root))
+    {
+        return Err(WriteError::InsideGameFolder(root.clone()));
+    }
+    let manifest_path = folder.join(MANIFEST);
+    let old: Manifest = std::fs::read_to_string(&manifest_path)
+        .ok()
+        .and_then(|text| serde_json::from_str(&text).ok())
+        .unwrap_or_default();
+
+    // Every check before the first write, so a refusal leaves the folder as it was.
+    for file in files {
+        if !inside_site(&file.path) || file.path == MANIFEST {
+            return Err(WriteError::BadPath(file.path.clone()));
+        }
+        if !old.files.contains_key(&file.path) && folder.join(&file.path).exists() {
+            return Err(WriteError::NotOurs(file.path.clone()));
+        }
+    }
+
+    let mut report = WriteReport::default();
+    let mut new = Manifest::default();
+    for file in files {
+        let target = folder.join(&file.path);
+        let print = fingerprint(&file.content);
+        if old.files.get(&file.path) == Some(&print) && target.is_file() {
+            report.unchanged += 1;
+            new.files.insert(file.path.clone(), print);
+            continue;
+        }
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).map_err(io(parent))?;
+        }
+        let bytes = match &file.content {
+            SiteContent::Text(text) => text.clone().into_bytes(),
+            SiteContent::Bytes(bytes) => bytes.clone(),
+            SiteContent::Image(source) => {
+                crate::screenshots::scaled_jpeg(source).map_err(|e| WriteError::Image {
+                    path: source.clone(),
+                    message: e.to_string(),
+                })?
+            }
+        };
+        std::fs::write(&target, bytes).map_err(io(&target))?;
+        report.written += 1;
+        new.files.insert(file.path.clone(), print);
+    }
+
+    for stale in old.files.keys().filter(|p| !new.files.contains_key(*p)) {
+        if !inside_site(stale) {
+            continue;
+        }
+        let path = folder.join(stale);
+        if path.is_file() {
+            std::fs::remove_file(&path).map_err(io(&path))?;
+            report.removed += 1;
+        }
+        // Folders the removed page leaves empty go too; never the site folder itself.
+        let mut parent = path.parent();
+        while let Some(dir) = parent {
+            if dir == folder || std::fs::remove_dir(dir).is_err() {
+                break;
+            }
+            parent = dir.parent();
+        }
+    }
+
+    let text = serde_json::to_string_pretty(&new).expect("a manifest always serialises");
+    std::fs::write(&manifest_path, text).map_err(io(&manifest_path))?;
+    Ok(report)
+}
+
+/// Writes the default theme into `folder` as a starting point for a theme of one's own. Files
+/// already there are kept as they are. Returns the files written.
+pub fn copy_default_theme(folder: &Path) -> Result<Vec<String>, WriteError> {
+    let mut written = Vec::new();
+    for (name, text) in DEFAULT_THEME {
+        let path = folder.join(name);
+        if path.exists() {
+            continue;
+        }
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(io(parent))?;
+        }
+        std::fs::write(&path, text).map_err(io(&path))?;
+        written.push((*name).to_string());
+    }
+    Ok(written)
+}

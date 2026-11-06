@@ -319,7 +319,7 @@ fn file_stem(title: &str) -> String {
     }
 }
 
-fn inside(path: &Path, root: &Path) -> bool {
+pub(crate) fn inside(path: &Path, root: &Path) -> bool {
     let canonical = |p: &Path| p.canonicalize().unwrap_or_else(|_| p.to_path_buf());
     canonical(path).starts_with(canonical(root))
 }

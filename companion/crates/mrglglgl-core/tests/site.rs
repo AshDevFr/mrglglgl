@@ -242,3 +242,130 @@ fn a_theme_cannot_reach_outside_its_folder() {
     let files = site::render(&sample(&source), Some(&theme)).unwrap();
     assert!(!text(&files, "wren/2026-w45/index.html").contains("SECRET"));
 }
+
+fn files(source: &Path) -> Vec<SiteFile> {
+    vec![
+        SiteFile {
+            path: "index.html".into(),
+            content: SiteContent::Text("<h1>Home</h1>".into()),
+        },
+        SiteFile {
+            path: "wren/2026-w45/index.html".into(),
+            content: SiteContent::Text("<h1>Week</h1>".into()),
+        },
+        SiteFile {
+            path: "assets/literata.woff2".into(),
+            content: SiteContent::Bytes(vec![1, 2, 3]),
+        },
+        SiteFile {
+            path: "images/wren/2026-11-02-1.jpg".into(),
+            content: SiteContent::Image(source.to_path_buf()),
+        },
+    ]
+}
+
+#[test]
+fn a_site_is_written_once_then_only_what_changed() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = photo(dir.path());
+    let out = dir.path().join("site");
+    std::fs::create_dir_all(&out).unwrap();
+
+    let first = site::write(&out, &[], &files(&source)).unwrap();
+    assert_eq!((first.written, first.unchanged, first.removed), (4, 0, 0));
+    assert_eq!(
+        std::fs::read_to_string(out.join("wren/2026-w45/index.html")).unwrap(),
+        "<h1>Week</h1>"
+    );
+    let picture = image::open(out.join("images/wren/2026-11-02-1.jpg")).unwrap();
+    assert_eq!(
+        picture.width(),
+        64,
+        "a small screenshot is kept at its size, as a JPEG"
+    );
+    assert!(out.join(site::MANIFEST).is_file());
+
+    let again = site::write(&out, &[], &files(&source)).unwrap();
+    assert_eq!((again.written, again.unchanged, again.removed), (0, 4, 0));
+
+    let mut changed = files(&source);
+    changed[0].content = SiteContent::Text("<h1>Home, again</h1>".into());
+    let report = site::write(&out, &[], &changed).unwrap();
+    assert_eq!((report.written, report.unchanged), (1, 3));
+}
+
+#[test]
+fn pages_no_longer_made_are_removed_and_other_files_are_left_alone() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = photo(dir.path());
+    let out = dir.path().join("site");
+    std::fs::create_dir_all(out.join(".git")).unwrap();
+    std::fs::write(out.join(".git/config"), "[core]").unwrap();
+    std::fs::write(out.join("CNAME"), "wren.example.com").unwrap();
+    site::write(&out, &[], &files(&source)).unwrap();
+
+    let fewer: Vec<SiteFile> = files(&source)
+        .into_iter()
+        .filter(|f| f.path != "wren/2026-w45/index.html")
+        .collect();
+    let report = site::write(&out, &[], &fewer).unwrap();
+    assert_eq!(report.removed, 1);
+    assert!(!out.join("wren/2026-w45/index.html").exists());
+    assert!(
+        !out.join("wren/2026-w45").exists(),
+        "its empty folder goes too"
+    );
+    assert_eq!(
+        std::fs::read_to_string(out.join("CNAME")).unwrap(),
+        "wren.example.com"
+    );
+    assert!(out.join(".git/config").is_file());
+}
+
+#[test]
+fn a_file_the_app_did_not_make_is_never_overwritten() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = photo(dir.path());
+    let out = dir.path().join("documents");
+    std::fs::create_dir_all(&out).unwrap();
+    std::fs::write(out.join("index.html"), "my own page").unwrap();
+    match site::write(&out, &[], &files(&source)) {
+        Err(site::WriteError::NotOurs(path)) => assert_eq!(path, "index.html"),
+        other => panic!("expected a refusal, got {other:?}"),
+    }
+    assert_eq!(
+        std::fs::read_to_string(out.join("index.html")).unwrap(),
+        "my own page"
+    );
+    assert!(!out.join("wren").exists(), "nothing written");
+}
+
+#[test]
+fn a_site_is_never_written_inside_the_game_folder() {
+    let dir = tempfile::tempdir().unwrap();
+    let source = photo(dir.path());
+    let game = dir.path().join("World of Warcraft");
+    let inside = game.join("_forever_/site");
+    std::fs::create_dir_all(&inside).unwrap();
+    assert!(matches!(
+        site::write(&inside, std::slice::from_ref(&game), &files(&source)),
+        Err(site::WriteError::InsideGameFolder(_))
+    ));
+    assert_eq!(std::fs::read_dir(&inside).unwrap().count(), 0);
+}
+
+#[test]
+fn the_default_theme_is_copied_as_a_starting_point_without_overwriting_edits() {
+    let dir = tempfile::tempdir().unwrap();
+    let theme = dir.path().join("my-theme");
+    std::fs::create_dir_all(&theme).unwrap();
+    std::fs::write(theme.join("post.html"), "mine").unwrap();
+    let copied = site::copy_default_theme(&theme).unwrap();
+    assert!(theme.join("base.html").is_file());
+    assert!(theme.join("assets/site.css").is_file());
+    assert!(!copied.contains(&"post.html".to_string()));
+    assert_eq!(
+        std::fs::read_to_string(theme.join("post.html")).unwrap(),
+        "mine"
+    );
+}
