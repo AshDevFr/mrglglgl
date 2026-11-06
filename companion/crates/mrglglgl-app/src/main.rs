@@ -42,6 +42,7 @@ fn main() {
             commands::list_characters,
             commands::character_journal,
             commands::character_milestones,
+            commands::character_screenshots,
             commands::get_settings,
             commands::save_settings,
             commands::sync_now,

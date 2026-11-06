@@ -8,6 +8,7 @@ use mrglglgl_core::archive::{self, ImportOutcome};
 use mrglglgl_core::db::Database;
 use mrglglgl_core::discovery::{self, CharacterSource, DiscoveryOverrides, WowRoot};
 use mrglglgl_core::milestones;
+use mrglglgl_core::screenshots;
 use mrglglgl_core::watch::{self, Watcher};
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
@@ -16,10 +17,13 @@ use ts_rs::TS;
 /// Event sent to the frontend when a character's archive changed; the payload is its id.
 pub const JOURNAL_UPDATED: &str = "journal-updated";
 
+/// Event sent to the frontend when the game wrote a screenshot.
+pub const SCREENSHOTS_UPDATED: &str = "screenshots-updated";
+
 pub struct AppState {
     pub db: Mutex<Database>,
     pub data_dir: PathBuf,
-    watcher: Mutex<Option<Watcher>>,
+    watchers: Mutex<Vec<Watcher>>,
 }
 
 impl AppState {
@@ -27,7 +31,7 @@ impl AppState {
         Self {
             db: Mutex::new(db),
             data_dir,
-            watcher: Mutex::new(None),
+            watchers: Mutex::new(Vec::new()),
         }
     }
 }
@@ -112,12 +116,35 @@ pub fn start_watching(app: &AppHandle) -> Result<(), String> {
             wow_root: settings.wow_root_override,
         })
     };
-    let folders: Vec<PathBuf> = roots
+    let flavors: Vec<_> = roots.iter().flat_map(discovery::flavors).collect();
+    let folders: Vec<PathBuf> = flavors
         .iter()
-        .flat_map(discovery::flavors)
         .map(|flavor| flavor.path.join("WTF").join("Account"))
         .filter(|path| path.is_dir())
         .collect();
+    // Only folders that exist can be watched; one created later is picked up the next time the
+    // app starts or the settings are saved.
+    let screenshot_folders: Vec<PathBuf> = flavors
+        .iter()
+        .map(|flavor| flavor.path.join(screenshots::SCREENSHOTS_FOLDER))
+        .filter(|path| path.is_dir())
+        .collect();
+
+    let mut watchers = Vec::new();
+    if !screenshot_folders.is_empty() {
+        let handle = app.clone();
+        watchers.push(
+            watch::watch(
+                &screenshot_folders,
+                watch::DEFAULT_DEBOUNCE,
+                screenshots::is_screenshot_file,
+                move |_| {
+                    let _ = handle.emit(SCREENSHOTS_UPDATED, ());
+                },
+            )
+            .map_err(|e| e.to_string())?,
+        );
+    }
 
     let handle = app.clone();
     let watcher = watch::watch(
@@ -142,6 +169,8 @@ pub fn start_watching(app: &AppHandle) -> Result<(), String> {
         },
     )
     .map_err(|e| e.to_string())?;
-    *state.watcher.lock().map_err(|e| e.to_string())? = Some(watcher);
+    watchers.push(watcher);
+    // Replacing the list drops, and so stops, the previous watchers.
+    *state.watchers.lock().map_err(|e| e.to_string())? = watchers;
     Ok(())
 }

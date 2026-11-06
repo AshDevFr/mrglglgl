@@ -7,5 +7,6 @@ pub mod db;
 pub mod discovery;
 pub mod milestones;
 pub mod schema;
+pub mod screenshots;
 pub mod sv;
 pub mod watch;

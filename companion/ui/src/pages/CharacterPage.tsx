@@ -17,13 +17,16 @@ import { useTranslation } from "react-i18next";
 import {
   characterJournal,
   characterMilestones,
+  characterScreenshots,
   deleteCharacter,
   listCharacters,
 } from "@/api/commands";
 import type { Award } from "@/bindings/Award";
 import type { Journal } from "@/bindings/Journal";
+import type { Screenshot } from "@/bindings/Screenshot";
 import { DayFactsList } from "@/components/DayFactsList";
 import { MilestoneStamp } from "@/components/MilestoneStamp";
+import { ScreenshotStrip } from "@/components/ScreenshotStrip";
 import { formatDay } from "@/lib/format";
 import { dayFacts, daysNewestFirst, displayName } from "@/lib/journal";
 
@@ -31,10 +34,16 @@ interface DayViewProps {
   journal: Journal;
   day: string;
   awards: Award[];
+  screenshots?: Screenshot[];
 }
 
-/** One day: its facts and the stamps earned that day. */
-export function DayView({ journal, day, awards }: DayViewProps) {
+/** One day: its facts, the stamps earned that day and its screenshots. */
+export function DayView({
+  journal,
+  day,
+  awards,
+  screenshots = [],
+}: DayViewProps) {
   const { t, i18n } = useTranslation();
   const facts = dayFacts(journal, journal.days[day]);
   const stamps = awards.filter((a) => a.day === day);
@@ -48,6 +57,9 @@ export function DayView({ journal, day, awards }: DayViewProps) {
               <MilestoneStamp key={a.id} award={a} />
             ))}
           </Group>
+        )}
+        {screenshots.length > 0 && (
+          <ScreenshotStrip screenshots={screenshots} />
         )}
         <Title order={4}>{t("day.facts")}</Title>
         <DayFactsList facts={facts} />
@@ -83,6 +95,10 @@ export function CharacterPage({ characterId, day }: Props) {
   const awards = useQuery({
     queryKey: ["milestones", characterId],
     queryFn: () => characterMilestones(characterId),
+  });
+  const screenshots = useQuery({
+    queryKey: ["screenshots", characterId],
+    queryFn: () => characterScreenshots(characterId),
   });
   const remove = useMutation({
     mutationFn: () => deleteCharacter(characterId),
@@ -160,6 +176,7 @@ export function CharacterPage({ characterId, day }: Props) {
                 journal={journal.data}
                 day={selected}
                 awards={awards.data ?? []}
+                screenshots={screenshots.data?.[selected] ?? []}
               />
             )}
           </ScrollArea>

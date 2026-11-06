@@ -12,7 +12,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { listCharacters, onJournalUpdated, syncNow } from "@/api/commands";
+import {
+  listCharacters,
+  onJournalUpdated,
+  onScreenshotsUpdated,
+  syncNow,
+} from "@/api/commands";
 import { CharacterTree } from "@/components/CharacterTree";
 
 export function Layout() {
@@ -27,11 +32,15 @@ export function Layout() {
     queryFn: listCharacters,
   });
 
-  // The game saved a journal: refresh whatever is on screen.
+  // The game saved a journal or a screenshot: refresh what is on screen.
   useEffect(() => {
-    const unlisten = onJournalUpdated(() => queryClient.invalidateQueries());
+    const journals = onJournalUpdated(() => queryClient.invalidateQueries());
+    const shots = onScreenshotsUpdated(() =>
+      queryClient.invalidateQueries({ queryKey: ["screenshots"] }),
+    );
     return () => {
-      unlisten.then((stop) => stop());
+      journals.then((stop) => stop());
+      shots.then((stop) => stop());
     };
   }, [queryClient]);
 

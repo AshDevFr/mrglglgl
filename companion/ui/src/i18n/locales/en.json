@@ -85,7 +85,17 @@
     "bosses": "Bosses defeated: {{list}}",
     "screenshots_one": "{{count}} screenshot",
     "screenshots_other": "{{count}} screenshots",
-    "onlyFished": "A day spent fishing."
+    "onlyFished": "A day spent fishing.",
+    "screenshotAlt": "Screenshot: {{moment}}",
+    "screenshotMoment": {
+      "levelUp": "level up",
+      "death": "death",
+      "bossKill": "boss defeated",
+      "firstBoot": "first boot",
+      "firstMurlocKill": "first murloc slain",
+      "firstDeathByMurloc": "first death by murloc",
+      "other": "a moment of the day"
+    }
   },
   "milestones": {
     "title": "Milestones",

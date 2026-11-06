@@ -1,9 +1,10 @@
-import { invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import type { AppInfo } from "@/bindings/AppInfo";
 import type { Award } from "@/bindings/Award";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { Journal } from "@/bindings/Journal";
+import type { Screenshot } from "@/bindings/Screenshot";
 import type { Settings } from "@/bindings/Settings";
 import type { SettingsView } from "@/bindings/SettingsView";
 import type { SyncReport } from "@/bindings/SyncReport";
@@ -26,6 +27,20 @@ export function characterJournal(characterId: number): Promise<Journal | null> {
 
 export function characterMilestones(characterId: number): Promise<Award[]> {
   return invoke<Award[]>("character_milestones", { characterId });
+}
+
+/** A character's screenshots by day, matched to the moments the addon took them. */
+export function characterScreenshots(
+  characterId: number,
+): Promise<Record<string, Screenshot[]>> {
+  return invoke<Record<string, Screenshot[]>>("character_screenshots", {
+    characterId,
+  });
+}
+
+/** A URL the window may load a local screenshot from. */
+export function screenshotUrl(path: string): string {
+  return convertFileSrc(path);
 }
 
 export function getSettings(): Promise<SettingsView> {
@@ -51,4 +66,9 @@ export function onJournalUpdated(
   return listen<number | null>("journal-updated", (event) =>
     handler(event.payload ?? null),
   );
+}
+
+/** Called whenever the game writes a screenshot. */
+export function onScreenshotsUpdated(handler: () => void): Promise<UnlistenFn> {
+  return listen("screenshots-updated", () => handler());
 }

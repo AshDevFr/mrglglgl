@@ -3,13 +3,16 @@
 //! (set in the repository's `.cargo/config.toml`), so the frontend's types cannot drift from
 //! these definitions without a test run noticing.
 
+use std::collections::BTreeMap;
+
 use mrglglgl_core::archive;
 use mrglglgl_core::db::{Settings, StoredCharacter};
 use mrglglgl_core::discovery::{self, DiscoveryOverrides, WowRoot};
 use mrglglgl_core::milestones::{self, Award};
 use mrglglgl_core::schema::Journal;
+use mrglglgl_core::screenshots::{self, Screenshot};
 use serde::Serialize;
-use tauri::{AppHandle, State};
+use tauri::{AppHandle, Manager, State};
 use ts_rs::TS;
 
 use crate::sync::{self, AppState, SyncReport};
@@ -73,6 +76,36 @@ pub fn character_milestones(
 ) -> Result<Vec<Award>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     milestones::awards(&db, character_id).map_err(|e| e.to_string())
+}
+
+/// A character's screenshots, matched to the moments the addon took them, by day. Lets the
+/// window show images from that character's Screenshots folder, and nothing else, read-only.
+#[tauri::command]
+pub fn character_screenshots(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    character_id: i64,
+) -> Result<BTreeMap<String, Vec<Screenshot>>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let (Some(character), Some(journal)) = (
+        db.character(character_id).map_err(|e| e.to_string())?,
+        archive::load(&db, character_id).map_err(|e| e.to_string())?,
+    ) else {
+        return Ok(BTreeMap::new());
+    };
+    let Some(folder) = screenshots::folder_for_journal(&character.journal_path) else {
+        return Ok(BTreeMap::new());
+    };
+    if !folder.is_dir() {
+        return Ok(BTreeMap::new());
+    }
+    app.asset_protocol_scope()
+        .allow_directory(&folder, false)
+        .map_err(|e| e.to_string())?;
+    Ok(screenshots::match_to_journal(
+        &journal,
+        &screenshots::list(&folder),
+    ))
 }
 
 #[derive(Debug, Serialize, TS)]
