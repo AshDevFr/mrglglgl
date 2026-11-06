@@ -23,11 +23,25 @@ export function daySentences(
   if (facts.leveledUp && facts.levelTo !== null) {
     sentences.push(t("page.levelUp", { level: facts.levelTo }));
   }
-  if (facts.accepted.length > 0) {
-    sentences.push(t("page.accepted", { list: list(facts.accepted) }));
+  // Titled quests by name, then the untitled ones counted: "X, Y and 2 other quests".
+  const quests = (titles: string[], unnamed: number) => {
+    if (unnamed === 0) return list(titles);
+    if (titles.length === 0) return t("page.quests", { count: unnamed });
+    return list([...titles, t("page.otherQuests", { count: unnamed })]);
+  };
+  if (facts.accepted.length + facts.acceptedUnnamed > 0) {
+    sentences.push(
+      t("page.accepted", {
+        list: quests(facts.accepted, facts.acceptedUnnamed),
+      }),
+    );
   }
-  if (facts.turnedIn.length > 0) {
-    sentences.push(t("page.turnedIn", { list: list(facts.turnedIn) }));
+  if (facts.turnedIn.length + facts.turnedInUnnamed > 0) {
+    sentences.push(
+      t("page.turnedIn", {
+        list: quests(facts.turnedIn, facts.turnedInUnnamed),
+      }),
+    );
   }
 
   const named = facts.kills.filter((k) => k.name !== null);

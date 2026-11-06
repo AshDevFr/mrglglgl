@@ -471,3 +471,37 @@ fn a_completed_quest_survives_a_crowded_day() {
         "the rare find stays too: {texts:?}"
     );
 }
+
+#[test]
+fn a_profession_the_client_lists_twice_is_told_once() {
+    // The skills list gives some professions two IDs with one name and rank (Herbalism as 182 and
+    // 2944, Skinning as 393 and 2947); the second is not a known profession ID.
+    let mut day = Day::default();
+    for (id, name, cat, from, to) in [
+        (182, "Herbalism", "Professions", 30, 37),
+        (2944, "Herbalism", "Professions", 30, 37),
+        (393, "Skinning", "Professions", 80, 83),
+        (2947, "Skinning", "Professions", 80, 83),
+        (136, "Staves", "Weapon Skills", 31, 36),
+    ] {
+        day.skills.insert(
+            id,
+            SkillRecord {
+                name: Some(name.into()),
+                category: Some(cat.into()),
+                from,
+                to,
+            },
+        );
+    }
+    let j = journal(vec![("2026-11-17", day)]);
+    let texts = beats::extract(&j, "2026-11-17", &[], &Thresholds::default()).texts();
+    let herbalism: Vec<&String> = texts.iter().filter(|t| t.contains("Herbalism")).collect();
+    assert_eq!(herbalism, ["Herbalism rose from 30 to 37"], "{texts:?}");
+    assert!(
+        !texts
+            .iter()
+            .any(|t| t.starts_with("Practised") && t.contains("Skinning")),
+        "{texts:?}"
+    );
+}

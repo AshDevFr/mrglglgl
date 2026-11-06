@@ -212,6 +212,20 @@ impl DayRecord {
                 .collect()
         };
         self.skills.retain(|s| !s.name.is_empty() && s.to > s.from);
+        // The client lists some professions under two skill IDs with one name and rank; only one
+        // of them is a known profession ID. One skill per name, a profession if either says so.
+        let mut merged: Vec<SkillLine> = Vec::new();
+        for skill in std::mem::take(&mut self.skills) {
+            match merged.iter_mut().find(|m| m.name == skill.name) {
+                Some(m) => {
+                    m.profession |= skill.profession;
+                    m.from = m.from.min(skill.from);
+                    m.to = m.to.max(skill.to);
+                }
+                None => merged.push(skill),
+            }
+        }
+        self.skills = merged;
         // Stable: professions first, each group in skill ID order.
         self.skills.sort_by_key(|s| !s.profession);
 

@@ -110,6 +110,17 @@ function professions(
         }))
   )
     .filter((s) => s.name !== "" && s.to > s.from)
+    // The game lists some professions under two skill IDs with one name and rank, only one of
+    // them a known profession ID: one line per name, a profession if either says so.
+    .reduce<SkillLine[]>((merged, s) => {
+      const same = merged.find((m) => m.name === s.name);
+      if (same) {
+        same.profession ||= s.profession;
+        same.from = Math.min(same.from, s.from);
+        same.to = Math.max(same.to, s.to);
+      } else merged.push({ ...s });
+      return merged;
+    }, [])
     // Stable: professions first, each group in skill ID order.
     .sort((a, b) => Number(b.profession) - Number(a.profession));
   const items = (
@@ -150,8 +161,15 @@ export interface DayFacts {
   zones: string[];
   subzones: string[];
   discovered: string[];
+  /** Titles of quests taken on and not finished the same day. */
   accepted: string[];
+  /** Quests taken on whose title the journal never learned. */
+  acceptedUnnamed: number;
+  /** Titles of quests handed in. */
   turnedIn: string[];
+  /** Quests handed in whose title the journal never learned, as when the quest was taken before
+   * the addon recorded quests. */
+  turnedInUnnamed: number;
   kills: KillLine[];
   notable: KillLine[];
   murlocs: number;
@@ -183,8 +201,36 @@ function companionName(who: string): string {
   return who.replace("-", " ");
 }
 
-function questTitle(journal: Journal, id: number): string {
-  return journal.quests[id]?.title ?? `#${id}`;
+/** The day's quests by title: a quest handed in the same day it was taken is told once, as
+ * finished, and quests without a known title are counted rather than shown as numbers. */
+function questFacts(
+  journal: Journal,
+  acceptedIds: number[],
+  turnedInIds: number[],
+): Pick<
+  DayFacts,
+  "accepted" | "acceptedUnnamed" | "turnedIn" | "turnedInUnnamed"
+> {
+  const done = unique(turnedInIds);
+  const taken = unique(acceptedIds).filter((id) => !done.includes(id));
+  const split = (ids: number[]) => {
+    const titles: string[] = [];
+    let unnamed = 0;
+    for (const id of ids) {
+      const title = journal.quests[id]?.title;
+      if (title) titles.push(title);
+      else unnamed += 1;
+    }
+    return { titles: unique(titles), unnamed };
+  };
+  const a = split(taken);
+  const t = split(done);
+  return {
+    accepted: a.titles,
+    acceptedUnnamed: a.unnamed,
+    turnedIn: t.titles,
+    turnedInUnnamed: t.unnamed,
+  };
 }
 
 function place(zone: string | null, subzone: string | null): string | null {
@@ -227,8 +273,7 @@ function eventFacts(
       zones: d?.zones ?? [],
       subzones: d?.subzones ?? [],
       discovered: d?.discovered ?? [],
-      accepted: (d?.accepted ?? []).map((id) => questTitle(journal, id)),
-      turnedIn: (d?.turnedIn ?? []).map((id) => questTitle(journal, id)),
+      ...questFacts(journal, d?.accepted ?? [], d?.turnedIn ?? []),
       kills,
       notable: kills.filter((k) => NOTABLE.has(k.classification)),
       murlocs: d?.counts.murlocs ?? 0,
@@ -282,7 +327,9 @@ function eventFacts(
     subzones: [],
     discovered: [],
     accepted: [],
+    acceptedUnnamed: 0,
     turnedIn: [],
+    turnedInUnnamed: 0,
     kills,
     notable: kills.filter((k) => NOTABLE.has(k.classification)),
     murlocs: kills.filter((k) => k.murloc).reduce((n, k) => n + k.count, 0),
@@ -300,6 +347,8 @@ function eventFacts(
     compacted: false,
   };
   const catches = new Map<string, CatchLine>();
+  const acceptedIds: number[] = [];
+  const turnedInIds: number[] = [];
   for (const event of day.events) {
     if (event.level !== null) {
       facts.levelFrom = Math.min(facts.levelFrom ?? event.level, event.level);
@@ -317,12 +366,10 @@ function eventFacts(
         if (kind.area) facts.discovered.push(kind.area);
         break;
       case "questAccept":
-        if (kind.questId !== null)
-          facts.accepted.push(questTitle(journal, kind.questId));
+        if (kind.questId !== null) acceptedIds.push(kind.questId);
         break;
       case "questTurnin":
-        if (kind.questId !== null)
-          facts.turnedIn.push(questTitle(journal, kind.questId));
+        if (kind.questId !== null) turnedInIds.push(kind.questId);
         break;
       case "death":
         facts.deaths.push({
@@ -363,19 +410,20 @@ function eventFacts(
     }
   }
   facts.catches = [...catches.values()];
+  Object.assign(facts, questFacts(journal, acceptedIds, turnedInIds));
   if (!digest) {
     facts.onlyFished =
       facts.fish > 0 &&
       kills.length === 0 &&
       day.anonKills === 0 &&
-      facts.accepted.length === 0 &&
-      facts.turnedIn.length === 0;
+      acceptedIds.length === 0 &&
+      turnedInIds.length === 0;
     facts.nothingHappened =
       kills.length === 0 &&
       day.anonKills === 0 &&
       facts.deaths.length === 0 &&
-      facts.accepted.length === 0 &&
-      facts.turnedIn.length === 0 &&
+      acceptedIds.length === 0 &&
+      turnedInIds.length === 0 &&
       facts.fish === 0 &&
       facts.loot.length === 0 &&
       !facts.leveledUp &&

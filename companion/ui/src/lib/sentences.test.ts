@@ -14,7 +14,9 @@ function facts(overrides: Partial<DayFacts>): DayFacts {
     subzones: [],
     discovered: [],
     accepted: [],
+    acceptedUnnamed: 0,
     turnedIn: [],
+    turnedInUnnamed: 0,
     kills: [],
     notable: [],
     murlocs: 0,
@@ -316,5 +318,91 @@ describe("day sentences", () => {
     expect(
       sentences.some((s) => s.startsWith("Caught a fish and an Old Boot")),
     ).toBe(true);
+  });
+});
+
+describe("quests and skills on the page", () => {
+  const ev = (kind: object) => ({
+    time: 0,
+    zone: null,
+    subzone: null,
+    mapId: null,
+    level: null,
+    kind,
+  });
+  const day = (events: object[], skills = {}) =>
+    ({
+      events,
+      kills: {},
+      anonKills: 0,
+      skills,
+      crafted: {},
+      gathered: {},
+      digest: null,
+    }) as unknown as Parameters<typeof dayFacts>[1];
+  const journal = {
+    ...syntheticJournal,
+    quests: {
+      1: { title: "Fizsprocket's Notes", text: null, last: null },
+      2: { title: "Swoop Hunting", text: null, last: null },
+    },
+  };
+
+  it("tells a quest finished the same day once, and counts the untitled ones", () => {
+    const text = daySentences(
+      dayFacts(
+        journal,
+        day([
+          ev({ kind: "questAccept", questId: 1 }),
+          ev({ kind: "questAccept", questId: 2 }),
+          ev({ kind: "questTurnin", questId: 1, xp: 1, money: 1 }),
+          ev({ kind: "questTurnin", questId: 764, xp: 1, money: 1 }),
+          ev({ kind: "questTurnin", questId: 765, xp: 1, money: 1 }),
+        ]),
+      ),
+      i18n.t,
+      "en",
+    );
+    expect(text).toContain("Took on Swoop Hunting.");
+    expect(text).toContain("Finished Fizsprocket's Notes and 2 other quests.");
+    expect(text.join(" ")).not.toContain("#");
+  });
+
+  it("says how many quests were finished when none has a title", () => {
+    const text = daySentences(
+      dayFacts(
+        journal,
+        day([ev({ kind: "questTurnin", questId: 764, xp: 1, money: 1 })]),
+      ),
+      i18n.t,
+      "en",
+    );
+    expect(text).toContain("Finished 1 quest.");
+  });
+
+  it("tells a profession the game lists twice once", () => {
+    const skill = (name: string, cat: string, from: number, to: number) => ({
+      name,
+      category: cat,
+      from,
+      to,
+    });
+    const text = daySentences(
+      dayFacts(
+        journal,
+        day([], {
+          182: skill("Herbalism", "Professions", 30, 37),
+          2944: skill("Herbalism", "Professions", 30, 37),
+          393: skill("Skinning", "Professions", 80, 83),
+          2947: skill("Skinning", "Professions", 80, 83),
+          136: skill("Staves", "Weapon Skills", 31, 36),
+        }),
+      ),
+      i18n.t,
+      "en",
+    ).join(" ");
+    expect(text.match(/Herbalism/g)).toHaveLength(1);
+    expect(text.match(/Skinning/g)).toHaveLength(1);
+    expect(text).toContain("Also practised Staves (31 to 36).");
   });
 });
