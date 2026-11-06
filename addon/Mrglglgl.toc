@@ -29,3 +29,4 @@ Compact.lua
 Slash.lua
 Forget.lua
 Settings.lua
+Screenshots.lua

@@ -111,6 +111,7 @@ Event kinds and their extra fields:
 | `fish` | `item` int, `name` string?, `junk` bool?, `boot` bool? | A fishing catch. `name`, `junk` (poor quality) and `boot` are filled once the client has the item's data; a catch whose data never arrived has only `item` |
 | `loot` | `item` int, `name` string, `ql` int, `qty` int? | Received an item at or above `settings.lootQuality`; `qty` is absent when read from the loot window rather than the loot message |
 | `group_join` | `who` string | Grouped with `who` (`"Firstname-Surname"`) for the first time that day; see `companions[who]` |
+| `screenshot` | `moment` string | The addon took a screenshot: `"levelUp"`, `"death"`, `"bossKill"`, `"firstBoot"`, `"firstMurlocKill"` or `"firstDeathByMurloc"`. The file is `_forever_/Screenshots/WoWScrnShot_MMDDYY_HHMMSS.jpg` taken about a second after `t` |
 
 ### Kill aggregate (`days[key].kills[npcID]`)
 
