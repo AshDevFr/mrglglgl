@@ -1,13 +1,10 @@
 import { Alert, Button, Group, Modal, Radio, Stack, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  copyEntryText,
-  defaultExportFolder,
-  exportCharacter,
-} from "@/api/commands";
+import { copyEntryText, exportCharacter } from "@/api/commands";
 import type { Story } from "@/bindings/Story";
 import { problem } from "@/i18n/problems";
+import { exportFolder, rememberExportFolder } from "@/lib/exportFolder";
 import { exportPage, loadExportData } from "@/lib/exportPage";
 import { FolderField } from "./FolderField";
 
@@ -70,9 +67,7 @@ export function ExportDialog({
     if (!opened) return;
     setDone(null);
     setError(null);
-    void defaultExportFolder().then((f) =>
-      setFolder((current) => current || f || ""),
-    );
+    void exportFolder().then((f) => setFolder((current) => current || f));
   }, [opened]);
 
   async function save() {
@@ -96,6 +91,7 @@ export function ExportDialog({
           page,
         ),
       );
+      rememberExportFolder(folder);
     } catch (e) {
       setError(String(e));
     } finally {

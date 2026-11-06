@@ -1,5 +1,5 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Story } from "@/bindings/Story";
 import { renderWithProviders } from "@/test/render";
 import { CopyEntryButton, ExportDialog } from "./Sharing";
@@ -19,6 +19,9 @@ const pages = vi.hoisted(() => ({
   exportPage: vi.fn(() => ({ css: ".journal-page{}", body: "<main></main>" })),
 }));
 vi.mock("@/lib/exportPage", () => pages);
+
+// A folder remembered by one test must not open the next one's dialog.
+beforeEach(() => localStorage.clear());
 
 const story = { id: 7, characterId: 1 } as Story;
 
@@ -131,5 +134,39 @@ describe("sharing", () => {
       screen.getByRole("button", { name: "Open the print dialog" }),
     );
     expect(onPrint).toHaveBeenCalled();
+  });
+
+  it("opens on the folder of the last export", async () => {
+    commands.exportCharacter.mockResolvedValueOnce(
+      "/Users/wren/Journals/Wren-Hollowbrook-journal.html",
+    );
+    const first = renderWithProviders(
+      <ExportDialog
+        characterId={1}
+        opened
+        onClose={vi.fn()}
+        onPrint={vi.fn()}
+      />,
+    );
+    const folder = await screen.findByLabelText("Folder");
+    await waitFor(() => expect(folder).toHaveValue("/Users/wren/Documents"));
+    fireEvent.change(folder, { target: { value: "/Users/wren/Journals" } });
+    fireEvent.click(screen.getByRole("button", { name: "Export" }));
+    await screen.findByText(/Saved \/Users\/wren\/Journals/);
+    first.unmount();
+
+    renderWithProviders(
+      <ExportDialog
+        characterId={1}
+        opened
+        onClose={vi.fn()}
+        onPrint={vi.fn()}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByLabelText("Folder")).toHaveValue(
+        "/Users/wren/Journals",
+      ),
+    );
   });
 });

@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   copyNarrator,
-  defaultExportFolder,
   deleteNarrator,
   exportNarrator,
   importNarratorFile,
@@ -15,6 +14,7 @@ import {
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { NarratorSaved } from "@/bindings/NarratorSaved";
 import { problem } from "@/i18n/problems";
+import { exportFolder, rememberExportFolder } from "@/lib/exportFolder";
 import { FolderField } from "./FolderField";
 
 /** Every narrator: built-ins to copy, the player's own to edit, share or remove. */
@@ -197,9 +197,7 @@ function ExportDialog({
     if (!opened) return;
     setPath(null);
     setFailure(null);
-    void defaultExportFolder().then((f) =>
-      setFolder((current) => current || f || ""),
-    );
+    void exportFolder().then((f) => setFolder((current) => current || f));
   }, [opened]);
 
   return (
@@ -233,7 +231,10 @@ function ExportDialog({
               if (!narrator) return;
               setFailure(null);
               exportNarrator(narrator.id, folder)
-                .then(setPath)
+                .then((saved) => {
+                  rememberExportFolder(folder);
+                  setPath(saved);
+                })
                 .catch((e) => setFailure(String(e)));
             }}
           >
