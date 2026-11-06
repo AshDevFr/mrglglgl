@@ -4,6 +4,7 @@
 
 pub mod archive;
 pub mod beats;
+pub mod continuity;
 pub mod db;
 pub mod discovery;
 pub mod milestones;

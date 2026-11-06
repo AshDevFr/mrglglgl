@@ -115,6 +115,12 @@ const MIGRATIONS: &[&str] = &[
             END
         FROM settings WHERE key = 'backup_count';
     DELETE FROM settings WHERE key = 'backup_count';",
+    // What each character's story carries from one entry to the next.
+    "CREATE TABLE continuity (
+        character_id INTEGER PRIMARY KEY REFERENCES characters(id) ON DELETE CASCADE,
+        sheet_json TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+    );",
 ];
 
 /// The schema version this build creates and understands.

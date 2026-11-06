@@ -139,8 +139,10 @@ fn database_with_backup_count(dir: &std::path::Path, count: &str) {
         [count],
     )
     .unwrap();
-    conn.pragma_update(None, "user_version", CURRENT_VERSION - 1)
+    // Version 2 is the last one that counted copies; tables added since go too.
+    conn.execute_batch("DROP TABLE IF EXISTS continuity;")
         .unwrap();
+    conn.pragma_update(None, "user_version", 2).unwrap();
 }
 
 #[test]
