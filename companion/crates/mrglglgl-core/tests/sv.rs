@@ -35,6 +35,27 @@ fn every_test_file_parses() {
     }
 }
 
+/// The fixtures the addon generates from its own code, shared with its specs: whatever the addon
+/// writes, the parser reads.
+#[test]
+fn every_shared_fixture_parses() {
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../../fixtures/savedvariables");
+    let mut parsed = 0;
+    for entry in std::fs::read_dir(&dir).unwrap_or_else(|e| panic!("{}: {e}", dir.display())) {
+        let path = entry.unwrap().path();
+        if path.extension().is_some_and(|ext| ext == "lua") {
+            let text = std::fs::read_to_string(&path).unwrap();
+            sv::parse(&text).unwrap_or_else(|e| panic!("{}: {e}", path.display()));
+            parsed += 1;
+        }
+    }
+    assert!(
+        parsed >= 5,
+        "expected the shared fixtures in {}",
+        dir.display()
+    );
+}
+
 #[test]
 fn reads_the_shape_the_live_client_writes() {
     let file = sv::parse(&data("journal.lua")).unwrap();
