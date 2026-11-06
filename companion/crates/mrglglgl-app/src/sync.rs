@@ -2,14 +2,16 @@
 //! request, then a watcher that imports journals as the game writes them.
 
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use mrglglgl_core::archive::{self, ImportOutcome};
 use mrglglgl_core::db::{BackupRetention, Database};
 use mrglglgl_core::discovery::{self, CharacterSource, DiscoveryOverrides, WowRoot};
 use mrglglgl_core::milestones;
+use mrglglgl_core::queue::Control;
 use mrglglgl_core::screenshots;
 use mrglglgl_core::watch::{self, Watcher};
+use mrglglgl_llm::Provider;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager};
 use ts_rs::TS;
@@ -24,14 +26,24 @@ pub struct AppState {
     pub db: Mutex<Database>,
     pub data_dir: PathBuf,
     watchers: Mutex<Vec<Watcher>>,
+    /// Steers the background writer.
+    pub control: Arc<Control>,
+    /// The provider in use, kept with a key naming it so it is rebuilt only when it changes.
+    pub provider: Mutex<Option<(String, Arc<dyn Provider>)>>,
+    /// Cancels the model download in progress.
+    pub download: Mutex<Option<mrglglgl_llm::CancellationToken>>,
 }
 
 impl AppState {
     pub fn new(db: Database, data_dir: PathBuf) -> Self {
+        let paused = db.settings().map(|s| s.writing.paused).unwrap_or(false);
         Self {
             db: Mutex::new(db),
             data_dir,
             watchers: Mutex::new(Vec::new()),
+            control: Arc::new(Control::new(paused)),
+            provider: Mutex::new(None),
+            download: Mutex::new(None),
         }
     }
 }
@@ -96,7 +108,10 @@ pub fn sync_all(state: &AppState) -> Result<SyncReport, String> {
     for source in sources(&roots) {
         report.characters += 1;
         match import_one(&db, &state.data_dir, &source, settings.backup_retention) {
-            Some(_) => report.imported += 1,
+            Some(id) => {
+                report.imported += 1;
+                crate::writing::enqueue(state, &db, id);
+            }
             None => report.unreadable += 1,
         }
     }
@@ -171,6 +186,7 @@ pub fn start_watching(app: &AppHandle) -> Result<(), String> {
                     .any(|path| same_file(path, &source.journal_path))
                     && let Some(id) = import_one(&db, &state.data_dir, &source, retention)
                 {
+                    crate::writing::enqueue(&state, &db, id);
                     let _ = handle.emit(JOURNAL_UPDATED, id);
                 }
             }

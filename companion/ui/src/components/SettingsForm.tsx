@@ -7,11 +7,16 @@ import {
   Text,
   TextInput,
 } from "@mantine/core";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { listNarrators } from "@/api/commands";
 import type { BackupRetention } from "@/bindings/BackupRetention";
 import type { Settings } from "@/bindings/Settings";
 import type { SettingsView } from "@/bindings/SettingsView";
+import type { WritingSettings } from "@/bindings/WritingSettings";
+import { EndpointFields } from "./EndpointFields";
+import { WritingFields } from "./WritingFields";
 
 interface Props {
   view: SettingsView;
@@ -28,6 +33,13 @@ export function SettingsForm({ view, onSave }: Props) {
     view.settings.backupRetention,
   );
   const [language, setLanguage] = useState(view.settings.uiLanguage ?? SYSTEM);
+  const [writing, setWriting] = useState<WritingSettings>(
+    view.settings.writing,
+  );
+  const narrators = useQuery({
+    queryKey: ["narrators"],
+    queryFn: listNarrators,
+  });
   const [state, setState] = useState<"idle" | "saving" | "saved">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +51,7 @@ export function SettingsForm({ view, onSave }: Props) {
         wowRootOverride: folder.trim() === "" ? null : folder.trim(),
         backupRetention: retention,
         uiLanguage: language === SYSTEM ? null : language,
+        writing,
       });
       setState("saved");
     } catch (e) {
@@ -92,6 +105,12 @@ export function SettingsForm({ view, onSave }: Props) {
         onChange={(v) => setLanguage(v ?? SYSTEM)}
         allowDeselect={false}
       />
+      <WritingFields
+        value={writing}
+        onChange={setWriting}
+        narrators={narrators.data ?? []}
+      />
+      <EndpointFields value={writing} onChange={setWriting} />
       <Text size="sm" c="dimmed">
         {t("sync.explain")}
       </Text>

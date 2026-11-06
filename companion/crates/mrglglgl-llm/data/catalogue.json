@@ -1,0 +1,68 @@
+{
+  "version": 2,
+  "models": [
+    {
+      "id": "qwen3.5-4b",
+      "name": "Qwen3.5 4B",
+      "repo": "unsloth/Qwen3.5-4B-GGUF",
+      "file": "Qwen3.5-4B-Q4_K_M.gguf",
+      "sizeBytes": 2740937888,
+      "licence": "Apache-2.0",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "reasoning": true,
+      "minRamGb": 8,
+      "recommended": true,
+      "recommendedFor": [
+        "en",
+        "fr"
+      ],
+      "proseNote": {
+        "en": "Best writing of the models tested. Needs about 6 GB of memory while writing.",
+        "fr": "Best writing of the models tested. Needs about 6 GB of memory while writing."
+      }
+    },
+    {
+      "id": "ministral-3-3b",
+      "name": "Ministral 3B",
+      "repo": "unsloth/Ministral-3-3B-Instruct-2512-GGUF",
+      "file": "Ministral-3-3B-Instruct-2512-Q4_K_M.gguf",
+      "sizeBytes": 2146497824,
+      "licence": "Apache-2.0",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "reasoning": false,
+      "minRamGb": 8,
+      "recommended": false,
+      "recommendedFor": [],
+      "proseNote": {
+        "en": "Writes longer entries and makes more factual mistakes than the others.",
+        "fr": "Writes longer entries and makes more factual mistakes than the others."
+      }
+    },
+    {
+      "id": "smollm3-3b",
+      "name": "SmolLM3 3B",
+      "repo": "unsloth/SmolLM3-3B-GGUF",
+      "file": "SmolLM3-3B-Q4_K_M.gguf",
+      "sizeBytes": 1915306528,
+      "licence": "Apache-2.0",
+      "languages": [
+        "en",
+        "fr"
+      ],
+      "reasoning": true,
+      "minRamGb": 8,
+      "recommended": false,
+      "recommendedFor": [],
+      "proseNote": {
+        "en": "Smaller and faster, plainer writing, more mistakes in French. Needs about 4 GB of memory.",
+        "fr": "Smaller and faster, plainer writing, more mistakes in French. Needs about 4 GB of memory."
+      }
+    }
+  ]
+}

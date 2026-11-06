@@ -1,0 +1,170 @@
+//! Writes one entry: generate, check it against the notes, rewrite once if it invents things,
+//! and give up on prose (the day then shows its plain facts) if the rewrite still does.
+
+use std::time::Duration;
+
+use mrglglgl_llm::{
+    CancellationToken, GenerateOutcome, GenerateRequest, Provider, ProviderError, generate_text,
+};
+use serde::{Deserialize, Serialize};
+use tokio::sync::mpsc;
+
+use crate::factcheck::{self, FactSet};
+use crate::prompt::{self, Prompt};
+
+/// What the person watching an entry being written sees.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum StreamEvent {
+    Chunk(String),
+    /// The text so far was set aside and writing starts again (the fact check asked for a
+    /// rewrite).
+    Restart,
+}
+
+/// How an entry fared against the fact check.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub enum CheckStatus {
+    Passed,
+    /// The first draft failed and the rewrite passed.
+    Rewritten,
+    /// The rewrite failed too; the day shows its plain facts.
+    Failed,
+}
+
+impl CheckStatus {
+    pub fn key(self) -> &'static str {
+        match self {
+            CheckStatus::Passed => "passed",
+            CheckStatus::Rewritten => "rewritten",
+            CheckStatus::Failed => "failed",
+        }
+    }
+
+    pub fn from_key(key: &str) -> Option<Self> {
+        [Self::Passed, Self::Rewritten, Self::Failed]
+            .into_iter()
+            .find(|s| s.key() == key)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum WriteResult {
+    Written {
+        /// The entry, with real names back in place of any stand-ins.
+        text: String,
+        check: CheckStatus,
+        /// Why the entry was set aside, when it was.
+        reason: Option<String>,
+    },
+    Cancelled,
+    TimedOut,
+}
+
+/// How to ask the provider.
+#[derive(Debug, Clone)]
+pub struct WriteOptions {
+    pub language: String,
+    pub max_tokens: u32,
+    pub temperature: f32,
+    pub timeout: Duration,
+    /// Words the entry may use besides the notes, such as the character's faction.
+    pub allowed: Vec<String>,
+}
+
+/// Strips what small models add around an entry: reasoning blocks and surrounding blank space.
+fn clean(text: &str) -> String {
+    let mut out = text.to_string();
+    while let (Some(start), Some(end)) = (out.find("<think>"), out.find("</think>")) {
+        if end < start {
+            break;
+        }
+        out.replace_range(start..end + "</think>".len(), "");
+    }
+    out.trim().to_string()
+}
+
+async fn attempt(
+    provider: &dyn Provider,
+    prompt: &Prompt,
+    options: &WriteOptions,
+    cancel: &CancellationToken,
+    sink: Option<&mpsc::Sender<StreamEvent>>,
+) -> Result<Result<String, WriteResult>, ProviderError> {
+    let (tx, mut rx) = mpsc::channel::<String>(64);
+    let forward = async {
+        while let Some(chunk) = rx.recv().await {
+            if let Some(sink) = sink {
+                let _ = sink.send(StreamEvent::Chunk(chunk)).await;
+            }
+        }
+    };
+    let request = GenerateRequest {
+        system: prompt.system.clone(),
+        user: prompt.user.clone(),
+        max_tokens: options.max_tokens,
+        temperature: options.temperature,
+        language: options.language.clone(),
+    };
+    let (result, ()) = tokio::join!(
+        generate_text(provider, request, options.timeout, cancel.clone(), Some(tx)),
+        forward
+    );
+    let (outcome, text) = result?;
+    Ok(match outcome {
+        GenerateOutcome::Completed => Ok(clean(&text)),
+        GenerateOutcome::Cancelled => Err(WriteResult::Cancelled),
+        GenerateOutcome::TimedOut => Err(WriteResult::TimedOut),
+    })
+}
+
+/// Writes an entry from `prompt`, checking it against the prompt's notes.
+pub async fn write(
+    provider: &dyn Provider,
+    prompt: &Prompt,
+    options: &WriteOptions,
+    cancel: &CancellationToken,
+    sink: Option<&mpsc::Sender<StreamEvent>>,
+) -> Result<WriteResult, ProviderError> {
+    let allowed: Vec<&str> = options.allowed.iter().map(String::as_str).collect();
+    let facts = FactSet::from_notes(&prompt.user, &allowed);
+
+    let first = match attempt(provider, prompt, options, cancel, sink).await? {
+        Ok(text) => text,
+        Err(stopped) => return Ok(stopped),
+    };
+    let claims = factcheck::check(&first, &facts);
+    if claims.is_empty() {
+        return Ok(WriteResult::Written {
+            text: prompt::restore_names(&first, &prompt.aliases),
+            check: CheckStatus::Passed,
+            reason: None,
+        });
+    }
+    tracing::info!("entry rewritten: {}", factcheck::reason(&claims));
+
+    if let Some(sink) = sink {
+        let _ = sink.send(StreamEvent::Restart).await;
+    }
+    let again = prompt::rewrite_prompt(prompt, &first, &claims);
+    let second = match attempt(provider, &again, options, cancel, sink).await? {
+        Ok(text) => text,
+        Err(stopped) => return Ok(stopped),
+    };
+    let claims = factcheck::check(&second, &facts);
+    if claims.is_empty() {
+        return Ok(WriteResult::Written {
+            text: prompt::restore_names(&second, &prompt.aliases),
+            check: CheckStatus::Rewritten,
+            reason: None,
+        });
+    }
+    let reason = factcheck::reason(&claims);
+    tracing::warn!("entry set aside: {reason}");
+    Ok(WriteResult::Written {
+        text: prompt::restore_names(&second, &prompt.aliases),
+        check: CheckStatus::Failed,
+        reason: Some(reason),
+    })
+}

@@ -10,6 +10,8 @@ use rusqlite::{Connection, OptionalExtension, params};
 use serde::{Deserialize, Serialize};
 
 use crate::discovery::CharacterSource;
+use crate::narrators::DEFAULT_NARRATOR;
+use crate::prompt::Meddling;
 use crate::schema::Character;
 
 /// The database file name inside the app data folder.
@@ -115,6 +117,44 @@ const MIGRATIONS: &[&str] = &[
             END
         FROM settings WHERE key = 'backup_count';
     DELETE FROM settings WHERE key = 'backup_count';",
+    // What each character's story carries from one entry to the next.
+    "CREATE TABLE continuity (
+        character_id INTEGER PRIMARY KEY REFERENCES characters(id) ON DELETE CASCADE,
+        sheet_json TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+    );",
+    // Written entries, every version kept, and the queue of days and weeks waiting to be
+    // written. `check_status` records the fact check; `not_before` holds a retry back; `priority`
+    // puts a day the player asked for ahead of the backlog; `narrator` is a one-off choice.
+    "CREATE TABLE stories (
+        id INTEGER PRIMARY KEY,
+        character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL CHECK (kind IN ('day', 'week')),
+        start_day TEXT NOT NULL,
+        end_day TEXT NOT NULL,
+        narrator TEXT NOT NULL,
+        language TEXT NOT NULL,
+        provider TEXT NOT NULL,
+        model TEXT NOT NULL,
+        prompt_hash TEXT NOT NULL,
+        text TEXT NOT NULL,
+        created_at INTEGER NOT NULL,
+        check_status TEXT NOT NULL DEFAULT 'passed',
+        check_reason TEXT
+    );
+    CREATE INDEX stories_by_slot ON stories (character_id, kind, start_day);
+    CREATE TABLE write_queue (
+        character_id INTEGER NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+        kind TEXT NOT NULL CHECK (kind IN ('day', 'week')),
+        start_day TEXT NOT NULL,
+        state TEXT NOT NULL CHECK (state IN ('pending', 'running', 'failed')),
+        attempts INTEGER NOT NULL DEFAULT 0,
+        last_error TEXT,
+        not_before INTEGER NOT NULL DEFAULT 0,
+        priority INTEGER NOT NULL DEFAULT 0,
+        narrator TEXT,
+        PRIMARY KEY (character_id, kind, start_day)
+    );",
 ];
 
 /// The schema version this build creates and understands.
@@ -135,6 +175,61 @@ pub enum DbError {
     NewerDatabase { found: i64, known: i64 },
 }
 
+/// Who writes the entries.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub enum ProviderChoice {
+    /// The bundled model, on this machine.
+    #[default]
+    Local,
+    /// An OpenAI-compatible endpoint.
+    Endpoint,
+}
+
+/// How entries are written. Stored as one JSON value, so a new field needs no migration.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase", default)]
+pub struct WritingSettings {
+    pub narrator: String,
+    pub meddling: Meddling,
+    /// The prose language; `None` follows the app's language.
+    pub prose_language: Option<String>,
+    pub provider: ProviderChoice,
+    /// The catalogue model to write with; `None` uses the recommended one.
+    pub model_id: Option<String>,
+    pub endpoint_url: Option<String>,
+    pub endpoint_model: Option<String>,
+    /// Send companions to an endpoint under stand-in names.
+    pub pseudonyms: bool,
+    /// Write in the background even while the game is running. Off by default: inference uses
+    /// the CPU the game needs.
+    pub write_while_playing: bool,
+    /// The background queue is paused.
+    pub paused: bool,
+    /// "Copy entry" adds a one-line "via Mrglglgl" footer.
+    pub copy_footer: bool,
+}
+
+impl Default for WritingSettings {
+    fn default() -> Self {
+        Self {
+            narrator: DEFAULT_NARRATOR.to_string(),
+            meddling: Meddling::default(),
+            prose_language: None,
+            provider: ProviderChoice::default(),
+            model_id: None,
+            endpoint_url: None,
+            endpoint_model: None,
+            pseudonyms: false,
+            write_while_playing: false,
+            paused: false,
+            copy_footer: true,
+        }
+    }
+}
+
 /// The settings the player chooses in the app.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
@@ -146,6 +241,7 @@ pub struct Settings {
     pub backup_retention: BackupRetention,
     /// The UI language; `None` follows the operating system.
     pub ui_language: Option<String>,
+    pub writing: WritingSettings,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -243,6 +339,10 @@ impl Database {
                 .and_then(|v| BackupRetention::from_key(&v))
                 .unwrap_or(defaults.backup_retention),
             ui_language: self.setting("ui_language")?,
+            writing: self
+                .setting("writing")?
+                .and_then(|json| serde_json::from_str(&json).ok())
+                .unwrap_or_default(),
         })
     }
 
@@ -255,6 +355,8 @@ impl Database {
         self.set_setting("wow_root_override", root.as_deref())?;
         self.set_setting("backup_retention", Some(settings.backup_retention.key()))?;
         self.set_setting("ui_language", settings.ui_language.as_deref())?;
+        let writing = serde_json::to_string(&settings.writing).expect("settings serialise");
+        self.set_setting("writing", Some(&writing))?;
         tx.commit()?;
         Ok(())
     }

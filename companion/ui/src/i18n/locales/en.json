@@ -98,7 +98,18 @@
     "found": "Found {{list}}.",
     "grouped": "Grouped with {{list}}.",
     "defeated": "Defeated {{list}}.",
-    "onlyFished": "Spent the whole day fishing."
+    "onlyFished": "Spent the whole day fishing.",
+    "skillRose": "{{skill}} rose from {{from}} to {{to}}.",
+    "practised": "Also practised {{list}}.",
+    "practice": "{{skill}} ({{from}} to {{to}})",
+    "crafted": "Crafted {{list}}.",
+    "gathered": "Gathered {{list}}.",
+    "gatheredVia": {
+      "Mining": "Mined {{list}}.",
+      "Herb Gathering": "Picked {{list}}.",
+      "Herbalism": "Picked {{list}}.",
+      "Skinning": "Skinned {{list}}."
+    }
   },
   "photo": {
     "alt": "Screenshot: {{moment}}",
@@ -178,6 +189,127 @@
     "forgetting": "Forgetting data in the game (with the addon's \"Forget recorded\" buttons) changes only the game's files. The app keeps its own copy until you remove the character here.",
     "save": "Save",
     "saved": "Settings saved.",
-    "error": "The settings could not be saved: {{message}}"
+    "error": "The settings could not be saved: {{message}}",
+    "writingTitle": "Writing",
+    "narrator": "Narrator",
+    "narratorHelp": "Who writes your journal. You can pick another narrator for a single day from the day itself.",
+    "optIn": "{{name}} (only if you choose it)",
+    "meddling": "Murloc margin notes",
+    "meddlingHelp": "How often the murloc adds a note in the margin. The same day always gets the same answer, even when it is written again.",
+    "meddlingLevel": {
+      "off": "Never",
+      "rare": "Rarely (1 day in 20)",
+      "sometimes": "Sometimes (about 1 day in 7)",
+      "often": "Often (about 1 day in 3)"
+    },
+    "proseLanguage": "Language of the journal",
+    "proseLanguageSame": "Same as the app",
+    "languageFrench": "French",
+    "writeWhilePlaying": "Write while the game is running",
+    "writeWhilePlayingHelp": "Off by default: writing uses the processor, and the game may stutter. When off, writing waits until you close the game.",
+    "copyFooter": "Add \"via Mrglglgl\" when copying an entry",
+    "paused": "Pause background writing",
+    "providerTitle": "Who writes",
+    "provider": {
+      "local": "This computer (a writing model downloaded once)",
+      "endpoint": "An endpoint you run or pay for (OpenAI-compatible)"
+    },
+    "endpointUrl": "Endpoint address",
+    "endpointUrlHelp": "The address ending in /v1, for example http://localhost:11434/v1 for Ollama.",
+    "endpointModel": "Model name",
+    "apiKey": "Key (optional)",
+    "apiKeyHelp": "Kept in your system's keychain, never in the app's files.",
+    "apiKeySaved": "A key is saved.",
+    "saveKey": "Save key",
+    "removeKey": "Remove key",
+    "testConnection": "Test connection",
+    "testing": "Testing…",
+    "connectionOk": "The endpoint answered and has this model.",
+    "connectionFailed": "Test failed: {{message}}",
+    "disclosure": "This address is not on this computer. When writing, the app sends {{host}}: your character's name, the names of people you grouped with, and the text of quests you touched that day, along with what happened that day.",
+    "pseudonyms": "Send stand-in names for the people you grouped with",
+    "pseudonymsHelp": "Their real names are put back in the entry when it comes back."
+  },
+  "writing": {
+    "loading": {
+      "writing": "Mrgl, writing…",
+      "drying": "Drying the pages…",
+      "translating": "Translating from Murloc…"
+    },
+    "cancel": "Cancel",
+    "outcome": {
+      "cancelled": "Cancelled. Nothing was saved.",
+      "timedOut": "Stopped: writing took too long. Nothing was saved.",
+      "failed": "The murloc could not write this: {{message}}"
+    },
+    "facts": "What happened",
+    "setAside": "The murloc's entry was set aside because it {{reason}}. Here is what happened instead.",
+    "notYet": "The murloc hasn't written this one yet. It is number {{position}} in line.",
+    "blocked": {
+      "paused": "Writing is paused.",
+      "noModel": "Writing starts once a writing model is downloaded in Settings.",
+      "noEndpoint": "Writing starts once the endpoint is set up in Settings.",
+      "gameRunning": "Writing waits until the game is closed, so the game keeps running smoothly."
+    },
+    "stillGoing": {
+      "day": "This day isn't over yet. The murloc writes it once it is.",
+      "week": "This week isn't over yet. Its chapter is written once it is."
+    },
+    "reason": {
+      "cancelled": "You cancelled this one.",
+      "timedOut": "Writing took too long and was stopped.",
+      "other": "Writing failed: {{message}}"
+    },
+    "retry": "Try again",
+    "older": "Older",
+    "newer": "Newer",
+    "version": "Version {{n}} of {{total}}",
+    "byline": "Written by {{narrator}}, {{when}}",
+    "narratorFor": {
+      "day": "Narrator for this day",
+      "week": "Narrator for this week"
+    },
+    "again": "Write again",
+    "now": "Write now",
+    "pause": "Pause writing",
+    "resume": "Resume writing",
+    "chapter": "Chapter for the week of {{date}}",
+    "chapterTitle": "This week's chapter"
+  },
+  "models": {
+    "title": "Writing models",
+    "help": "Writing happens on this computer with a model you download once. It is stored in the app's own folder, never inside the game folder.",
+    "recommended": "Recommended",
+    "size": "{{size}} GB",
+    "licence": "Licence: {{licence}}",
+    "inUse": "In use",
+    "use": "Use this one",
+    "download": "Download",
+    "resume": "Resume download",
+    "confirmTitle": "Download {{name}}?",
+    "confirmBody": "This downloads {{size}} GB from Hugging Face into the app's folder. It happens once; the model is used from there afterwards.",
+    "confirm": "Download {{size}} GB",
+    "cancel": "Cancel",
+    "cancelDownload": "Stop download",
+    "progress": "{{done}} of {{total}} GB",
+    "delete": "Delete",
+    "failed": "The download failed: {{message}}",
+    "firstRun": "To write your journal, the app needs a writing model. {{name}} suits this computer.",
+    "firstRunAction": "Download {{name}} ({{size}} GB)",
+    "notEnoughMemory": "This computer has {{has}} GB of memory; the writing models need {{needed}} GB. You can use an endpoint instead: a model running on another machine or a service.",
+    "notEnoughDisk": "There is {{free}} GB free on this disk; a writing model needs about {{needed}} GB. Free some space, or use an endpoint instead."
+  },
+  "share": {
+    "copy": "Copy entry",
+    "copied": "Copied",
+    "copyFailed": "Could not copy",
+    "exportButton": "Export",
+    "exportTitle": "Export this journal",
+    "exportHelp": "Saves the whole journal as a Markdown file and as a single web page you can open anywhere. Days the murloc has not written yet appear with their notes.",
+    "folder": "Folder",
+    "export": "Export",
+    "close": "Close",
+    "exported": "Saved {{markdown}} and {{html}}.",
+    "exportFailed": "The export was not saved: {{message}}"
   }
 }

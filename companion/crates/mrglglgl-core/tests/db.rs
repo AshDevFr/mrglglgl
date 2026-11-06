@@ -1,9 +1,11 @@
 use std::path::PathBuf;
 
 use mrglglgl_core::db::{
-    BackupRetention, CURRENT_VERSION, DATABASE_FILE, Database, DbError, Settings,
+    BackupRetention, CURRENT_VERSION, DATABASE_FILE, Database, DbError, ProviderChoice, Settings,
+    WritingSettings,
 };
 use mrglglgl_core::discovery::CharacterSource;
+use mrglglgl_core::prompt::Meddling;
 use mrglglgl_core::schema::Character;
 
 fn source(character_folder: &str) -> CharacterSource {
@@ -84,6 +86,14 @@ fn settings_default_until_saved_and_survive_a_restart() {
             wow_root_override: Some(PathBuf::from("/Games/World of Warcraft")),
             backup_retention: BackupRetention::Forever,
             ui_language: Some("fr".into()),
+            writing: WritingSettings {
+                narrator: "grumpy_dwarf".into(),
+                meddling: Meddling::Often,
+                provider: ProviderChoice::Endpoint,
+                paused: true,
+                copy_footer: false,
+                ..WritingSettings::default()
+            },
         })
         .unwrap();
     }
@@ -95,6 +105,11 @@ fn settings_default_until_saved_and_survive_a_restart() {
     );
     assert_eq!(settings.backup_retention, BackupRetention::Forever);
     assert_eq!(settings.ui_language.as_deref(), Some("fr"));
+    assert_eq!(settings.writing.narrator, "grumpy_dwarf");
+    assert_eq!(settings.writing.meddling, Meddling::Often);
+    assert_eq!(settings.writing.provider, ProviderChoice::Endpoint);
+    assert!(settings.writing.paused);
+    assert!(!settings.writing.copy_footer);
 
     db.save_settings(&Settings::default()).unwrap();
     assert_eq!(
@@ -139,8 +154,21 @@ fn database_with_backup_count(dir: &std::path::Path, count: &str) {
         [count],
     )
     .unwrap();
-    conn.pragma_update(None, "user_version", CURRENT_VERSION - 1)
+    // Version 2 is the last one that counted copies; tables added since go too.
+    conn.execute_batch("DROP TABLE IF EXISTS continuity; DROP TABLE IF EXISTS stories; DROP TABLE IF EXISTS write_queue;")
         .unwrap();
+    conn.pragma_update(None, "user_version", 2).unwrap();
+}
+
+#[test]
+fn writing_defaults_keep_the_game_smooth_and_the_footer_on() {
+    let w = WritingSettings::default();
+    assert_eq!(w.narrator, "murloc_scribe");
+    assert_eq!(w.meddling, Meddling::Sometimes);
+    assert_eq!(w.provider, ProviderChoice::Local);
+    assert!(!w.write_while_playing, "no writing while the game runs");
+    assert!(w.copy_footer);
+    assert!(!w.paused);
 }
 
 #[test]

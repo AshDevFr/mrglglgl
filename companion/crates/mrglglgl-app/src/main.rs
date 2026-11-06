@@ -5,6 +5,8 @@ mod commands;
 mod sync;
 #[cfg(test)]
 mod test_data;
+mod writing;
+mod writing_commands;
 
 use mrglglgl_core::db::Database;
 use tauri::Manager;
@@ -35,6 +37,7 @@ fn main() {
                 }
                 let _ = tauri::Emitter::emit(&handle, sync::JOURNAL_UPDATED, ());
             });
+            tauri::async_runtime::spawn(writing::run(app.handle().clone()));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -47,6 +50,24 @@ fn main() {
             commands::save_settings,
             commands::sync_now,
             commands::delete_character,
+            writing_commands::character_stories,
+            writing_commands::writing_status,
+            writing_commands::write_now,
+            writing_commands::cancel_writing,
+            writing_commands::retry_writing,
+            writing_commands::set_writing_paused,
+            writing_commands::list_narrators,
+            writing_commands::models,
+            writing_commands::download_model,
+            writing_commands::cancel_download,
+            writing_commands::delete_model,
+            writing_commands::save_api_key,
+            writing_commands::has_api_key,
+            writing_commands::test_endpoint,
+            writing_commands::endpoint_sends_off_machine,
+            writing_commands::copy_entry_text,
+            writing_commands::default_export_folder,
+            writing_commands::export_character,
         ])
         .run(tauri::generate_context!())
         .expect("the Mrglglgl window failed to start");

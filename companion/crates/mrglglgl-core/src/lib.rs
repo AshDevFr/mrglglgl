@@ -3,10 +3,20 @@
 //! and never executes Lua.
 
 pub mod archive;
+pub mod beats;
+pub mod continuity;
 pub mod db;
 pub mod discovery;
+pub mod export;
+pub mod factcheck;
+pub mod game;
 pub mod milestones;
+pub mod narrators;
+pub mod prompt;
+pub mod queue;
 pub mod schema;
 pub mod screenshots;
+pub mod stories;
 pub mod sv;
 pub mod watch;
+pub mod writer;

@@ -1,5 +1,5 @@
 import { Image, Modal } from "@mantine/core";
-import { useState } from "react";
+import { type ComponentProps, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { screenshotUrl } from "@/api/commands";
 import type { Award } from "@/bindings/Award";
@@ -8,6 +8,7 @@ import type { Screenshot } from "@/bindings/Screenshot";
 import { formatDay } from "@/lib/format";
 import { dayFacts } from "@/lib/journal";
 import { daySentences } from "@/lib/sentences";
+import { EntryPanel } from "./EntryPanel";
 import { InkStamp } from "./InkStamp";
 
 const TILTS = [-7, 5, -3, 8];
@@ -48,19 +49,34 @@ export function PinnedPhotos({ screenshots }: { screenshots: Screenshot[] }) {
   );
 }
 
+/** The day's entry and everything needed to write it, when writing is set up. */
+export type DayWriting = Omit<
+  ComponentProps<typeof EntryPanel>,
+  "kind" | "day" | "facts"
+>;
+
 interface Props {
   journal: Journal;
   day: string;
   awards: Award[];
   screenshots?: Screenshot[];
+  writing?: DayWriting;
 }
 
-/** One day as a journal page: the date, what happened in short sentences, stamps and photos. */
-export function JournalPage({ journal, day, awards, screenshots = [] }: Props) {
+/** One day as a journal page: the date, the entry (or what happened in short sentences while
+ * there is none), stamps and photos. */
+export function JournalPage({
+  journal,
+  day,
+  awards,
+  screenshots = [],
+  writing,
+}: Props) {
   const { t, i18n } = useTranslation();
   const facts = dayFacts(journal, journal.days[day]);
   const sentences = daySentences(facts, t, i18n.language);
   const stamps = awards.filter((a) => a.day === day);
+  const plain = <p className="entry">{sentences.join(" ")}</p>;
   return (
     <article
       className="journal-page"
@@ -74,7 +90,11 @@ export function JournalPage({ journal, day, awards, screenshots = [] }: Props) {
         </div>
       )}
       <h2>{formatDay(day, i18n.language, true)}</h2>
-      <p className="entry">{sentences.join(" ")}</p>
+      {writing ? (
+        <EntryPanel kind="day" day={day} facts={plain} {...writing} />
+      ) : (
+        plain
+      )}
       {screenshots.length > 0 && <PinnedPhotos screenshots={screenshots} />}
       {facts.compacted && <p className="note">{t("character.compacted")}</p>}
     </article>

@@ -20,7 +20,7 @@ homepage = "https://github.com/AshDevFr/mrglglgl"
 # Workspace crates (one crate per concern; new domains get their own
 # mrglglgl-* crate declared here and consumed with `workspace = true`)
 mrglglgl-core = { path = "crates/mrglglgl-core" }
-mrglglgl-llm = { path = "crates/mrglglgl-llm" }
+mrglglgl-llm = { path = "crates/mrglglgl-llm", default-features = false }
 
 # Desktop shell
 tauri = { version = "2.12", features = ["protocol-asset"] }
@@ -33,7 +33,12 @@ ts-rs = "12"
 
 # Runtime
 tokio = { version = "1", features = ["full"] }
+tokio-util = "0.7"
 async-trait = "0.1"
+
+# Local inference: llama.cpp, CPU only. Default features add OpenMP and the `common` library,
+# neither needed for plain generation.
+llama-cpp-2 = { version = "0.1.161", default-features = false }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -45,12 +50,27 @@ thiserror = "2"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 
+# HTTP: model downloads and OpenAI-compatible endpoints. rustls avoids a system OpenSSL.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream", "json"] }
+futures-util = "0.3"
+url = "2"
+
 # Storage and files
 rusqlite = { version = "0.41", features = ["bundled"] }
 notify = "8"
 dirs = "7"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 winreg = "0.56"
+
+# Prompts and narrator profiles
+sha2 = "0.11"
+toml = "1"
+
+# The endpoint key lives in the system keychain. On Linux the Secret Service is reached over
+# pure-Rust D-Bus, so no system library is needed to build.
+keyring = { version = "3.6", features = ["apple-native", "windows-native", "linux-native-async-persistent", "tokio", "crypto-rust"] }
+# Whether the game is running, and the machine's memory and free disk for the first run.
+sysinfo = { version = "0.37", default-features = false, features = ["system", "disk"] }
 
 # Tests
 tempfile = "3"

@@ -4,12 +4,28 @@ import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import type { Award } from "@/bindings/Award";
 import type { Journal } from "@/bindings/Journal";
+import type { WritingSettings } from "@/bindings/WritingSettings";
 import awards from "./data/synthetic-awards.json";
 import journal from "./data/synthetic-journal.json";
 
 /** The shared synthetic journal, exactly as the backend serves it (written by a Rust test). */
 export const syntheticJournal = journal as unknown as Journal;
 export const syntheticAwards = awards as Award[];
+
+/** The writing settings a fresh install has, as the backend's defaults. */
+export const defaultWriting: WritingSettings = {
+  narrator: "murloc_scribe",
+  meddling: "sometimes",
+  proseLanguage: null,
+  provider: "local",
+  modelId: null,
+  endpointUrl: null,
+  endpointModel: null,
+  pseudonyms: false,
+  writeWhilePlaying: false,
+  paused: false,
+  copyFooter: true,
+};
 
 export function renderWithProviders(ui: ReactNode) {
   const client = new QueryClient({

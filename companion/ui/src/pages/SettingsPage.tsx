@@ -1,8 +1,9 @@
-import { Container, Text, Title } from "@mantine/core";
+import { Container, Stack, Text, Title } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { getSettings, saveSettings } from "@/api/commands";
 import type { Settings } from "@/bindings/Settings";
+import { ModelsPanel } from "@/components/ModelsPanel";
 import { SettingsForm } from "@/components/SettingsForm";
 import { applyLanguage } from "@/i18n";
 
@@ -17,13 +18,22 @@ export function SettingsPage() {
     await queryClient.invalidateQueries();
   }
 
+  async function choose(modelId: string) {
+    if (!view.data) return;
+    const settings = view.data.settings;
+    await save({ ...settings, writing: { ...settings.writing, modelId } });
+  }
+
   return (
     <Container py="xl">
       <Title order={1} mb="md">
         {t("settings.title")}
       </Title>
       {view.data ? (
-        <SettingsForm view={view.data} onSave={save} />
+        <Stack gap="xl" maw={640}>
+          <ModelsPanel onChoose={(id) => void choose(id)} />
+          <SettingsForm view={view.data} onSave={save} />
+        </Stack>
       ) : (
         <Text>{t("loading")}</Text>
       )}
