@@ -40,3 +40,52 @@ the same way.
 | ID-project-id | Value of `WOW_PROJECT_ID` on Forever | unconfirmed | Third-party notes say `WOW_PROJECT_CAMELOT` (18); TomTom instead detects Forever by interface range 16001 to 19999. fallback: detect Forever by `select(4, GetBuildInfo())` in 16000 to 19999, never by project ID alone (Compat.IsForever) |
 | ID-surname | Characters have a surname, and `UnitName` returns it where other flavors return the realm | verified-by-source | Leatrix Plus Forever code: "Forever uses surnames where other games use realm names" and `local surname = isForever and realm or nil` after `UnitName(unit)` |
 | ID-wtf-layout | Per-character folders are `WTF/Account/<account>/<number>/<FirstName>-<Surname>/` | verified-by-source | A live install's WTF tree: the realm level is a number (for example `93`) and character folders read like `Firstname-Surname`. Consequence: discovery cannot assume `<realm name>/<character>`, and a character's identity is first name plus surname |
+
+## Source for API facts
+
+API rows marked `verified-by-source` cite the client's own interface code for build
+1.60.1.70790: the generated API documentation (`Blizzard_APIDocumentationGenerated`) and the
+Blizzard UI files the client loads for its game type, as mirrored in the `forever` branch of
+[wow-ui-source](https://github.com/Gethe/wow-ui-source/tree/forever). Forever loads the
+`mainline` family variants and its own `camelot` variants of the UI, not the Vanilla ones.
+
+## Addon restrictions ("secret values")
+
+Forever inherits the modern client's addon restrictions. Some APIs return *secret values*:
+addon code can pass them back to the client but cannot read, compare or print them. The rules
+that matter here, quoted from the client's documentation of its secrecy predicates:
+
+- **Unit identity:** "secret values when the unit isn't player-controlled or in the party/raid".
+  Applies to `UnitGUID`, the GUIDs in `PARTY_KILL` and `UNIT_DIED`, and (outside PvP) to
+  `UnitName`. Read literally, any NPC's GUID and name are secret to addons.
+- **Chat messaging lockdown:** chat event text is secret "when encounter, challenge mode, or PvP
+  match addon restrictions are in effect, and when the player is on a communication-restricted map
+  such as a dungeon or raid". Elsewhere it is readable.
+- **Combat log:** the function that reads a combat log event exists only in `C_CombatLogSecure`,
+  whose environment is `SecureOnly`. The client's deprecation shims say these functions "have been
+  relocated to the secure environment, for which no deprecation is (intentionally) provided".
+  `COMBAT_LOG_EVENT_UNFILTERED` still fires, but addons cannot read its payload.
+
+## Collector APIs
+
+| ID | Item | Status | Evidence |
+|---|---|---|---|
+| API-quest-detail | `QUEST_DETAIL(questStartItemID)`; while the detail frame is open, `GetTitleText()` and `GetQuestText()` return the title and description, `GetQuestID()` the quest | verified-by-source | API docs (QuestLog); the mainline `QuestInfo.lua` calls `GetTitleText()` and `GetQuestText()` for the detail panel |
+| API-quest-accepted | `QUEST_ACCEPTED(questId)`: one argument, no quest log index (unlike Classic Era) | verified-by-source | API docs (QuestLog) |
+| API-quest-turnin | `QUEST_TURNED_IN(questID, xpReward, moneyReward)` | verified-by-source | API docs (QuestLog) |
+| API-questlog-fallback | Quest titles by ID via `C_QuestLog.GetTitleForQuestID(questID)`; quest log entries via `C_QuestLog.GetInfo` and `C_QuestLog.GetQuestIDForLogIndex`. The legacy `GetQuestLogQuestText` is only called from Classic-family UI code | verified-by-source | API docs (QuestLog); UI call sites |
+| API-fishing-loot | `IsFishingLoot()` while a loot window is open; `LOOT_OPENED(autoLoot, isFromItem)` and `LOOT_READY(autoloot)` | verified-by-source | API docs (Loot); the mainline `LootFrame.lua` calls `IsFishingLoot()`. Whether auto-loot leaves a window to read is an in-game check |
+| API-loot-slot | `GetNumLootItems()`, `GetLootSlotLink(slot)` | verified-by-source | The mainline `LootFrame.lua` calls both |
+| API-cleu-fields | Combat log event payloads are **not readable by addons** | verified-by-source | API docs: `GetCurrentEventInfo` exists only in `C_CombatLogSecure` (`Environment = "SecureOnly"`); see Addon restrictions |
+| API-party-kill | `PARTY_KILL(attackerGUID, targetGUID)` exists as a standalone event; marked `SecretWhenUnitIdentityRestricted`, so an NPC target's GUID is secret | verified-by-source | API docs (Unit) |
+| API-unit-died | `UNIT_DIED(unitGUID)` exists as a standalone event; same secrecy as `PARTY_KILL` | verified-by-source | API docs (Unit) |
+| API-classification | `UnitClassification(unit)` carries no secrecy predicate | verified-by-source | API docs (Unit) |
+| API-item-info-async | `GET_ITEM_INFO_RECEIVED(itemID, success)` and `ITEM_DATA_LOAD_RESULT(itemID, success)`; `C_Item.RequestLoadItemDataByID`, `C_Item.GetItemQualityByID` | verified-by-source | API docs (Item) |
+| API-zone-events | `ZONE_CHANGED`, `ZONE_CHANGED_INDOORS`, `ZONE_CHANGED_NEW_AREA`, no payload | verified-by-source | API docs (Map) |
+| API-zone-text | `GetZoneText()`, `GetSubZoneText()`, `GetRealZoneText()`, `GetMinimapZoneText()` | verified-by-source | API docs (ZoneScript) |
+| API-map-id | `C_Map.GetBestMapForUnit(unit)`, `C_Map.GetMapInfo(mapID)` | verified-by-source | API docs (Map) |
+| API-group-roster | `GROUP_ROSTER_UPDATE`; `GetNumGroupMembers()`, `IsInGroup()` | verified-by-source | API docs (PartyInfo); widely called by the client UI. Party members are player-controlled, so their names are not secret |
+| API-screenshot | `Screenshot()` is a plain global with no restriction or secrecy flags | verified-by-source | API docs (Client) |
+| API-screenshot-events | `SCREENSHOT_STARTED`, `SCREENSHOT_SUCCEEDED`, `SCREENSHOT_FAILED` | verified-by-source | API docs (Video) |
+| API-locale | `GetLocale()` | verified-by-source | API docs (Locale) |
+| API-settings-panel | `Settings.RegisterCanvasLayoutCategory` and `Settings.RegisterAddOnCategory`; `InterfaceOptions_AddCategory` is not present | verified-by-source | `Blizzard_Settings_Shared` in the client UI code; no call site or definition of `InterfaceOptions_AddCategory` |
