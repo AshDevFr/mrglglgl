@@ -1,5 +1,11 @@
 
 MrglglglCharDB = {
+["addon"] = {
+["build"] = "70790",
+["interface"] = 16001,
+["login"] = 1794344400,
+["version"] = "1.2.3",
+},
 ["char"] = {
 ["class"] = "HUNTER",
 ["faction"] = "Horde",

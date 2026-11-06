@@ -10,7 +10,7 @@ globals = { "MrglglglDB", "MrglglglCharDB", "SLASH_MRGLGLGL1", "SLASH_MRGLGLGL2"
 -- Client API the addon reads. Each is documented in docs/forever-api.md.
 read_globals = {
 	"C_ChatInfo", "C_DeathRecap", "C_Item", "C_SkillInfo", "C_Spell", "C_Map", "C_QuestLog", "C_Timer",
-	"CreateFrame", "CreateSettingsButtonInitializer", "CreateSettingsListSectionHeaderInitializer", "GetBuildInfo", "GetLocale", "GetLootSlotLink", "GetNumGroupMembers", "GetNumLootItems",
+	"C_AddOns", "CreateFrame", "CreateSettingsButtonInitializer", "CreateSettingsListSectionHeaderInitializer", "GetAddOnMetadata", "GetBuildInfo", "GetLocale", "geterrorhandler", "GetLootSlotLink", "GetNumGroupMembers", "GetNumLootItems",
 	"GetItemInfo", "GetQuestID", "GetQuestText", "GetRealmID", "GetRealmName", "GetSubZoneText", "GetTime", "GetTitleText",
 	"GetZoneText", "IsFishingLoot", "IsInGroup", "IsInRaid", "Screenshot", "Settings",
 	"UnitClass", "UnitClassification", "UnitFactionGroup", "UnitFullName", "UnitGUID", "UnitIsUnit", "UnitLevel",

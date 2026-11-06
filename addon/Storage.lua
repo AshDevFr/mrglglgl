@@ -93,10 +93,24 @@ ns.On("ADDON_LOADED", function(_, loaded)
 	end
 	loadSettings()
 	Storage.ready = loadJournal()
+	ns.FlushErrors()
 end)
 
 ns.On("PLAYER_LOGIN", function()
 	if Storage.ready then
 		recordCharacter()
+		-- Which addon and client last wrote the journal, and when: the app shows the addon as
+		-- recording, and notices an update that has not been loaded yet.
+		local _, build, _, interface = GetBuildInfo()
+		MrglglglCharDB.addon = {
+			version = ns.Compat.AddonVersion(),
+			build = build,
+			interface = interface,
+			login = time(),
+		}
+	else
+		-- A journal saved by a newer addon is left untouched; without this line the player would
+		-- not know nothing is being recorded.
+		print(ns.L.STATUS_UNAVAILABLE)
 	end
 end)

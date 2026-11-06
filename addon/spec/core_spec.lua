@@ -23,6 +23,35 @@ describe("Core", function()
 		assert.same({ "a7", "b7" }, calls)
 	end)
 
+	it("keeps dispatching when a handler fails, and keeps the error in the journal", function()
+		Mock.fire("ADDON_LOADED", "Mrglglgl")
+		local after = false
+		ns.On("PLAYER_LEVEL_UP", function() error("boom in a handler") end)
+		ns.On("PLAYER_LEVEL_UP", function() after = true end)
+		Mock.fire("PLAYER_LEVEL_UP", 7)
+		Mock.fire("PLAYER_LEVEL_UP", 8)
+		assert.is_true(after, "the next handler still ran")
+		local errors = _G.MrglglglCharDB.errors
+		assert.equals(2, errors.n)
+		assert.equals("PLAYER_LEVEL_UP", errors.last.event)
+		assert.truthy(errors.last.msg:find("boom in a handler", 1, true))
+		assert.equals(Mock.now, errors.last.t)
+		local notices = 0
+		for _, line in ipairs(Mock.printed) do
+			if line:find("hit an error", 1, true) then
+				notices = notices + 1
+			end
+		end
+		assert.equals(1, notices, "said once per session, not per error")
+	end)
+
+	it("counts an error that happens before the journal is loaded once it is", function()
+		ns.On("ADDON_LOADED", function() error("too early") end)
+		Mock.fire("ADDON_LOADED", "Mrglglgl")
+		Mock.fire("PLAYER_LOGIN")
+		assert.equals(1, _G.MrglglglCharDB.errors.n)
+	end)
+
 	it("only registers events that a module listens to", function()
 		assert.is_false(Mock.isRegistered("PLAYER_REGEN_ENABLED"))
 		ns.On("PLAYER_REGEN_ENABLED", function() end)

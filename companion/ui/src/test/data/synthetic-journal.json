@@ -674,5 +674,12 @@
     "murlocsSlain": 1,
     "deathsByMurloc": 1,
     "drownings": 1
-  }
+  },
+  "addon": {
+    "version": "1.2.3",
+    "build": "70790",
+    "interface": 16001,
+    "login": 1794344400
+  },
+  "errors": null
 }

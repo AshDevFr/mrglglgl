@@ -10,6 +10,16 @@ local L = ns.L
 
 -- Forever reports interface 16xxx. WOW_PROJECT_ID is WOW_PROJECT_CAMELOT today, but that name may
 -- change, so the interface range is the check.
+-- The addon's own version as packaged (the release tag). Classic clients moved this into
+-- C_AddOns; older ones have the global. Unverified on Forever (in-game check pending).
+function Compat.AddonVersion()
+	local get = (C_AddOns and C_AddOns.GetAddOnMetadata) or GetAddOnMetadata
+	if not get then
+		return nil
+	end
+	return get(ns.name, "Version")
+end
+
 function Compat.IsForever()
 	local interface = select(4, GetBuildInfo())
 	return type(interface) == "number" and interface >= 16000 and interface < 20000

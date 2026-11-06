@@ -288,6 +288,12 @@ fn reads_every_documented_field() {
         "stats.murlocsSlain",
         "stats.deathsByMurloc",
         "stats.drownings",
+        "addon.version",
+        "addon.build",
+        "addon.interface",
+        "addon.login",
+        "errors.n",
+        "errors.last",
         // Day, event, kill aggregate, digest, quest, companion
         "ev",
         "kills",
@@ -393,4 +399,24 @@ fn reads_every_documented_field() {
         missing.is_empty(),
         "docs/schema.md documents fields the model does not read: {missing:?}"
     );
+}
+
+#[test]
+fn reads_what_the_addon_notes_about_itself() {
+    let j = schema::journal_from_text(
+        r#"MrglglglCharDB = { schema = 1, char = {}, days = {},
+            addon = { version = "addon-v0.2.0", build = "70790", interface = 16001, login = 1794344400 },
+            errors = { n = 3, last = { msg = "Kills.lua:88: boom", event = "LOOT_OPENED", t = 1794344500 } } }"#,
+    )
+    .unwrap();
+    let addon = j.addon.unwrap();
+    assert_eq!(addon.version.as_deref(), Some("addon-v0.2.0"));
+    assert_eq!(
+        (addon.interface, addon.login),
+        (Some(16001), Some(1_794_344_400))
+    );
+    let errors = j.errors.unwrap();
+    assert_eq!(errors.count, 3);
+    assert_eq!(errors.last_event.as_deref(), Some("LOOT_OPENED"));
+    assert!(errors.last_message.unwrap().contains("boom"));
 }

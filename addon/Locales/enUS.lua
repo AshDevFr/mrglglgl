@@ -29,6 +29,7 @@ ns.RegisterLocale("enUS", {
 	STATUS_NOT_RECORDED = "%s: not recorded (turned off in settings)",
 	STATUS_BOOTS_TOTAL = "Boots kept, all time: %d",
 	STATUS_UNAVAILABLE = "The journal is not available: it was saved by a newer version of the addon.",
+	ERROR_NOTICE = "Mrglglgl hit an error and kept recording; the companion app can show what it was.",
 
 	SETTINGS_UNAVAILABLE = "Settings are not available: the journal was saved by a newer version of the addon.",
 

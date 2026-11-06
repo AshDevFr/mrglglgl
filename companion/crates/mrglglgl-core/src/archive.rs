@@ -19,7 +19,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::db::{BackupRetention, Database, DbError};
 use crate::discovery::CharacterSource;
-use crate::schema::{self, Character, Companion, Day, Journal, JournalError, Quest, Stats};
+use crate::schema::{
+    self, AddonErrors, AddonHeartbeat, Character, Companion, Day, Journal, JournalError, Quest,
+    Stats,
+};
 use crate::watch::{modified_unix, now_unix};
 
 /// The folder, inside the app data folder, that holds journal backups.
@@ -177,6 +180,8 @@ struct JournalRecord {
     companions: BTreeMap<String, Companion>,
     discovered: BTreeSet<String>,
     stats: Stats,
+    addon: Option<AddonHeartbeat>,
+    errors: Option<AddonErrors>,
 }
 
 fn merge_quest(into: &mut Quest, from: &Quest) {
@@ -272,6 +277,12 @@ pub fn merge_snapshot(
         record.schema = journal.schema;
         record.character = journal.character.clone();
         record.stats = journal.stats.clone();
+        if journal.addon.is_some() {
+            record.addon.clone_from(&journal.addon);
+        }
+        if journal.errors.is_some() {
+            record.errors.clone_from(&journal.errors);
+        }
     }
     for (id, quest) in &journal.quests {
         let entry = record.quests.entry(*id).or_default();
@@ -337,6 +348,8 @@ pub fn load(db: &Database, character_id: i64) -> Result<Option<Journal>, Archive
         companions: record.companions,
         discovered: record.discovered,
         stats: record.stats,
+        addon: record.addon,
+        errors: record.errors,
     }))
 }
 

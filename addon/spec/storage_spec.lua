@@ -78,6 +78,22 @@ describe("Storage", function()
 		assert.is_false(ns.Storage.records("kills"))
 	end)
 
+	it("notes which addon and client last wrote the journal, at each login", function()
+		start()
+		assert.same({ version = "1.2.3", build = "70790", interface = 16001, login = Mock.now },
+			_G.MrglglglCharDB.addon)
+	end)
+
+	it("says at login when the journal is from a newer addon", function()
+		_G.MrglglglCharDB = { schema = 99, days = {} }
+		start()
+		local said = false
+		for _, line in ipairs(Mock.printed) do
+			said = said or line:find("newer version of the addon", 1, true) ~= nil
+		end
+		assert.is_true(said)
+	end)
+
 	it("leaves a journal from a newer addon untouched and records nothing", function()
 		local newer = { schema = 99, days = { ["2026-11-01"] = { future = true } } }
 		_G.MrglglglCharDB = newer

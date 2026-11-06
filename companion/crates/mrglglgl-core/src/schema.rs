@@ -79,6 +79,36 @@ pub struct Journal {
     pub companions: BTreeMap<String, Companion>,
     pub discovered: BTreeSet<String>,
     pub stats: Stats,
+    /// Which addon and client last wrote the journal, and when.
+    pub addon: Option<AddonHeartbeat>,
+    /// Errors the addon caught in its handlers; recording carried on.
+    pub errors: Option<AddonErrors>,
+}
+
+/// What the addon notes at each login.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+pub struct AddonHeartbeat {
+    /// The addon's packaged version, e.g. `addon-v0.1.0`.
+    pub version: Option<String>,
+    pub build: Option<String>,
+    pub interface: Option<i64>,
+    /// Unix time of the last login.
+    pub login: Option<i64>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+pub struct AddonErrors {
+    /// All time.
+    pub count: i64,
+    pub last_message: Option<String>,
+    pub last_event: Option<String>,
+    pub last_time: Option<i64>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -773,6 +803,22 @@ pub fn journal_from(file: &SavedVariables) -> Result<Journal, JournalError> {
         })
         .unwrap_or_default();
 
+    let addon = table(db, "addon").map(|a| AddonHeartbeat {
+        version: string(a, "version"),
+        build: string(a, "build"),
+        interface: int(a, "interface"),
+        login: int(a, "login"),
+    });
+    let errors = table(db, "errors").map(|e| {
+        let last = table(e, "last");
+        AddonErrors {
+            count: int(e, "n").unwrap_or(0),
+            last_message: last.and_then(|l| string(l, "msg")),
+            last_event: last.and_then(|l| string(l, "event")),
+            last_time: last.and_then(|l| int(l, "t")),
+        }
+    });
+
     Ok(Journal {
         schema,
         character,
@@ -781,6 +827,8 @@ pub fn journal_from(file: &SavedVariables) -> Result<Journal, JournalError> {
         companions,
         discovered,
         stats,
+        addon,
+        errors,
     })
 }
 

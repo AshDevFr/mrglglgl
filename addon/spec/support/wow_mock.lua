@@ -108,6 +108,10 @@ function Mock.install()
 	_G.CreateFrame = function() return newFrame() end
 	_G.GetLocale = function() return Mock.locale end
 	_G.GetBuildInfo = function() return unpack(Mock.buildInfo) end
+	Mock.addonVersion = "1.2.3"
+	_G.C_AddOns = { GetAddOnMetadata = function(_, field)
+		if field == "Version" then return Mock.addonVersion end
+	end }
 	_G.time = function(t)
 		if t then
 			return os.time(t)

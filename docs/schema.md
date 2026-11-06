@@ -71,6 +71,12 @@ All `record` flags default to `true` and all `screenshots` flags to `false`.
 | `stats.murlocsSlain` | int | Murlocs slain, all time |
 | `stats.deathsByMurloc` | int | Deaths to a murloc, all time |
 | `stats.drownings` | int | Deaths by drowning, all time |
+| `addon.version` | string? | The addon's packaged version (its release tag), written at each login |
+| `addon.build` | string | The client build at the last login, e.g. `70790` |
+| `addon.interface` | int | The client's interface number at the last login, e.g. `16001` |
+| `addon.login` | int | Unix time of the last login |
+| `errors.n` | int | Errors the addon caught in its handlers, all time; recording carried on |
+| `errors.last` | table? | The last one: `msg` (up to 300 characters), `event`, `t` (unix time) |
 
 ### Day record (`days["YYYY-MM-DD"]`)
 
