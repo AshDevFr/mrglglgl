@@ -186,9 +186,9 @@ export function saveNarrator(narrator: Narrator): Promise<NarratorSaved> {
   return invoke<NarratorSaved>("save_narrator", { narrator });
 }
 
-/** Adds a shared narrator file, given its text. */
-export function importNarrator(text: string): Promise<NarratorSaved> {
-  return invoke<NarratorSaved>("import_narrator", { text });
+/** Adds a shared narrator file, read from where the player picked it. */
+export function importNarratorFile(path: string): Promise<NarratorSaved> {
+  return invoke<NarratorSaved>("import_narrator_file", { path });
 }
 
 /** Writes the narrator as one file into a folder; answers the file's path. */

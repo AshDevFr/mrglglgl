@@ -21,6 +21,7 @@ fn main() {
         .init();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let data_dir = app.path().app_data_dir()?;
             let db = Database::open(&data_dir)?;
@@ -66,7 +67,7 @@ fn main() {
             writing_commands::narrator,
             writing_commands::copy_narrator,
             writing_commands::save_narrator,
-            writing_commands::import_narrator,
+            writing_commands::import_narrator_file,
             writing_commands::export_narrator,
             writing_commands::delete_narrator,
             writing_commands::preview_narrator,

@@ -300,9 +300,20 @@ pub fn save_narrator(
     ))
 }
 
-/// Adds a shared narrator file, given its text, as the player's own.
+/// Adds a shared narrator file, read from where the player picked it, as the player's own.
 #[tauri::command]
-pub fn import_narrator(state: State<'_, AppState>, text: String) -> Result<NarratorSaved, String> {
+pub fn import_narrator_file(
+    state: State<'_, AppState>,
+    path: String,
+) -> Result<NarratorSaved, String> {
+    // A narrator is a few kilobytes; anything far larger is not one.
+    const MAX_BYTES: u64 = 256 * 1024;
+    let path = std::path::PathBuf::from(path);
+    let size = std::fs::metadata(&path).map_err(|e| e.to_string())?.len();
+    if size > MAX_BYTES {
+        return Err(format!("{} is too large to be a narrator", path.display()));
+    }
+    let text = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
     saved(narrators::import(
         &writing::narrators_dir(&state.data_dir),
         &text,

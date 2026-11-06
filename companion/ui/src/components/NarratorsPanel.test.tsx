@@ -6,7 +6,7 @@ import { renderWithProviders } from "@/test/render";
 const commands = vi.hoisted(() => ({
   copyNarrator: vi.fn(),
   saveNarrator: vi.fn(),
-  importNarrator: vi.fn(),
+  importNarratorFile: vi.fn(),
   deleteNarrator: vi.fn(() => Promise.resolve()),
   exportNarrator: vi.fn(() =>
     Promise.resolve("/Users/me/Documents/custom_heron.toml"),
@@ -27,6 +27,9 @@ vi.mock("@/api/commands", () => ({
   defaultExportFolder: () => Promise.resolve("/Users/me/Documents"),
   ...commands,
 }));
+
+const open = vi.hoisted(() => vi.fn());
+vi.mock("@tauri-apps/plugin-dialog", () => ({ open }));
 
 beforeEach(() => vi.clearAllMocks());
 
@@ -82,19 +85,25 @@ describe("NarratorsPanel", () => {
     );
   });
 
-  it("imports a narrator file", async () => {
-    commands.importNarrator.mockResolvedValue({
+  it("imports a narrator file picked with the system chooser", async () => {
+    open.mockResolvedValue("/Users/me/Downloads/otter.toml");
+    commands.importNarratorFile.mockResolvedValue({
       kind: "saved",
       narrator: { id: "custom_otter", name: "The otter" },
     });
     renderWithProviders(<NarratorsPanel onEdit={vi.fn()} />);
-    const input = await screen.findByLabelText(/Import a narrator file/);
-    const file = new File(['id = "otter"'], "otter.toml", {
-      type: "text/plain",
-    });
-    fireEvent.change(input, { target: { files: [file] } });
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Import a narrator file…" }),
+    );
     await waitFor(() =>
-      expect(commands.importNarrator).toHaveBeenCalledWith('id = "otter"'),
+      expect(commands.importNarratorFile).toHaveBeenCalledWith(
+        "/Users/me/Downloads/otter.toml",
+      ),
+    );
+    expect(open).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: [expect.objectContaining({ extensions: ["toml"] })],
+      }),
     );
     expect(await screen.findByText("The otter was added.")).toBeInTheDocument();
   });

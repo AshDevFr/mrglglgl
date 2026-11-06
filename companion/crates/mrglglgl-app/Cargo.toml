@@ -18,6 +18,7 @@ tauri-build = { workspace = true }
 mrglglgl-core = { workspace = true, features = ["ts"] }
 mrglglgl-llm = { workspace = true, features = ["local"] }
 tauri = { workspace = true }
+tauri-plugin-dialog = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 ts-rs = { workspace = true }

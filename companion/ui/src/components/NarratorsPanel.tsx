@@ -1,14 +1,6 @@
-import {
-  Alert,
-  Button,
-  Group,
-  Modal,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from "@mantine/core";
+import { Alert, Button, Group, Modal, Stack, Text, Title } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -16,13 +8,14 @@ import {
   defaultExportFolder,
   deleteNarrator,
   exportNarrator,
-  importNarrator,
+  importNarratorFile,
   listNarrators,
   saveNarrator,
 } from "@/api/commands";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { NarratorSaved } from "@/bindings/NarratorSaved";
 import { problem } from "@/i18n/problems";
+import { FolderField } from "./FolderField";
 
 /** Every narrator: built-ins to copy, the player's own to edit, share or remove. */
 export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
@@ -63,9 +56,16 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
     attempt(async () => {
       await settle(await saveNarrator(await copyNarrator(id)), onEdit);
     });
-  const importFile = (file: File) =>
+  const importFile = () =>
     attempt(async () => {
-      const result = await importNarrator(await file.text());
+      const path = await open({
+        multiple: false,
+        directory: false,
+        title: t("narrators.import"),
+        filters: [{ name: t("narrators.fileKind"), extensions: ["toml"] }],
+      });
+      if (typeof path !== "string") return;
+      const result = await importNarratorFile(path);
       await settle(result, () => {
         if (result.kind === "saved")
           setMessage(t("narrators.imported", { name: result.narrator.name }));
@@ -133,22 +133,14 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
           </ul>
         </>
       )}
-      <label>
-        <Text size="sm">{t("narrators.import")}</Text>
-        <Text size="xs" c="dimmed">
+      <div>
+        <Button variant="default" onClick={() => void importFile()}>
+          {t("narrators.import")}
+        </Button>
+        <Text size="xs" c="dimmed" mt={4}>
           {t("narrators.importHelp")}
         </Text>
-        <input
-          type="file"
-          accept=".toml,text/plain"
-          aria-label={t("narrators.import")}
-          onChange={(e) => {
-            const file = e.currentTarget.files?.[0];
-            e.currentTarget.value = "";
-            if (file) void importFile(file);
-          }}
-        />
-      </label>
+      </div>
       {message && <Alert color="green">{message}</Alert>}
       {failure && (
         <Alert color="red">
@@ -218,10 +210,10 @@ function ExportDialog({
     >
       <Stack>
         <Text size="sm">{t("narrators.exportHelp")}</Text>
-        <TextInput
+        <FolderField
           label={t("narrators.folder")}
           value={folder}
-          onChange={(e) => setFolder(e.currentTarget.value)}
+          onChange={setFolder}
         />
         {path && (
           <Alert color="green">{t("narrators.exported", { path })}</Alert>

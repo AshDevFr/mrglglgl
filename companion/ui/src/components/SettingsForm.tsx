@@ -1,12 +1,4 @@
-import {
-  Alert,
-  Button,
-  List,
-  Select,
-  Stack,
-  Text,
-  TextInput,
-} from "@mantine/core";
+import { Alert, Button, List, Select, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +9,7 @@ import type { SettingsView } from "@/bindings/SettingsView";
 import type { WritingSettings } from "@/bindings/WritingSettings";
 import { problem } from "@/i18n/problems";
 import { EndpointFields } from "./EndpointFields";
+import { FolderField } from "./FolderField";
 import { WritingFields } from "./WritingFields";
 
 interface Props {
@@ -63,11 +56,11 @@ export function SettingsForm({ view, onSave }: Props) {
 
   return (
     <Stack maw={640}>
-      <TextInput
+      <FolderField
         label={t("settings.wowFolder")}
         description={t("settings.wowFolderHelp")}
         value={folder}
-        onChange={(e) => setFolder(e.currentTarget.value)}
+        onChange={setFolder}
       />
       {view.roots.length === 0 ? (
         <Text size="sm">{problem(t, "settings.foundNone")}</Text>

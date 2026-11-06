@@ -1,12 +1,4 @@
-import {
-  Alert,
-  Button,
-  Group,
-  Modal,
-  Stack,
-  Text,
-  TextInput,
-} from "@mantine/core";
+import { Alert, Button, Group, Modal, Stack, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -17,6 +9,7 @@ import {
 import type { ExportedFiles } from "@/bindings/ExportedFiles";
 import type { Story } from "@/bindings/Story";
 import { problem } from "@/i18n/problems";
+import { FolderField } from "./FolderField";
 
 /** Copies an entry, with its day and the footer, as plain text. */
 export function CopyEntryButton({ story }: { story: Story }) {
@@ -91,10 +84,10 @@ export function ExportDialog({
     <Modal opened={opened} onClose={onClose} title={t("share.exportTitle")}>
       <Stack>
         <Text size="sm">{t("share.exportHelp")}</Text>
-        <TextInput
+        <FolderField
           label={t("share.folder")}
           value={folder}
-          onChange={(e) => setFolder(e.currentTarget.value)}
+          onChange={setFolder}
         />
         {error && (
           <Alert color="red">

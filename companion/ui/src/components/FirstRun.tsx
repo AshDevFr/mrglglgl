@@ -1,9 +1,10 @@
-import { Button, Group, Stack, Text, TextInput, Title } from "@mantine/core";
+import { Button, Group, Stack, Text, Title } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getSettings, models, saveSettings } from "@/api/commands";
 import { problem } from "@/i18n/problems";
+import { FolderField } from "./FolderField";
 import { gigabytes } from "./ModelsPanel";
 
 /**
@@ -55,12 +56,13 @@ export function FirstRun({ onOpenSettings }: { onOpenSettings: () => void }) {
             <>
               <Text>{problem(t, "settings.foundNone")}</Text>
               <Group align="flex-end" gap="xs">
-                <TextInput
-                  label={t("firstRun.folderLabel")}
-                  value={folder}
-                  onChange={(e) => setFolder(e.currentTarget.value)}
-                  w={360}
-                />
+                <div style={{ width: 420 }}>
+                  <FolderField
+                    label={t("firstRun.folderLabel")}
+                    value={folder}
+                    onChange={setFolder}
+                  />
+                </div>
                 <Button
                   variant="light"
                   disabled={folder.trim() === ""}

@@ -358,7 +358,8 @@
     "exported": "Saved {{markdown}} and {{html}}.",
     "exportFailed": "The export was not saved: {{message}}",
     "copyFailedNext": "Select the entry's text and copy it with the keyboard instead.",
-    "exportFailedNext": "Pick a folder you can write to, outside the World of Warcraft folder, then export again."
+    "exportFailedNext": "Pick a folder you can write to, outside the World of Warcraft folder, then export again.",
+    "choose": "Choose…"
   },
   "errors": {
     "load": "The app could not read its data: {{message}}",
@@ -419,7 +420,7 @@
     "deleteBody": "Entries it wrote keep their text. Writing that used it goes back to the murloc scribe.",
     "deleteConfirm": "Remove",
     "cancel": "Cancel",
-    "import": "Import a narrator file",
+    "import": "Import a narrator file…",
     "importHelp": "A .toml file someone exported from Mrglglgl.",
     "imported": "{{name}} was added.",
     "exportTitle": "Export {{name}}",
@@ -480,6 +481,7 @@
     "previewSetAsideNext": "Keep the voice and the example to the day's own events, then preview again.",
     "previewFailedNext": "Check that a model is downloaded, or the endpoint is set up, in Settings.",
     "fileFailed": "That did not work: {{message}}",
-    "fileFailedNext": "Check the folder or the file, then try again."
+    "fileFailedNext": "Check the folder or the file, then try again.",
+    "fileKind": "Narrator"
   }
 }
