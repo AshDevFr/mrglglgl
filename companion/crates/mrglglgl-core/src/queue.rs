@@ -554,6 +554,7 @@ fn prepare(
                 } else {
                     job.note.as_deref()
                 },
+                preferences: Some(&settings.preferences),
             }),
             job.start_day.clone(),
         ),
@@ -573,6 +574,7 @@ fn prepare(
                     pseudonyms,
                     thresholds: &thresholds,
                     note: job.note.as_deref(),
+                    preferences: Some(&settings.preferences),
                 }),
                 prompt::week_days(&job.start_day).pop().unwrap_or_default(),
             )
@@ -848,6 +850,7 @@ pub async fn preview(
             pseudonyms: is_endpoint && settings.pseudonyms,
             thresholds: &Thresholds::default(),
             note: None,
+            preferences: Some(&settings.preferences),
         });
         let c = &journal.character;
         let allowed: Vec<String> = [&c.faction, &c.realm]

@@ -252,6 +252,8 @@ pub struct DayRequest<'a> {
     pub thresholds: &'a Thresholds,
     /// What the player asks of this version, for a rewrite.
     pub note: Option<&'a str>,
+    /// The player's standing writing preferences, for every entry and chapter.
+    pub preferences: Option<&'a str>,
 }
 
 /// What a weekly chapter is built from.
@@ -271,6 +273,8 @@ pub struct WeekRequest<'a> {
     pub thresholds: &'a Thresholds,
     /// What the player asks of this version, for a rewrite.
     pub note: Option<&'a str>,
+    /// The player's standing writing preferences, for every entry and chapter.
+    pub preferences: Option<&'a str>,
 }
 
 #[derive(Clone, Copy)]
@@ -282,7 +286,36 @@ enum Kind {
 /// The system prompt: the tested prompt's rules word for word, with two additions the product
 /// needs (an explicit ban on invented lore, and the footnote asked for exactly when the murloc
 /// meddles rather than always optional) and the narrator's persona, voice and example.
-fn system(narrator: &Narrator, language: &str, meddling: bool, kind: Kind) -> String {
+/// The longest writing preferences sent, in characters.
+pub const PREFERENCES_CHARS: usize = 500;
+
+/// The player's writing preferences as the last rule, or nothing. They are in the system part of
+/// the prompt, which the fact check never takes as true: a preference may name anything ("never
+/// call Mulgore green") without that becoming a fact of the day. They come after the fact rule and
+/// say so, so a preference cannot license an invented event.
+fn preferences_rule(preferences: Option<&str>) -> String {
+    let flat = preferences
+        .unwrap_or_default()
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    if flat.is_empty() {
+        return String::new();
+    }
+    let capped: String = flat.chars().take(PREFERENCES_CHARS).collect();
+    format!(
+        "7. Style. The player's standing preferences for how you write: \"{capped}\". Follow \
+         them in wording, punctuation, spelling and form; they never change rule 1.\n"
+    )
+}
+
+fn system(
+    narrator: &Narrator,
+    language: &str,
+    meddling: bool,
+    kind: Kind,
+    preferences: Option<&str>,
+) -> String {
     let (events, when, length) = match kind {
         Kind::Day => (
             "What happened today",
@@ -326,9 +359,11 @@ fn system(narrator: &Narrator, language: &str, meddling: bool, kind: Kind) -> St
          4. The murloc. {murloc}\n\
          5. Length. {length}. Output only the entry: no title, no greeting, no signature.\n\
          6. Language. Write in {language}. Keep names of places, creatures, quests and people \
-         exactly as given, untranslated.\n\n\
+         exactly as given, untranslated.\n\
+         {style}\n\
          {intro}\n\n\
          {example}",
+        style = preferences_rule(preferences),
         persona = narrator.persona.trim(),
         voice = narrator.voice.trim(),
         language = language_name(language),
@@ -547,7 +582,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
     ));
 
     Prompt::new(
-        system(r.narrator, r.language, meddling, Kind::Day),
+        system(r.narrator, r.language, meddling, Kind::Day, r.preferences),
         user,
         meddling,
         &companion_names(&[&record], &sheet),
@@ -658,7 +693,7 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
     );
     let record_refs: Vec<&DayRecord> = records.iter().collect();
     Prompt::new(
-        system(r.narrator, r.language, meddling, Kind::Week),
+        system(r.narrator, r.language, meddling, Kind::Week, r.preferences),
         user,
         meddling,
         &companion_names(&record_refs, &sheet),

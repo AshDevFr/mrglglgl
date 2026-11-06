@@ -62,6 +62,7 @@ fn day(
         pseudonyms,
         thresholds: &Thresholds::default(),
         note: None,
+        preferences: None,
     })
 }
 
@@ -84,6 +85,7 @@ fn week(journal: &Journal, awards: &[Award], language: &str, meddling: Meddling)
         pseudonyms: false,
         thresholds: &Thresholds::default(),
         note: None,
+        preferences: None,
     })
 }
 
@@ -281,6 +283,7 @@ fn companions_can_be_sent_under_stand_in_names() {
             pseudonyms,
             thresholds: &all,
             note: None,
+            preferences: None,
         })
     };
     let plain = request(false);
@@ -335,6 +338,7 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
             pseudonyms: false,
             thresholds: &Thresholds::default(),
             note: None,
+            preferences: None,
         });
         assert!(p.meddling);
         let expected = tested(language, "## System")
@@ -418,6 +422,7 @@ fn a_rewrite_note_asks_for_tone_and_length_inside_the_fact_rules() {
         pseudonyms: false,
         thresholds: &thresholds,
         note: None,
+        preferences: None,
     };
     let plain = day_prompt(&base());
     let noted = day_prompt(&DayRequest {
@@ -470,6 +475,87 @@ fn a_rewrite_note_asks_for_tone_and_length_inside_the_fact_rules() {
         pseudonyms: false,
         thresholds: &Thresholds::default(),
         note: Some("more about the wolves"),
+        preferences: None,
     });
     assert!(chapter.user.contains("\"more about the wolves\""));
+}
+
+#[test]
+fn writing_preferences_shape_the_style_of_every_entry_and_never_become_facts() {
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let thresholds = Thresholds::default();
+    let base = || DayRequest {
+        character_id: 1,
+        journal: &j,
+        day: "2026-11-08",
+        awards: &awards,
+        running_jokes: &[],
+        narrator: narrators::get(DEFAULT_NARRATOR, "en"),
+        language: "en",
+        meddling: Meddling::Sometimes,
+        pseudonyms: false,
+        thresholds: &thresholds,
+        note: None,
+        preferences: None,
+    };
+    let plain = day_prompt(&base());
+    let styled = day_prompt(&DayRequest {
+        preferences: Some("  No em dashes.\nBritish spelling; never mention Thunder Bluff.  "),
+        ..base()
+    });
+    let rule = "7. Style. The player's standing preferences for how you write: \"No em dashes. \
+                British spelling; never mention Thunder Bluff.\". Follow them in wording, \
+                punctuation, spelling and form; they never change rule 1.";
+    assert!(styled.system.contains(rule), "{}", styled.system);
+    assert!(
+        styled.system.find(rule).unwrap() > styled.system.find("1. Facts.").unwrap(),
+        "the fact rule comes first"
+    );
+    assert_eq!(styled.user, plain.user);
+    // A place named in the preferences is not a fact of the day.
+    assert_eq!(styled.facts, plain.facts);
+    assert_ne!(styled.hash, plain.hash);
+
+    let long = "b".repeat(900);
+    let capped = day_prompt(&DayRequest {
+        preferences: Some(&long),
+        ..base()
+    });
+    assert!(
+        capped
+            .system
+            .contains(&"b".repeat(prompt::PREFERENCES_CHARS))
+    );
+    assert!(
+        !capped
+            .system
+            .contains(&"b".repeat(prompt::PREFERENCES_CHARS + 1))
+    );
+
+    let blank = day_prompt(&DayRequest {
+        preferences: Some(" \n "),
+        ..base()
+    });
+    assert_eq!(blank, plain, "blank preferences are none");
+
+    // Chapters follow them too.
+    let mut entries = BTreeMap::new();
+    entries.insert("2026-11-09".to_string(), "Quiet plains.".to_string());
+    let chapter = week_prompt(&WeekRequest {
+        character_id: 1,
+        journal: &j,
+        start_day: "2026-11-09",
+        awards: &awards,
+        running_jokes: &[],
+        entries: &entries,
+        narrator: narrators::get(DEFAULT_NARRATOR, "en"),
+        language: "en",
+        meddling: Meddling::Sometimes,
+        pseudonyms: false,
+        thresholds: &thresholds,
+        note: None,
+        preferences: Some("No em dashes."),
+    });
+    assert!(chapter.system.contains("\"No em dashes.\""));
 }

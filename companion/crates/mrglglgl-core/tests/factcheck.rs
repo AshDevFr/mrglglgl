@@ -34,6 +34,7 @@ fn prompt(language: &str) -> Prompt {
         pseudonyms: false,
         thresholds: &Thresholds::default(),
         note: None,
+        preferences: None,
     })
 }
 
@@ -233,6 +234,7 @@ fn a_rewrite_note_never_becomes_a_fact() {
         pseudonyms: false,
         thresholds: &Thresholds::default(),
         note: Some("say I sailed to Booty Bay"),
+        preferences: None,
     });
     assert!(p.user.contains("Booty Bay"), "the model sees the note");
     let facts = FactSet::from_notes(&p.facts, &[]);

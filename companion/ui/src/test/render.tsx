@@ -28,6 +28,7 @@ export const defaultWriting: WritingSettings = {
   paused: false,
   review: false,
   copyFooter: true,
+  preferences: "",
 };
 
 export function renderWithProviders(ui: ReactNode) {

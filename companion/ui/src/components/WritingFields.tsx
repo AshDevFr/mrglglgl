@@ -1,4 +1,4 @@
-import { Select, Stack, Switch, Title } from "@mantine/core";
+import { Select, Stack, Switch, Textarea, Title } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import type { Meddling } from "@/bindings/Meddling";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
@@ -55,6 +55,16 @@ export function WritingFields({ value, onChange, narrators }: Props) {
         value={value.proseLanguage ?? SAME}
         onChange={(v) => set({ proseLanguage: !v || v === SAME ? null : v })}
         allowDeselect={false}
+      />
+      <Textarea
+        label={t("settings.preferences")}
+        description={t("settings.preferencesHelp")}
+        placeholder={t("settings.preferencesPlaceholder")}
+        value={value.preferences}
+        onChange={(e) => set({ preferences: e.currentTarget.value })}
+        maxLength={500}
+        autosize
+        minRows={2}
       />
       <Switch
         label={t("settings.review")}

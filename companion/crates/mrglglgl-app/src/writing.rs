@@ -270,6 +270,7 @@ mod tests {
             pseudonyms: false,
             thresholds: &Thresholds::default(),
             note: None,
+            preferences: None,
         });
         let provider = LocalProvider::new(LocalOptions::new(path, "test", reasoning));
         let started = std::time::Instant::now();
@@ -336,6 +337,7 @@ mod tests {
                         pseudonyms: false,
                         thresholds: &Thresholds::default(),
                         note: None,
+                        preferences: None,
                     });
                     let started = std::time::Instant::now();
                     let result = write(

@@ -239,6 +239,9 @@ pub struct WritingSettings {
     pub review: bool,
     /// "Copy entry" adds a one-line "via Mrglglgl" footer.
     pub copy_footer: bool,
+    /// How the player likes the prose written, sent with every entry and chapter ("no em
+    /// dashes", "British spelling"). Style only: never taken as a fact of the day.
+    pub preferences: String,
 }
 
 impl Default for WritingSettings {
@@ -257,6 +260,7 @@ impl Default for WritingSettings {
             paused: false,
             review: false,
             copy_footer: true,
+            preferences: String::new(),
         }
     }
 }

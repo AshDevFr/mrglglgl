@@ -169,4 +169,34 @@ describe("SettingsForm", () => {
     await waitFor(() => expect(onSave).toHaveBeenCalled());
     expect(onSave.mock.calls[0][0].backupRetention).toBe("forever");
   });
+
+  it("saves writing preferences from the Writing section only", async () => {
+    const onSave = vi.fn((_: Settings) => Promise.resolve());
+    renderWithProviders(
+      <SettingsForm
+        section="writing"
+        view={{
+          settings: {
+            wowRootOverride: "/Games/World of Warcraft",
+            backupRetention: "days90",
+            uiLanguage: null,
+            site: defaultSite,
+            writing: defaultWriting,
+          },
+          roots: [],
+          unreadable: [],
+        }}
+        onSave={onSave}
+      />,
+    );
+    expect(screen.queryByLabelText(/World of Warcraft folder/)).toBeNull();
+    fireEvent.change(screen.getByLabelText(/Writing preferences/), {
+      target: { value: "No em dashes." },
+    });
+    fireEvent.click(screen.getByText("Save"));
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    const saved = onSave.mock.calls[0][0];
+    expect(saved.writing.preferences).toBe("No em dashes.");
+    expect(saved.wowRootOverride).toBe("/Games/World of Warcraft");
+  });
 });

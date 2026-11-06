@@ -217,6 +217,9 @@
       "often": "Often (about 1 day in 3)"
     },
     "proseLanguage": "Language of the journal",
+    "preferences": "Writing preferences",
+    "preferencesHelp": "How you like the prose written, sent with every entry and chapter. It shapes wording and style only: what happened still comes from the journal.",
+    "preferencesPlaceholder": "No em dashes. British spelling. Short sentences.",
     "proseLanguageSame": "Same as the app",
     "languageFrench": "French",
     "writeWhilePlaying": "Write while the game is running",

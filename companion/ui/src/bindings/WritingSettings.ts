@@ -40,4 +40,9 @@ review: boolean,
 /**
  * "Copy entry" adds a one-line "via Mrglglgl" footer.
  */
-copyFooter: boolean, };
+copyFooter: boolean, 
+/**
+ * How the player likes the prose written, sent with every entry and chapter ("no em
+ * dashes", "British spelling"). Style only: never taken as a fact of the day.
+ */
+preferences: string, };
