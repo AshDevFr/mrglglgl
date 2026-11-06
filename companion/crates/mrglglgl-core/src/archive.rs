@@ -169,6 +169,7 @@ pub fn backup_journal(
 
 /// Everything in a journal except its days, stored as one record per character.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default)]
 struct JournalRecord {
     schema: i64,
     character: Character,

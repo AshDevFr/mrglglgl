@@ -12,7 +12,10 @@ import { getSettings } from "./api/commands";
 import { applyLanguage, initI18n } from "./i18n";
 import { router } from "./router";
 
-const queryClient = new QueryClient();
+// Queries are local commands, not network calls: retrying one that failed only delays the error.
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
 
 // Reading text and headings use Literata (bundled, open licence); the app's
 // controls keep the system font.

@@ -1,5 +1,6 @@
-import { Group, Stack, Text } from "@mantine/core";
+import { Button, Group, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { characterMilestones } from "@/api/commands";
 import type { Award } from "@/bindings/Award";
@@ -38,12 +39,30 @@ export function MilestoneList({ awards }: { awards: Award[] }) {
 
 export function MilestonesPage({ characterId }: { characterId: number }) {
   const { t } = useTranslation();
+  const router = useRouter();
+  const navigate = useNavigate();
   const awards = useQuery({
     queryKey: ["milestones", characterId],
     queryFn: () => characterMilestones(characterId),
   });
   return (
     <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
+      <Button
+        variant="subtle"
+        color="gray"
+        mb="md"
+        onClick={() =>
+          // Back to the page the player came from, so the day they were reading stays open.
+          router.history.canGoBack()
+            ? router.history.back()
+            : navigate({
+                to: "/characters/$characterId",
+                params: { characterId: String(characterId) },
+              })
+        }
+      >
+        ← {t("nav.back")}
+      </Button>
       <article className="journal-page">
         <h2>{t("milestones.title")}</h2>
         {awards.isPending ? (

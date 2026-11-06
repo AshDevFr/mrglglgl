@@ -69,6 +69,7 @@ impl From<ParseError> for JournalError {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 pub struct Journal {
     pub schema: i64,
     pub character: Character,
@@ -83,6 +84,7 @@ pub struct Journal {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 pub struct Character {
     pub name: Option<String>,
     pub surname: Option<String>,
@@ -98,6 +100,7 @@ pub struct Character {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 pub struct Stats {
     pub boots: i64,
     pub murlocs_slain: i64,
@@ -108,6 +111,9 @@ pub struct Stats {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
+// Days are archived as JSON and read back by later builds: a field added since falls back to
+// its default instead of failing the whole journal. The same holds for every archived record.
+#[serde(default)]
 pub struct Day {
     /// Raw events in time order; `None` once the addon compacted the day.
     pub events: Option<Vec<Event>>,
@@ -240,6 +246,7 @@ pub struct KillAggregate {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 pub struct Quest {
     pub title: Option<String>,
     pub text: Option<String>,
@@ -251,6 +258,7 @@ pub struct Quest {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 pub struct Companion {
     pub first: Option<String>,
     pub last: Option<String>,
@@ -260,6 +268,7 @@ pub struct Companion {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 pub struct Digest {
     pub version: i64,
     pub counts: DigestCounts,
@@ -289,6 +298,7 @@ pub struct Digest {
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 #[serde(rename_all = "camelCase")]
+#[serde(default)]
 pub struct DigestCounts {
     pub sessions: i64,
     pub levels: i64,

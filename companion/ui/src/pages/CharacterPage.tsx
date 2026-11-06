@@ -24,6 +24,7 @@ import { type DayWriting, JournalPage } from "@/components/JournalPage";
 import { CopyEntryButton, ExportDialog } from "@/components/Sharing";
 import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
+import { WritingBanner } from "@/components/WritingBanner";
 import { type Problem, problem } from "@/i18n/problems";
 import { daysNewestFirst, displayName } from "@/lib/journal";
 import { useWriting } from "@/lib/useWriting";
@@ -200,6 +201,7 @@ export function CharacterPage({
             {problem(t, `sync.status.${status}` as Problem)}
           </Alert>
         )}
+        {writingState.data && <WritingBanner status={writingState.data} />}
         <WeekNav
           selected={selected}
           written={written}

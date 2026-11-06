@@ -12,6 +12,6 @@ current: Job | null,
 jobs: Array<Job>, 
 /**
  * Why nothing is being written, if something stands in the way: `"paused"`, `"noModel"`,
- * `"noEndpoint"` or `"gameRunning"`.
+ * `"noEndpoint"`, `"gameRunning"` or `"onBattery"`.
  */
 blocked: string | null, };

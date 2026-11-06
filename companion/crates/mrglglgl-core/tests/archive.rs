@@ -441,3 +441,34 @@ fn a_character_whose_game_files_are_gone_stays_readable() {
         synthetic()
     );
 }
+
+#[test]
+fn days_archived_before_professions_were_recorded_still_load_and_merge() {
+    // An older build stored days and digests without the profession fields. Reading them must
+    // not fail, or the whole journal stops loading and no newer snapshot can be merged in.
+    let data = tempfile::tempdir().unwrap();
+    let db = Database::open(data.path()).unwrap();
+    let id = db
+        .upsert_character(&source(Path::new("/wow"), "Wren-Hollowbrook"), None, None)
+        .unwrap();
+    merge_snapshot(&db, id, &synthetic(), 100).unwrap();
+    let date = synthetic().days.keys().next().unwrap().clone();
+    let legacy = r#"{"events":[],"kills":{},"anonKills":0,"digest":{"version":1,
+        "counts":{"sessions":1,"levels":0,"accepted":0,"turnedIn":0,"deaths":0,"fish":0,
+        "junk":0,"boots":0,"loot":0,"discoveries":0,"bosses":0,"group":0,"screenshots":0,
+        "kills":0,"murlocs":0,"anonKills":0},"levelFrom":null,"levelTo":null,"zones":[],
+        "subzones":[],"discovered":[],"accepted":[],"turnedIn":[],"deaths":[],"kills":[],
+        "notableKills":[],"fish":[],"loot":[],"companions":[],"bosses":[],"onlyFished":false,
+        "nothingHappened":true}}"#;
+    let older_build = rusqlite::Connection::open(data.path().join("mrglglgl.db")).unwrap();
+    older_build
+        .execute(
+            "UPDATE archive_days SET data_json = ?1 WHERE character_id = ?2 AND day = ?3",
+            rusqlite::params![legacy, id, date],
+        )
+        .unwrap();
+
+    let loaded = archive::load(&db, id).unwrap().unwrap();
+    assert!(loaded.days[&date].skills.is_empty());
+    merge_snapshot(&db, id, &synthetic(), 200).unwrap();
+}

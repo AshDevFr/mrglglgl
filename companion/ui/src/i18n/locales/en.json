@@ -10,7 +10,8 @@
     "journal": "Journal",
     "syncNow": "Check for new journal entries",
     "theme": "Switch between light and dark",
-    "skip": "Skip to the journal"
+    "skip": "Skip to the journal",
+    "back": "Back"
   },
   "loading": "Mrgl… drying the pages.",
   "home": {
@@ -246,6 +247,12 @@
       "translating": "Translating from Murloc…"
     },
     "cancel": "Cancel",
+    "backlog": {
+      "waiting_one": "{{count}} entry is waiting to be written.",
+      "waiting_other": "{{count}} entries are waiting to be written.",
+      "failed_one": "{{count}} entry could not be written; open its day to retry.",
+      "failed_other": "{{count}} entries could not be written; open their days to retry."
+    },
     "outcome": {
       "cancelled": "Cancelled. Nothing was saved.",
       "timedOut": "Stopped: writing took too long. Nothing was saved.",
