@@ -296,6 +296,30 @@ pub fn copy_of(id: &str, language: &str) -> Narrator {
     copy
 }
 
+/// A new narrator from scratch, not saved yet: who they are, how they sound and the example entry
+/// are left for the player, while the parts every narrator shares are filled in from the scribe
+/// to start from: the made-up day the example is written from, its labels and introduction, and
+/// how the murloc may show.
+pub fn blank(language: &str) -> Narrator {
+    let scribe = get(DEFAULT_NARRATOR, language);
+    Narrator {
+        id: String::new(),
+        language: scribe.language.clone(),
+        name: String::new(),
+        opt_in: false,
+        persona: String::new(),
+        voice: String::new(),
+        murloc: scribe.murloc.clone(),
+        margin_note: scribe.margin_note.clone(),
+        example: Example {
+            entry: String::new(),
+            margin_note: String::new(),
+            ..scribe.example.clone()
+        },
+        hints: BTreeMap::new(),
+    }
+}
+
 fn slug(name: &str) -> String {
     let mut out = String::new();
     for c in name.chars() {

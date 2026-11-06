@@ -261,6 +261,14 @@ pub fn narrator(state: State<'_, AppState>, id: String) -> Option<Narrator> {
 }
 
 /// A narrator to start a new one from: every field of `id`, in the prose language, unsaved.
+/// A new narrator from scratch in the player's prose language; not saved yet.
+#[tauri::command]
+pub fn blank_narrator(state: State<'_, AppState>) -> Result<Narrator, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let language = writing::prose_language(&db.settings().map_err(|e| e.to_string())?);
+    Ok(narrators::blank(&language))
+}
+
 #[tauri::command]
 pub fn copy_narrator(state: State<'_, AppState>, id: String) -> Result<Narrator, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;

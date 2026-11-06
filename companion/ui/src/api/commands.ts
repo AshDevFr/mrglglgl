@@ -224,6 +224,11 @@ export function narrator(id: string): Promise<Narrator | null> {
   return invoke<Narrator | null>("narrator", { id });
 }
 
+/** A new narrator from scratch; not saved yet. */
+export function blankNarrator(): Promise<Narrator> {
+  return invoke<Narrator>("blank_narrator");
+}
+
 /** Every field of a narrator, as the start of a new one; not saved yet. */
 export function copyNarrator(id: string): Promise<Narrator> {
   return invoke<Narrator>("copy_narrator", { id });

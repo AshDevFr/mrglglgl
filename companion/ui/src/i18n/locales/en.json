@@ -528,7 +528,8 @@
     "previewFailedNext": "Check that a model is downloaded, or the endpoint is set up, in Settings.",
     "fileFailed": "That did not work: {{message}}",
     "fileFailedNext": "Check the folder or the file, then try again.",
-    "fileKind": "Narrator"
+    "fileKind": "Narrator",
+    "new": "New narrator"
   },
   "export": {
     "weekOf": "Week of {{date}}",

@@ -36,6 +36,16 @@ beforeEach(() => vi.clearAllMocks());
 const row = (name: string) => screen.findByRole("listitem", { name });
 
 describe("NarratorsPanel", () => {
+  it("starts a new narrator from scratch without saving anything yet", async () => {
+    const onEdit = vi.fn();
+    renderWithProviders(<NarratorsPanel onEdit={onEdit} />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "New narrator" }),
+    );
+    expect(onEdit).toHaveBeenCalledWith("new");
+    expect(commands.saveNarrator).not.toHaveBeenCalled();
+  });
+
   it("offers a copy of a built-in and saves it before opening it", async () => {
     commands.copyNarrator.mockResolvedValue({
       id: "",

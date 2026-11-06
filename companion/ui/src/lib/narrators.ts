@@ -11,3 +11,6 @@ export function narratorLabel(
   if (found) return found.name;
   return id.startsWith("custom_") ? t("narrators.removed") : id;
 }
+
+/** The editor's address for a narrator not made yet; saved ones have `custom_` ids. */
+export const NEW_NARRATOR = "new";

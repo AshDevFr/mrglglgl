@@ -160,3 +160,45 @@ fn a_missing_folder_or_a_broken_file_leaves_the_built_ins() {
     std::fs::write(dir.path().join("custom_broken.toml"), "garbage = [").unwrap();
     assert_eq!(Library::load(dir.path()).list(), narrators::list());
 }
+
+#[test]
+fn a_new_narrator_starts_blank_with_the_shared_parts_filled_in() {
+    let blank = narrators::blank("en");
+    let scribe = narrators::get(DEFAULT_NARRATOR, "en");
+    assert!(blank.id.is_empty() && blank.name.is_empty());
+    assert!(blank.persona.is_empty() && blank.voice.is_empty());
+    assert!(blank.example.entry.is_empty() && blank.example.margin_note.is_empty());
+    assert_eq!(
+        blank.example.notes, scribe.example.notes,
+        "the made-up day to write from"
+    );
+    assert_eq!(blank.example.intro, scribe.example.intro);
+    assert_eq!(blank.murloc, scribe.murloc);
+    assert!(blank.hints.is_empty());
+
+    // It cannot be saved until the player has said who the narrator is.
+    let dir = tempfile::tempdir().unwrap();
+    let Err(NarratorError::Invalid(problems)) = narrators::save(dir.path(), blank.clone()) else {
+        panic!("a blank narrator is refused");
+    };
+    let fields: Vec<&str> = problems.iter().map(|p| p.field.as_str()).collect();
+    assert_eq!(
+        fields,
+        [
+            "name",
+            "persona",
+            "voice",
+            "example.entry",
+            "example.margin_note"
+        ]
+    );
+
+    let mut mine = blank;
+    mine.name = "The tired innkeeper".into();
+    mine.persona = "You are an innkeeper who has heard every story twice.".into();
+    mine.voice = "Weary, warm, short sentences.".into();
+    mine.example.entry = "Another wolf story. I poured another ale.".into();
+    mine.example.margin_note = "* The murloc tipped the ale over.".into();
+    let saved = narrators::save(dir.path(), mine).unwrap();
+    assert_eq!(saved.id, "custom_the_tired_innkeeper");
+}

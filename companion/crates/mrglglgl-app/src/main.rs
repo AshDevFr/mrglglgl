@@ -80,6 +80,7 @@ fn main() {
             writing_commands::list_narrators,
             writing_commands::narrator,
             writing_commands::copy_narrator,
+            writing_commands::blank_narrator,
             writing_commands::save_narrator,
             writing_commands::import_narrator_file,
             writing_commands::export_narrator,

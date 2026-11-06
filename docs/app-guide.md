@@ -51,6 +51,11 @@ it. **Murloc margin notes** sets how often the murloc adds a note in the margin,
 one day in three. **Language of the journal** writes entries in English or French, independently of
 the app's own language.
 
+Settings, Narrators lists them all. **Edit a copy** starts your own narrator from one of them;
+**New narrator** starts from scratch, with only the made-up example day and the murloc's part
+filled in for you. Your narrators can be edited, exported to a file to share, imported, and
+deleted.
+
 **Writing preferences** (Settings, Writing) is a note to every narrator about how you like the
 prose: "no em dashes", "British spelling", "short sentences". It is sent with every entry and
 chapter, and shapes wording only: anything it names is never taken as something that happened.

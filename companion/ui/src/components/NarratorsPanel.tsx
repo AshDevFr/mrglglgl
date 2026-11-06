@@ -15,6 +15,7 @@ import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { NarratorSaved } from "@/bindings/NarratorSaved";
 import { problem } from "@/i18n/problems";
 import { exportFolder, rememberExportFolder } from "@/lib/exportFolder";
+import { NEW_NARRATOR } from "@/lib/narrators";
 import { FolderField } from "./FolderField";
 
 /** Every narrator: built-ins to copy, the player's own to edit, share or remove. */
@@ -134,9 +135,14 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
         </>
       )}
       <div>
-        <Button variant="default" onClick={() => void importFile()}>
-          {t("narrators.import")}
-        </Button>
+        <Group gap="xs">
+          <Button variant="light" onClick={() => onEdit(NEW_NARRATOR)}>
+            {t("narrators.new")}
+          </Button>
+          <Button variant="default" onClick={() => void importFile()}>
+            {t("narrators.import")}
+          </Button>
+        </Group>
         <Text size="xs" c="dimmed" mt={4}>
           {t("narrators.importHelp")}
         </Text>
