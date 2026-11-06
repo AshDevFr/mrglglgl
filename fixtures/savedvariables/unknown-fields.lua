@@ -103,7 +103,7 @@ MrglglglCharDB = {
 },
 ["turnedIn"] = {
 },
-["v"] = 1,
+["v"] = 2,
 ["zones"] = {
 "Mulgore",
 },
@@ -252,7 +252,7 @@ MrglglglCharDB = {
 ["turnedIn"] = {
 749,
 },
-["v"] = 1,
+["v"] = 2,
 ["zones"] = {
 "Mulgore",
 },
@@ -502,7 +502,7 @@ MrglglglCharDB = {
 },
 ["turnedIn"] = {
 },
-["v"] = 1,
+["v"] = 2,
 ["zones"] = {
 "Mulgore",
 },
@@ -603,7 +603,7 @@ MrglglglCharDB = {
 },
 ["turnedIn"] = {
 },
-["v"] = 1,
+["v"] = 2,
 ["zones"] = {
 "Mulgore",
 },
@@ -636,6 +636,7 @@ MrglglglCharDB = {
 },
 ["quests"] = {
 [749] = {
+["last"] = "2026-11-08",
 ["text"] = "Some marauding wolves have attacked a caravan near Red Rocks.",
 ["title"] = "The Ravaged Caravan",
 },

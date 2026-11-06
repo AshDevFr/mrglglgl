@@ -149,9 +149,11 @@ of items. Skill IDs and item IDs do not depend on the client's language; names d
 ### Digest (`days[key].digest`)
 
 The day's summary, rebuilt at every login and logout while the day still has raw events. Once a
-day is older than `settings.retentionDays`, its `ev`, `kills` and `anonKills` are removed and the
-digest is all that remains. Lists are capped at 20 entries and `kills` at the 15 most killed;
-`counts` are always exact.
+day is older than `settings.retentionDays`, its raw fields (`ev`, `kills`, `anonKills`, `skills`,
+`crafted`, `gathered`) are removed and the digest is all that remains. `counts` are always exact;
+lists hold the highlights: `kills` the 10 most killed, `deaths` 5, `loot`, `fish` and
+`notableKills` 8, other lists 20. Digests of days older than 90 days are thinned further (see
+`thin`).
 
 | Field | Type | Meaning |
 |---|---|---|
@@ -172,6 +174,7 @@ digest is all that remains. Lists are capped at 20 entries and `kills` at the 15
 | `skills` | array | `{ skill, name, cat?, from, to }` per skill that rose |
 | `crafted`, `gathered` | array | `{ item, name?, n, via? }` per item |
 | `onlyFished` | bool | Caught fish, and no kills, quest activity, crafting or gathering |
+| `thin` | bool? | The day is older than 90 days: record lists keep 3 entries, name lists 5, `subzones` is empty; counts unchanged |
 | `nothingHappened` | bool | No kills, deaths, quests, fishing, loot, levels, discoveries, bosses, companions or profession activity |
 
 Fields added by later work are documented here as they land.
@@ -181,7 +184,8 @@ Fields added by later work are documented here as they land.
 | Field | Type | Meaning |
 |---|---|---|
 | `title` | string | Quest title |
-| `text` | string? | Quest description; absent when `record.questText` was off |
+| `text` | string? | Quest description; absent when `record.questText` was off, and removed once the quest was last touched before the retention window (the title stays) |
+| `last` | string? | Day the quest was last accepted or turned in, `"YYYY-MM-DD"` |
 
 ### Companion record (`companions["Firstname-Surname"]`)
 

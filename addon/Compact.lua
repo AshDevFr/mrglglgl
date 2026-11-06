@@ -10,6 +10,8 @@ local Compact = {}
 ns.Compact = Compact
 
 local SECONDS_PER_DAY = 86400
+-- Days older than this keep a thinned digest (Digest.thin).
+local THIN_AFTER_DAYS = 90
 
 -- Day keys sort as strings, so a day is older than the cutoff when its key sorts before it.
 -- Counting back from noon keeps a daylight saving change from shifting the cutoff by a day.
@@ -35,6 +37,7 @@ end
 -- compacted.
 function Compact.run(journal, now, keepDays)
 	local cutoff = cutoffKey(now, keepDays)
+	local thinCutoff = cutoffKey(now, THIN_AFTER_DAYS)
 	local compacted = 0
 	for key, day in pairs(journal.days) do
 		local hasRaw = Compact.hasRaw(day)
@@ -46,6 +49,16 @@ function Compact.run(journal, now, keepDays)
 				day[field] = nil
 			end
 			compacted = compacted + 1
+		end
+		if key < thinCutoff and not Compact.hasRaw(day) and day.digest then
+			Digest.thin(day.digest)
+		end
+	end
+	-- Quest descriptions are kept while the quest is inside the window and only the title after:
+	-- the description is most of a journal's size, and the app has archived it by then.
+	for _, quest in pairs(journal.quests or {}) do
+		if quest.text and (quest.last == nil or quest.last < cutoff) then
+			quest.text = nil
 		end
 	end
 	return compacted

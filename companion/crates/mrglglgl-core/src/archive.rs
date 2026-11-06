@@ -182,8 +182,14 @@ fn merge_quest(into: &mut Quest, from: &Quest) {
     if from.title.is_some() {
         into.title.clone_from(&from.title);
     }
+    // The addon drops a quest's text once the quest leaves its retention window; the archive
+    // keeps the text it already has, so an absent text never erases one.
     if from.text.is_some() {
         into.text.clone_from(&from.text);
+    }
+    // Day keys sort as strings, so the later of the two is kept.
+    if from.last > into.last {
+        into.last.clone_from(&from.last);
     }
 }
 

@@ -7,16 +7,18 @@ ns.Digest = Digest
 
 -- Increment when the digest's shape or meaning changes. Days that still have raw events are
 -- rebuilt; compacted days keep the version they were built with.
-Digest.VERSION = 1
+Digest.VERSION = 2
 
--- Caps keep a busy day's digest small; counts stay exact.
-local TOP_KILLS = 15
+-- Caps keep a busy day's digest small: a summary needs the highlights, and counts stay exact.
+-- Record lists cost far more per entry than name lists, so they get tighter caps.
+local TOP_KILLS = 10
 local LIST_CAP = 20
+local RECORD_CAPS = { deaths = 5, loot = 8, fish = 8, notableKills = 8 }
 
 local NOTABLE_CLASSIFICATIONS = { elite = true, rare = true, rareelite = true, worldboss = true }
 
-local function push(list, value)
-	if #list < LIST_CAP then
+local function push(list, value, cap)
+	if #list < (cap or LIST_CAP) then
 		list[#list + 1] = value
 	end
 end
@@ -26,6 +28,31 @@ local function addOnce(list, seen, value)
 		seen[value] = true
 		push(list, value)
 	end
+end
+
+-- Old days keep only their highlights: exact counts, and the first few entries of each list. The
+-- app has archived the full day long before; in game nothing reads old digests in detail.
+local THIN_RECORDS, THIN_NAMES = 3, 5
+local RECORD_LISTS = { "deaths", "kills", "notableKills", "fish", "loot", "skills", "crafted", "gathered" }
+local NAME_LISTS = { "zones", "discovered", "accepted", "turnedIn", "companions", "bosses" }
+
+function Digest.thin(digest)
+	if digest.thin then
+		return
+	end
+	local function cut(list, cap)
+		for i = #list, cap + 1, -1 do
+			list[i] = nil
+		end
+	end
+	for _, name in ipairs(RECORD_LISTS) do
+		cut(digest[name] or {}, THIN_RECORDS)
+	end
+	for _, name in ipairs(NAME_LISTS) do
+		cut(digest[name] or {}, THIN_NAMES)
+	end
+	digest.subzones = {}
+	digest.thin = true
 end
 
 function Digest.build(day)
@@ -67,7 +94,7 @@ function Digest.build(day)
 			push(digest.turnedIn, e.q)
 		elseif k == "death" then
 			counts.deaths = counts.deaths + 1
-			push(digest.deaths, { killer = e.killer, env = e.env, z = e.z, sz = e.sz })
+			push(digest.deaths, { killer = e.killer, env = e.env, z = e.z, sz = e.sz }, RECORD_CAPS.deaths)
 		elseif k == "fish" then
 			counts.fish = counts.fish + 1
 			counts.junk = counts.junk + (e.junk and 1 or 0)
@@ -76,12 +103,12 @@ function Digest.build(day)
 			if entry == nil then
 				entry = { item = e.item, name = e.name, n = 0, junk = e.junk, boot = e.boot }
 				fishByItem[e.item] = entry
-				push(digest.fish, entry)
+				push(digest.fish, entry, RECORD_CAPS.fish)
 			end
 			entry.n = entry.n + 1
 		elseif k == "loot" then
 			counts.loot = counts.loot + 1
-			push(digest.loot, { item = e.item, name = e.name, ql = e.ql, qty = e.qty })
+			push(digest.loot, { item = e.item, name = e.name, ql = e.ql, qty = e.qty }, RECORD_CAPS.loot)
 		elseif k == "group_join" then
 			counts.group = counts.group + 1
 			push(digest.companions, e.who)
@@ -102,7 +129,7 @@ function Digest.build(day)
 		local entry = { npc = npc, name = kill.name, n = kill.n, cls = kill.cls, murloc = kill.murloc }
 		kills[#kills + 1] = entry
 		if NOTABLE_CLASSIFICATIONS[kill.cls] then
-			push(digest.notableKills, entry)
+			push(digest.notableKills, entry, RECORD_CAPS.notableKills)
 		end
 	end
 	-- Most killed first; ties by NPC ID, so the same day always gives the same digest.

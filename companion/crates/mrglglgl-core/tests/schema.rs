@@ -121,7 +121,7 @@ fn reads_a_compacted_day_from_its_digest() {
     let day = &journal.days["2026-11-01"];
     assert!(day.events.is_none(), "a compacted day has no raw events");
     let digest = day.digest.as_ref().unwrap();
-    assert_eq!(digest.version, 1);
+    assert_eq!(digest.version, 2);
     assert_eq!(digest.counts.boots, 1);
     assert_eq!(digest.counts.deaths, 1);
     assert_eq!(digest.deaths[0].environment.as_deref(), Some("Drowning"));
@@ -321,6 +321,7 @@ fn reads_every_documented_field() {
         "bosses",
         "onlyFished",
         "nothingHappened",
+        "thin",
         "title",
         "text",
         "first",
