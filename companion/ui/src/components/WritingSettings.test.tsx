@@ -144,6 +144,27 @@ describe("ModelsPanel", () => {
     expect(onChoose).toHaveBeenCalledWith("smollm3-3b");
   });
 
+  it("warns about a big model and only about it", async () => {
+    commands.models.mockResolvedValue({
+      ...view,
+      models: [
+        ...view.models,
+        {
+          ...view.models[0],
+          id: "qwen3.5-9b",
+          name: "Qwen3.5 9B",
+          minRamGb: 16,
+          recommended: false,
+        },
+      ],
+    });
+    renderWithProviders(<ModelsPanel onChoose={vi.fn()} />);
+    const warnings = await screen.findAllByText(
+      /A big model: .* at least 16 GB/,
+    );
+    expect(warnings).toHaveLength(1);
+  });
+
   it("says plainly when the computer is below the floor, and offers no download", async () => {
     commands.models.mockResolvedValue({
       ...view,

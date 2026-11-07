@@ -630,7 +630,8 @@
     "notEnoughMemoryNext": "Use an endpoint instead (a model running on another machine or a service): choose it under Who writes, below.",
     "notEnoughDiskNext": "Free some space and come back, or use an endpoint under Who writes, below.",
     "firstRun": "To write your journal, the app needs a writing model. {{name}} suits this computer.",
-    "firstRunAction": "Download {{name}} ({{size}} GB)"
+    "firstRunAction": "Download {{name}} ({{size}} GB)",
+    "big": "A big model: it needs a computer with at least {{gb}} GB of memory, writes more slowly, and can make the game stutter if it writes while you play."
   },
   "share": {
     "copy": "Copy entry",

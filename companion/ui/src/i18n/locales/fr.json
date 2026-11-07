@@ -630,7 +630,8 @@
     "notEnoughMemoryNext": "Utilise plutôt un point d'accès (un modèle qui tourne sur une autre machine ou un service) : choisis-le sous Qui écrit, plus bas.",
     "notEnoughDiskNext": "Libère de la place et reviens, ou utilise un point d'accès sous Qui écrit, plus bas.",
     "firstRun": "Pour écrire ton journal, l'application a besoin d'un modèle d'écriture. {{name}} convient à cet ordinateur.",
-    "firstRunAction": "Télécharger {{name}} ({{size}} Go)"
+    "firstRunAction": "Télécharger {{name}} ({{size}} Go)",
+    "big": "Un gros modèle : il lui faut un ordinateur d'au moins {{gb}} Go de mémoire, il écrit plus lentement et peut faire saccader le jeu s'il écrit pendant que tu joues."
   },
   "share": {
     "copy": "Copier l'entrée",

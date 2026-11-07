@@ -24,6 +24,9 @@ import type { ModelView } from "@/bindings/ModelView";
 import { problem } from "@/i18n/problems";
 
 /** Gigabytes with two decimals, as model sizes are told. */
+/** Models asking for more memory than this are flagged: slower, and too much for many machines. */
+const BIG_MODEL_RAM_GB = 8;
+
 export function gigabytes(bytes: number): string {
   return (bytes / 1e9).toFixed(2);
 }
@@ -155,6 +158,11 @@ export function ModelsPanel({ onChoose }: Props) {
               {t("models.licence", { licence: m.licence })}
             </Text>
             {m.proseNote && <Text size="sm">{m.proseNote}</Text>}
+            {m.minRamGb > BIG_MODEL_RAM_GB && (
+              <Alert color="yellow" variant="light" p="xs">
+                {t("models.big", { gb: m.minRamGb })}
+              </Alert>
+            )}
             {downloading && progress && (
               <Stack gap={2}>
                 <Progress

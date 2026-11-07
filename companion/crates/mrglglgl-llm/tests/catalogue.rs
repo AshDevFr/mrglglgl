@@ -12,10 +12,21 @@ use mrglglgl_llm::catalogue::{
 const GIB: u64 = 1 << 30;
 
 #[test]
-fn the_shipped_list_has_three_models_and_recommends_qwen() {
+fn the_shipped_list_recommends_qwen_4b_and_marks_the_big_model() {
     let c = Catalogue::built_in();
     let ids: Vec<&str> = c.models.iter().map(|m| m.id.as_str()).collect();
-    assert_eq!(ids, vec!["qwen3.5-4b", "ministral-3-3b", "smollm3-3b"]);
+    assert_eq!(
+        ids,
+        vec![
+            "qwen3.5-4b",
+            "qwen3.5-9b",
+            "ministral-3-3b",
+            "smollm3-3b",
+            "phi-4-mini"
+        ]
+    );
+    // The big one asks for more memory, which is what the window warns about.
+    assert_eq!(c.get("qwen3.5-9b").unwrap().min_ram_gb, 16);
     assert_eq!(c.recommended("en").unwrap().id, "qwen3.5-4b");
     assert_eq!(c.recommended("fr").unwrap().id, "qwen3.5-4b");
     assert_eq!(
@@ -31,8 +42,13 @@ fn the_shipped_list_has_three_models_and_recommends_qwen() {
     assert!(qwen.reasoning);
     assert!(!c.get("ministral-3-3b").unwrap().reasoning);
     assert!(c.get("smollm3-3b").unwrap().reasoning);
+    // Permissive licences only: players download these freely, and nothing restricts their use.
     for m in &c.models {
-        assert_eq!(m.licence, "Apache-2.0");
+        assert!(
+            matches!(m.licence.as_str(), "Apache-2.0" | "MIT"),
+            "{}",
+            m.id
+        );
         assert!(m.prose_note.contains_key("en") && m.prose_note.contains_key("fr"));
     }
 }
