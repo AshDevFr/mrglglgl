@@ -9,9 +9,9 @@ local DAY = 86400
 -- case nobody plays every day of a year; `heavy` is a long day of a dedicated player.
 local PROFILES = {
 	extreme = { sessions = 3, subzones = 40, discoveries = 10, quests = 30, fish = 150, deaths = 8, loot = 15,
-		group = 6, killTypes = 45, questTexts = 900 },
+		group = 6, killTypes = 45, questTexts = 900, chat = 1500, auctions = 30, progress = 8 },
 	heavy = { sessions = 2, subzones = 25, discoveries = 6, quests = 15, fish = 60, deaths = 3, loot = 3,
-		group = 4, killTypes = 25, questTexts = 600 },
+		group = 4, killTypes = 25, questTexts = 600, chat = 300, auctions = 10, progress = 1 },
 }
 
 local function heavyDay(t, n, p)
@@ -50,6 +50,24 @@ local function heavyDay(t, n, p)
 		add("group_join", { who = "Companion" .. i .. "-Surname" })
 	end
 	add("level", { lv = 41 })
+	for i = 1, p.auctions do
+		add("auction", { act = i % 3 == 0 and "sold" or "listed", name = i % 3 == 0 and "Thick Leather" or nil })
+	end
+	-- How the character grew: a spell, a standing, a better item, a dungeon run, a challenge.
+	for i = 1, p.progress do
+		add("spell", { spell = 8000 + i, name = "Rank " .. i .. " of Something" })
+		add("rep", { faction = "Booty Bay", standing = "Honored" })
+		add("gear", { item = 9100 + i, name = "Belt of the Tiger", slot = 6, ilvl = 40 + i, ql = 2 })
+		add("instance", { act = "enter", name = "Scarlet Monastery", kind = "party" })
+		add("instance", { act = "leave", name = "Scarlet Monastery", kind = "party", dur = 2400 })
+		add("achievement", { ach = 900 + i, name = "Explore Stranglethorn Vale", cat = "Eastern Kingdoms", pts = 0 })
+	end
+	-- A role player's evening: their own lines and their companions', as typed in game.
+	local chat = {}
+	for i = 1, p.chat do
+		chat[i] = { t = t + i, ch = i % 4 == 0 and "emote" or "say", who = i % 2 == 0 and "Companion1-Surname" or nil,
+			msg = "A line of role play of a usual length, said in the tavern by the fire." }
+	end
 	local kills = {}
 	for i = 1, p.killTypes do
 		kills[1000 + i] = { n = 20 + i, name = "Creature Type Number " .. i, cls = i % 10 == 0 and "elite" or "normal",
@@ -61,11 +79,14 @@ local function heavyDay(t, n, p)
 	}
 	local crafted = { [1251] = { n = 40, name = "Heavy Silk Bandage" } }
 	local gathered = { [2772] = { n = 35, name = "Iron Ore", via = "Mining" } }
-	return { ev = ev, kills = kills, anonKills = 12, skills = skills, crafted = crafted, gathered = gathered }
+	local money = { inc = { loot = 12000, quest = 25000, vendor = 8000, auction = 40000 },
+		out = { repair = 3000, travel = 1200, vendor = 2000, auction = 900 } }
+	return { ev = ev, kills = kills, anonKills = 12, skills = skills, crafted = crafted, gathered = gathered,
+		money = money, chat = chat }
 end
 
-local function yearSize(profile, keep)
-	local p = PROFILES[profile]
+local function yearSize(profile, keep, chatOn)
+	local p = setmetatable({ chat = chatOn and PROFILES[profile].chat or 0 }, { __index = PROFILES[profile] })
 		local ns = Addon.load(Mock)
 		local now = os.time({ year = 2027, month = 11, day = 6, hour = 12 })
 		local journal = { schema = 1, char = { name = "Wren", surname = "Hollowbrook" }, days = {}, quests = {},
@@ -81,7 +102,8 @@ local function yearSize(profile, keep)
 		end
 		ns.Compact.run(journal, now, keep)
 		local bytes = #Serialize.savedVariable("MrglglglCharDB", journal)
-		io.stderr:write(("\n  %s year at %d-day retention: %.0f KB"):format(profile, keep, bytes / 1024))
+		io.stderr:write(("\n  %s year at %d-day retention%s: %.0f KB"):format(profile, keep,
+			chatOn and ", role-play chat on" or "", bytes / 1024))
 		return bytes
 end
 
@@ -91,16 +113,18 @@ end
 local HEAVY_DEFAULT_LIMIT = 8 * 1024 * 1024
 
 describe("SavedVariables size", function()
-	it("keeps a heavy year at the default 30-day retention under 8 MB", function()
-		local bytes = yearSize("heavy", 30)
+	-- Default settings, so chat (opt-in) is off; the role-play case is reported below.
+	it("keeps a heavy year at the default settings under 8 MB", function()
+		local bytes = yearSize("heavy", 30, false)
 		assert.is_true(bytes < HEAVY_DEFAULT_LIMIT, ("%.0f KB"):format(bytes / 1024))
 	end)
 
 	it("reports a year at every retention setting", function()
 		for _, profile in ipairs({ "heavy", "extreme" }) do
 			for _, keep in ipairs({ 14, 30, 60, 90 }) do
-				yearSize(profile, keep)
+				yearSize(profile, keep, false)
 			end
+			yearSize(profile, 30, true)
 		end
 		io.stderr:write("\n")
 	end)

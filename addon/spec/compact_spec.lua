@@ -77,7 +77,9 @@ describe("Compact", function()
 				{ t = t + 3, k = "death", z = "Mulgore", sz = "Red Rocks", lv = 5, killer = { name = "Murloc" } },
 				{ t = t + 4, k = "screenshot", z = "Mulgore", sz = "Red Rocks", lv = 6, moment = "levelUp" },
 				{ t = t + 5, k = "loot", z = "Mulgore", sz = "", lv = 6, item = 1, name = "Knife", ql = 3 },
-				{ t = t + 6, k = "session_end", z = "Mulgore", sz = "", lv = 6 },
+				{ t = t + 6, k = "auction", z = "Mulgore", sz = "", lv = 6, act = "listed" },
+				{ t = t + 7, k = "auction", z = "Mulgore", sz = "", lv = 6, act = "sold", name = "Knife" },
+				{ t = t + 8, k = "session_end", z = "Mulgore", sz = "", lv = 6 },
 			},
 			skills = { [182] = { name = "Herbalism", cat = "Professions", from = 1, to = 5 } },
 		} } }
@@ -88,7 +90,9 @@ describe("Compact", function()
 		for _, e in ipairs(day.ev) do
 			kinds[#kinds + 1] = e.k
 		end
-		assert.same({ "session_start", "death", "screenshot", "session_end" }, kinds)
+		-- Of the auctions, only what sold is kept.
+		assert.same({ "session_start", "death", "screenshot", "auction", "session_end" }, kinds)
+		assert.equals("sold", day.ev[4].act)
 		assert.equals("Red Rocks", day.ev[2].sz)
 		assert.equals(t + 4, day.ev[3].t)
 		assert.equals(1, day.digest.counts.fish, "the digest still counts what was dropped")

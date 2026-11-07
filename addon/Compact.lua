@@ -24,6 +24,10 @@ local KEPT_KINDS = {
 	duel = true, instance = true,
 }
 
+-- Of the auction house's events, only what changed hands is worth keeping past the window: a
+-- listing (which does not even name the item), an outbid, an expiry or a cancellation is not.
+local LASTING_AUCTIONS = { sold = true, won = true }
+
 -- Day keys sort as strings, so a day is older than the cutoff when its key sorts before it.
 -- Counting back from noon keeps a daylight saving change from shifting the cutoff by a day.
 local function cutoffKey(now, keepDays)
@@ -60,7 +64,7 @@ function Compact.run(journal, now, keepDays)
 		if key < cutoff and whole then
 			local kept = {}
 			for _, event in ipairs(day.ev or {}) do
-				if KEPT_KINDS[event.k] then
+				if KEPT_KINDS[event.k] and (event.k ~= "auction" or LASTING_AUCTIONS[event.act]) then
 					kept[#kept + 1] = event
 				end
 			end
