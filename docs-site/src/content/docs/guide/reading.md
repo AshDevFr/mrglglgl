@@ -49,7 +49,16 @@ day spent only fishing. They appear on the day they happened and together on the
 
 ![The Milestones tab: every stamp a character has earned.](../../../assets/screenshots/milestones.png)
 
+## A day with nothing written
+
+A day you did not play, or did not play with the addon, has nothing on its page yet:
+
+![A day with nothing written: the murloc asleep on the book.](../../../assets/screenshots/empty-day.png)
+
 ## Reviewing before entries go in
 
 Turn on **Let me review entries first** in **Settings**, **Writing** to have
 background entries wait on the character's **To review** tab as drafts, to accept or discard.
+When every finished day has its entry, the tab says so:
+
+![The To review tab with nothing waiting.](../../../assets/screenshots/review-empty.png)

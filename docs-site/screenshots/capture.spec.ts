@@ -97,3 +97,19 @@ test("narrator editor", async ({ page }) => {
   await settled(page);
   await page.screenshot({ path: out("narrator-editor") });
 });
+
+test("nothing to review", async ({ page }) => {
+  await page.goto("/characters/1/review");
+  await expect(page.getByText(/Nothing to review/)).toBeVisible();
+  await settled(page);
+  await page.screenshot({ path: out("review-empty") });
+});
+
+test("a day with nothing written", async ({ page }) => {
+  await page.goto("/characters/1?day=2026-11-04");
+  const empty = page.getByText(/Nothing written on this page/);
+  await expect(empty).toBeVisible();
+  await settled(page);
+  // The murloc and its message, the whole empty state.
+  await around(page, empty.locator("xpath=ancestor::div[2]"), "empty-day");
+});

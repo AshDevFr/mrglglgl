@@ -50,14 +50,10 @@ export default defineConfig({
           items: [
             { slug: "reference/narrator-files" },
             { slug: "reference/website-themes" },
-            {
-              label: "Journal format",
-              link: "https://github.com/AshDevFr/mrglglgl/blob/main/docs/schema.md",
-            },
-            {
-              label: "Releasing",
-              link: "https://github.com/AshDevFr/mrglglgl/blob/main/docs/releasing.md",
-            },
+            // Copied from docs/ before each build (scripts/reference.mjs).
+            { slug: "reference/journal-format" },
+            { slug: "reference/client-notes" },
+            { slug: "reference/releasing" },
           ],
         },
       ],

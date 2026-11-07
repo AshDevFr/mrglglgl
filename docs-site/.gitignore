@@ -4,3 +4,7 @@ dist/
 # Taken from the app's demo mode by `npm run screenshots`, in CI before every build.
 src/assets/screenshots/
 screenshots/results/
+# Copied from docs/ by scripts/reference.mjs before every build.
+src/content/docs/reference/journal-format.md
+src/content/docs/reference/client-notes.md
+src/content/docs/reference/releasing.md
