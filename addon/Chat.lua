@@ -34,7 +34,8 @@ Chat.CHANNELS = { "say", "emote", "yell", "party", "raid", "guild", "officer", "
 
 -- The text as a player reads it: link names kept, colour, texture and atlas codes dropped.
 function Chat.plain(text)
-	text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+	-- Colours come as "|cffRRGGBB" or, on newer clients such as Forever, by name ("|cnIQ1:").
+	text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|cn[^:|]*:", ""):gsub("|r", "")
 	text = text:gsub("|H.-|h(.-)|h", "%1")
 	text = text:gsub("|T.-|t", ""):gsub("|A.-|a", "")
 	return (text:gsub("||", "|"))

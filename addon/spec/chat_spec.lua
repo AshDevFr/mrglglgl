@@ -87,6 +87,12 @@ describe("Chat", function()
 		assert.equals("Look: [Carving Knife] {star} ", lines()[1].msg)
 	end)
 
+	it("strips the newer named-quality colour codes too, as Forever writes item links", function()
+		turnOn()
+		chat("SAY", "Selling |cnIQ1:|Hitem:767::::::::10:1484:::::::::|h[Long Bo Staff]|h|r cheap", "Wren", ME)
+		assert.equals("Selling [Long Bo Staff] cheap", lines()[1].msg)
+	end)
+
 	it("skips a message the client hides from addons", function()
 		turnOn()
 		Mock.fire("CHAT_MSG_SAY", Mock.SECRET, "Wren", "", "", "", "", 0, 0, "", nil, 1, ME)

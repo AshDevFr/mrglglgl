@@ -161,6 +161,15 @@ function Compat.OpenSettings(category)
 | API-legacy-are-achievements | Legacy Challenges are achievements worth 0 points, in categories: Classes (one per class), Tradeskills (one per profession), Dungeons, Raids, Player vs. Player (Ranks, Reputations, Season Journey), Adventure (Explorer, Eastern Kingdoms, Kalimdor), Tier 1 Gear. IDs are Forever's own (Wrath's ID 6 does not exist) | verified-in-game | S-13: the one completed achievement is `855 Explore Moonglade 0` (0 points) in category 14778 "Kalimdor" (parent 15596 "Adventure"); `LegacyChallengesUnviewed` = `{ [855] = 14778 }`; `GetTotalAchievementPoints()` = 0; `GetAchievementInfo(6)` is empty. There is no `C_Legacy`/`C_LegacySystem`; the Legacy window is UI code (`LegacySystemFrame_LoadUI`, `ToggleLegacyChallenges`, `ShowLegacyChallenge`) |
 | API-achievement-earned | `ACHIEVEMENT_EARNED(achievementID, alreadyEarned)` fires when one is completed | unconfirmed | API docs (Achievement). fallback: registered only when `C_EventUtils.IsEventValid` says the client knows it (Compat.EventExists), so a missing event leaves the addon loading; whether it fires for a Legacy Challenge is the next in-game check |
 
+## Growing up (spells, collections, reputation, gear, travel, duels)
+
+| ID | Item | Status | Evidence |
+|---|---|---|---|
+| API-progress-events | `LEARNED_SPELL_IN_SKILL_LINE`, `NEW_MOUNT_ADDED`, `NEW_PET_ADDED` and `ACHIEVEMENT_EARNED` exist; `LEARNED_SPELL_IN_TAB` does not | verified-in-game | S-15: `C_EventUtils.IsEventValid` returned true, false (`LEARNED_SPELL_IN_TAB`), true, true, true. That these events fire with the expected arguments is still to be seen |
+| API-progress-functions | `C_GameRules.IsHardcoreActive`, `C_Reputation.GetNumFactions`, `C_Item.GetDetailedItemLevelInfo`, `GetBindLocation` exist; `GetFactionInfo` does not (the C_Reputation path is used) | verified-in-game | S-15: the first three dumped as functions, `GetFactionInfo` as nil, `GetBindLocation()` returned "Thunder Bluff" |
+| API-progress-strings | `ERR_NEWTAXIPATH` = "New flight path discovered!" and `DUEL_WINNER_KNOCKOUT` = "%1$s has defeated %2$s in a duel" (numbered placeholders) | verified-in-game | S-15 (enUS) |
+| API-item-link-colour | Item links colour by named quality, `\|cnIQ1:`, not `\|cffRRGGBB` | verified-in-game | S-15: `GetInventoryItemLink("player", 16)` returned `\|cnIQ1:\|Hitem:767::::::::10:1484:::::::::\|h[Long Bo Staff]\|h\|r`. Chat.plain strips both forms |
+
 ## Professions
 
 | ID | Item | Status | Evidence |
