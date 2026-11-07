@@ -190,7 +190,10 @@ fn parts(input: &ExportInput) -> Vec<WeekPart> {
         };
         let body = match latest.get(&(StoryKind::Day, day.as_str())) {
             Some(s) if usable(s) => Body::Entry(s.text.trim().to_string()),
-            _ => Body::Notes(beats::extract(input.journal, day, input.awards, &thresholds).texts()),
+            _ => Body::Notes(
+                beats::extract(input.journal, day, input.awards, &thresholds)
+                    .texts_in(input.language),
+            ),
         };
         let stamps = input
             .awards

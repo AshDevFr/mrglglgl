@@ -112,6 +112,9 @@ pub struct Milestone {
     pub id: String,
     /// The English name, as prompts and exports use it. The UI translates by id instead.
     pub name: String,
+    /// The French name, for French prose.
+    #[serde(default)]
+    pub name_fr: Option<String>,
     /// 1 (most players earn it early) to 5 (few ever will).
     pub rarity: i64,
     /// Suggested but not yet approved by the project owner.
@@ -154,6 +157,16 @@ pub fn rarest<'a>(awards: impl IntoIterator<Item = &'a Award>, n: usize) -> Vec<
     list.sort_by_key(|a| (std::cmp::Reverse(a.rarity), order(&a.id)));
     list.truncate(n);
     list
+}
+
+/// A milestone's name in the prose language: French for `"fr"` when it has one, English otherwise.
+pub fn name_in<'a>(id: &'a str, language: &str) -> &'a str {
+    let found = all().iter().find(|m| m.id == id);
+    match found {
+        Some(m) if language.starts_with("fr") => m.name_fr.as_deref().unwrap_or(&m.name),
+        Some(m) => &m.name,
+        None => id,
+    }
 }
 
 /// The English name of a milestone, or its id when unknown.

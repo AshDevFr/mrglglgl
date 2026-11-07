@@ -530,7 +530,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         .map(|(d, _)| d)
         .collect();
     for d in earlier.into_iter().rev() {
-        let texts = beats::extract(r.journal, d, r.awards, r.thresholds).texts();
+        let texts = beats::extract(r.journal, d, r.awards, r.thresholds).texts_in(r.language);
         if !texts.is_empty() {
             let kept: Vec<String> = texts.into_iter().take(MEMORY_BEATS).collect();
             memory.push(format!("{}: {}", dated(d), kept.join("; ")));
@@ -542,7 +542,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         milestones::TOLD_PER_DAY,
     )
     .into_iter()
-    .map(|a| milestones::name(&a.id).to_string())
+    .map(|a| milestones::name_in(&a.id, r.language).to_string())
     .collect();
     let hints = hint_lines(r.narrator, &patterns);
     let level = record.level_from.zip(record.level_to);
@@ -553,7 +553,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
          Patterns of the day: {patterns}\n",
         date = dated(r.day),
         adventurer = adventurer(r.journal, level),
-        beats = bullets(&day_beats.texts()),
+        beats = bullets(&day_beats.texts_in(r.language)),
         patterns = if patterns.is_empty() {
             "none".to_string()
         } else {
@@ -645,7 +645,11 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
                 dated(d),
                 entry.trim()
             ),
-            None => format!("{}:\n{}", dated(d), bullets(&day_beats.texts())),
+            None => format!(
+                "{}:\n{}",
+                dated(d),
+                bullets(&day_beats.texts_in(r.language))
+            ),
         });
         records.push(record);
     }
@@ -659,7 +663,7 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
         milestones::TOLD_PER_DAY * 2,
     )
     .into_iter()
-    .map(|a| milestones::name(&a.id).to_string())
+    .map(|a| milestones::name_in(&a.id, r.language).to_string())
     .collect();
     let end = days.last().cloned().unwrap_or_default();
     let user = format!(

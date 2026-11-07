@@ -1,5 +1,5 @@
 meddling: true
-hash: 1ddb4d1f135cef8cd64963cb772797994e40912b84f33b3c40fdaef2fa36c7c2
+hash: 7a6aec1670b7977d096b0146e4bf84e56c652d0dd01ef99670b650aa8d4fe2ed
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as one short journal entry, in the first person, as the adventurer.
@@ -30,21 +30,21 @@ The week, day by day (the only events you may write about):
 The plains were quiet and the wolves were not.
 
 2026-11-10:
-- Spent the day in Mulgore
-- Earned the milestone "Nothing to Report"
+- Passé la journée à Mulgore
+- Obtenu le jalon "Rien à signaler"
 
 2026-11-11:
-- Spent the day in Mulgore
-- Set the hearthstone at Bloodhoof Village and learned the flight path at Bloodhoof Village
-- Ran Wailing Caverns (20 minutes)
-- Put on a better Poniard
-- Won a duel
-- Became Friendly with Thunder Bluff
-- Learned Cat Form
+- Passé la journée à Mulgore
+- Lié la pierre de foyer à Bloodhoof Village et découvert le trajet aérien de Bloodhoof Village
+- Exploré Wailing Caverns (20 minutes)
+- Équipé un meilleur Poniard
+- Gagné un duel
+- Devenu Friendly auprès de Thunder Bluff
+- Appris Cat Form
 
 Patterns of the week: only fished, nothing happened
 
-Milestones stamped this week: Gone Fishin', Nothing to Report
+Milestones stamped this week: Parti à la pêche, Rien à signaler
 
 Quests touched this week:
 - none

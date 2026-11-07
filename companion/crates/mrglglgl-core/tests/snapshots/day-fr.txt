@@ -1,5 +1,5 @@
 meddling: false
-hash: 1e93ad9047cb6460f295499d360339abec72149623316f650594f997c105690d
+hash: 1d710c2820660428b1f361ed21a0abd392e47c007b478c7066d779001199ed8e
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as one short journal entry, in the first person, as the adventurer.
@@ -24,15 +24,15 @@ Notes for 2026-11-08.
 Adventurer: Wren Hollowbrook, Tauren Hunter, level 5 (reached level 6 today).
 
 What happened today (the only events you may write about):
-- Visited for the first time: Bloodhoof Village, Red Rocks and Thunder Bluff
-- Killed Prairie Wolf ×23, Murloc Streamrunner ×1 and 1 other creature
-- Killed Flatland Cougar, an elite
-- Defeated Hogger
-- Looted Carving Knife
-- Completed the quest "The Ravaged Caravan"
-- Died to a Murloc Streamrunner in Red Rocks
-- Reached level 6
-- Earned the milestones "Mrglglgl'd", "Bossed Around" and "Open for Business" and completed the Legacy Challenge "Explore Moonglade"
+- Visité pour la première fois : Bloodhoof Village, Red Rocks et Thunder Bluff
+- Tué Prairie Wolf ×23, Murloc Streamrunner ×1 et 1 autre créature
+- Tué Flatland Cougar, un élite
+- Vaincu Hogger
+- Ramassé Carving Knife
+- Terminé la quête "The Ravaged Caravan"
+- Tué par Murloc Streamrunner à Red Rocks
+- Atteint le niveau 6
+- Obtenu les jalons "Mrglglgl'isé", "Le boss, c'est moi" et "Ouvert aux affaires" et accompli le défi Legacy "Explore Moonglade"
 
 Patterns of the day: new zone, rare loot, murloc death
 How to tell a day like this:
@@ -40,7 +40,7 @@ How to tell a day like this:
 - Something rare was found: let the adventurer be quietly delighted.
 - A murloc killed the adventurer. The scribe is secretly a little proud of its kin.
 
-Milestones stamped today: Mrglglgl'd, Bossed Around, Open for Business
+Milestones stamped today: Mrglglgl'isé, Le boss, c'est moi, Ouvert aux affaires
 
 Quests touched today:
 - The Ravaged Caravan: Some marauding wolves have attacked a caravan near Red Rocks.
@@ -49,6 +49,6 @@ Earlier days (memory only, not today):
 - Boots kept so far: 1
 - Running joke: The pond owes Wren a fish
 - Milestones earned: Sleeps With the Fishes, Kept the Boot, Spirit Healer's Regular
-- 2026-11-01: Spent the day in Mulgore; Visited for the first time: Mulgore and Red Cloud Mesa; Killed 1 other creature
+- 2026-11-01: Passé la journée à Mulgore; Visité pour la première fois : Mulgore et Red Cloud Mesa; Tué 1 autre créature
 
 Write today's entry in French, about 120 words.

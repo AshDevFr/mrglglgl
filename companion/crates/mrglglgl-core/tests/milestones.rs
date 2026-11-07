@@ -213,6 +213,7 @@ fn the_milestones_file_names_real_facts_with_unique_ids_all_approved() {
         );
         assert!(m.at_least > 0, "{}", m.id);
         assert!(m.enabled && !m.proposed, "{}", m.id);
+        assert!(m.name_fr.is_some(), "{} has no French name", m.id);
     }
 }
 

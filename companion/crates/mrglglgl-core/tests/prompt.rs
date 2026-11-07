@@ -208,11 +208,12 @@ fn french_prose_keeps_the_notes_as_recorded() {
             .unwrap()
             .to_string()
     };
-    assert_eq!(
-        notes(&en),
-        notes(&fr),
-        "beats and quest text are not translated"
-    );
+    // The facts are told in French; the game's names stay exactly as recorded.
+    assert_ne!(notes(&en), notes(&fr));
+    let fr_notes = notes(&fr);
+    assert!(fr_notes.contains("Tué Prairie Wolf ×23"), "{fr_notes}");
+    assert!(fr_notes.contains("Terminé la quête \"The Ravaged Caravan\""));
+    assert!(!fr_notes.contains("Killed "));
     // A narrator without a French profile still writes French, from its English profile.
     let dwarf = day(&j, &awards, "fr", "grumpy_dwarf", false);
     assert!(dwarf.system.contains("Write in French"));

@@ -7,6 +7,7 @@ pub mod addon_install;
 pub mod addon_status;
 pub mod archive;
 pub mod beats;
+mod beats_fr;
 pub mod continuity;
 pub mod db;
 pub mod discovery;

@@ -697,8 +697,8 @@ pub enum Beat {
     Bosses {
         names: Vec<String>,
     },
-    /// Milestones stamped that day and Legacy Challenges (the game's achievements) completed, as
-    /// one beat so they do not crowd out the day itself.
+    /// Milestones stamped that day (by id, named in the prose language) and Legacy Challenges
+    /// (the game's achievements) completed, as one beat so they do not crowd out the day itself.
     Milestones {
         names: Vec<String>,
         challenges: Vec<String>,
@@ -855,6 +855,16 @@ impl Beat {
     }
 
     /// The beat as a line of notes for the prompt, in English.
+    /// The beat in the prose language: French for `"fr"`, English otherwise. Game names are kept
+    /// as recorded either way.
+    pub fn text_in(&self, language: &str) -> String {
+        if language.starts_with("fr") {
+            self.text_fr()
+        } else {
+            self.text()
+        }
+    }
+
     pub fn text(&self) -> String {
         match self {
             Beat::Travelled { zones } if zones.len() == 1 => {
@@ -974,7 +984,15 @@ impl Beat {
                 };
                 let mut parts = Vec::new();
                 if !names.is_empty() {
-                    parts.push(told(names, "earned the milestone", "earned the milestones"));
+                    let named: Vec<String> = names
+                        .iter()
+                        .map(|id| milestones::name(id).to_string())
+                        .collect();
+                    parts.push(told(
+                        &named,
+                        "earned the milestone",
+                        "earned the milestones",
+                    ));
                 }
                 if !challenges.is_empty() {
                     parts.push(told(
@@ -1228,6 +1246,11 @@ pub struct DayBeats {
 impl DayBeats {
     pub fn texts(&self) -> Vec<String> {
         self.beats.iter().map(Beat::text).collect()
+    }
+
+    /// The beats in the prose language: French for `"fr"`, English otherwise.
+    pub fn texts_in(&self, language: &str) -> Vec<String> {
+        self.beats.iter().map(|b| b.text_in(language)).collect()
     }
 }
 
@@ -1541,7 +1564,7 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         milestones::TOLD_PER_DAY,
     )
     .into_iter()
-    .map(|a| milestones::name(&a.id).to_string())
+    .map(|a| a.id.clone())
     .collect();
     if !earned.is_empty() || !record.achievements.is_empty() {
         beats.push(Beat::Milestones {

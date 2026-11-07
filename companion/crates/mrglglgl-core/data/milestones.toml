@@ -7,7 +7,7 @@
 # A stamp is stored by `id` and never moves, so an id is never renamed or reused once shipped.
 # `rarity` runs from 1 (most players earn it early) to 5 (few ever will): a day with several stamps
 # tells the narrator, and presses on its page, only the rarest few.
-# `name` is the English name prompts and exports use; the window takes names and descriptions
+# `name` is the English name prompts and exports use, `name_fr` the French one; the window takes names and descriptions
 # from the locale catalogues under `milestones.<id>`. `proposed` marks one not yet approved;
 # `enabled = false` turns one off without losing stamps already given.
 
@@ -15,6 +15,7 @@
 [[milestone]]
 id = "kept_the_boot"
 name = "Kept the Boot"
+name_fr = "J'ai gardé la botte"
 rarity = 1
 rule = "first_day"
 fact = "boots"
@@ -23,6 +24,7 @@ at_least = 1
 [[milestone]]
 id = "first_murloc"
 name = "First Blood (Fishy)"
+name_fr = "Premier sang (de poisson)"
 rarity = 1
 rule = "first_day"
 fact = "murloc_kills"
@@ -31,6 +33,7 @@ at_least = 1
 [[milestone]]
 id = "slain_by_murloc"
 name = "Mrglglgl'd"
+name_fr = "Mrglglgl'isé"
 rarity = 2
 rule = "first_day"
 fact = "deaths_by_murloc"
@@ -39,6 +42,7 @@ at_least = 1
 [[milestone]]
 id = "traitor"
 name = "Traitor"
+name_fr = "Traître"
 rarity = 3
 rule = "total"
 fact = "murloc_kills"
@@ -47,6 +51,7 @@ at_least = 100
 [[milestone]]
 id = "only_fished"
 name = "Gone Fishin'"
+name_fr = "Parti à la pêche"
 rarity = 2
 rule = "first_day"
 fact = "only_fished"
@@ -55,6 +60,7 @@ at_least = 1
 [[milestone]]
 id = "boot_collector"
 name = "Cobbler's Apprentice"
+name_fr = "Apprenti cordonnier"
 rarity = 3
 rule = "total"
 fact = "boots"
@@ -63,6 +69,7 @@ at_least = 5
 [[milestone]]
 id = "sleeps_with_fishes"
 name = "Sleeps With the Fishes"
+name_fr = "Dort avec les poissons"
 rarity = 2
 rule = "first_day"
 fact = "drownings"
@@ -71,6 +78,7 @@ at_least = 1
 [[milestone]]
 id = "bad_day"
 name = "Character Building"
+name_fr = "Ça forme le caractère"
 rarity = 2
 rule = "first_day"
 fact = "deaths"
@@ -79,6 +87,7 @@ at_least = 3
 [[milestone]]
 id = "tourist"
 name = "Tourist"
+name_fr = "Touriste"
 rarity = 2
 rule = "first_day"
 fact = "discoveries"
@@ -87,6 +96,7 @@ at_least = 5
 [[milestone]]
 id = "quiet_day"
 name = "Nothing to Report"
+name_fr = "Rien à signaler"
 rarity = 1
 rule = "first_day"
 fact = "nothing_happened"
@@ -97,6 +107,7 @@ at_least = 1
 [[milestone]]
 id = "big_catch"
 name = "The One That Didn't Get Away"
+name_fr = "Celui qui ne s'est pas échappé"
 rarity = 3
 rule = "total"
 fact = "fish"
@@ -105,6 +116,7 @@ at_least = 100
 [[milestone]]
 id = "junk_dealer"
 name = "One Fish's Trash"
+name_fr = "Les trésors de la vase"
 rarity = 3
 rule = "first_day"
 fact = "junk"
@@ -115,6 +127,7 @@ at_least = 10
 [[milestone]]
 id = "first_elite"
 name = "Punching Up"
+name_fr = "Plus gros que soi"
 rarity = 1
 rule = "first_day"
 fact = "elites"
@@ -123,6 +136,7 @@ at_least = 1
 [[milestone]]
 id = "first_rare"
 name = "Rare Sighting"
+name_fr = "Une bête rare"
 rarity = 2
 rule = "first_day"
 fact = "rares"
@@ -131,6 +145,7 @@ at_least = 1
 [[milestone]]
 id = "first_boss"
 name = "Bossed Around"
+name_fr = "Le boss, c'est moi"
 rarity = 2
 rule = "first_day"
 fact = "bosses"
@@ -139,6 +154,7 @@ at_least = 1
 [[milestone]]
 id = "big_hunt"
 name = "Pest Control"
+name_fr = "Dératisation"
 rarity = 2
 rule = "first_day"
 fact = "kills"
@@ -147,6 +163,7 @@ at_least = 50
 [[milestone]]
 id = "murloc_massacre"
 name = "Mrgl Mrgl No!"
+name_fr = "Mrgl mrgl non !"
 rarity = 3
 rule = "first_day"
 fact = "murloc_kills"
@@ -157,6 +174,7 @@ at_least = 20
 [[milestone]]
 id = "first_death"
 name = "Spirit Healer's Regular"
+name_fr = "Un habitué du gardien des âmes"
 rarity = 1
 rule = "first_day"
 fact = "deaths"
@@ -165,6 +183,7 @@ at_least = 1
 [[milestone]]
 id = "fell"
 name = "Gravity Wins"
+name_fr = "La gravité gagne toujours"
 rarity = 2
 rule = "first_day"
 fact = "falls"
@@ -173,6 +192,7 @@ at_least = 1
 [[milestone]]
 id = "lava"
 name = "Hot Tub"
+name_fr = "Bain chaud"
 rarity = 2
 rule = "first_day"
 fact = "lava"
@@ -183,6 +203,7 @@ at_least = 1
 [[milestone]]
 id = "wanderer"
 name = "Wanderer"
+name_fr = "Vagabond"
 rarity = 3
 rule = "total"
 fact = "discoveries"
@@ -191,6 +212,7 @@ at_least = 50
 [[milestone]]
 id = "growth_spurt"
 name = "Growth Spurt"
+name_fr = "Poussée de croissance"
 rarity = 2
 rule = "first_day"
 fact = "levels_gained"
@@ -199,6 +221,7 @@ at_least = 3
 [[milestone]]
 id = "level_10"
 name = "Double Digits"
+name_fr = "Deux chiffres"
 rarity = 1
 rule = "first_day"
 fact = "level"
@@ -207,6 +230,7 @@ at_least = 10
 [[milestone]]
 id = "level_20"
 name = "Twenty and Counting"
+name_fr = "Vingt et plus"
 rarity = 2
 rule = "first_day"
 fact = "level"
@@ -215,6 +239,7 @@ at_least = 20
 [[milestone]]
 id = "level_30"
 name = "Thirty Something"
+name_fr = "La trentaine"
 rarity = 2
 rule = "first_day"
 fact = "level"
@@ -223,6 +248,7 @@ at_least = 30
 [[milestone]]
 id = "level_40"
 name = "Over the Hill"
+name_fr = "Passé le cap"
 rarity = 3
 rule = "first_day"
 fact = "level"
@@ -231,6 +257,7 @@ at_least = 40
 [[milestone]]
 id = "level_50"
 name = "Seasoned"
+name_fr = "Aguerri"
 rarity = 4
 rule = "first_day"
 fact = "level"
@@ -239,6 +266,7 @@ at_least = 50
 [[milestone]]
 id = "level_60"
 name = "The Top of the Mountain"
+name_fr = "Au sommet"
 rarity = 5
 rule = "first_day"
 fact = "level"
@@ -249,6 +277,7 @@ at_least = 60
 [[milestone]]
 id = "quest_marathon"
 name = "Errand Runner"
+name_fr = "Coursier"
 rarity = 3
 rule = "first_day"
 fact = "quests_done"
@@ -257,6 +286,7 @@ at_least = 10
 [[milestone]]
 id = "first_dungeon_quest"
 name = "Down Below"
+name_fr = "Dans les profondeurs"
 rarity = 2
 rule = "first_day"
 fact = "dungeon_quests_done"
@@ -267,6 +297,7 @@ at_least = 1
 [[milestone]]
 id = "first_gold"
 name = "Golden"
+name_fr = "En or"
 rarity = 2
 rule = "first_day"
 fact = "money_in"
@@ -275,6 +306,7 @@ at_least = 10000
 [[milestone]]
 id = "first_sale"
 name = "Open for Business"
+name_fr = "Ouvert aux affaires"
 rarity = 2
 rule = "first_day"
 fact = "auctions_sold"
@@ -283,6 +315,7 @@ at_least = 1
 [[milestone]]
 id = "big_spender"
 name = "Big Spender"
+name_fr = "Panier percé"
 rarity = 2
 rule = "first_day"
 fact = "money_out"
@@ -293,6 +326,7 @@ at_least = 10000
 [[milestone]]
 id = "first_craft"
 name = "Handmade"
+name_fr = "Fait main"
 rarity = 1
 rule = "first_day"
 fact = "crafted"
@@ -301,6 +335,7 @@ at_least = 1
 [[milestone]]
 id = "skill_100"
 name = "Journeyman"
+name_fr = "Compagnon"
 rarity = 3
 rule = "first_day"
 fact = "profession_rank"
@@ -311,6 +346,7 @@ at_least = 100
 [[milestone]]
 id = "first_group"
 name = "Better Together"
+name_fr = "Mieux à plusieurs"
 rarity = 1
 rule = "first_day"
 fact = "group_joins"
@@ -319,6 +355,7 @@ at_least = 1
 [[milestone]]
 id = "in_character"
 name = "In Character"
+name_fr = "Dans le rôle"
 rarity = 2
 rule = "first_day"
 fact = "own_lines"
@@ -329,6 +366,7 @@ at_least = 1
 [[milestone]]
 id = "first_challenge"
 name = "Legacy Begins"
+name_fr = "Un héritage commence"
 rarity = 1
 rule = "first_day"
 fact = "challenges"
@@ -337,6 +375,7 @@ at_least = 1
 [[milestone]]
 id = "challenger"
 name = "Challenger"
+name_fr = "Challenger"
 rarity = 3
 rule = "total"
 fact = "challenges"
@@ -347,6 +386,7 @@ at_least = 10
 [[milestone]]
 id = "night_owl"
 name = "Night Owl"
+name_fr = "Oiseau de nuit"
 rarity = 2
 rule = "first_day"
 fact = "night_sessions"
@@ -357,6 +397,7 @@ at_least = 1
 [[milestone]]
 id = "murloc_nemesis"
 name = "Murloc Nemesis"
+name_fr = "Fléau des murlocs"
 rarity = 5
 rule = "total"
 fact = "murloc_kills"
@@ -365,6 +406,7 @@ at_least = 1000
 [[milestone]]
 id = "fisher_king"
 name = "Fisher King"
+name_fr = "Roi pêcheur"
 rarity = 4
 rule = "total"
 fact = "fish"
@@ -373,6 +415,7 @@ at_least = 1000
 [[milestone]]
 id = "sole_survivor"
 name = "Sole Survivor"
+name_fr = "Une semelle de trop"
 rarity = 4
 rule = "total"
 fact = "boots"
@@ -381,6 +424,7 @@ at_least = 25
 [[milestone]]
 id = "ten_thousand_cuts"
 name = "Ten Thousand Cuts"
+name_fr = "Dix mille coups"
 rarity = 4
 rule = "total"
 fact = "kills"
@@ -389,6 +433,7 @@ at_least = 10000
 [[milestone]]
 id = "cartographer"
 name = "Cartographer"
+name_fr = "Cartographe"
 rarity = 4
 rule = "total"
 fact = "discoveries"
@@ -397,6 +442,7 @@ at_least = 200
 [[milestone]]
 id = "hero_of_the_people"
 name = "Hero of the People"
+name_fr = "Héros du peuple"
 rarity = 3
 rule = "total"
 fact = "quests_done"
@@ -405,6 +451,7 @@ at_least = 100
 [[milestone]]
 id = "legend_of_the_realm"
 name = "Legend of the Realm"
+name_fr = "Légende du royaume"
 rarity = 5
 rule = "total"
 fact = "quests_done"
@@ -413,6 +460,7 @@ at_least = 500
 [[milestone]]
 id = "delver"
 name = "Delver"
+name_fr = "Explorateur des profondeurs"
 rarity = 4
 rule = "total"
 fact = "dungeon_quests_done"
@@ -421,6 +469,7 @@ at_least = 25
 [[milestone]]
 id = "boss_hunter"
 name = "Boss Hunter"
+name_fr = "Chasseur de boss"
 rarity = 4
 rule = "total"
 fact = "bosses"
@@ -429,6 +478,7 @@ at_least = 50
 [[milestone]]
 id = "well_off"
 name = "Well Off"
+name_fr = "À l'aise"
 rarity = 4
 rule = "total"
 fact = "money_in"
@@ -437,6 +487,7 @@ at_least = 1000000
 [[milestone]]
 id = "tycoon"
 name = "Tycoon"
+name_fr = "Magnat"
 rarity = 5
 rule = "total"
 fact = "money_in"
@@ -445,6 +496,7 @@ at_least = 10000000
 [[milestone]]
 id = "auction_mogul"
 name = "Auction Mogul"
+name_fr = "Roi des enchères"
 rarity = 4
 rule = "total"
 fact = "auctions_sold"
@@ -453,6 +505,7 @@ at_least = 100
 [[milestone]]
 id = "master_craftsman"
 name = "Master Craftsman"
+name_fr = "Maître artisan"
 rarity = 5
 rule = "first_day"
 fact = "profession_rank"
@@ -461,6 +514,7 @@ at_least = 300
 [[milestone]]
 id = "frequent_flyer"
 name = "Frequent Flyer"
+name_fr = "Abonné du cimetière"
 rarity = 3
 rule = "total"
 fact = "deaths"
@@ -469,6 +523,7 @@ at_least = 100
 [[milestone]]
 id = "life_of_the_party"
 name = "Life of the Party"
+name_fr = "L'âme de la fête"
 rarity = 3
 rule = "total"
 fact = "group_joins"
@@ -477,6 +532,7 @@ at_least = 50
 [[milestone]]
 id = "creature_of_the_night"
 name = "Creature of the Night"
+name_fr = "Créature de la nuit"
 rarity = 3
 rule = "total"
 fact = "night_sessions"
@@ -485,6 +541,7 @@ at_least = 10
 [[milestone]]
 id = "half_a_legacy"
 name = "Half a Legacy"
+name_fr = "Un demi-héritage"
 rarity = 4
 rule = "total"
 fact = "challenges"
@@ -493,6 +550,7 @@ at_least = 50
 [[milestone]]
 id = "living_legend"
 name = "Living Legend"
+name_fr = "Légende vivante"
 rarity = 5
 rule = "total"
 fact = "challenges"
