@@ -97,11 +97,3 @@ test("narrator editor", async ({ page }) => {
   await settled(page);
   await page.screenshot({ path: out("narrator-editor") });
 });
-
-test("journal, dark", async ({ page }) => {
-  await page.emulateMedia({ colorScheme: "dark" });
-  await page.goto("/characters/1?day=2026-11-08");
-  await expect(page.getByText("Hogger fell")).toBeVisible();
-  await settled(page);
-  await page.screenshot({ path: out("journal-dark") });
-});

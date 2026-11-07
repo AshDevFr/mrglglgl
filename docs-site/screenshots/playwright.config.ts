@@ -15,7 +15,8 @@ export default defineConfig({
     baseURL: `http://localhost:${PORT}`,
     viewport: { width: 1280, height: 800 },
     deviceScaleFactor: 2,
-    colorScheme: "light",
+    // The app in dark mode: its paper reads well against the docs in either theme.
+    colorScheme: "dark",
     locale: "en-US",
     timezoneId: "UTC",
   },
