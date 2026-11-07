@@ -97,6 +97,34 @@ for _, devOnly in ipairs({ "spec", "tools", "Makefile", ".rocks" }) do
 	end
 end
 
+-- The packager ships every repository entry .pkgmeta does not exclude, so a folder added at the
+-- root (a docs site, say) lands in the addon zip, and the app refuses to install a package holding
+-- files the game has no use for. Every tracked root entry must be the addon, the licence, or
+-- excluded. Dot entries are left out: the packager skips them on its own.
+local SHIPPED_FROM_ROOT = { addon = true, LICENSE = true }
+local listing = io.popen("git -C .. ls-files")
+if not listing then
+	fail("could not list the repository's files with git")
+else
+	local seen = {}
+	for path in listing:lines() do
+		local top = path:match("^[^/]+")
+		if top and not seen[top] and top:sub(1, 1) ~= "." and not SHIPPED_FROM_ROOT[top] then
+			seen[top] = true
+			local excluded = false
+			for _, entry in ipairs(ignored) do
+				if entry == top then
+					excluded = true
+				end
+			end
+			if not excluded then
+				fail(".pkgmeta does not exclude " .. top .. ", which would ship in the addon zip")
+			end
+		end
+	end
+	listing:close()
+end
+
 if problems > 0 then
 	os.exit(1)
 end

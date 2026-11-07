@@ -11,9 +11,11 @@ ignore:
   - .gitignore
   - .pre-commit-config.yaml
   - CLAUDE.md
+  - CONTRIBUTING.md
   - README.md
   - companion
   - docs
+  - docs-site
   - fixtures
   - addon/spec
   - addon/tools
