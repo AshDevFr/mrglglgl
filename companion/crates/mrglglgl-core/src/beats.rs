@@ -122,6 +122,72 @@ pub struct LootLine {
     pub seen: bool,
 }
 
+/// How a character grew in a day beyond levels and quests.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Progress {
+    pub spells: Vec<String>,
+    /// Mounts and pets, by name.
+    pub collected: Vec<String>,
+    /// `(faction, standing)`.
+    pub reputations: Vec<(String, String)>,
+    /// Better items put on, by name.
+    pub gear: Vec<String>,
+    /// Where the hearthstone was set.
+    pub bound: Option<String>,
+    pub flight_paths: Vec<String>,
+    pub duels_won: i64,
+    pub duels_lost: i64,
+    /// Dungeons and raids, with the minutes spent inside when known.
+    pub instances: Vec<(String, Option<i64>)>,
+}
+
+impl Progress {
+    fn of(day: &Day) -> Self {
+        let mut p = Progress::default();
+        for event in day.events.iter().flatten() {
+            match &event.kind {
+                EventKind::Spell { name: Some(n), .. } => push_unique(&mut p.spells, n),
+                EventKind::Mount { name: Some(n) } | EventKind::Pet { name: Some(n) } => {
+                    push_unique(&mut p.collected, n)
+                }
+                EventKind::Reputation {
+                    faction: Some(f),
+                    standing: Some(s),
+                } => p.reputations.push((f.clone(), s.clone())),
+                EventKind::Gear { name: Some(n), .. } => push_unique(&mut p.gear, n),
+                EventKind::Bind { area } => p.bound = area.clone().or(p.bound.take()),
+                EventKind::FlightPath { area: Some(a) } => push_unique(&mut p.flight_paths, a),
+                EventKind::Duel { won, .. } => match won {
+                    Some(true) => p.duels_won += 1,
+                    _ => p.duels_lost += 1,
+                },
+                EventKind::Instance {
+                    act,
+                    name: Some(n),
+                    duration,
+                    ..
+                } => match act.as_deref() {
+                    Some("enter") if !p.instances.iter().any(|(i, _)| i == n) => {
+                        p.instances.push((n.clone(), None))
+                    }
+                    Some("leave") => {
+                        if let Some(run) = p.instances.iter_mut().rev().find(|(i, _)| i == n) {
+                            run.1 = duration.map(|d| (d + 30) / 60);
+                        }
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
+        p
+    }
+
+    pub fn is_empty(&self) -> bool {
+        *self == Progress::default()
+    }
+}
+
 /// One day's facts in one shape, from raw events when the archive has them and from the digest
 /// once the game compacted the day.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -162,6 +228,8 @@ pub struct DayRecord {
     pub spoken: Vec<(String, String)>,
     /// Achievements completed (Legacy Challenges on Forever), by name, in order.
     pub achievements: Vec<String>,
+    /// How the character grew, from the progress events, which compaction keeps.
+    pub progress: Progress,
     pub only_fished: bool,
     pub nothing_happened: bool,
 }
@@ -197,7 +265,8 @@ impl DayRecord {
             .filter(|l| l.own() && matches!(l.channel.as_str(), "say" | "emote" | "yell"))
             .map(|l| (l.channel.clone(), l.text.clone()))
             .collect();
-        if !r.spoken.is_empty() || !r.achievements.is_empty() {
+        r.progress = Progress::of(day);
+        if !r.spoken.is_empty() || !r.achievements.is_empty() || !r.progress.is_empty() {
             r.nothing_happened = false;
         }
         if !r.skills.is_empty()
@@ -649,6 +718,34 @@ pub enum Beat {
         earned_mostly: Option<String>,
         spent_mostly: Option<String>,
     },
+    Learned {
+        spells: Vec<String>,
+    },
+    /// Mounts and pets added.
+    Collected {
+        names: Vec<String>,
+    },
+    Reputation {
+        lines: Vec<(String, String)>,
+    },
+    /// Better gear put on.
+    Gear {
+        items: Vec<String>,
+    },
+    /// The hearthstone set and flight paths learned.
+    Travel {
+        bound: Option<String>,
+        flight_paths: Vec<String>,
+    },
+    /// Duels, counted: opponents are other players, whose names are not told.
+    Duels {
+        won: i64,
+        lost: i64,
+    },
+    /// Dungeons and raids run, with minutes inside when known.
+    Instances {
+        runs: Vec<(String, Option<i64>)>,
+    },
     /// A few of the player's own lines, said or acted out in character.
     Spoke {
         lines: Vec<(String, String)>,
@@ -698,6 +795,13 @@ impl Beat {
             Beat::Auctions { .. } => 9,
             Beat::Money { .. } => 11,
             Beat::Spoke { .. } => 8,
+            Beat::Instances { .. } => 4,
+            Beat::Collected { .. } => 5,
+            Beat::Reputation { .. } => 7,
+            Beat::Gear { .. } => 8,
+            Beat::Duels { .. } => 8,
+            Beat::Learned { .. } => 9,
+            Beat::Travel { .. } => 10,
         }
     }
 
@@ -725,6 +829,13 @@ impl Beat {
             Beat::Auctions { .. } => 10,
             Beat::Money { .. } => 10,
             Beat::Spoke { .. } => 9,
+            Beat::Travel { .. } => 1,
+            Beat::Instances { .. } => 5,
+            Beat::Learned { .. } => 10,
+            Beat::Collected { .. } => 10,
+            Beat::Reputation { .. } => 10,
+            Beat::Gear { .. } => 8,
+            Beat::Duels { .. } => 9,
             Beat::Milestones { .. } => 11,
         }
     }
@@ -888,6 +999,63 @@ impl Beat {
                     parts.push(side(verb, *spent, &money_place(spent_mostly, false)));
                 }
                 parts.join("; ")
+            }
+            Beat::Learned { spells } => format!("Learned {}", and_list(spells)),
+            Beat::Collected { names } => format!("Added {} to the collection", and_list(names)),
+            Beat::Reputation { lines } => {
+                let parts: Vec<String> = lines
+                    .iter()
+                    .map(|(faction, standing)| format!("{standing} with {faction}"))
+                    .collect();
+                format!("Became {}", and_list(&parts))
+            }
+            Beat::Gear { items } => format!("Put on a better {}", and_list(items)),
+            Beat::Travel {
+                bound,
+                flight_paths,
+            } => {
+                let mut parts = Vec::new();
+                if let Some(place) = bound {
+                    parts.push(format!("set the hearthstone at {place}"));
+                }
+                if !flight_paths.is_empty() {
+                    let kind = if flight_paths.len() == 1 {
+                        "the flight path at"
+                    } else {
+                        "the flight paths at"
+                    };
+                    parts.push(format!("learned {kind} {}", and_list(flight_paths)));
+                }
+                let text = parts.join(" and ");
+                let mut chars = text.chars();
+                match chars.next() {
+                    Some(first) => format!("{}{}", first.to_uppercase(), chars.as_str()),
+                    None => text,
+                }
+            }
+            Beat::Duels { won, lost } => {
+                let count = |n: i64| {
+                    if n == 1 {
+                        "a duel".to_string()
+                    } else {
+                        format!("{n} duels")
+                    }
+                };
+                match (won, lost) {
+                    (0, l) => format!("Lost {}", count(*l)),
+                    (w, 0) => format!("Won {}", count(*w)),
+                    (w, l) => format!("Won {} and lost {}", count(*w), count(*l)),
+                }
+            }
+            Beat::Instances { runs } => {
+                let parts: Vec<String> = runs
+                    .iter()
+                    .map(|(name, minutes)| match minutes {
+                        Some(m) => format!("{name} ({m} minutes)"),
+                        None => name.clone(),
+                    })
+                    .collect();
+                format!("Ran {}", and_list(&parts))
             }
             Beat::Spoke { lines } => {
                 let told: Vec<String> = lines
@@ -1300,6 +1468,44 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         }
         items
     };
+    let p = &record.progress;
+    if !p.instances.is_empty() {
+        beats.push(Beat::Instances {
+            runs: p.instances.clone(),
+        });
+    }
+    if !p.collected.is_empty() {
+        beats.push(Beat::Collected {
+            names: p.collected.clone(),
+        });
+    }
+    if !p.reputations.is_empty() {
+        beats.push(Beat::Reputation {
+            lines: p.reputations.clone(),
+        });
+    }
+    if !p.gear.is_empty() {
+        beats.push(Beat::Gear {
+            items: p.gear.clone(),
+        });
+    }
+    if p.duels_won + p.duels_lost > 0 {
+        beats.push(Beat::Duels {
+            won: p.duels_won,
+            lost: p.duels_lost,
+        });
+    }
+    if !p.spells.is_empty() {
+        beats.push(Beat::Learned {
+            spells: p.spells.clone(),
+        });
+    }
+    if p.bound.is_some() || !p.flight_paths.is_empty() {
+        beats.push(Beat::Travel {
+            bound: p.bound.clone(),
+            flight_paths: p.flight_paths.clone(),
+        });
+    }
     if !record.spoken.is_empty() {
         beats.push(Beat::Spoke {
             lines: record.spoken.iter().take(t.spoken_lines).cloned().collect(),

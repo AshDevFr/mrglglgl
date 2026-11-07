@@ -4,6 +4,7 @@ import type { Day } from "@/bindings/Day";
 import type { Journal } from "@/bindings/Journal";
 import type { StoredCharacter } from "@/bindings/StoredCharacter";
 import { type MoneyFacts, moneyFacts } from "./money";
+import { hasProgress, type ProgressFacts, progressFacts } from "./progress";
 
 /** "Wren Hollowbrook", or the folder name until the journal has been read. */
 export function displayName(character: StoredCharacter): string {
@@ -197,6 +198,8 @@ export interface DayFacts {
   chat: ChatLine[];
   /** Achievements completed, which on Forever are the Legacy Challenges: name and category. */
   achievements: { name: string; category: string | null }[];
+  /** Spells, mounts and pets, reputation, gear, hearthstone and flight paths, duels, dungeons. */
+  progress: ProgressFacts;
   screenshots: number;
   onlyFished: boolean;
   nothingHappened: boolean;
@@ -294,6 +297,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
   const work = professions(day);
   const money = moneyFacts(day);
   const achievements = achievementFacts(day);
+  const progress = progressFacts(day);
   const busy =
     work.skills.length > 0 ||
     work.crafted.length > 0 ||
@@ -302,13 +306,15 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
     money.spent.length > 0 ||
     money.auctions.length > 0 ||
     (day.chat ?? []).length > 0 ||
-    achievements.length > 0;
+    achievements.length > 0 ||
+    hasProgress(progress);
   return {
     ...facts,
     ...work,
     money,
     chat: day.chat ?? [],
     achievements,
+    progress,
     nothingHappened: facts.nothingHappened && !busy,
   };
 }
@@ -318,7 +324,13 @@ function eventFacts(
   day: Day,
 ): Omit<
   DayFacts,
-  "skills" | "crafted" | "gathered" | "money" | "chat" | "achievements"
+  | "skills"
+  | "crafted"
+  | "gathered"
+  | "money"
+  | "chat"
+  | "achievements"
+  | "progress"
 > {
   const digest = day.digest;
   // A compacted day keeps a few key events; its digest is what the whole day was.
@@ -391,7 +403,13 @@ function eventFacts(
     .sort((a, b) => b.count - a.count || (a.npcId ?? 0) - (b.npcId ?? 0));
   const facts: Omit<
     DayFacts,
-    "skills" | "crafted" | "gathered" | "money" | "chat" | "achievements"
+    | "skills"
+    | "crafted"
+    | "gathered"
+    | "money"
+    | "chat"
+    | "achievements"
+    | "progress"
   > = {
     levelFrom: null,
     levelTo: null,

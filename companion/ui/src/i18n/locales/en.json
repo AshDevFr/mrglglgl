@@ -158,7 +158,19 @@
       "won": "Won {{list}} at the auction house."
     },
     "challenges_one": "Completed the Legacy Challenge {{list}}.",
-    "challenges_other": "Completed the Legacy Challenges {{list}}."
+    "challenges_other": "Completed the Legacy Challenges {{list}}.",
+    "ran": "Ran {{list}}.",
+    "collected": "Added {{list}} to the collection.",
+    "became": "Became {{standing}} with {{faction}}.",
+    "gear": "Put on a better {{list}}.",
+    "learned": "Learned {{list}}.",
+    "bound": "Set the hearthstone at {{place}}.",
+    "flightPaths_one": "Learned the flight path at {{list}}.",
+    "flightPaths_other": "Learned the flight paths at {{list}}.",
+    "duelsWon_one": "Won a duel.",
+    "duelsWon_other": "Won {{count}} duels.",
+    "duelsLost_one": "Lost a duel.",
+    "duelsLost_other": "Lost {{count}} duels."
   },
   "photo": {
     "alt": "Screenshot: {{moment}}",
@@ -959,7 +971,23 @@
       "officer": "Officer",
       "whisper": "Whisper"
     },
-    "achievements": "Legacy Challenges"
+    "achievements": "Legacy Challenges",
+    "instances": "Dungeons and raids",
+    "spells": "Learned",
+    "collected": "Collected",
+    "reputation": "Reputation",
+    "gear": "Gear",
+    "travel": "Travel",
+    "duels": "Duels",
+    "minutes_one": "{{name}} ({{count}} minute)",
+    "minutes_other": "{{name}} ({{count}} minutes)",
+    "standing": "{{standing}} with {{faction}}",
+    "itemLevel": "{{name}} (item level {{level}})",
+    "bound": "Hearthstone set at {{place}}",
+    "flightPath": "Flight path at {{place}}",
+    "duelWon": "Won against {{who}}",
+    "duelLost": "Lost to {{who}}",
+    "someone": "someone"
   },
   "money": {
     "gold": "{{n}}g",
@@ -984,7 +1012,14 @@
       "money": "Money and the auction house",
       "group": "Group members",
       "chat": "Chat",
-      "achievements": "Legacy Challenges"
+      "achievements": "Legacy Challenges",
+      "spells": "Spells learned",
+      "collections": "Mounts and pets",
+      "reputation": "Reputation",
+      "gear": "Gear upgrades",
+      "travel": "Hearthstone and flight paths",
+      "dungeons": "Dungeons and raids",
+      "duels": "Duels"
     },
     "shared": "Narrators, website and exports",
     "view": "What happened"

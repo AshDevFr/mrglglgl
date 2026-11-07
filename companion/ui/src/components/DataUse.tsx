@@ -25,7 +25,14 @@ export const DATA_CATEGORIES = [
   "loot",
   "money",
   "achievements",
+  "spells",
+  "collections",
+  "reputation",
+  "gear",
+  "travel",
+  "dungeons",
   "group",
+  "duels",
   "chat",
 ] as const;
 

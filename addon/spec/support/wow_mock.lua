@@ -295,6 +295,24 @@ function Mock.install()
 		end,
 	}
 	Mock.items = {}
+	-- Reputation, equipment, hearthstone, flight path and duel strings, instances.
+	Mock.factions = { { name = "Thunder Bluff", reaction = 4 } }
+	_G.C_Reputation = {
+		GetNumFactions = function() return #Mock.factions end,
+		GetFactionDataByIndex = function(i) return Mock.factions[i] end,
+	}
+	Mock.equipped, Mock.itemLevels = {}, {}
+	_G.GetInventoryItemLink = function(_, slot) return Mock.equipped[slot] end
+	_G.C_Item.GetDetailedItemLevelInfo = function(link)
+		return Mock.itemLevels[tonumber(link:match("item:(%d+)"))]
+	end
+	_G.GetBindLocation = function() return Mock.subzone ~= "" and Mock.subzone or Mock.zone end
+	_G.ERR_NEWTAXIPATH = "New flight path discovered!"
+	_G.DUEL_WINNER_KNOCKOUT = "%1$s has defeated %2$s in a duel"
+	_G.DUEL_WINNER_RETREAT = "%2$s has fled from %1$s in a duel"
+	Mock.instance = nil
+	_G.IsInInstance = function() return Mock.instance ~= nil, Mock.instance and "party" or "none" end
+	_G.GetInstanceInfo = function() return Mock.instance end
 end
 
 return Mock

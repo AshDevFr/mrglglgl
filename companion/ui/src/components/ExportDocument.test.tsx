@@ -90,7 +90,7 @@ describe("ExportDocument", () => {
       .getAllByRole("article")
       .map((a) => a.getAttribute("aria-label"));
     expect(days[0]).toBe("Sunday, November 1, 2026");
-    expect(days[days.length - 1]).toBe("Tuesday, November 10, 2026");
+    expect(days[days.length - 1]).toBe("Wednesday, November 11, 2026");
   });
 
   it("becomes a page body and its own look, with nothing of the app around it", () => {

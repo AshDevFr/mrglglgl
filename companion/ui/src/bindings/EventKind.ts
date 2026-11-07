@@ -14,7 +14,23 @@ environment: string | null, } | { "kind": "boss", encounterId: number | null, na
  * Read from a group loot window (`src = "window"`): it dropped, not necessarily for
  * the player. Defaults for events archived before it existed.
  */
-seen: boolean, } | { "kind": "groupJoin", who: string | null, } | { "kind": "screenshot", moment: string | null, } | { "kind": "achievement", achievementId: number | null, name: string | null, 
+seen: boolean, } | { "kind": "groupJoin", who: string | null, } | { "kind": "screenshot", moment: string | null, } | { "kind": "spell", spellId: number | null, name: string | null, } | { "kind": "mount", name: string | null, } | { "kind": "pet", name: string | null, } | { "kind": "reputation", faction: string | null, 
+/**
+ * The client's label, e.g. "Friendly".
+ */
+standing: string | null, } | { "kind": "gear", itemId: number | null, name: string | null, slot: number | null, itemLevel: number | null, quality: number | null, } | { "kind": "bind", area: string | null, } | { "kind": "flightPath", area: string | null, } | { "kind": "duel", won: boolean | null, 
+/**
+ * Another player's name: theirs, kept out of what is shared.
+ */
+opponent: string | null, } | { "kind": "instance", act: string | null, name: string | null, 
+/**
+ * `"party"` or `"raid"`.
+ */
+instanceKind: string | null, 
+/**
+ * Seconds inside, on leaving.
+ */
+duration: number | null, } | { "kind": "achievement", achievementId: number | null, name: string | null, 
 /**
  * Its category, e.g. "Kalimdor" or "Druid".
  */

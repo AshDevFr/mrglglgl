@@ -209,6 +209,50 @@ export function dayFactRows(facts: DayFacts, t: TFunction): FactRow[] {
       named(a.name, a.category ? `${a.name} (${a.category})` : a.name),
     ),
   );
+  const p = facts.progress;
+  add(
+    "instances",
+    p.instances.map((i) =>
+      named(
+        i.name,
+        i.minutes !== null
+          ? t("facts.minutes", { name: i.name, count: i.minutes })
+          : i.name,
+      ),
+    ),
+  );
+  add(
+    "spells",
+    p.spells.map((s) => named(s)),
+  );
+  add(
+    "collected",
+    p.collected.map((c) => named(c)),
+  );
+  add(
+    "reputation",
+    p.reputations.map((r) => named(r.faction, t("facts.standing", r))),
+  );
+  add(
+    "gear",
+    p.gear.map((g) =>
+      named(g.name, g.level !== null ? t("facts.itemLevel", g) : g.name),
+    ),
+  );
+  add("travel", [
+    ...(p.bound ? [plain(t("facts.bound", { place: p.bound }))] : []),
+    ...p.flightPaths.map((f) => plain(t("facts.flightPath", { place: f }))),
+  ]);
+  add(
+    "duels",
+    p.duels.map((d) =>
+      plain(
+        t(d.won ? "facts.duelWon" : "facts.duelLost", {
+          who: d.opponent ?? t("facts.someone"),
+        }),
+      ),
+    ),
+  );
   // Other players: their names are theirs, not something to look up.
   add(
     "companions",

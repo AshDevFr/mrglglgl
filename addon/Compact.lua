@@ -20,6 +20,8 @@ local KEPT_KINDS = {
 	session_start = true, session_end = true, level = true, death = true, boss = true,
 	discover = true, quest_accept = true, quest_turnin = true, screenshot = true, group_join = true,
 	auction = true, achievement = true,
+	spell = true, mount = true, pet = true, rep = true, gear = true, bind = true, flight_path = true,
+	duel = true, instance = true,
 }
 
 -- Day keys sort as strings, so a day is older than the cutoff when its key sorts before it.

@@ -29,6 +29,7 @@ Professions.lua
 Money.lua
 Chat.lua
 Achievements.lua
+Progress.lua
 Group.lua
 Digest.lua
 Compact.lua

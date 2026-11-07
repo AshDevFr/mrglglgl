@@ -24,6 +24,13 @@ local STATUS = {
 	end },
 	{ "group", function(c) return L.STATUS_GROUP:format(c.group) end },
 	{ "achievements", function(c) return L.STATUS_ACHIEVEMENTS:format(c.achievements) end },
+	{ "spells", function(c) return L.STATUS_SPELLS:format(c.spells) end },
+	{ "collections", function(c) return L.STATUS_COLLECTIONS:format(c.collections) end },
+	{ "reputation", function(c) return L.STATUS_REPUTATION:format(c.reputation) end },
+	{ "gear", function(c) return L.STATUS_GEAR:format(c.gear) end },
+	{ "travel", function(c) return L.STATUS_TRAVEL:format(c.travel) end },
+	{ "dungeons", function(c) return L.STATUS_DUNGEONS:format(c.instances) end },
+	{ "duels", function(c) return L.STATUS_DUELS:format(c.duels) end },
 	{ "chat", function(c) return L.STATUS_CHAT:format(c.chat) end },
 }
 

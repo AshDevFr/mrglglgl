@@ -158,7 +158,19 @@
       "won": "Remporté {{list}} à l'hôtel des ventes."
     },
     "challenges_one": "Accompli le défi Legacy {{list}}.",
-    "challenges_other": "Accompli les défis Legacy {{list}}."
+    "challenges_other": "Accompli les défis Legacy {{list}}.",
+    "ran": "Exploré {{list}}.",
+    "collected": "Ajouté {{list}} à la collection.",
+    "became": "Devenu {{standing}} auprès de {{faction}}.",
+    "gear": "Équipé un meilleur {{list}}.",
+    "learned": "Appris {{list}}.",
+    "bound": "Lié la pierre de foyer à {{place}}.",
+    "flightPaths_one": "Découvert le trajet aérien de {{list}}.",
+    "flightPaths_other": "Découvert les trajets aériens de {{list}}.",
+    "duelsWon_one": "Gagné un duel.",
+    "duelsWon_other": "Gagné {{count}} duels.",
+    "duelsLost_one": "Perdu un duel.",
+    "duelsLost_other": "Perdu {{count}} duels."
   },
   "photo": {
     "alt": "Capture d'écran : {{moment}}",
@@ -959,7 +971,23 @@
       "officer": "Officier",
       "whisper": "Chuchoter"
     },
-    "achievements": "Défis Legacy"
+    "achievements": "Défis Legacy",
+    "instances": "Donjons et raids",
+    "spells": "Appris",
+    "collected": "Collection",
+    "reputation": "Réputation",
+    "gear": "Équipement",
+    "travel": "Voyages",
+    "duels": "Duels",
+    "minutes_one": "{{name}} ({{count}} minute)",
+    "minutes_other": "{{name}} ({{count}} minutes)",
+    "standing": "{{standing}} auprès de {{faction}}",
+    "itemLevel": "{{name}} (niveau d'objet {{level}})",
+    "bound": "Pierre de foyer liée à {{place}}",
+    "flightPath": "Trajet aérien à {{place}}",
+    "duelWon": "Victoire contre {{who}}",
+    "duelLost": "Défaite contre {{who}}",
+    "someone": "quelqu'un"
   },
   "money": {
     "gold": "{{n}} po",
@@ -984,7 +1012,14 @@
       "money": "Argent et hôtel des ventes",
       "group": "Membres du groupe",
       "chat": "Discussion",
-      "achievements": "Défis Legacy"
+      "achievements": "Défis Legacy",
+      "spells": "Sorts appris",
+      "collections": "Montures et mascottes",
+      "reputation": "Réputation",
+      "gear": "Améliorations d'équipement",
+      "travel": "Pierre de foyer et trajets aériens",
+      "dungeons": "Donjons et raids",
+      "duels": "Duels"
     },
     "shared": "Narrateurs, site web et exports",
     "view": "Ce qui s'est passé"

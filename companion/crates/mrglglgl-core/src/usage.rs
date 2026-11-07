@@ -26,7 +26,14 @@ pub const CATEGORIES: &[&str] = &[
     "loot",
     "money",
     "achievements",
+    "spells",
+    "collections",
+    "reputation",
+    "gear",
+    "travel",
+    "dungeons",
     "group",
+    "duels",
     "chat",
 ];
 
@@ -65,6 +72,13 @@ fn category(kind: &EventKind) -> Option<&'static str> {
         EventKind::GroupJoin { .. } => "group",
         EventKind::Auction { .. } => "money",
         EventKind::Achievement { .. } => "achievements",
+        EventKind::Spell { .. } => "spells",
+        EventKind::Mount { .. } | EventKind::Pet { .. } => "collections",
+        EventKind::Reputation { .. } => "reputation",
+        EventKind::Gear { .. } => "gear",
+        EventKind::Bind { .. } | EventKind::FlightPath { .. } => "travel",
+        EventKind::Duel { .. } => "duels",
+        EventKind::Instance { .. } => "dungeons",
         EventKind::Screenshot { .. } | EventKind::Unknown { .. } => return None,
     })
 }
@@ -211,6 +225,19 @@ fn strip_digest(d: &mut Digest, off: &dyn Fn(&str) -> bool) {
     }
     if off("chat") {
         c.chat = 0;
+    }
+    for (category, count) in [
+        ("spells", &mut c.spells),
+        ("collections", &mut c.collections),
+        ("reputation", &mut c.reputation),
+        ("gear", &mut c.gear),
+        ("travel", &mut c.travel),
+        ("duels", &mut c.duels),
+        ("dungeons", &mut c.instances),
+    ] {
+        if off(category) {
+            *count = 0;
+        }
     }
     if off("achievements") {
         c.achievements = 0;

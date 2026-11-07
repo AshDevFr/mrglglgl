@@ -45,6 +45,13 @@ Keys are short because SavedVariables size counts. Types: `int` and `number` are
 | `settings.record.professions` | bool | Record profession skill-ups, crafting and gathering |
 | `settings.record.money` | bool | Record the balance at each session's start and end, money earned and spent by source, and auction house events |
 | `settings.record.achievements` | bool | Record achievements completed; on Forever these are the Legacy Challenges |
+| `settings.record.spells` | bool | Record spells and abilities learned |
+| `settings.record.collections` | bool | Record mounts and companion pets added |
+| `settings.record.reputation` | bool | Record reputation standings that rise |
+| `settings.record.gear` | bool | Record gear upgrades |
+| `settings.record.travel` | bool | Record where the hearthstone is set and new flight paths |
+| `settings.record.dungeons` | bool | Record dungeon and raid runs |
+| `settings.record.duels` | bool | Record duels won and lost, with the opponent's name |
 | `settings.record.chat` | bool | Record chat lines in the channels chosen under `settings.chat`; off by default |
 | `settings.chat.say`, `settings.chat.emote`, `settings.chat.yell`, `settings.chat.party`, `settings.chat.raid`, `settings.chat.guild`, `settings.chat.officer`, `settings.chat.whisper`, `settings.chat.channel` | bool | Record the player's own lines in that channel while chat is on; `say`, `emote` and `yell` default to `true`, the rest to `false` |
 | `settings.chat.sayOthers`, `settings.chat.emoteOthers`, `settings.chat.yellOthers`, `settings.chat.partyOthers`, `settings.chat.raidOthers`, `settings.chat.guildOthers`, `settings.chat.officerOthers`, `settings.chat.whisperOthers`, `settings.chat.channelOthers` | bool | Record other players' lines in that channel while chat is on; all default to `false` |
@@ -93,7 +100,7 @@ A day is a local calendar date. Each event belongs to the day of its own timesta
 
 | Field | Type | Meaning |
 |---|---|---|
-| `ev` | array? | Raw events in time order; once compacted, only the key moments (sessions, levels, deaths, bosses, discoveries, quests taken and handed in, screenshots, group joins, auction events, achievements), absent if there were none |
+| `ev` | array? | Raw events in time order; once compacted, only the key moments (sessions, levels, deaths, bosses, discoveries, quests taken and handed in, screenshots, group joins, auction events, achievements, and the progress events: spells, mounts, pets, reputation, gear, hearthstone, flight paths, duels and instances), absent if there were none |
 | `c` | bool? | `true` once the day is compacted: `ev` holds only key moments and `digest` is what the whole day was |
 | `kills` | table? | Kill aggregates keyed by NPC ID |
 | `anonKills` | int? | Kills whose target the client withheld (dungeons, raids, encounters, PvP) |
@@ -135,6 +142,15 @@ Event kinds and their extra fields:
 | `loot` | `item` int, `name` string, `ql` int, `qty` int?, `src` string? | An item at or above `settings.lootQuality`; `qty` is absent when read from the loot window rather than the loot message. `src = "window"` marks an item only seen in a loot window, which in a group may have gone to someone else; absent when the character received it |
 | `group_join` | `who` string | Grouped with `who` (`"Firstname-Surname"`) for the first time that day; see `companions[who]` |
 | `achievement` | `ach` int, `name` string?, `cat` string?, `pts` int? | Completed achievement `ach` (on Forever, a Legacy Challenge, worth 0 points), with its category, e.g. "Kalimdor". One another character on the account earned first is not recorded |
+| `spell` | `spell` int, `name` string? | Learned a spell or ability (druid forms are spells) |
+| `mount` | `name` string? | Added a mount |
+| `pet` | `name` string? | Added a companion pet |
+| `rep` | `faction` string, `standing` string | A reputation standing rose, e.g. to `"Friendly"` (the client's own label) |
+| `gear` | `item` int?, `name` string, `slot` int, `ilvl` int, `ql` int? | Put on an item with a higher item level than the slot held before |
+| `bind` | `area` string? | Set the hearthstone here |
+| `flight_path` | `area` string? | Learned a new flight path here |
+| `duel` | `won` bool, `who` string? | A duel won or lost; `who` is the opponent |
+| `instance` | `act` string, `name` string?, `kind` string, `dur` int? | Entered (`act = "enter"`) or left (`"leave"`) a dungeon (`kind = "party"`) or raid (`"raid"`); `dur` is the seconds spent inside, on leaving |
 | `auction` | `act` string, `name` string? | At the auction house: `act` is `"listed"`, `"sold"`, `"won"`, `"outbid"`, `"expired"` or `"cancelled"`; `name` is the item, absent for `"listed"` (the client's message does not name it) |
 | `screenshot` | `moment` string | The addon took a screenshot: `"levelUp"`, `"death"`, `"bossKill"`, `"firstBoot"`, `"firstMurlocKill"` or `"firstDeathByMurloc"`. The file is `_forever_/Screenshots/WoWScrnShot_MMDDYY_HHMMSS.jpg` taken about a second after `t` |
 
@@ -205,7 +221,7 @@ lists hold the highlights: `kills` the 10 most killed, `deaths` 5, `loot`, `fish
 | Field | Type | Meaning |
 |---|---|---|
 | `v` | int | Digest version. Days rebuilt from raw events get the current version; compacted days keep theirs |
-| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered`, `moneyIn`, `moneyOut` (copper), `auctions`, `chat` (lines), `achievements` |
+| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered`, `moneyIn`, `moneyOut` (copper), `auctions`, `chat` (lines), `achievements`, `spells`, `collections`, `reputation`, `gear`, `travel`, `duels`, `instances` (dungeons and raids entered) |
 | `levelFrom`, `levelTo` | int? | Lowest and highest level seen that day |
 | `zones` | array | Zones in the order first seen |
 | `subzones` | array | Subzones in the order first seen |

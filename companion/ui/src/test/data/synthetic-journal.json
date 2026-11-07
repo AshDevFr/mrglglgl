@@ -118,7 +118,14 @@
           "moneyOut": 0,
           "auctions": 0,
           "chat": 0,
-          "achievements": 0
+          "achievements": 0,
+          "spells": 0,
+          "collections": 0,
+          "reputation": 0,
+          "gear": 0,
+          "travel": 0,
+          "duels": 0,
+          "instances": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -514,7 +521,14 @@
           "moneyOut": 223,
           "auctions": 1,
           "chat": 3,
-          "achievements": 1
+          "achievements": 1,
+          "spells": 0,
+          "collections": 0,
+          "reputation": 0,
+          "gear": 0,
+          "travel": 0,
+          "duels": 0,
+          "instances": 0
         },
         "levelFrom": 5,
         "levelTo": 6,
@@ -756,7 +770,14 @@
           "moneyOut": 0,
           "auctions": 0,
           "chat": 0,
-          "achievements": 0
+          "achievements": 0,
+          "spells": 0,
+          "collections": 0,
+          "reputation": 0,
+          "gear": 0,
+          "travel": 0,
+          "duels": 0,
+          "instances": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -860,7 +881,14 @@
           "moneyOut": 0,
           "auctions": 0,
           "chat": 0,
-          "achievements": 0
+          "achievements": 0,
+          "spells": 0,
+          "collections": 0,
+          "reputation": 0,
+          "gear": 0,
+          "travel": 0,
+          "duels": 0,
+          "instances": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -891,6 +919,218 @@
         "balEnd": 4394,
         "onlyFished": false,
         "nothingHappened": true,
+        "thin": false
+      },
+      "compacted": false
+    },
+    "2026-11-11": {
+      "events": [
+        {
+          "time": 1794423600,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": 4394,
+          "kind": {
+            "kind": "sessionStart"
+          }
+        },
+        {
+          "time": 1794423600,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": null,
+          "kind": {
+            "kind": "spell",
+            "spellId": 768,
+            "name": "Cat Form"
+          }
+        },
+        {
+          "time": 1794423600,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": null,
+          "kind": {
+            "kind": "reputation",
+            "faction": "Thunder Bluff",
+            "standing": "Friendly"
+          }
+        },
+        {
+          "time": 1794423600,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": null,
+          "kind": {
+            "kind": "gear",
+            "itemId": 2208,
+            "name": "Poniard",
+            "slot": 16,
+            "itemLevel": 12,
+            "quality": 2
+          }
+        },
+        {
+          "time": 1794423600,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": null,
+          "kind": {
+            "kind": "bind",
+            "area": "Bloodhoof Village"
+          }
+        },
+        {
+          "time": 1794423600,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": null,
+          "kind": {
+            "kind": "flightPath",
+            "area": "Bloodhoof Village"
+          }
+        },
+        {
+          "time": 1794423600,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": null,
+          "kind": {
+            "kind": "duel",
+            "won": true,
+            "opponent": "Tamsin"
+          }
+        },
+        {
+          "time": 1794423600,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": null,
+          "kind": {
+            "kind": "instance",
+            "act": "enter",
+            "name": "Wailing Caverns",
+            "instanceKind": "party",
+            "duration": null
+          }
+        },
+        {
+          "time": 1794424800,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": null,
+          "kind": {
+            "kind": "instance",
+            "act": "leave",
+            "name": "Wailing Caverns",
+            "instanceKind": "party",
+            "duration": 1200
+          }
+        },
+        {
+          "time": 1794424860,
+          "zone": "Mulgore",
+          "subzone": "Bloodhoof Village",
+          "mapId": 7,
+          "level": 5,
+          "balance": 4394,
+          "kind": {
+            "kind": "sessionEnd"
+          }
+        }
+      ],
+      "kills": {},
+      "anonKills": 0,
+      "skills": {},
+      "crafted": {},
+      "gathered": {},
+      "money": {
+        "inc": {},
+        "out": {}
+      },
+      "chat": [],
+      "digest": {
+        "version": 2,
+        "counts": {
+          "sessions": 1,
+          "levels": 0,
+          "accepted": 0,
+          "turnedIn": 0,
+          "deaths": 0,
+          "fish": 0,
+          "junk": 0,
+          "boots": 0,
+          "loot": 0,
+          "discoveries": 0,
+          "bosses": 0,
+          "group": 0,
+          "screenshots": 0,
+          "kills": 0,
+          "murlocs": 0,
+          "anonKills": 0,
+          "skillUps": 0,
+          "crafted": 0,
+          "gathered": 0,
+          "moneyIn": 0,
+          "moneyOut": 0,
+          "auctions": 0,
+          "chat": 0,
+          "achievements": 0,
+          "spells": 1,
+          "collections": 0,
+          "reputation": 1,
+          "gear": 1,
+          "travel": 2,
+          "duels": 1,
+          "instances": 1
+        },
+        "levelFrom": 5,
+        "levelTo": 5,
+        "zones": [
+          "Mulgore"
+        ],
+        "subzones": [],
+        "discovered": [],
+        "accepted": [],
+        "turnedIn": [],
+        "deaths": [],
+        "kills": [],
+        "notableKills": [],
+        "fish": [],
+        "loot": [],
+        "companions": [],
+        "bosses": [],
+        "skills": [],
+        "crafted": [],
+        "gathered": [],
+        "money": {
+          "inc": {},
+          "out": {}
+        },
+        "auctions": [],
+        "achievements": [],
+        "balStart": 4394,
+        "balEnd": 4394,
+        "onlyFished": false,
+        "nothingHappened": false,
         "thin": false
       },
       "compacted": false
@@ -928,7 +1168,7 @@
     "version": "1.2.3",
     "build": "70790",
     "interface": 16001,
-    "login": 1794344400
+    "login": 1794423600
   },
   "errors": null
 }

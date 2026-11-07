@@ -115,6 +115,7 @@ describe("dayFacts", () => {
 
   it("lists days newest first", () => {
     expect(daysNewestFirst(syntheticJournal)).toEqual([
+      "2026-11-11",
       "2026-11-10",
       "2026-11-09",
       "2026-11-08",

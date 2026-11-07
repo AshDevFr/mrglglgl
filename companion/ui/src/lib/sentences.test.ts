@@ -42,6 +42,16 @@ function facts(overrides: Partial<DayFacts>): DayFacts {
     },
     chat: [],
     achievements: [],
+    progress: {
+      spells: [],
+      collected: [],
+      reputations: [],
+      gear: [],
+      bound: null,
+      flightPaths: [],
+      duels: [],
+      instances: [],
+    },
     screenshots: 0,
     onlyFished: false,
     nothingHappened: false,
@@ -479,5 +489,23 @@ describe("Legacy Challenges", () => {
     expect(told).toContain(
       'Completed the Legacy Challenge "Explore Moonglade".',
     );
+  });
+});
+
+describe("progress", () => {
+  it("tells how the character grew, counting duels without naming opponents", () => {
+    const day = syntheticJournal.days["2026-11-11"];
+    const told = daySentences(dayFacts(syntheticJournal, day), i18n.t, "en");
+    for (const line of [
+      "Ran Wailing Caverns.",
+      "Became Friendly with Thunder Bluff.",
+      "Put on a better Poniard.",
+      "Learned Cat Form.",
+      "Set the hearthstone at Bloodhoof Village.",
+      "Learned the flight path at Bloodhoof Village.",
+      "Won a duel.",
+    ])
+      expect(told).toContain(line);
+    expect(told.join(" ")).not.toContain("Tamsin");
   });
 });

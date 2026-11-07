@@ -226,6 +226,114 @@ function Compat.GetAchievement(id)
 	return { name = name, points = points, category = type(category) == "string" and category or nil }
 end
 
+-- A spell's name by ID: C_Spell on newer clients, GetSpellInfo on older ones.
+function Compat.GetSpellName(id)
+	if _G.C_Spell and type(_G.C_Spell.GetSpellName) == "function" then
+		return _G.C_Spell.GetSpellName(id)
+	end
+	if type(_G.GetSpellInfo) == "function" then
+		return (_G.GetSpellInfo(id))
+	end
+	return nil
+end
+
+-- Every faction the character knows, as { [name] = standingID }, headers left out. Both the
+-- C_Reputation API and the older GetFactionInfo are tried.
+function Compat.GetStandings()
+	local standings = {}
+	local rep = _G.C_Reputation
+	if rep and type(rep.GetNumFactions) == "function" and type(rep.GetFactionDataByIndex) == "function" then
+		for i = 1, rep.GetNumFactions() do
+			local data = rep.GetFactionDataByIndex(i)
+			if data and not data.isHeader and data.name then
+				standings[data.name] = data.reaction
+			end
+		end
+	elseif type(_G.GetNumFactions) == "function" and type(_G.GetFactionInfo) == "function" then
+		for i = 1, _G.GetNumFactions() do
+			local name, _, standingId, _, _, _, _, _, isHeader = _G.GetFactionInfo(i)
+			if name and not isHeader then
+				standings[name] = standingId
+			end
+		end
+	end
+	return standings
+end
+
+-- "Friendly", "Honored"... for a standing ID, in the client's language.
+function Compat.StandingName(standingId)
+	return _G["FACTION_STANDING_LABEL" .. tostring(standingId)]
+end
+
+-- An equipped item: its link, item level and quality, or nil while the slot is empty or the item
+-- is not cached yet.
+function Compat.GetEquipped(slot)
+	if type(_G.GetInventoryItemLink) ~= "function" then
+		return nil
+	end
+	local link = _G.GetInventoryItemLink("player", slot)
+	if not link then
+		return nil
+	end
+	local level
+	if _G.C_Item and type(_G.C_Item.GetDetailedItemLevelInfo) == "function" then
+		level = _G.C_Item.GetDetailedItemLevelInfo(link)
+	elseif type(_G.GetDetailedItemLevelInfo) == "function" then
+		level = _G.GetDetailedItemLevelInfo(link)
+	end
+	local name, quality = Compat.GetItemNameAndQuality(link)
+	if not level or not name then
+		return nil
+	end
+	return { link = link, item = Compat.ItemIdFromLink(link), name = name, quality = quality, level = level }
+end
+
+-- The instance the player is in, as { name, kind = "party" | "raid" }, or nil outside one.
+function Compat.GetInstance()
+	if type(_G.IsInInstance) ~= "function" then
+		return nil
+	end
+	local inside, kind = _G.IsInInstance()
+	if not inside or (kind ~= "party" and kind ~= "raid") then
+		return nil
+	end
+	local name = type(_G.GetInstanceInfo) == "function" and _G.GetInstanceInfo() or nil
+	return { name = name, kind = kind }
+end
+
+-- A duel's result from its system message: winner and loser, or nil. The client's strings use
+-- numbered placeholders ("%1$s has defeated %2$s in a duel"), so each is matched by position.
+function Compat.ParseDuelMessage(text)
+	if type(text) ~= "string" or Compat.IsSecret(text) then
+		return nil
+	end
+	for _, name in ipairs({ "DUEL_WINNER_KNOCKOUT", "DUEL_WINNER_RETREAT" }) do
+		local format = _G[name]
+		if type(format) == "string" then
+			local order = {}
+			local escaped = format:gsub("[%^%$%(%)%.%[%]%*%+%-%?]", "%%%0")
+			local pattern = "^" .. escaped:gsub("%%(%d)%%%$s", function(n)
+				order[#order + 1] = tonumber(n)
+				return "(.-)"
+			end) .. "$"
+			local captures = { text:match(pattern) }
+			if #captures == #order and #order == 2 then
+				local byNumber = {}
+				for i, n in ipairs(order) do
+					byNumber[n] = captures[i]
+				end
+				return { winner = byNumber[1], loser = byNumber[2] }
+			end
+		end
+	end
+	return nil
+end
+
+-- True for the client's "New flight path discovered!" message.
+function Compat.IsNewFlightPathMessage(text)
+	return type(text) == "string" and _G.ERR_NEWTAXIPATH ~= nil and text == _G.ERR_NEWTAXIPATH
+end
+
 -- The auction house's chat messages, by what happened. Looked up by name: a message missing on
 -- this client is skipped.
 local AUCTION_MESSAGES = {

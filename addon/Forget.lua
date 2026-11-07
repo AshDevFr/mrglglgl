@@ -57,6 +57,13 @@ local CATEGORIES = {
 	},
 	chat = { raw = { "chat" }, counts = { "chat" } },
 	achievements = { kinds = { achievement = true }, counts = { "achievements" }, lists = { "achievements" } },
+	spells = { kinds = { spell = true }, counts = { "spells" } },
+	collections = { kinds = { mount = true, pet = true }, counts = { "collections" } },
+	reputation = { kinds = { rep = true }, counts = { "reputation" } },
+	gear = { kinds = { gear = true }, counts = { "gear" } },
+	travel = { kinds = { bind = true, flight_path = true }, counts = { "travel" } },
+	duels = { kinds = { duel = true }, counts = { "duels" } },
+	dungeons = { kinds = { instance = true }, counts = { "instances" } },
 	group = {
 		kinds = { group_join = true }, counts = { "group" }, lists = { "companions" },
 		journal = function(journal) journal.companions = {} end,

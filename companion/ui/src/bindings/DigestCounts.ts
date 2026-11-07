@@ -16,4 +16,16 @@ moneyIn: number, moneyOut: number, auctions: number,
 /**
  * Chat lines recorded.
  */
-chat: number, achievements: number, };
+chat: number, achievements: number, spells: number, 
+/**
+ * Mounts and pets added.
+ */
+collections: number, reputation: number, gear: number, 
+/**
+ * Hearthstone set and flight paths learned.
+ */
+travel: number, duels: number, 
+/**
+ * Dungeons and raids entered.
+ */
+instances: number, };

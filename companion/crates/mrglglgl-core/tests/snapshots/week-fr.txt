@@ -1,5 +1,5 @@
 meddling: true
-hash: 9761a9f761e5b8791e80f49e36b330c41caeb4e5a7a1ad29357dd3538548d332
+hash: 1ddb4d1f135cef8cd64963cb772797994e40912b84f33b3c40fdaef2fa36c7c2
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as one short journal entry, in the first person, as the adventurer.
@@ -32,6 +32,15 @@ The plains were quiet and the wolves were not.
 2026-11-10:
 - Spent the day in Mulgore
 - Earned the milestone "Nothing to Report"
+
+2026-11-11:
+- Spent the day in Mulgore
+- Set the hearthstone at Bloodhoof Village and learned the flight path at Bloodhoof Village
+- Ran Wailing Caverns (20 minutes)
+- Put on a better Poniard
+- Won a duel
+- Became Friendly with Thunder Bluff
+- Learned Cat Form
 
 Patterns of the week: only fished, nothing happened
 

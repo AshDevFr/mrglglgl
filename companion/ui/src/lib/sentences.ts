@@ -189,6 +189,31 @@ export function daySentences(
   if (sold.length > 0)
     sentences.push(t("page.money.sold", { list: list(sold) }));
   if (won.length > 0) sentences.push(t("page.money.won", { list: list(won) }));
+  const p = facts.progress;
+  if (p.instances.length > 0)
+    sentences.push(
+      t("page.ran", { list: list(p.instances.map((i) => i.name)) }),
+    );
+  if (p.collected.length > 0)
+    sentences.push(t("page.collected", { list: list(p.collected) }));
+  for (const r of p.reputations) sentences.push(t("page.became", r));
+  if (p.gear.length > 0)
+    sentences.push(t("page.gear", { list: list(p.gear.map((g) => g.name)) }));
+  if (p.spells.length > 0)
+    sentences.push(t("page.learned", { list: list(p.spells) }));
+  if (p.bound) sentences.push(t("page.bound", { place: p.bound }));
+  if (p.flightPaths.length > 0)
+    sentences.push(
+      t("page.flightPaths", {
+        count: p.flightPaths.length,
+        list: list(p.flightPaths),
+      }),
+    );
+  // Opponents are other players: counted, never named, here or anywhere shared.
+  const duelsWon = p.duels.filter((d) => d.won).length;
+  const duelsLost = p.duels.length - duelsWon;
+  if (duelsWon > 0) sentences.push(t("page.duelsWon", { count: duelsWon }));
+  if (duelsLost > 0) sentences.push(t("page.duelsLost", { count: duelsLost }));
   if (facts.achievements.length > 0) {
     sentences.push(
       t("page.challenges", {

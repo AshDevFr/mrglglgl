@@ -65,7 +65,8 @@ function Digest.build(day)
 		loot = 0, discoveries = 0, bosses = 0, group = 0, screenshots = 0,
 		kills = 0, murlocs = 0, anonKills = day.anonKills or 0, skillUps = 0, crafted = 0, gathered = 0,
 		moneyIn = 0, moneyOut = 0, auctions = 0, chat = day.chat and #day.chat or 0,
-		achievements = 0,
+		achievements = 0, spells = 0, collections = 0, reputation = 0, gear = 0, travel = 0, duels = 0,
+		instances = 0,
 	}
 	local digest = {
 		v = Digest.VERSION, counts = counts,
@@ -132,6 +133,20 @@ function Digest.build(day)
 		elseif k == "auction" then
 			counts.auctions = counts.auctions + 1
 			push(digest.auctions, { act = e.act, name = e.name }, RECORD_CAPS.auctions)
+		elseif k == "spell" then
+			counts.spells = counts.spells + 1
+		elseif k == "mount" or k == "pet" then
+			counts.collections = counts.collections + 1
+		elseif k == "rep" then
+			counts.reputation = counts.reputation + 1
+		elseif k == "gear" then
+			counts.gear = counts.gear + 1
+		elseif k == "bind" or k == "flight_path" then
+			counts.travel = counts.travel + 1
+		elseif k == "duel" then
+			counts.duels = counts.duels + 1
+		elseif k == "instance" and e.act == "enter" then
+			counts.instances = counts.instances + 1
 		elseif k == "achievement" then
 			counts.achievements = counts.achievements + 1
 			push(digest.achievements, { ach = e.ach, name = e.name, cat = e.cat }, RECORD_CAPS.achievements)
@@ -203,6 +218,8 @@ function Digest.build(day)
 	digest.levelFrom, digest.levelTo = lowLevel, highLevel
 	local busy = counts.kills + counts.deaths + counts.accepted + counts.turnedIn + counts.loot
 		+ counts.levels + counts.discoveries + counts.bosses + counts.group + counts.achievements
+		+ counts.spells + counts.collections + counts.reputation + counts.gear + counts.travel + counts.duels
+		+ counts.instances
 		+ counts.skillUps + counts.crafted + counts.gathered + counts.chat
 	digest.onlyFished = counts.fish > 0 and counts.kills == 0 and counts.accepted == 0 and counts.turnedIn == 0
 		and counts.crafted == 0 and counts.gathered == 0

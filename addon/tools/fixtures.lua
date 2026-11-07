@@ -190,6 +190,31 @@ local function play()
 	-- Logged in, nothing happened.
 	session(saved, at(11, 10, 21), function() end)
 
+	-- Growing up: a spell, a reputation standing, a better blade than the worn one, a new home, a
+	-- flight path, a friendly duel and a short dungeon run.
+	Mock.items[2092] = { name = "Worn Dagger", quality = 1 }
+	Mock.itemLevels[2092] = 2
+	Mock.equipped[16] = "|cff9d9d9d|Hitem:2092::::::::6:::::|h[Worn Dagger]|h|r"
+	session(saved, at(11, 11, 19), function()
+		Mock.spells[768] = "Cat Form"
+		Mock.fire("LEARNED_SPELL_IN_SKILL_LINE", 768, 2)
+		_G.FACTION_STANDING_LABEL5 = "Friendly"
+		Mock.factions[1].reaction = 5
+		Mock.fire("UPDATE_FACTION")
+		Mock.items[2208] = { name = "Poniard", quality = 2 }
+		Mock.itemLevels[2208] = 12
+		Mock.equipped[16] = "|cff1eff00|Hitem:2208::::::::6:::::|h[Poniard]|h|r"
+		Mock.fire("PLAYER_EQUIPMENT_CHANGED", 16, true)
+		Mock.fire("PLAYER_BINDLOCATION_CHANGED")
+		Mock.fire("UI_INFO_MESSAGE", 0, "New flight path discovered!")
+		Mock.fire("CHAT_MSG_SYSTEM", "Wren has defeated Tamsin in a duel")
+		Mock.instance = "Wailing Caverns"
+		Mock.fire("PLAYER_ENTERING_WORLD", false, false)
+		Mock.advance(1200)
+		Mock.instance = nil
+		Mock.fire("PLAYER_ENTERING_WORLD", false, false)
+	end)
+
 	return saved
 end
 

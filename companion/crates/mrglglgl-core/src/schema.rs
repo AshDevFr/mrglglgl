@@ -311,6 +311,53 @@ pub enum EventKind {
     Screenshot {
         moment: Option<String>,
     },
+    /// A spell or ability learned; druid forms are spells.
+    Spell {
+        spell_id: Option<i64>,
+        name: Option<String>,
+    },
+    Mount {
+        name: Option<String>,
+    },
+    Pet {
+        name: Option<String>,
+    },
+    /// A reputation standing that rose.
+    Reputation {
+        faction: Option<String>,
+        /// The client's label, e.g. "Friendly".
+        standing: Option<String>,
+    },
+    /// An item put on with a higher item level than its slot held.
+    Gear {
+        item_id: Option<i64>,
+        name: Option<String>,
+        slot: Option<i64>,
+        item_level: Option<i64>,
+        quality: Option<i64>,
+    },
+    /// The hearthstone set here.
+    Bind {
+        area: Option<String>,
+    },
+    /// A new flight path learned here.
+    FlightPath {
+        area: Option<String>,
+    },
+    Duel {
+        won: Option<bool>,
+        /// Another player's name: theirs, kept out of what is shared.
+        opponent: Option<String>,
+    },
+    /// Entering (`act = "enter"`) or leaving (`"leave"`) a dungeon or raid.
+    Instance {
+        act: Option<String>,
+        name: Option<String>,
+        /// `"party"` or `"raid"`.
+        instance_kind: Option<String>,
+        /// Seconds inside, on leaving.
+        duration: Option<i64>,
+    },
     /// An achievement completed; on Forever, a Legacy Challenge.
     Achievement {
         achievement_id: Option<i64>,
@@ -448,6 +495,16 @@ pub struct DigestCounts {
     /// Chat lines recorded.
     pub chat: i64,
     pub achievements: i64,
+    pub spells: i64,
+    /// Mounts and pets added.
+    pub collections: i64,
+    pub reputation: i64,
+    pub gear: i64,
+    /// Hearthstone set and flight paths learned.
+    pub travel: i64,
+    pub duels: i64,
+    /// Dungeons and raids entered.
+    pub instances: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -673,6 +730,43 @@ fn event(t: &Table) -> Option<Event> {
         "screenshot" => EventKind::Screenshot {
             moment: string(t, "moment"),
         },
+        "spell" => EventKind::Spell {
+            spell_id: int(t, "spell"),
+            name: string(t, "name"),
+        },
+        "mount" => EventKind::Mount {
+            name: string(t, "name"),
+        },
+        "pet" => EventKind::Pet {
+            name: string(t, "name"),
+        },
+        "rep" => EventKind::Reputation {
+            faction: string(t, "faction"),
+            standing: string(t, "standing"),
+        },
+        "gear" => EventKind::Gear {
+            item_id: int(t, "item"),
+            name: string(t, "name"),
+            slot: int(t, "slot"),
+            item_level: int(t, "ilvl"),
+            quality: int(t, "ql"),
+        },
+        "bind" => EventKind::Bind {
+            area: string(t, "area"),
+        },
+        "flight_path" => EventKind::FlightPath {
+            area: string(t, "area"),
+        },
+        "duel" => EventKind::Duel {
+            won: boolean(t, "won"),
+            opponent: string(t, "who"),
+        },
+        "instance" => EventKind::Instance {
+            act: string(t, "act"),
+            name: string(t, "name"),
+            instance_kind: string(t, "kind"),
+            duration: int(t, "dur"),
+        },
         "achievement" => EventKind::Achievement {
             achievement_id: int(t, "ach"),
             name: string(t, "name"),
@@ -745,6 +839,13 @@ fn digest(t: &Table) -> Digest {
             auctions: count("auctions"),
             chat: count("chat"),
             achievements: count("achievements"),
+            spells: count("spells"),
+            collections: count("collections"),
+            reputation: count("reputation"),
+            gear: count("gear"),
+            travel: count("travel"),
+            duels: count("duels"),
+            instances: count("instances"),
         },
         level_from: int(t, "levelFrom"),
         level_to: int(t, "levelTo"),

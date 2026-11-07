@@ -14,6 +14,8 @@ local DEFAULT_SETTINGS = {
 		sessions = true, levels = true, quests = true, questText = true, zones = true,
 		kills = true, deaths = true, fishing = true, loot = true, group = true, professions = true,
 		money = true, chat = false, achievements = true,
+		spells = true, collections = true, reputation = true, gear = true, travel = true, duels = true,
+		dungeons = true,
 	},
 	-- Chat channels, once chat is on: the player's own lines (`say`) and others' (`sayOthers`).
 	chat = {

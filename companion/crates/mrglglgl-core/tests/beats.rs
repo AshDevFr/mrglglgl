@@ -632,3 +632,35 @@ fn a_legacy_challenge_completed_is_told_by_name() {
         "{texts:?}"
     );
 }
+
+#[test]
+fn growing_up_is_told_without_other_players_names() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../fixtures/savedvariables/synthetic-character.lua");
+    let j = journal_from_text(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let all = Thresholds {
+        max_beats: 30,
+        ..Thresholds::default()
+    };
+    let texts = beats::extract(&j, "2026-11-11", &[], &all).texts();
+    for expected in [
+        "Learned Cat Form",
+        "Became Friendly with Thunder Bluff",
+        "Put on a better Poniard",
+        "Won a duel",
+        "Ran Wailing Caverns (20 minutes)",
+    ] {
+        assert!(
+            texts.iter().any(|t| t == expected),
+            "missing {expected}: {texts:?}"
+        );
+    }
+    let travel =
+        "Set the hearthstone at Bloodhoof Village and learned the flight path at Bloodhoof Village";
+    assert!(texts.iter().any(|t| t == travel), "{texts:?}");
+    assert!(
+        !texts
+            .iter()
+            .any(|t| t.contains("Tamsin") && t.contains("duel"))
+    );
+}
