@@ -22,6 +22,7 @@ import { displayName } from "@/lib/journal";
 import { useCharacterNav } from "@/lib/useCharacterNav";
 import { CharacterHeader } from "./CharacterHeader";
 import { type CharacterTab, CharacterTabs } from "./CharacterTabs";
+import { DataUseDialog } from "./DataUse";
 import { ExportDialog } from "./Sharing";
 
 /** The top of every character page, the same on each tab: name, level, place, boots and last
@@ -39,6 +40,7 @@ export function CharacterTop({
   const go = useCharacterNav(characterId);
   const [confirming, setConfirming] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [choosingData, setChoosingData] = useState(false);
 
   const characters = useQuery({
     queryKey: ["characters"],
@@ -102,6 +104,9 @@ export function CharacterTop({
                     : t("writing.pause")}
                 </Menu.Item>
               )}
+              <Menu.Item onClick={() => setChoosingData(true)}>
+                {t("dataUse.menu")}
+              </Menu.Item>
               <Menu.Divider />
               <Menu.Item color="red" onClick={() => setConfirming(true)}>
                 {t("character.remove")}
@@ -125,6 +130,11 @@ export function CharacterTop({
             params: { characterId: String(characterId) },
           })
         }
+      />
+      <DataUseDialog
+        characterId={characterId}
+        opened={choosingData}
+        onClose={() => setChoosingData(false)}
       />
       <Modal
         opened={confirming}

@@ -544,6 +544,13 @@ pub fn load(db: &Database, character_id: i64) -> Result<Option<Journal>, Archive
     Ok(load_checked(db, character_id)?.map(|loaded| loaded.journal))
 }
 
+/// The archived journal without the categories the player set aside for this character: what the
+/// app shows, tells a narrator, publishes and exports. Syncing and milestones use [`load`].
+pub fn load_in_use(db: &Database, character_id: i64) -> Result<Option<Journal>, ArchiveError> {
+    let unused = db.unused_data(character_id)?;
+    Ok(load(db, character_id)?.map(|j| crate::usage::strip(&j, &unused)))
+}
+
 /// What the addon last noted in a character's journal: its login heartbeat and the errors it
 /// caught. Reads the journal's record only, not its days.
 pub fn addon_notes(

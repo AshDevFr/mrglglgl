@@ -769,5 +769,25 @@
     "gold": "{{n}}g",
     "silver": "{{n}}s",
     "copper": "{{n}}c"
+  },
+  "dataUse": {
+    "menu": "Data used…",
+    "title": "Data the app uses for this character",
+    "body": "Everything the addon records is used. Turn a kind off and the app hides it here, never tells a narrator about it, and leaves it out of the website and exports, along with the milestones it earned. The app keeps it, so turning it back on brings it all back.",
+    "save": "Save",
+    "category": {
+      "sessions": "Sessions",
+      "levels": "Levels",
+      "quests": "Quests",
+      "zones": "Zones and discoveries",
+      "kills": "Kills and bosses",
+      "deaths": "Deaths",
+      "fishing": "Fishing",
+      "professions": "Professions",
+      "loot": "Notable loot",
+      "money": "Money and the auction house",
+      "group": "Group members",
+      "chat": "Chat"
+    }
   }
 }

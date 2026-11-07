@@ -151,7 +151,7 @@ pub fn today() -> String {
 
 /// Queues every finished, unwritten day and week of a character, and wakes the writer.
 pub fn enqueue(state: &AppState, db: &Database, character_id: i64) {
-    match mrglglgl_core::archive::load(db, character_id) {
+    match mrglglgl_core::archive::load_in_use(db, character_id) {
         Ok(Some(journal)) => {
             if let Err(e) = queue::enqueue_finished(db, character_id, &journal, &today()) {
                 tracing::warn!("queueing character {character_id}: {e}");

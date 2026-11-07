@@ -48,6 +48,18 @@ export function characterJournal(characterId: number): Promise<Journal | null> {
   return invoke<Journal | null>("character_journal", { characterId });
 }
 
+/** Recorded categories set aside for a character; empty when it uses everything. */
+export function characterUnusedData(characterId: number): Promise<string[]> {
+  return invoke<string[]>("character_unused_data", { characterId });
+}
+
+export function setCharacterUnusedData(
+  characterId: number,
+  unused: string[],
+): Promise<void> {
+  return invoke<void>("set_character_unused_data", { characterId, unused });
+}
+
 export function characterMilestones(characterId: number): Promise<Award[]> {
   return invoke<Award[]>("character_milestones", { characterId });
 }

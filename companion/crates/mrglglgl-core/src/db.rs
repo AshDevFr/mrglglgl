@@ -4,6 +4,7 @@
 //! The schema evolves through an ordered list of migrations recorded in `PRAGMA user_version`,
 //! one transaction each, so a crash mid-upgrade leaves the previous version intact.
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use rusqlite::{Connection, OptionalExtension, params};
@@ -178,6 +179,9 @@ const MIGRATIONS: &[&str] = &[
         format INTEGER NOT NULL,
         set_aside INTEGER NOT NULL
     );",
+    // Recorded categories the player set aside for a character, as a JSON list; none means the
+    // app uses everything. On the character's row so it goes with it.
+    "ALTER TABLE characters ADD COLUMN unused_data TEXT;",
 ];
 
 /// The schema version this build creates and understands.
@@ -616,6 +620,41 @@ impl Database {
     pub fn delete_character(&self, id: i64) -> Result<(), DbError> {
         self.conn
             .execute("DELETE FROM characters WHERE id = ?1", [id])?;
+        Ok(())
+    }
+
+    /// The recorded categories set aside for a character; empty when it uses everything. A list
+    /// that cannot be read sets every category aside, so nothing the player hid is shared, and
+    /// says so in the log; saving the setting again repairs it.
+    pub fn unused_data(&self, id: i64) -> Result<BTreeSet<String>, DbError> {
+        let json: Option<String> = self
+            .conn
+            .query_row(
+                "SELECT unused_data FROM characters WHERE id = ?1",
+                [id],
+                |row| row.get(0),
+            )
+            .optional()?
+            .flatten();
+        let Some(json) = json else {
+            return Ok(BTreeSet::new());
+        };
+        Ok(serde_json::from_str(&json).unwrap_or_else(|e| {
+            tracing::warn!("character {id}: the data it uses could not be read ({e}); using none");
+            crate::usage::CATEGORIES
+                .iter()
+                .map(|c| c.to_string())
+                .collect()
+        }))
+    }
+
+    pub fn set_unused_data(&self, id: i64, unused: &BTreeSet<String>) -> Result<(), DbError> {
+        let json = (!unused.is_empty())
+            .then(|| serde_json::to_string(unused).expect("a set of strings serializes"));
+        self.conn.execute(
+            "UPDATE characters SET unused_data = ?2 WHERE id = ?1",
+            params![id, json],
+        )?;
         Ok(())
     }
 

@@ -23,5 +23,6 @@ pub mod screenshots;
 pub mod site;
 pub mod stories;
 pub mod sv;
+pub mod usage;
 pub mod watch;
 pub mod writer;

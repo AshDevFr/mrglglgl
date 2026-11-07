@@ -9,7 +9,7 @@ use mrglglgl_core::addon_status::{self, CharacterRun, FlavorAddon};
 use mrglglgl_core::archive;
 use mrglglgl_core::db::{Settings, StoredCharacter};
 use mrglglgl_core::discovery::{self, DiscoveryOverrides, Flavor, WowRoot};
-use mrglglgl_core::milestones::{self, Award};
+use mrglglgl_core::milestones::Award;
 use mrglglgl_core::schema::Journal;
 use mrglglgl_core::screenshots::{self, Screenshot};
 use serde::Serialize;
@@ -51,7 +51,7 @@ pub fn list_characters(state: State<'_, AppState>) -> Result<Vec<CharacterSummar
         .map_err(|e| e.to_string())?
         .into_iter()
         .map(|character| {
-            let milestones = milestones::awards(&db, character.id)
+            let milestones = mrglglgl_core::usage::awards(&db, character.id)
                 .map_err(|e| e.to_string())?
                 .len() as u32;
             let to_review = mrglglgl_core::review::waiting(&db, character.id)
@@ -72,7 +72,37 @@ pub fn character_journal(
     character_id: i64,
 ) -> Result<Option<Journal>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    archive::load(&db, character_id).map_err(|e| e.to_string())
+    archive::load_in_use(&db, character_id).map_err(|e| e.to_string())
+}
+
+/// The recorded categories set aside for a character: hidden in the window, from narrators, the
+/// website and exports. Empty when it uses everything.
+#[tauri::command]
+pub fn character_unused_data(
+    state: State<'_, AppState>,
+    character_id: i64,
+) -> Result<Vec<String>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    Ok(db
+        .unused_data(character_id)
+        .map_err(|e| e.to_string())?
+        .into_iter()
+        .collect())
+}
+
+#[tauri::command]
+pub fn set_character_unused_data(
+    state: State<'_, AppState>,
+    character_id: i64,
+    unused: Vec<String>,
+) -> Result<(), String> {
+    let known: std::collections::BTreeSet<String> = unused
+        .into_iter()
+        .filter(|c| mrglglgl_core::usage::CATEGORIES.contains(&c.as_str()))
+        .collect();
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.set_unused_data(character_id, &known)
+        .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -81,7 +111,7 @@ pub fn character_milestones(
     character_id: i64,
 ) -> Result<Vec<Award>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    milestones::awards(&db, character_id).map_err(|e| e.to_string())
+    mrglglgl_core::usage::awards(&db, character_id).map_err(|e| e.to_string())
 }
 
 /// A character's screenshots, matched to the moments the addon took them, by day. Lets the

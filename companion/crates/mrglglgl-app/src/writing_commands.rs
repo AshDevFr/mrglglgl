@@ -6,7 +6,6 @@ use mrglglgl_core::archive;
 use mrglglgl_core::db::ProviderChoice;
 use mrglglgl_core::discovery::{self, DiscoveryOverrides};
 use mrglglgl_core::export;
-use mrglglgl_core::milestones;
 use mrglglgl_core::narrators::{self, Invalid, Narrator, NarratorError, NarratorInfo};
 use mrglglgl_core::queue::{self, Job, PreviewDay};
 use mrglglgl_core::review::{self, ReviewItem};
@@ -41,7 +40,7 @@ pub fn review_list(
     character_id: i64,
 ) -> Result<Vec<ReviewItem>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let Some(journal) = archive::load(&db, character_id).map_err(|e| e.to_string())? else {
+    let Some(journal) = archive::load_in_use(&db, character_id).map_err(|e| e.to_string())? else {
         return Ok(Vec::new());
     };
     review::items(&db, character_id, &journal, &writing::today()).map_err(|e| e.to_string())
@@ -765,11 +764,12 @@ pub fn export_character(
     let language = writing::prose_language(&settings);
     let (extension, content) = match format {
         ExportFormat::Markdown => {
-            let journal = archive::load(&db, character_id)
+            let journal = archive::load_in_use(&db, character_id)
                 .map_err(|e| e.to_string())?
                 .ok_or("this character has no journal yet")?;
             let stories = stories::accepted(&db, character_id).map_err(|e| e.to_string())?;
-            let awards = milestones::awards(&db, character_id).map_err(|e| e.to_string())?;
+            let awards =
+                mrglglgl_core::usage::awards(&db, character_id).map_err(|e| e.to_string())?;
             let input = export::ExportInput {
                 title: &title,
                 journal: &journal,

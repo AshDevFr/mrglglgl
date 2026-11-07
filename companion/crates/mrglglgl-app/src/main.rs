@@ -53,6 +53,8 @@ fn main() {
             commands::list_characters,
             commands::character_journal,
             commands::character_milestones,
+            commands::character_unused_data,
+            commands::set_character_unused_data,
             commands::character_screenshots,
             commands::get_settings,
             logging::show_log,

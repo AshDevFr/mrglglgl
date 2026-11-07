@@ -160,7 +160,8 @@ fn database_with_backup_count(dir: &std::path::Path, count: &str) {
         "DROP TABLE IF EXISTS continuity; DROP TABLE IF EXISTS stories;
          DROP TABLE IF EXISTS write_queue; DROP TABLE IF EXISTS archive_quarantine;
          ALTER TABLE archive_days DROP COLUMN format;
-         ALTER TABLE archive_journals DROP COLUMN format;",
+         ALTER TABLE archive_journals DROP COLUMN format;
+         ALTER TABLE characters DROP COLUMN unused_data;",
     )
     .unwrap();
     conn.pragma_update(None, "user_version", 2).unwrap();

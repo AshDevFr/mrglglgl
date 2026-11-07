@@ -20,6 +20,8 @@ const answers: Record<string, (args: Args) => unknown> = {
       : data.characters,
   character_journal: () => data.journal,
   character_milestones: () => data.awards,
+  character_unused_data: () => [],
+  set_character_unused_data: () => null,
   character_screenshots: () => ({}),
   character_stories: () => data.stories,
   review_list: () => [],

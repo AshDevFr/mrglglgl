@@ -30,7 +30,7 @@ pub fn site_stand_in_names(
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let mut names = BTreeSet::new();
     for id in character_ids {
-        if let Some(journal) = archive::load(&db, id).map_err(|e| e.to_string())? {
+        if let Some(journal) = archive::load_in_use(&db, id).map_err(|e| e.to_string())? {
             for day in journal.days.values() {
                 names.extend(DayRecord::of(day).companions);
             }
