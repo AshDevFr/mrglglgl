@@ -29,6 +29,7 @@ use crate::narrators;
 use crate::prompt::{self, DayRequest, WeekRequest};
 use crate::schema::Journal;
 use crate::stories::{self, NewStory, StoryKind, StoryStatus};
+use crate::usage::Audience;
 use crate::writer::{self, StreamEvent, WriteOptions, WriteResult};
 
 /// Attempts before a job is marked failed.
@@ -516,13 +517,13 @@ fn prepare(
 ) -> Result<Result<Prepared, String>, DbError> {
     let settings = db.settings()?.writing;
     // The narrator is told only what the player lets the app use for this character.
-    let journal = match archive::load_in_use(db, job.character_id) {
+    let journal = match archive::load_for(db, job.character_id, Audience::Shared) {
         Ok(Some(journal)) => journal,
         Ok(None) => return Ok(Err("the character's journal is gone".to_string())),
         Err(archive::ArchiveError::Db(e)) => return Err(e),
         Err(e) => return Ok(Err(format!("the journal could not be read: {e}"))),
     };
-    let unused = db.unused_data(job.character_id)?;
+    let unused = db.hidden(job.character_id, Audience::Shared)?;
     let awards =
         crate::usage::awards_in_use(milestones::awards(db, job.character_id)?, &journal, &unused);
     let jokes = continuity::load(db, job.character_id)?
@@ -717,7 +718,7 @@ pub async fn run_next(
                     partial: job.partial,
                 },
             )?;
-            let unused = db.unused_data(character_id)?;
+            let unused = db.hidden(character_id, Audience::Shared)?;
             let awards = crate::usage::awards_in_use(
                 milestones::awards(&db, character_id)?,
                 &prepared.journal,
@@ -783,7 +784,7 @@ pub fn sheet(
     character_id: i64,
     journal: &Journal,
 ) -> Result<ContinuitySheet, DbError> {
-    let unused = db.unused_data(character_id)?;
+    let unused = db.hidden(character_id, Audience::Shared)?;
     let awards =
         crate::usage::awards_in_use(milestones::awards(db, character_id)?, journal, &unused);
     let jokes = continuity::load(db, character_id)?
@@ -831,10 +832,11 @@ pub async fn preview(
             .unwrap_or_else(|| language_fallback.to_string());
         let (character_id, journal, date, awards, jokes) = match day {
             PreviewDay::Character { character_id, day } => {
-                let journal = archive::load_in_use(&db, *character_id)
+                let journal = archive::load_for(&db, *character_id, Audience::Shared)
                     .map_err(|e| e.to_string())?
                     .ok_or("this character has no journal yet")?;
-                let awards = crate::usage::awards(&db, *character_id).map_err(|e| e.to_string())?;
+                let awards = crate::usage::awards(&db, *character_id, Audience::Shared)
+                    .map_err(|e| e.to_string())?;
                 let jokes = continuity::load(&db, *character_id)
                     .map_err(|e| e.to_string())?
                     .map(|s| s.running_jokes)

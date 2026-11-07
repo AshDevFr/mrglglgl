@@ -2,8 +2,8 @@ import i18n from "i18next";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
-  characterJournal,
-  characterMilestones,
+  characterJournalShared,
+  characterMilestonesShared,
   characterScreenshots,
   characterStories,
   listCharacters,
@@ -137,9 +137,9 @@ export async function buildSiteData(
   for (const id of site.characters) {
     const summary = summaries.find((c) => c.character.id === id);
     const [journal, stories, awards, shots] = await Promise.all([
-      characterJournal(id),
+      characterJournalShared(id),
       characterStories(id),
-      characterMilestones(id),
+      characterMilestonesShared(id),
       characterScreenshots(id),
     ]);
     if (!summary || !journal) continue;

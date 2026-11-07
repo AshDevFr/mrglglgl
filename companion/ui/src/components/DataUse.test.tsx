@@ -7,25 +7,27 @@ import { DataUseDialog } from "./DataUse";
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 
 describe("DataUseDialog", () => {
-  it("shows every kind on except those set aside, and saves what is turned off", async () => {
+  it("has a switch for sharing and one for the window per kind, and saves both", async () => {
     const calls = vi.mocked(invoke);
     calls.mockImplementation(async (command) =>
-      command === "character_unused_data" ? ["chat"] : null,
+      command === "character_data_use" ? { shared: ["chat"], view: [] } : null,
     );
     renderWithProviders(
       <DataUseDialog characterId={3} opened onClose={() => {}} />,
     );
+    const box = (label: string) => screen.getByLabelText(label);
     await waitFor(() =>
-      expect(screen.getByLabelText("Chat")).not.toBeChecked(),
+      expect(box("Chat: Narrators, website and exports")).not.toBeChecked(),
     );
-    expect(screen.getByLabelText("Fishing")).toBeChecked();
-    fireEvent.click(screen.getByLabelText("Money and the auction house"));
-    fireEvent.click(screen.getByLabelText("Chat"));
+    expect(box("Chat: What happened")).toBeChecked();
+    fireEvent.click(box("Money and the auction house: What happened"));
+    fireEvent.click(box("Chat: Narrators, website and exports"));
+    fireEvent.click(box("Fishing: Narrators, website and exports"));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
-      expect(calls).toHaveBeenCalledWith("set_character_unused_data", {
+      expect(calls).toHaveBeenCalledWith("set_character_data_use", {
         characterId: 3,
-        unused: ["money"],
+        choice: { shared: ["fishing"], view: ["money"] },
       }),
     );
   });

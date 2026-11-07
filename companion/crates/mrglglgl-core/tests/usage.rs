@@ -7,7 +7,7 @@ use mrglglgl_core::db::Database;
 use mrglglgl_core::discovery::CharacterSource;
 use mrglglgl_core::milestones;
 use mrglglgl_core::schema::{self, EventKind, Journal};
-use mrglglgl_core::usage;
+use mrglglgl_core::usage::{self, Audience, DataUse};
 
 fn synthetic() -> Journal {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -83,31 +83,54 @@ fn the_narrator_never_hears_of_set_aside_data() {
     );
 }
 
+fn shared_only(items: &[&str]) -> DataUse {
+    DataUse {
+        shared: set(items),
+        view: BTreeSet::new(),
+    }
+}
+
 #[test]
 fn milestones_from_set_aside_data_are_hidden_and_come_back() {
     let (db, id, journal) = stored();
     let all = milestones::compute(&journal);
     assert!(all.iter().any(|a| a.id == "kept_the_boot"), "{all:?}");
-    db.set_unused_data(id, &set(&["fishing"])).unwrap();
-    let hidden = usage::awards(&db, id).unwrap();
+    db.set_data_use(id, &shared_only(&["fishing"])).unwrap();
+    let hidden = usage::awards(&db, id, Audience::Shared).unwrap();
     assert!(!hidden.iter().any(|a| a.id == "kept_the_boot"));
     assert!(hidden.len() < all.len());
-    db.set_unused_data(id, &BTreeSet::new()).unwrap();
-    assert_eq!(usage::awards(&db, id).unwrap().len(), all.len());
+    // Kept from sharing only: the window still shows the stamp.
+    assert_eq!(
+        usage::awards(&db, id, Audience::View).unwrap().len(),
+        all.len()
+    );
+    db.set_data_use(id, &DataUse::default()).unwrap();
+    assert_eq!(
+        usage::awards(&db, id, Audience::Shared).unwrap().len(),
+        all.len()
+    );
 }
 
 #[test]
-fn the_archive_keeps_everything_and_the_window_gets_what_is_in_use() {
+fn each_audience_gets_its_own_journal_and_the_archive_keeps_everything() {
     let (db, id, journal) = stored();
-    db.set_unused_data(id, &set(&["chat"])).unwrap();
-    assert_eq!(db.unused_data(id).unwrap(), set(&["chat"]));
-    let in_use = archive::load_in_use(&db, id).unwrap().unwrap();
-    assert!(in_use.days["2026-11-08"].chat.is_empty());
+    db.set_data_use(
+        id,
+        &DataUse {
+            shared: set(&["chat"]),
+            view: set(&["money"]),
+        },
+    )
+    .unwrap();
+    let day = |audience| {
+        archive::load_for(&db, id, audience).unwrap().unwrap().days["2026-11-08"].clone()
+    };
+    let shared = day(Audience::Shared);
+    assert!(shared.chat.is_empty() && !shared.money.is_empty());
+    let view = day(Audience::View);
+    assert!(!view.chat.is_empty() && view.money.is_empty());
     let whole = archive::load(&db, id).unwrap().unwrap();
-    assert_eq!(
-        whole.days["2026-11-08"].chat,
-        journal.days["2026-11-08"].chat
-    );
+    assert_eq!(whole.days["2026-11-08"], journal.days["2026-11-08"]);
 }
 
 #[test]
@@ -129,5 +152,7 @@ fn an_unreadable_choice_shares_nothing_rather_than_everything() {
             [id],
         )
         .unwrap();
-    assert_eq!(db.unused_data(id).unwrap().len(), usage::CATEGORIES.len());
+    let choice = db.data_use(id).unwrap();
+    assert_eq!(choice.shared.len(), usage::CATEGORIES.len());
+    assert_eq!(choice.view.len(), usage::CATEGORIES.len());
 }

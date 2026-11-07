@@ -544,11 +544,16 @@ pub fn load(db: &Database, character_id: i64) -> Result<Option<Journal>, Archive
     Ok(load_checked(db, character_id)?.map(|loaded| loaded.journal))
 }
 
-/// The archived journal without the categories the player set aside for this character: what the
-/// app shows, tells a narrator, publishes and exports. Syncing and milestones use [`load`].
-pub fn load_in_use(db: &Database, character_id: i64) -> Result<Option<Journal>, ArchiveError> {
-    let unused = db.unused_data(character_id)?;
-    Ok(load(db, character_id)?.map(|j| crate::usage::strip(&j, &unused)))
+/// The archived journal without the categories the player set aside from `audience`: what the
+/// window shows, or what a narrator is told and the website and exports carry. Syncing and
+/// milestones use [`load`].
+pub fn load_for(
+    db: &Database,
+    character_id: i64,
+    audience: crate::usage::Audience,
+) -> Result<Option<Journal>, ArchiveError> {
+    let hidden = db.hidden(character_id, audience)?;
+    Ok(load(db, character_id)?.map(|j| crate::usage::strip(&j, &hidden)))
 }
 
 /// What the addon last noted in a character's journal: its login heartbeat and the errors it

@@ -2,8 +2,8 @@ import i18n from "i18next";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
-  characterJournal,
-  characterMilestones,
+  characterJournalShared,
+  characterMilestonesShared,
   characterScreenshots,
   characterStories,
   listCharacters,
@@ -79,9 +79,9 @@ export async function loadExportData(
 ): Promise<ExportData> {
   const [characters, journal, stories, awards, shots] = await Promise.all([
     listCharacters(),
-    characterJournal(characterId),
+    characterJournalShared(characterId),
     characterStories(characterId),
-    characterMilestones(characterId),
+    characterMilestonesShared(characterId),
     characterScreenshots(characterId),
   ]);
   if (!journal) throw new Error("this character has no journal yet");

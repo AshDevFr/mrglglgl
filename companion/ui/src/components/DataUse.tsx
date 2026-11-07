@@ -1,8 +1,16 @@
-import { Button, Checkbox, Group, Modal, Stack, Text } from "@mantine/core";
+import {
+  Button,
+  Checkbox,
+  Group,
+  Modal,
+  Stack,
+  Table,
+  Text,
+} from "@mantine/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { characterUnusedData, setCharacterUnusedData } from "@/api/commands";
+import { characterDataUse, setCharacterDataUse } from "@/api/commands";
 
 /** The recorded categories a player can set aside per character, as the addon records them. */
 export const DATA_CATEGORIES = [
@@ -20,9 +28,12 @@ export const DATA_CATEGORIES = [
   "chat",
 ] as const;
 
-/** Which recorded data the app uses for one character. Everything is on until the player turns
- * something off; off hides it in the window, from narrators, the website and exports, and the
- * archive keeps it so turning it back on brings it back. */
+type Audience = "shared" | "view";
+const AUDIENCES: Audience[] = ["shared", "view"];
+
+/** Which recorded data the app uses for one character, twice over: for narrators, the website
+ * and exports, and for the window's "What happened". Everything is on until the player turns
+ * something off; the archive keeps it all, so turning it back on brings it back. */
 export function DataUseDialog({
   characterId,
   opened,
@@ -34,41 +45,81 @@ export function DataUseDialog({
 }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const unused = useQuery({
-    queryKey: ["unusedData", characterId],
-    queryFn: () => characterUnusedData(characterId),
+  const stored = useQuery({
+    queryKey: ["dataUse", characterId],
+    queryFn: () => characterDataUse(characterId),
     enabled: opened,
   });
-  const [off, setOff] = useState<Set<string>>(new Set());
+  const [off, setOff] = useState<Record<Audience, Set<string>>>({
+    shared: new Set(),
+    view: new Set(),
+  });
   useEffect(() => {
-    if (unused.data) setOff(new Set(unused.data));
-  }, [unused.data]);
+    if (stored.data)
+      setOff({
+        shared: new Set(stored.data.shared),
+        view: new Set(stored.data.view),
+      });
+  }, [stored.data]);
   const save = useMutation({
-    mutationFn: () => setCharacterUnusedData(characterId, [...off]),
+    mutationFn: () =>
+      setCharacterDataUse(characterId, {
+        shared: [...off.shared],
+        view: [...off.view],
+      }),
     onSuccess: async () => {
       // Days, milestones and counts all change with what is in use.
       await queryClient.invalidateQueries();
       onClose();
     },
   });
+  const toggle = (audience: Audience, category: string, on: boolean) => {
+    const next = new Set(off[audience]);
+    if (on) next.delete(category);
+    else next.add(category);
+    setOff({ ...off, [audience]: next });
+  };
 
   return (
-    <Modal opened={opened} onClose={onClose} title={t("dataUse.title")}>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={t("dataUse.title")}
+      size="lg"
+    >
       <Stack>
         <Text size="sm">{t("dataUse.body")}</Text>
-        {DATA_CATEGORIES.map((category) => (
-          <Checkbox
-            key={category}
-            label={t(`dataUse.category.${category}`)}
-            checked={!off.has(category)}
-            onChange={(e) => {
-              const next = new Set(off);
-              if (e.currentTarget.checked) next.delete(category);
-              else next.add(category);
-              setOff(next);
-            }}
-          />
-        ))}
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th />
+              {AUDIENCES.map((audience) => (
+                <Table.Th key={audience}>{t(`dataUse.${audience}`)}</Table.Th>
+              ))}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {DATA_CATEGORIES.map((category) => {
+              const label = t(`dataUse.category.${category}`);
+              return (
+                <Table.Tr key={category}>
+                  <Table.Td>{label}</Table.Td>
+                  {AUDIENCES.map((audience) => (
+                    <Table.Td key={audience}>
+                      <Checkbox
+                        aria-label={`${label}: ${t(`dataUse.${audience}`)}`}
+                        checked={!off[audience].has(category)}
+                        onChange={(e) =>
+                          toggle(audience, category, e.currentTarget.checked)
+                        }
+                      />
+                    </Table.Td>
+                  ))}
+                </Table.Tr>
+              );
+            })}
+          </Table.Tbody>
+        </Table>
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose}>
             {t("character.cancel")}

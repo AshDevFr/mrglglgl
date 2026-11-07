@@ -5,6 +5,8 @@
 
 use std::collections::BTreeSet;
 
+use serde::{Deserialize, Serialize};
+
 use crate::archive::{self, ArchiveError};
 use crate::db::Database;
 use crate::milestones::{self, Award};
@@ -26,6 +28,26 @@ pub const CATEGORIES: &[&str] = &[
     "group",
     "chat",
 ];
+
+/// Who a journal is read for. The player sets data aside from each separately.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Audience {
+    /// Narrators, the website and exports.
+    Shared,
+    /// The app's own window: the days and what happened in them.
+    View,
+}
+
+/// The categories set aside for one character, per audience. Empty sets: everything is used.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(default)]
+pub struct DataUse {
+    /// Kept from narrators, the website and exports.
+    pub shared: BTreeSet<String>,
+    /// Hidden in the window.
+    pub view: BTreeSet<String>,
+}
 
 /// The category an event kind belongs to; none for kinds every category shares (screenshots,
 /// kinds a newer addon added).
@@ -210,16 +232,20 @@ pub fn awards_in_use(
         .collect()
 }
 
-/// A character's milestones without those that came from set-aside data. Reads the journal only
-/// when something is set aside.
-pub fn awards(db: &Database, character_id: i64) -> Result<Vec<Award>, ArchiveError> {
+/// A character's milestones without those that came from data set aside from `audience`. Reads
+/// the journal only when something is set aside.
+pub fn awards(
+    db: &Database,
+    character_id: i64,
+    audience: Audience,
+) -> Result<Vec<Award>, ArchiveError> {
     let all = milestones::awards(db, character_id)?;
-    let unused = db.unused_data(character_id)?;
-    if unused.is_empty() {
+    let hidden = db.hidden(character_id, audience)?;
+    if hidden.is_empty() {
         return Ok(all);
     }
     let Some(journal) = archive::load(db, character_id)? else {
         return Ok(all);
     };
-    Ok(awards_in_use(all, &strip(&journal, &unused), &unused))
+    Ok(awards_in_use(all, &strip(&journal, &hidden), &hidden))
 }

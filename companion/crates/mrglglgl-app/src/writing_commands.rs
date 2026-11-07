@@ -40,7 +40,10 @@ pub fn review_list(
     character_id: i64,
 ) -> Result<Vec<ReviewItem>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let Some(journal) = archive::load_in_use(&db, character_id).map_err(|e| e.to_string())? else {
+    let Some(journal) =
+        archive::load_for(&db, character_id, mrglglgl_core::usage::Audience::Shared)
+            .map_err(|e| e.to_string())?
+    else {
         return Ok(Vec::new());
     };
     review::items(&db, character_id, &journal, &writing::today()).map_err(|e| e.to_string())
@@ -764,12 +767,17 @@ pub fn export_character(
     let language = writing::prose_language(&settings);
     let (extension, content) = match format {
         ExportFormat::Markdown => {
-            let journal = archive::load_in_use(&db, character_id)
-                .map_err(|e| e.to_string())?
-                .ok_or("this character has no journal yet")?;
+            let journal =
+                archive::load_for(&db, character_id, mrglglgl_core::usage::Audience::Shared)
+                    .map_err(|e| e.to_string())?
+                    .ok_or("this character has no journal yet")?;
             let stories = stories::accepted(&db, character_id).map_err(|e| e.to_string())?;
-            let awards =
-                mrglglgl_core::usage::awards(&db, character_id).map_err(|e| e.to_string())?;
+            let awards = mrglglgl_core::usage::awards(
+                &db,
+                character_id,
+                mrglglgl_core::usage::Audience::Shared,
+            )
+            .map_err(|e| e.to_string())?;
             let input = export::ExportInput {
                 title: &title,
                 journal: &journal,

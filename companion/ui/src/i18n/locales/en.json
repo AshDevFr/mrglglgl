@@ -773,7 +773,7 @@
   "dataUse": {
     "menu": "Data used…",
     "title": "Data the app uses for this character",
-    "body": "Everything the addon records is used. Turn a kind off and the app hides it here, never tells a narrator about it, and leaves it out of the website and exports, along with the milestones it earned. The app keeps it, so turning it back on brings it all back.",
+    "body": "Everything the addon records is used. Each kind has two switches: one for narrators, the website and exports, and one for \"What happened\" here in the app. Turned off, it is left out there, along with the milestones it earned. The app keeps it all, so turning it back on brings it back.",
     "save": "Save",
     "category": {
       "sessions": "Sessions",
@@ -788,6 +788,8 @@
       "money": "Money and the auction house",
       "group": "Group members",
       "chat": "Chat"
-    }
+    },
+    "shared": "Narrators, website and exports",
+    "view": "What happened"
   }
 }

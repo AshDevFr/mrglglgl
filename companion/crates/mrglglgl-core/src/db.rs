@@ -14,6 +14,7 @@ use crate::discovery::CharacterSource;
 use crate::narrators::DEFAULT_NARRATOR;
 use crate::prompt::Meddling;
 use crate::schema::Character;
+use crate::usage::{Audience, DataUse};
 
 /// The database file name inside the app data folder.
 pub const DATABASE_FILE: &str = "mrglglgl.db";
@@ -179,8 +180,8 @@ const MIGRATIONS: &[&str] = &[
         format INTEGER NOT NULL,
         set_aside INTEGER NOT NULL
     );",
-    // Recorded categories the player set aside for a character, as a JSON list; none means the
-    // app uses everything. On the character's row so it goes with it.
+    // Recorded categories the player set aside for a character, as JSON (see `DataUse`); none
+    // means the app uses everything. On the character's row so it goes with it.
     "ALTER TABLE characters ADD COLUMN unused_data TEXT;",
 ];
 
@@ -623,10 +624,10 @@ impl Database {
         Ok(())
     }
 
-    /// The recorded categories set aside for a character; empty when it uses everything. A list
-    /// that cannot be read sets every category aside, so nothing the player hid is shared, and
-    /// says so in the log; saving the setting again repairs it.
-    pub fn unused_data(&self, id: i64) -> Result<BTreeSet<String>, DbError> {
+    /// What the player set aside for a character, for each audience; nothing when it uses
+    /// everything. A choice that cannot be read sets every category aside from both, so nothing
+    /// the player hid is shared, and says so in the log; saving the choice again repairs it.
+    pub fn data_use(&self, id: i64) -> Result<DataUse, DbError> {
         let json: Option<String> = self
             .conn
             .query_row(
@@ -637,20 +638,33 @@ impl Database {
             .optional()?
             .flatten();
         let Some(json) = json else {
-            return Ok(BTreeSet::new());
+            return Ok(DataUse::default());
         };
         Ok(serde_json::from_str(&json).unwrap_or_else(|e| {
             tracing::warn!("character {id}: the data it uses could not be read ({e}); using none");
-            crate::usage::CATEGORIES
+            let all: BTreeSet<String> = crate::usage::CATEGORIES
                 .iter()
                 .map(|c| c.to_string())
-                .collect()
+                .collect();
+            DataUse {
+                shared: all.clone(),
+                view: all,
+            }
         }))
     }
 
-    pub fn set_unused_data(&self, id: i64, unused: &BTreeSet<String>) -> Result<(), DbError> {
-        let json = (!unused.is_empty())
-            .then(|| serde_json::to_string(unused).expect("a set of strings serializes"));
+    /// The categories set aside from one audience.
+    pub fn hidden(&self, id: i64, audience: Audience) -> Result<BTreeSet<String>, DbError> {
+        let choice = self.data_use(id)?;
+        Ok(match audience {
+            Audience::Shared => choice.shared,
+            Audience::View => choice.view,
+        })
+    }
+
+    pub fn set_data_use(&self, id: i64, choice: &DataUse) -> Result<(), DbError> {
+        let json = (!choice.shared.is_empty() || !choice.view.is_empty())
+            .then(|| serde_json::to_string(choice).expect("sets of strings serialize"));
         self.conn.execute(
             "UPDATE characters SET unused_data = ?2 WHERE id = ?1",
             params![id, json],

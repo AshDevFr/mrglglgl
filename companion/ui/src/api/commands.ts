@@ -5,6 +5,7 @@ import type { Alias } from "@/bindings/Alias";
 import type { AppInfo } from "@/bindings/AppInfo";
 import type { Award } from "@/bindings/Award";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
+import type { DataUse } from "@/bindings/DataUse";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
 import type { ExportFormat } from "@/bindings/ExportFormat";
 import type { ExportPage } from "@/bindings/ExportPage";
@@ -48,16 +49,31 @@ export function characterJournal(characterId: number): Promise<Journal | null> {
   return invoke<Journal | null>("character_journal", { characterId });
 }
 
-/** Recorded categories set aside for a character; empty when it uses everything. */
-export function characterUnusedData(characterId: number): Promise<string[]> {
-  return invoke<string[]>("character_unused_data", { characterId });
+/** The journal as the website and exports may carry it: without what the player kept from
+ * narrators and sharing. */
+export function characterJournalShared(
+  characterId: number,
+): Promise<Journal | null> {
+  return invoke<Journal | null>("character_journal_shared", { characterId });
 }
 
-export function setCharacterUnusedData(
+/** Milestones as the website and exports may carry them. */
+export function characterMilestonesShared(
   characterId: number,
-  unused: string[],
+): Promise<Award[]> {
+  return invoke<Award[]>("character_milestones_shared", { characterId });
+}
+
+/** What the player set aside for a character, from sharing and from the window. */
+export function characterDataUse(characterId: number): Promise<DataUse> {
+  return invoke<DataUse>("character_data_use", { characterId });
+}
+
+export function setCharacterDataUse(
+  characterId: number,
+  choice: DataUse,
 ): Promise<void> {
-  return invoke<void>("set_character_unused_data", { characterId, unused });
+  return invoke<void>("set_character_data_use", { characterId, choice });
 }
 
 export function characterMilestones(characterId: number): Promise<Award[]> {

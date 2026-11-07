@@ -3,7 +3,7 @@
 //! (set in the repository's `.cargo/config.toml`), so the frontend's types cannot drift from
 //! these definitions without a test run noticing.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use mrglglgl_core::addon_status::{self, CharacterRun, FlavorAddon};
 use mrglglgl_core::archive;
@@ -12,6 +12,7 @@ use mrglglgl_core::discovery::{self, DiscoveryOverrides, Flavor, WowRoot};
 use mrglglgl_core::milestones::Award;
 use mrglglgl_core::schema::Journal;
 use mrglglgl_core::screenshots::{self, Screenshot};
+use mrglglgl_core::usage::{Audience, DataUse};
 use serde::Serialize;
 use tauri::{AppHandle, Manager, State};
 use ts_rs::TS;
@@ -51,7 +52,7 @@ pub fn list_characters(state: State<'_, AppState>) -> Result<Vec<CharacterSummar
         .map_err(|e| e.to_string())?
         .into_iter()
         .map(|character| {
-            let milestones = mrglglgl_core::usage::awards(&db, character.id)
+            let milestones = mrglglgl_core::usage::awards(&db, character.id, Audience::View)
                 .map_err(|e| e.to_string())?
                 .len() as u32;
             let to_review = mrglglgl_core::review::waiting(&db, character.id)
@@ -66,52 +67,75 @@ pub fn list_characters(state: State<'_, AppState>) -> Result<Vec<CharacterSummar
         .collect()
 }
 
+/// The journal as the window shows it: without what the player hid from "What happened".
 #[tauri::command]
 pub fn character_journal(
     state: State<'_, AppState>,
     character_id: i64,
 ) -> Result<Option<Journal>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    archive::load_in_use(&db, character_id).map_err(|e| e.to_string())
+    archive::load_for(&db, character_id, Audience::View).map_err(|e| e.to_string())
 }
 
-/// The recorded categories set aside for a character: hidden in the window, from narrators, the
-/// website and exports. Empty when it uses everything.
+/// The journal as the website and exports may carry it: without what the player kept from
+/// narrators and sharing.
 #[tauri::command]
-pub fn character_unused_data(
+pub fn character_journal_shared(
     state: State<'_, AppState>,
     character_id: i64,
-) -> Result<Vec<String>, String> {
+) -> Result<Option<Journal>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    Ok(db
-        .unused_data(character_id)
-        .map_err(|e| e.to_string())?
-        .into_iter()
-        .collect())
+    archive::load_for(&db, character_id, Audience::Shared).map_err(|e| e.to_string())
+}
+
+/// What the player set aside for a character: from narrators and sharing, and from the window.
+#[tauri::command]
+pub fn character_data_use(
+    state: State<'_, AppState>,
+    character_id: i64,
+) -> Result<DataUse, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.data_use(character_id).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn set_character_unused_data(
+pub fn set_character_data_use(
     state: State<'_, AppState>,
     character_id: i64,
-    unused: Vec<String>,
+    choice: DataUse,
 ) -> Result<(), String> {
-    let known: std::collections::BTreeSet<String> = unused
-        .into_iter()
-        .filter(|c| mrglglgl_core::usage::CATEGORIES.contains(&c.as_str()))
-        .collect();
+    let known = |set: BTreeSet<String>| -> BTreeSet<String> {
+        set.into_iter()
+            .filter(|c| mrglglgl_core::usage::CATEGORIES.contains(&c.as_str()))
+            .collect()
+    };
+    let choice = DataUse {
+        shared: known(choice.shared),
+        view: known(choice.view),
+    };
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    db.set_unused_data(character_id, &known)
+    db.set_data_use(character_id, &choice)
         .map_err(|e| e.to_string())
 }
 
+/// Milestones as the window shows them.
 #[tauri::command]
 pub fn character_milestones(
     state: State<'_, AppState>,
     character_id: i64,
 ) -> Result<Vec<Award>, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    mrglglgl_core::usage::awards(&db, character_id).map_err(|e| e.to_string())
+    mrglglgl_core::usage::awards(&db, character_id, Audience::View).map_err(|e| e.to_string())
+}
+
+/// Milestones as the website and exports may carry them.
+#[tauri::command]
+pub fn character_milestones_shared(
+    state: State<'_, AppState>,
+    character_id: i64,
+) -> Result<Vec<Award>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    mrglglgl_core::usage::awards(&db, character_id, Audience::Shared).map_err(|e| e.to_string())
 }
 
 /// A character's screenshots, matched to the moments the addon took them, by day. Lets the

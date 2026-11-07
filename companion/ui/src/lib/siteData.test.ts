@@ -54,9 +54,9 @@ vi.mock("@/api/commands", () => ({
       toReview: 0,
     },
   ],
-  characterJournal: async () => syntheticJournal,
+  characterJournalShared: async () => syntheticJournal,
   characterStories: async () => commands.stories,
-  characterMilestones: async () => syntheticAwards,
+  characterMilestonesShared: async () => syntheticAwards,
   characterScreenshots: async () => ({
     "2026-11-08": [
       {
