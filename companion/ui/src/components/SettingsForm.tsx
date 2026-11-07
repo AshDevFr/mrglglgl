@@ -91,6 +91,7 @@ export function SettingsForm({ view, onSave, section = "general" }: Props) {
             data={[
               { value: SYSTEM, label: t("settings.languageSystem") },
               { value: "en", label: t("settings.languageEnglish") },
+              { value: "fr", label: t("settings.languageFrench") },
             ]}
             value={language}
             onChange={(v) => setLanguage(v ?? SYSTEM)}
