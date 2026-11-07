@@ -71,6 +71,11 @@ ns.On("PLAYER_ENTERING_WORLD", function()
 	balance = Compat.GetMoney()
 end)
 
+-- The last balance seen while the client could be trusted: at login and at each change.
+function Money.balance()
+	return balance
+end
+
 ns.On("PLAYER_MONEY", function()
 	local current = Compat.GetMoney()
 	if current == nil then

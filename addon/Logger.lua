@@ -3,11 +3,13 @@ local _, ns = ...
 
 local Storage, Day, Compat = ns.Storage, ns.Day, ns.Compat
 
--- The balance in copper, on session events, when money is recorded.
-local function balance(fields)
+-- The balance in copper, on session events, when money is recorded. At logout the client already
+-- reports 0, so a session ends on the last balance the addon saw (Money keeps it).
+local function balance(fields, atLogout)
 	if Storage.records("money") then
 		fields = fields or {}
-		fields.bal = Compat.GetMoney()
+		local known = atLogout and ns.Money and ns.Money.balance()
+		fields.bal = known or Compat.GetMoney()
 	end
 	return fields
 end
@@ -23,7 +25,7 @@ end)
 
 ns.On("PLAYER_LOGOUT", function()
 	if Storage.records("sessions") then
-		Day.append("session_end", balance(Day.lastPlace()))
+		Day.append("session_end", balance(Day.lastPlace(), true))
 	end
 end)
 

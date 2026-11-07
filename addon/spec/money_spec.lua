@@ -38,6 +38,13 @@ describe("Money", function()
 		assert.equals(12845, events("session_end")[1].bal)
 	end)
 
+	it("ends a session on the last balance seen, as the client reports none at logout", function()
+		pay(500)
+		Mock.money = 0
+		Mock.fire("PLAYER_LOGOUT")
+		assert.equals(12845, events("session_end")[1].bal)
+	end)
+
 	it("sums each change by where it came from or went", function()
 		Mock.fire("LOOT_OPENED", false, false)
 		pay(37)
