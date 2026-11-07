@@ -12,9 +12,11 @@ local function tocFiles()
 	return files
 end
 
--- Installs the mock, loads the addon and returns its namespace.
-function Addon.load(Mock)
+-- Installs the mock, loads the addon and returns its namespace. `locale` sets the client's
+-- language before any file loads, as the game does.
+function Addon.load(Mock, locale)
 	Mock.install()
+	Mock.locale = locale or Mock.locale
 	local ns = {}
 	for _, file in ipairs(tocFiles()) do
 		local chunk = assert(loadfile(file))

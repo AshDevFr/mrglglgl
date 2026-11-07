@@ -11,6 +11,7 @@
 Core.lua
 Locale.lua
 Locales\enUS.lua
+Locales\frFR.lua
 Compat.lua
 Migrate.lua
 Storage.lua
