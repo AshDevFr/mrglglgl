@@ -167,6 +167,7 @@ function Compat.OpenSettings(category)
 |---|---|---|---|
 | API-progress-events | `LEARNED_SPELL_IN_SKILL_LINE`, `NEW_MOUNT_ADDED`, `NEW_PET_ADDED` and `ACHIEVEMENT_EARNED` exist; `LEARNED_SPELL_IN_TAB` does not | verified-in-game | S-15: `C_EventUtils.IsEventValid` returned true, false (`LEARNED_SPELL_IN_TAB`), true, true, true. That these events fire with the expected arguments is still to be seen |
 | API-progress-functions | `C_GameRules.IsHardcoreActive`, `C_Reputation.GetNumFactions`, `C_Item.GetDetailedItemLevelInfo`, `GetBindLocation` exist; `GetFactionInfo` does not (the C_Reputation path is used) | verified-in-game | S-15: the first three dumped as functions, `GetFactionInfo` as nil, `GetBindLocation()` returned "Thunder Bluff" |
+| API-hardcore | `C_GameRules.IsHardcoreActive()` answers on Forever; it returns false on a normal realm | verified-in-game | S-16: `/dump C_GameRules.IsHardcoreActive()` returned false on the owner's realm. A hardcore realm's true is still to be seen |
 | API-progress-strings | `ERR_NEWTAXIPATH` = "New flight path discovered!" and `DUEL_WINNER_KNOCKOUT` = "%1$s has defeated %2$s in a duel" (numbered placeholders) | verified-in-game | S-15 (enUS) |
 | API-item-link-colour | Item links colour by named quality, `\|cnIQ1:`, not `\|cffRRGGBB` | verified-in-game | S-15: `GetInventoryItemLink("player", 16)` returned `\|cnIQ1:\|Hitem:767::::::::10:1484:::::::::\|h[Long Bo Staff]\|h\|r`. Chat.plain strips both forms |
 
