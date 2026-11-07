@@ -42,6 +42,9 @@ ns.RegisterLocale("enUS", {
 	CATEGORY_QUEST_TEXT = "Quest descriptions",
 
 	SETTINGS_RECORD_HEADER = "What gets recorded",
+	PAGE_CHAT = "Chat",
+	PAGE_SCREENSHOTS = "Screenshots",
+	PAGE_FORGET = "Forget",
 	TIP_SESSIONS = "When you log in and out.",
 	TIP_LEVELS = "Each level you gain.",
 	TIP_QUESTS = "Quests you accept and turn in, with their titles.",

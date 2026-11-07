@@ -24,8 +24,16 @@ describe("Settings panel", function()
 		assert.is_false(chat.setting:GetValue(), "chat is opt-in")
 		assert.is_true(Mock.controls.MRGLGLGL_CHAT_SAY.setting:GetValue())
 		assert.is_false(Mock.controls.MRGLGLGL_CHAT_SAY_OTHERS.setting:GetValue())
-		assert.same({ "What gets recorded", "Chat channels", "Storage", "Screenshots", "Forget recorded data" },
+		assert.same({ "What gets recorded", "Storage", "Chat channels", "Screenshots", "Forget recorded data" },
 			Mock.headers)
+	end)
+
+	it("splits the panel into pages, so the long chat list has its own", function()
+		assert.is_table(Mock.pages["Chat"])
+		assert.is_table(Mock.pages["Screenshots"])
+		assert.is_table(Mock.pages["Forget"])
+		assert.equals("Chat", Mock.controls.MRGLGLGL_CHAT_SAY_OTHERS.page)
+		assert.equals("Mrglglgl", Mock.controls.MRGLGLGL_RECORD_LEVELS.page)
 	end)
 
 	it("stops recording a category the moment it is unticked, without a reload", function()

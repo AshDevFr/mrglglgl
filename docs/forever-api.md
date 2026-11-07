@@ -92,6 +92,7 @@ addon code can pass them back to the client but cannot read, compare or print th
 | API-screenshot | `Screenshot()` is callable by addon code | verified-in-game | S-10: `/run Screenshot()` produced a file. API docs (Client): no restriction or secrecy flags |
 | API-screenshot-events | `SCREENSHOT_STARTED`, `SCREENSHOT_SUCCEEDED`, `SCREENSHOT_FAILED` | verified-by-source | API docs (Video) |
 | API-locale | `GetLocale()` | verified-by-source | API docs (Locale) |
+| API-settings-subcategory | `Settings.RegisterVerticalLayoutSubcategory(parent, name)` adds a page under an addon's entry in Options > AddOns | unconfirmed | `Blizzard_Settings_Shared` in the client UI code. fallback: without it, every section stays on the addon's one page (Compat.CreateSettingsSubcategory) |
 | API-settings-panel | `Settings.RegisterCanvasLayoutCategory` and `Settings.RegisterAddOnCategory`; `InterfaceOptions_AddCategory` is not present | verified-by-source | `Blizzard_Settings_Shared` in the client UI code; no call site or definition of `InterfaceOptions_AddCategory` |
 | API-damage-subevents | Damage sub-events (`SWING_DAMAGE`, `SPELL_DAMAGE`, `RANGE_DAMAGE`, `SPELL_PERIODIC_DAMAGE`) are combat log payloads, so they are **not readable by addons** | verified-by-source | See API-cleu-fields |
 | API-environmental | Environmental damage is a combat log payload addons cannot read live, but the death recap reports it after a death: `event="ENVIRONMENTAL_DAMAGE"` with `environmentalType` (e.g. `"Drowning"`) | verified-in-game | S-06: death recap events after drowning carry `environmentalType="Drowning"`. Live combat log: see API-cleu-fields |
@@ -143,6 +144,7 @@ function Compat.InChatLockdown()         -- C_ChatInfo.InChatMessagingLockdown
 
 -- Settings panel, on the client's vertical settings layout (Blizzard_Settings_Shared)
 function Compat.CreateSettingsCategory(name)  -- Settings.RegisterVerticalLayoutCategory
+function Compat.CreateSettingsSubcategory(parent, parentLayout, name)  -- a sub-page, or the parent
 function Compat.AddSettingsHeader(layout, name)
 function Compat.AddCheckbox(category, variable, name, tooltip, get, set, default)
 function Compat.AddDropdown(category, variable, name, tooltip, choices, get, set, default)

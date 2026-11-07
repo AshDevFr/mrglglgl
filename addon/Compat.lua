@@ -346,6 +346,15 @@ function Compat.CreateSettingsCategory(name)
 	return Settings.RegisterVerticalLayoutCategory(name)
 end
 
+-- A page under the addon's entry in Options > AddOns. A client without sub-pages gets everything on
+-- the addon's one page.
+function Compat.CreateSettingsSubcategory(parent, parentLayout, name)
+	if type(Settings.RegisterVerticalLayoutSubcategory) == "function" then
+		return Settings.RegisterVerticalLayoutSubcategory(parent, name)
+	end
+	return parent, parentLayout
+end
+
 function Compat.AddSettingsHeader(layout, name)
 	layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(name))
 end

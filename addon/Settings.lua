@@ -29,16 +29,16 @@ local function settings()
 	return Storage.settings()
 end
 
-local function addRecordToggles(layout)
+local function addRecordToggles(page, layout)
 	Compat.AddSettingsHeader(layout, L.SETTINGS_RECORD_HEADER)
 	for _, key in ipairs(RECORD) do
 		local label = key:gsub("%u", "_%0"):upper()
-		Compat.AddCheckbox(category, "MRGLGLGL_RECORD_" .. label, L["CATEGORY_" .. label], L["TIP_" .. label],
+		Compat.AddCheckbox(page, "MRGLGLGL_RECORD_" .. label, L["CATEGORY_" .. label], L["TIP_" .. label],
 			function() return settings().record[key] end,
 			function(value) settings().record[key] = value end,
 			key ~= "chat")
 	end
-	Compat.AddDropdown(category, "MRGLGLGL_LOOT_QUALITY", L.SETTINGS_LOOT_QUALITY, L.TIP_LOOT_QUALITY,
+	Compat.AddDropdown(page, "MRGLGLGL_LOOT_QUALITY", L.SETTINGS_LOOT_QUALITY, L.TIP_LOOT_QUALITY,
 		{ { 2, L.QUALITY_UNCOMMON }, { 3, L.QUALITY_RARE }, { 4, L.QUALITY_EPIC } },
 		function() return settings().lootQuality end,
 		function(value) settings().lootQuality = value end,
@@ -46,14 +46,14 @@ local function addRecordToggles(layout)
 end
 
 -- Each channel twice: the player's own lines, and other players' lines.
-local function addChat(layout)
+local function addChat(page, layout)
 	Compat.AddSettingsHeader(layout, L.SETTINGS_CHAT_HEADER)
 	for _, channel in ipairs(ns.Chat.CHANNELS) do
 		local label = channel:gsub("%u", "_%0"):upper()
 		for _, suffix in ipairs({ "", "Others" }) do
 			local key = channel .. suffix
 			local name = (suffix == "" and L.CHAT_OWN or L.CHAT_OTHERS):format(L["CHANNEL_" .. label])
-			Compat.AddCheckbox(category, "MRGLGLGL_CHAT_" .. key:gsub("%u", "_%0"):upper(), name,
+			Compat.AddCheckbox(page, "MRGLGLGL_CHAT_" .. key:gsub("%u", "_%0"):upper(), name,
 				suffix == "" and L.TIP_CHAT_OWN or L.TIP_CHAT_OTHERS,
 				function() return settings().chat[key] end,
 				function(value) settings().chat[key] = value end,
@@ -62,23 +62,23 @@ local function addChat(layout)
 	end
 end
 
-local function addRetention(layout)
+local function addRetention(page, layout)
 	Compat.AddSettingsHeader(layout, L.SETTINGS_RETENTION_HEADER)
-	Compat.AddDropdown(category, "MRGLGLGL_RETENTION", L.SETTINGS_RETENTION, L.TIP_RETENTION,
+	Compat.AddDropdown(page, "MRGLGLGL_RETENTION", L.SETTINGS_RETENTION, L.TIP_RETENTION,
 		{ { 14, L.DAYS_14 }, { 30, L.DAYS_30 }, { 60, L.DAYS_60 }, { 90, L.DAYS_90 } },
 		function() return settings().retentionDays end,
 		function(value) settings().retentionDays = value end,
 		30)
 end
 
-local function addScreenshots(layout)
+local function addScreenshots(page, layout)
 	if Screenshot == nil then
 		return
 	end
 	Compat.AddSettingsHeader(layout, L.SETTINGS_SCREENSHOTS_HEADER)
 	for _, moment in ipairs(SCREENSHOTS) do
 		local label = moment:gsub("%u", "_%0"):upper()
-		Compat.AddCheckbox(category, "MRGLGLGL_SCREENSHOT_" .. label, L["SHOT_" .. label], L.TIP_SCREENSHOTS,
+		Compat.AddCheckbox(page, "MRGLGLGL_SCREENSHOT_" .. label, L["SHOT_" .. label], L.TIP_SCREENSHOTS,
 			function() return settings().screenshots[moment] end,
 			function(value) settings().screenshots[moment] = value end,
 			false)
@@ -98,7 +98,7 @@ function SettingsPanel.forget(key)
 	say(L.FORGET_DONE:format(name))
 end
 
-local function addForget(layout)
+local function addForget(_, layout)
 	Compat.AddSettingsHeader(layout, L.SETTINGS_FORGET_HEADER)
 	for _, key in ipairs(RECORD) do
 		local label = key:gsub("%u", "_%0"):upper()
@@ -117,12 +117,16 @@ ns.On("ADDON_LOADED", function(_, loaded)
 	if loaded ~= addonName or not Storage.ready or category then
 		return
 	end
+	-- One main page and a page each for the long or occasional parts, listed under Mrglglgl in
+	-- Options > AddOns.
 	local layout
 	category, layout = Compat.CreateSettingsCategory(L.ADDON_TITLE)
-	addRecordToggles(layout)
-	addChat(layout)
-	addRetention(layout)
-	addScreenshots(layout)
-	addForget(layout)
+	addRecordToggles(category, layout)
+	addRetention(category, layout)
+	addChat(Compat.CreateSettingsSubcategory(category, layout, L.PAGE_CHAT))
+	if Screenshot ~= nil then
+		addScreenshots(Compat.CreateSettingsSubcategory(category, layout, L.PAGE_SCREENSHOTS))
+	end
+	addForget(Compat.CreateSettingsSubcategory(category, layout, L.PAGE_FORGET))
 	Compat.RegisterSettingsCategory(category)
 end)

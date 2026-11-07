@@ -192,23 +192,38 @@ function Mock.install()
 	-- The client's vertical settings layout, recording what the addon builds. Mock.controls maps
 	-- each setting's variable name to { kind, setting, options? }.
 	Mock.controls, Mock.headers, Mock.buttons, Mock.registered, Mock.opened = {}, {}, {}, false, nil
+	-- Sub-pages by name, each with the headers on it and the variables of its controls.
+	Mock.pages = {}
+	local function page(name)
+		local p = { name = name, headers = {}, variables = {}, GetID = function() return 42 end }
+		local layout = { AddInitializer = function(_, initializer)
+			if initializer.header then
+				Mock.headers[#Mock.headers + 1] = initializer.header
+				p.headers[#p.headers + 1] = initializer.header
+			elseif initializer.button then
+				Mock.buttons[initializer.button] = initializer
+				p.variables[#p.variables + 1] = initializer.button
+			end
+		end }
+		return p, layout
+	end
 	_G.Settings = {
 		VarType = { Boolean = "boolean", Number = "number", String = "string" },
 		RegisterVerticalLayoutCategory = function(name)
-			local layout = { AddInitializer = function(_, initializer)
-				if initializer.header then
-					Mock.headers[#Mock.headers + 1] = initializer.header
-				elseif initializer.button then
-					Mock.buttons[initializer.button] = initializer
-				end
-			end }
-			return { name = name, GetID = function() return 42 end }, layout
+			return page(name)
+		end,
+		RegisterVerticalLayoutSubcategory = function(_, name)
+			local p, layout = page(name)
+			Mock.pages[name] = p
+			return p, layout
 		end,
 		RegisterProxySetting = function(_, variable, _, name, default, getValue, setValue)
 			return { variable = variable, name = name, default = default,
 				GetValue = function() return getValue() end, SetValue = function(_, v) setValue(v) end }
 		end,
-		CreateCheckbox = function(_, setting) Mock.controls[setting.variable] = { kind = "checkbox", setting = setting } end,
+		CreateCheckbox = function(category, setting)
+			Mock.controls[setting.variable] = { kind = "checkbox", setting = setting, page = category.name }
+		end,
 		CreateDropdown = function(_, setting, options)
 			Mock.controls[setting.variable] = { kind = "dropdown", setting = setting, options = options() }
 		end,

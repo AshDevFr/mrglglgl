@@ -40,6 +40,9 @@ ns.RegisterLocale("frFR", {
 	CATEGORY_QUEST_TEXT = "Descriptions des quêtes",
 
 	SETTINGS_RECORD_HEADER = "Ce qui est noté",
+	PAGE_CHAT = "Discussion",
+	PAGE_SCREENSHOTS = "Captures d'écran",
+	PAGE_FORGET = "Oublier",
 	TIP_SESSIONS = "Quand tu te connectes et te déconnectes.",
 	TIP_LEVELS = "Chaque niveau gagné.",
 	TIP_QUESTS = "Les quêtes que tu acceptes et rends, avec leur titre.",
