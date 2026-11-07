@@ -1,7 +1,15 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "What the main window may call: core Tauri features, sizing its own interface, and asking for a folder.",
-  "windows": ["main"],
-  "permissions": ["core:default", "core:webview:allow-set-webview-zoom", "dialog:allow-open"]
+  "description": "What the main window may call: core Tauri features, sizing its own interface, asking for a folder, and checking for, installing and restarting into an update.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:webview:allow-set-webview-zoom",
+    "dialog:allow-open",
+    "updater:default",
+    "process:allow-restart"
+  ]
 }

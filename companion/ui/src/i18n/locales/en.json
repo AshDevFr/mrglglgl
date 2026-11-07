@@ -1026,5 +1026,13 @@
     },
     "shared": "Narrators, website and exports",
     "view": "What happened"
+  },
+  "update": {
+    "title": "Mrglglgl {{version}} is out",
+    "body": "The new version downloads and installs in a moment; the app restarts into it. Your journal is not touched.",
+    "install": "Update and restart",
+    "later": "Later",
+    "failed": "The update could not be installed",
+    "failedNext": "Try again at the next start, or download the new version from the releases page."
   }
 }

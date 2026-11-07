@@ -21,6 +21,7 @@ import {
   syncNow,
 } from "@/api/commands";
 import { CharacterTree } from "@/components/CharacterTree";
+import { UpdateBanner } from "@/components/UpdateBanner";
 import { scheduleRebuild } from "@/lib/siteBuild";
 import { applyZoom, savedZoom, stepZoom } from "@/lib/zoom";
 
@@ -136,6 +137,7 @@ export function Layout() {
         </AppShell.Section>
       </AppShell.Navbar>
       <AppShell.Main h="100vh" id="journal" tabIndex={-1}>
+        <UpdateBanner />
         <Outlet />
       </AppShell.Main>
     </AppShell>

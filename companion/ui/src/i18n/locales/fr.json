@@ -1026,5 +1026,13 @@
     },
     "shared": "Narrateurs, site web et exports",
     "view": "Ce qui s'est passé"
+  },
+  "update": {
+    "title": "Mrglglgl {{version}} est sorti",
+    "body": "La nouvelle version se télécharge et s'installe en un instant, puis l'application redémarre. Ton journal n'est pas touché.",
+    "install": "Mettre à jour et redémarrer",
+    "later": "Plus tard",
+    "failed": "La mise à jour n'a pas pu s'installer",
+    "failedNext": "Réessaie au prochain démarrage, ou télécharge la nouvelle version depuis la page des versions."
   }
 }
