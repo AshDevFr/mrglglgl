@@ -4,7 +4,7 @@ import starlight from "@astrojs/starlight";
 import { defineConfig } from "astro/config";
 
 export default defineConfig({
-  site: "https://mrglglgl.pages.dev",
+  site: "https://mrglglgl.4sh.dev",
   integrations: [
     starlight({
       title: "Mrglglgl",
@@ -18,14 +18,14 @@ export default defineConfig({
         // The social card link previews show (scripts/social-card.mjs draws it). Starlight
         // already sets each page's title and description.
         ...[
-          ["og:image", "https://mrglglgl.pages.dev/social-card.png"],
+          ["og:image", "https://mrglglgl.4sh.dev/social-card.png"],
           ["og:image:width", "1200"],
           ["og:image:height", "630"],
           ["og:image:alt", "Mrglglgl: a blue murloc writing in a journal with a quill"],
         ].map(([property, content]) => ({ tag: "meta", attrs: { property, content } })),
         ...[
           ["twitter:card", "summary_large_image"],
-          ["twitter:image", "https://mrglglgl.pages.dev/social-card.png"],
+          ["twitter:image", "https://mrglglgl.4sh.dev/social-card.png"],
         ].map(([name, content]) => ({ tag: "meta", attrs: { name, content } })),
       ],
       // The 404 page is src/content/docs/404.md, with the sleeping murloc.

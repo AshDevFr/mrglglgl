@@ -40,7 +40,7 @@ const html = `<!doctype html>
   <div class="words">
     <h1>Mrglglgl</h1>
     <p>A journal of your World of Warcraft: Forever character's life, kept by a murloc.</p>
-    <div class="url">mrglglgl.pages.dev</div>
+    <div class="url">mrglglgl.4sh.dev</div>
   </div>
   <img src="${murloc}" alt="">
 </body></html>`;
