@@ -56,7 +56,10 @@ local CATEGORIES = {
 		counts = { "moneyIn", "moneyOut", "auctions" }, lists = { "auctions" },
 	},
 	chat = { raw = { "chat" }, counts = { "chat" } },
-	achievements = { kinds = { achievement = true }, counts = { "achievements" }, lists = { "achievements" } },
+	achievements = {
+		kinds = { achievement = true }, counts = { "achievements" }, lists = { "achievements" },
+		journal = function(journal) journal.challenges = nil end,
+	},
 	spells = { kinds = { spell = true }, counts = { "spells" } },
 	collections = { kinds = { mount = true, pet = true }, counts = { "collections" } },
 	reputation = { kinds = { rep = true }, counts = { "reputation" } },

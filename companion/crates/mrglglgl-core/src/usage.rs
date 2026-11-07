@@ -96,6 +96,9 @@ pub fn strip(journal: &Journal, unused: &BTreeSet<String>) -> Journal {
     if off("quests") {
         j.quests.clear();
     }
+    if off("achievements") {
+        j.challenges.clear();
+    }
     if off("zones") {
         j.discovered.clear();
     }

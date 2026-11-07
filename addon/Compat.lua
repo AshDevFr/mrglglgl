@@ -334,6 +334,28 @@ function Compat.IsNewFlightPathMessage(text)
 	return type(text) == "string" and _G.ERR_NEWTAXIPATH ~= nil and text == _G.ERR_NEWTAXIPATH
 end
 
+-- Every achievement this character has completed, with the day the client says it was earned:
+-- { [id] = { name, category, day = "YYYY-MM-DD" } }. On Forever these are the Legacy Challenges.
+-- Where the client can tell, one only another character on the account earned is left out.
+function Compat.GetCompletedAchievements()
+	local completed = {}
+	if type(_G.GetCategoryList) ~= "function" or type(_G.GetCategoryNumAchievements) ~= "function"
+		or type(_G.GetAchievementInfo) ~= "function" then
+		return completed
+	end
+	for _, category in ipairs(_G.GetCategoryList() or {}) do
+		local categoryName = type(_G.GetCategoryInfo) == "function" and _G.GetCategoryInfo(category) or nil
+		for i = 1, (_G.GetCategoryNumAchievements(category)) or 0 do
+			local id, name, _, done, month, day, year, _, _, _, _, _, mine = _G.GetAchievementInfo(category, i)
+			if id and done and mine ~= false and type(month) == "number" then
+				local fullYear = year < 100 and 2000 + year or year
+				completed[id] = { name = name, cat = categoryName, d = string.format("%04d-%02d-%02d", fullYear, month, day) }
+			end
+		end
+	end
+	return completed
+end
+
 -- The auction house's chat messages, by what happened. Looked up by name: a message missing on
 -- this client is skipped.
 local AUCTION_MESSAGES = {

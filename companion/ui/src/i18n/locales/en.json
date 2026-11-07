@@ -420,7 +420,10 @@
     "living_legend": {
       "name": "Living Legend",
       "description": "Completed a hundred Legacy Challenges."
-    }
+    },
+    "challenges_one": "Legacy Challenge completed",
+    "challenges_other": "{{count}} Legacy Challenges completed",
+    "completed": "completed {{day}}"
   },
   "settings": {
     "title": "Settings",

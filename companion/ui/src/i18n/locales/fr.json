@@ -420,7 +420,10 @@
     "living_legend": {
       "name": "Légende vivante",
       "description": "A accompli cent défis Legacy."
-    }
+    },
+    "challenges_one": "Défi Legacy accompli",
+    "challenges_other": "{{count}} défis Legacy accomplis",
+    "completed": "accompli le {{day}}"
   },
   "settings": {
     "title": "Réglages",

@@ -247,12 +247,21 @@ function Mock.install()
 	-- Achievements as Forever has them: Legacy Challenges worth 0 points, in categories.
 	Mock.achievements = { [855] = { name = "Explore Moonglade", points = 0, category = 14778 } }
 	Mock.categories = { [14778] = "Kalimdor" }
-	_G.GetAchievementInfo = function(id)
-		local a = Mock.achievements[id]
+	-- Completed on 2026-11-06 by this character, in the Kalimdor category.
+	_G.GetAchievementInfo = function(idOrCategory, index)
+		if index then
+			if idOrCategory ~= 14778 or index ~= 1 then
+				return nil
+			end
+			idOrCategory = 855
+		end
+		local a = Mock.achievements[idOrCategory]
 		if a then
-			return id, a.name, a.points, true
+			return idOrCategory, a.name, a.points, true, 11, 6, 26, "", 0, "", "", false, true
 		end
 	end
+	_G.GetCategoryList = function() return { 14778 } end
+	_G.GetCategoryNumAchievements = function(category) return category == 14778 and 1 or 0, 1 end
 	_G.GetAchievementCategory = function(id)
 		return Mock.achievements[id] and Mock.achievements[id].category
 	end

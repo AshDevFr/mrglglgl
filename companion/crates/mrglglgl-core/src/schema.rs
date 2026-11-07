@@ -78,11 +78,27 @@ pub struct Journal {
     pub quests: BTreeMap<i64, Quest>,
     pub companions: BTreeMap<String, Companion>,
     pub discovered: BTreeSet<String>,
+    /// Every Legacy Challenge (achievement) completed, by ID, including those from before the
+    /// addon was installed.
+    #[serde(default)]
+    pub challenges: BTreeMap<i64, Challenge>,
     pub stats: Stats,
     /// Which addon and client last wrote the journal, and when.
     pub addon: Option<AddonHeartbeat>,
     /// Errors the addon caught in its handlers; recording carried on.
     pub errors: Option<AddonErrors>,
+}
+
+/// A Legacy Challenge (achievement) completed, and the day the game says it was.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+#[serde(default)]
+pub struct Challenge {
+    pub name: Option<String>,
+    pub category: Option<String>,
+    /// `YYYY-MM-DD`.
+    pub day: Option<String>,
 }
 
 /// What the addon notes at each login.
@@ -1083,6 +1099,12 @@ pub fn journal_from(file: &SavedVariables) -> Result<Journal, JournalError> {
         .filter_map(|(area, seen)| seen.then_some(area))
         .collect();
 
+    let challenges = by_id(db, "challenges", |c| Challenge {
+        name: string(c, "name"),
+        category: string(c, "cat"),
+        day: string(c, "d"),
+    });
+
     let stats = table(db, "stats")
         .map(|s| Stats {
             boots: int(s, "boots").unwrap_or(0),
@@ -1115,6 +1137,7 @@ pub fn journal_from(file: &SavedVariables) -> Result<Journal, JournalError> {
         quests,
         companions,
         discovered,
+        challenges,
         stats,
         addon,
         errors,

@@ -310,13 +310,16 @@
   transform: rotate(-0.6deg);
 }
 
-/* The stamps a busy day earned beyond the ones pressed on it: a short list in stamp ink. */
+/* The stamps a busy day earned beyond the ones pressed on it, and the game's Legacy Challenges:
+   short lists in stamp ink. */
+.challenges,
 .more-milestones {
   margin-top: 1.5rem;
   max-width: 40em;
   font-size: 0.95rem;
   line-height: 1.5;
 }
+.challenges h3,
 .more-milestones h3 {
   margin: 0 0 0.25em;
   font-size: 0.95rem;
@@ -325,10 +328,12 @@
   letter-spacing: 0.02em;
   color: var(--stamp);
 }
+.challenges ul,
 .more-milestones ul {
   margin: 0;
   padding-left: 1.1em;
 }
+.challenges strong,
 .more-milestones strong {
   color: var(--stamp);
   font-weight: 600;

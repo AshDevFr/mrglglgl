@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { StoredCharacter } from "@/bindings/StoredCharacter";
 import { CharacterHeader } from "@/components/CharacterHeader";
 import { JournalPage } from "@/components/JournalPage";
+import { ChallengeList } from "@/pages/MilestonesPage";
 import {
   renderWithProviders,
   syntheticAwards,
@@ -168,5 +169,28 @@ describe("CharacterHeader", () => {
       "Wren-Hollowbrook",
     );
     expect(screen.getByText("Not synced yet")).toBeInTheDocument();
+  });
+});
+
+describe("ChallengeList", () => {
+  it("lists every Legacy Challenge completed with its day, newest first", () => {
+    renderWithProviders(
+      <ChallengeList
+        challenges={{
+          855: {
+            name: "Explore Moonglade",
+            category: "Kalimdor",
+            day: "2026-11-06",
+          },
+          900: { name: "Druid Initiate", category: "Druid", day: "2026-11-07" },
+        }}
+      />,
+    );
+    const items = screen.getAllByRole("listitem");
+    expect(items[0]).toHaveTextContent("Druid Initiate (Druid), completed");
+    expect(items[1]).toHaveTextContent("Explore Moonglade (Kalimdor)");
+    expect(
+      screen.getByRole("heading", { name: "2 Legacy Challenges completed" }),
+    ).toBeInTheDocument();
   });
 });

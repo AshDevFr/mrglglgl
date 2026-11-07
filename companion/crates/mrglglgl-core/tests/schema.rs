@@ -270,6 +270,20 @@ fn reads_money_balances_and_auction_events() {
 }
 
 #[test]
+fn reads_every_challenge_completed_with_its_day() {
+    let journal = schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
+    let c = &journal.challenges[&855];
+    assert_eq!(
+        (c.name.as_deref(), c.category.as_deref(), c.day.as_deref()),
+        (
+            Some("Explore Moonglade"),
+            Some("Kalimdor"),
+            Some("2026-11-06")
+        )
+    );
+}
+
+#[test]
 fn reads_chat_lines_own_and_others() {
     let journal = schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
     let day = &journal.days["2026-11-08"];
@@ -360,6 +374,8 @@ fn reads_every_documented_field() {
         "quests",
         "companions",
         "discovered",
+        "challenges",
+        "d",
         "stats.boots",
         "stats.murlocsSlain",
         "stats.deathsByMurloc",

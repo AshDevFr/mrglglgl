@@ -9,6 +9,13 @@ MrglglglCharDB = {
 ["login"] = 1794423600,
 ["version"] = "1.2.3",
 },
+["challenges"] = {
+[855] = {
+["cat"] = "Kalimdor",
+["d"] = "2026-11-06",
+["name"] = "Explore Moonglade",
+},
+},
 ["char"] = {
 ["class"] = "HUNTER",
 ["faction"] = "Horde",

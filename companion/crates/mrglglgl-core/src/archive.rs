@@ -20,8 +20,8 @@ use serde::{Deserialize, Serialize};
 use crate::db::{BackupRetention, Database, DbError};
 use crate::discovery::CharacterSource;
 use crate::schema::{
-    self, AddonErrors, AddonHeartbeat, Character, ChatLine, Companion, Day, Digest, ItemCount,
-    Journal, JournalError, Quest, Stats,
+    self, AddonErrors, AddonHeartbeat, Challenge, Character, ChatLine, Companion, Day, Digest,
+    ItemCount, Journal, JournalError, Quest, Stats,
 };
 use crate::watch::{modified_unix, now_unix};
 
@@ -179,6 +179,7 @@ struct JournalRecord {
     quests: BTreeMap<i64, Quest>,
     companions: BTreeMap<String, Companion>,
     discovered: BTreeSet<String>,
+    challenges: BTreeMap<i64, Challenge>,
     stats: Stats,
     addon: Option<AddonHeartbeat>,
     errors: Option<AddonErrors>,
@@ -514,6 +515,13 @@ pub fn merge_snapshot(
         kept.last = kept.last.take().max(companion.last.clone());
     }
     record.discovered.extend(journal.discovered.iter().cloned());
+    // A challenge, once completed, stays completed: Forget in the game does not reach the archive.
+    for (id, challenge) in &journal.challenges {
+        let kept = record.challenges.entry(*id).or_default();
+        kept.name = kept.name.take().or_else(|| challenge.name.clone());
+        kept.category = kept.category.take().or_else(|| challenge.category.clone());
+        kept.day = min_some(kept.day.take(), challenge.day.clone());
+    }
     tx.execute(
         "INSERT INTO archive_journals (character_id, data_json, source_mtime, format)
          VALUES (?1, ?2, ?3, ?4)
@@ -627,6 +635,7 @@ pub fn load_checked(db: &Database, character_id: i64) -> Result<Option<Loaded>, 
             quests: record.quests,
             companions: record.companions,
             discovered: record.discovered,
+            challenges: record.challenges,
             stats: record.stats,
             addon: record.addon,
             errors: record.errors,

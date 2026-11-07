@@ -42,6 +42,13 @@ describe("Achievements", function()
 		assert.same({}, achievements())
 	end)
 
+	it("keeps every challenge completed, those from before the addon too, with its day", function()
+		assert.same({ name = "Explore Moonglade", cat = "Kalimdor", d = "2026-11-06" },
+			_G.MrglglglCharDB.challenges[855])
+		ns.Forget.category(_G.MrglglglCharDB, "achievements")
+		assert.is_nil(_G.MrglglglCharDB.challenges)
+	end)
+
 	it("stays quiet when turned off", function()
 		_G.MrglglglDB.settings.record.achievements = false
 		Mock.fire("ACHIEVEMENT_EARNED", 855, false)

@@ -1158,6 +1158,13 @@
     "Red Rocks",
     "Thunder Bluff"
   ],
+  "challenges": {
+    "855": {
+      "name": "Explore Moonglade",
+      "category": "Kalimdor",
+      "day": "2026-11-06"
+    }
+  },
   "stats": {
     "boots": 1,
     "murlocsSlain": 1,

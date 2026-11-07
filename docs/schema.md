@@ -82,6 +82,7 @@ All `record` flags default to `true` except `chat`, and all `screenshots` flags 
 | `days` | table | Day records keyed by local calendar date `"YYYY-MM-DD"` |
 | `quests` | table | Quest text keyed by quest ID, stored once per quest |
 | `companions` | table | Group members met, keyed by `"Firstname-Surname"` |
+| `challenges` | table? | Every achievement this character has completed (on Forever, the Legacy Challenges), keyed by achievement ID: `{ name, cat, d }` with `d` the day the client says it was earned, `YYYY-MM-DD`. Refreshed at each login when achievements are recorded, so it includes those completed before the addon was installed |
 | `discovered` | table? | Areas (zone or subzone names) already recorded as discovered, as `name = true`; in the session that creates the journal of a character above level 1, places visited are added here without a `discover` event |
 | `stats.boots` | int | Junk boots fished, all time |
 | `stats.murlocsSlain` | int | Murlocs slain, all time |
