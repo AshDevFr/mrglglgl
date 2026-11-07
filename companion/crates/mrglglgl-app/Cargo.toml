@@ -39,3 +39,6 @@ futures-util = { workspace = true }
 [target.'cfg(windows)'.dependencies]
 # Whether a laptop runs on battery, to hold background writing until it is plugged in.
 windows-sys = { version = "0.61", features = ["Win32_System_Power"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }

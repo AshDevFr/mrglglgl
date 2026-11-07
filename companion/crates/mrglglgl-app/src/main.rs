@@ -62,6 +62,7 @@ fn main() {
             commands::character_screenshots,
             commands::get_settings,
             logging::show_log,
+            logging::recent_log,
             logging::open_link,
             addon_commands::addon_views,
             addon_commands::addon_release,

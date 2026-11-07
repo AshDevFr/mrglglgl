@@ -43,6 +43,7 @@ vi.mock("@/api/commands", () => ({
     checked: 0,
   }),
   showLog: async () => {},
+  recentLog: async () => ["2026-11-06T19:00:00Z  INFO mrglglgl: started"],
   listCharacters: async () => [],
   hasApiKey: async () => false,
   onModelDownload: async () => () => {},
@@ -62,12 +63,15 @@ describe("SettingsPage", () => {
   it("opens on General and shows one tab's sections at a time", async () => {
     renderWithProviders(<SettingsPage />);
     expect(await screen.findByText("Chosen by you:")).toBeInTheDocument();
-    expect(screen.getByText("Show the log file")).toBeInTheDocument();
+    expect(screen.queryByText("Show the log file")).toBeNull();
     expect(screen.queryByText("Offer test versions")).toBeNull();
 
     fireEvent.click(screen.getByRole("tab", { name: "Addon" }));
     expect(await screen.findByText("Offer test versions")).toBeInTheDocument();
     expect(screen.queryByText("Chosen by you:")).toBeNull();
+
+    fireEvent.click(screen.getByRole("tab", { name: "Logs" }));
+    expect(await screen.findByText("Show the log file")).toBeInTheDocument();
   });
 
   it("remembers the tab when the page is opened again", async () => {

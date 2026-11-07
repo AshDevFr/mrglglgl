@@ -126,6 +126,11 @@ export function openLink(url: string): Promise<void> {
   return invoke("open_link", { url });
 }
 
+/** The log's last lines, oldest first. */
+export function recentLog(limit: number): Promise<string[]> {
+  return invoke<string[]>("recent_log", { limit });
+}
+
 export function showLog(): Promise<void> {
   return invoke("show_log");
 }

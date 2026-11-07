@@ -71,6 +71,50 @@ fn newest(dir: &Path) -> PathBuf {
         .unwrap_or_else(|| dir.to_path_buf())
 }
 
+/// The most lines the window is sent at once: a few days of an ordinary log.
+pub const MOST_LINES: usize = 2000;
+
+/// The last `limit` lines of the log, oldest first, reading back through the daily files from the
+/// newest until there are enough.
+pub fn recent_lines(dir: &Path, limit: usize) -> Vec<String> {
+    let mut files: Vec<PathBuf> = std::fs::read_dir(dir)
+        .map(|entries| {
+            entries
+                .flatten()
+                .map(|e| e.path())
+                .filter(|p| {
+                    p.file_name()
+                        .and_then(|n| n.to_str())
+                        .is_some_and(|n| n.starts_with(PREFIX) && n.ends_with(SUFFIX))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    // Daily files are named by date, so the name sorts them in time.
+    files.sort();
+    let mut lines: Vec<String> = Vec::new();
+    for file in files.iter().rev() {
+        let Ok(text) = std::fs::read_to_string(file) else {
+            continue;
+        };
+        let mut earlier: Vec<String> = text.lines().map(str::to_string).collect();
+        earlier.append(&mut lines);
+        lines = earlier;
+        if lines.len() >= limit {
+            break;
+        }
+    }
+    let skip = lines.len().saturating_sub(limit);
+    lines.split_off(skip)
+}
+
+/// The log's last lines, for the window's Logs tab.
+#[tauri::command]
+pub fn recent_log(app: AppHandle, limit: usize) -> Result<Vec<String>, String> {
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    Ok(recent_lines(&log_dir(&data_dir), limit.min(MOST_LINES)))
+}
+
 /// The only addresses the app opens in the browser: Wowhead pages, from names in a day's list.
 const LINK_PREFIX: &str = "https://www.wowhead.com/";
 
@@ -95,4 +139,20 @@ pub fn show_log(app: AppHandle) -> Result<(), String> {
     app.opener()
         .reveal_item_in_dir(newest(&dir))
         .map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn recent_lines_read_back_across_daily_files_oldest_first() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("mrglglgl.2026-11-05.log"), "a\nb\nc\n").unwrap();
+        std::fs::write(dir.path().join("mrglglgl.2026-11-06.log"), "d\ne\n").unwrap();
+        std::fs::write(dir.path().join("other.txt"), "ignored\n").unwrap();
+        assert_eq!(recent_lines(dir.path(), 3), ["c", "d", "e"]);
+        assert_eq!(recent_lines(dir.path(), 10), ["a", "b", "c", "d", "e"]);
+        assert!(recent_lines(&dir.path().join("missing"), 5).is_empty());
+    }
 }

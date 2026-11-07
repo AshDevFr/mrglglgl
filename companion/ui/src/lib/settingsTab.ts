@@ -6,6 +6,7 @@ export const SETTINGS_TABS = [
   "narrators",
   "website",
   "addon",
+  "logs",
 ] as const;
 export type SettingsTab = (typeof SETTINGS_TABS)[number];
 const KEY = "mrglglgl.settingsTab";

@@ -38,6 +38,7 @@ export const PROBLEMS = [
   "narrators.fileFailed",
   "site.buildFailed",
   "update.failed",
+  "log.copyFailed",
   "addon.problem.newerSchema",
   "addon.problem.updatePending",
   "addon.problem.outOfDate",

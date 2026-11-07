@@ -85,7 +85,6 @@ export function SettingsPage() {
               <ZoomField />
               <WowheadField />
               <SettingsForm view={view.data} onSave={save} section="general" />
-              <LogPanel />
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value="writing">
@@ -114,6 +113,11 @@ export function SettingsPage() {
           <Tabs.Panel value="addon">
             <Stack gap="xl" maw={640}>
               <AddonPanel />
+            </Stack>
+          </Tabs.Panel>
+          <Tabs.Panel value="logs">
+            <Stack gap="xl" maw={880}>
+              <LogPanel />
             </Stack>
           </Tabs.Panel>
         </Tabs>

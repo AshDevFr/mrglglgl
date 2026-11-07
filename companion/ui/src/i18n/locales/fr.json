@@ -514,7 +514,8 @@
       "writing": "Écriture",
       "narrators": "Narrateurs",
       "website": "Site web",
-      "addon": "Addon"
+      "addon": "Addon",
+      "logs": "Journal technique"
     },
     "wowFound": "Trouvé automatiquement :",
     "wowChosen": "Choisi par toi :",
@@ -897,11 +898,19 @@
     "releaseFailedNext": "Vérifie la connexion, puis appuie sur Vérifier à nouveau ; ce qui est installé continue de fonctionner."
   },
   "log": {
-    "title": "Journal d'activité",
-    "help": "L'application garde un journal de ce qu'elle fait pendant la dernière semaine. Si quelque chose se passe mal, ce journal aide la personne à qui tu demandes de l'aide.",
+    "title": "Journal technique",
+    "help": "L'application garde une trace de ce qu'elle fait pendant une semaine. Si quelque chose ne va pas, copie les dernières lignes et envoie-les à qui t'aide.",
     "show": "Afficher le fichier du journal d'activité",
     "showFailed": "Impossible d'afficher le journal d'activité : {{message}}",
-    "showFailedNext": "Les fichiers du journal d'activité sont dans le dossier logs du dossier de données de l'application."
+    "showFailedNext": "Les fichiers du journal d'activité sont dans le dossier logs du dossier de données de l'application.",
+    "refresh": "Actualiser",
+    "copy": "Copier les lignes",
+    "copied": "Copié",
+    "onlyProblems": "Seulement les avertissements et les erreurs",
+    "empty": "Rien dans le journal pour le moment.",
+    "noProblems": "Aucun avertissement ni erreur : tout est calme.",
+    "copyFailed": "Impossible de copier les lignes : {{message}}",
+    "copyFailedNext": "Sélectionne-les dans le cadre et copie-les à la main, ou utilise Afficher le fichier."
   },
   "facts": {
     "title": "Ce qui s'est passé, tel qu'enregistré",
