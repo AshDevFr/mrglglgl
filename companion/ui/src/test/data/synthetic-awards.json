@@ -22,5 +22,37 @@
   {
     "id": "quiet_day",
     "day": "2026-11-10"
+  },
+  {
+    "id": "first_elite",
+    "day": "2026-11-08"
+  },
+  {
+    "id": "first_boss",
+    "day": "2026-11-08"
+  },
+  {
+    "id": "first_death",
+    "day": "2026-11-01"
+  },
+  {
+    "id": "first_sale",
+    "day": "2026-11-08"
+  },
+  {
+    "id": "first_craft",
+    "day": "2026-11-08"
+  },
+  {
+    "id": "first_group",
+    "day": "2026-11-08"
+  },
+  {
+    "id": "in_character",
+    "day": "2026-11-08"
+  },
+  {
+    "id": "first_challenge",
+    "day": "2026-11-08"
   }
 ]

@@ -215,6 +215,118 @@
     "quiet_day": {
       "name": "Rien à signaler",
       "description": "Connecté, et rien ne s'est passé."
+    },
+    "big_catch": {
+      "name": "Celui qui ne s'est pas échappé",
+      "description": "A pêché cent poissons."
+    },
+    "junk_dealer": {
+      "name": "Les trésors de la vase",
+      "description": "A pêché dix déchets en une journée."
+    },
+    "first_elite": {
+      "name": "Plus gros que soi",
+      "description": "A vaincu un élite pour la première fois."
+    },
+    "first_rare": {
+      "name": "Une bête rare",
+      "description": "A vaincu une créature rare pour la première fois."
+    },
+    "first_boss": {
+      "name": "Le boss, c'est moi",
+      "description": "A vaincu un boss de donjon ou de raid pour la première fois."
+    },
+    "big_hunt": {
+      "name": "Dératisation",
+      "description": "Cinquante victimes en une journée."
+    },
+    "murloc_massacre": {
+      "name": "Mrgl mrgl non !",
+      "description": "Vingt murlocs en une journée."
+    },
+    "first_death": {
+      "name": "Un habitué du gardien des âmes",
+      "description": "Mort pour la première fois."
+    },
+    "fell": {
+      "name": "La gravité gagne toujours",
+      "description": "Mort d'une chute."
+    },
+    "lava": {
+      "name": "Bain chaud",
+      "description": "Mort dans la lave."
+    },
+    "wanderer": {
+      "name": "Vagabond",
+      "description": "A découvert cinquante lieux."
+    },
+    "growth_spurt": {
+      "name": "Poussée de croissance",
+      "description": "A gagné trois niveaux en une journée."
+    },
+    "level_10": {
+      "name": "Deux chiffres",
+      "description": "A atteint le niveau 10."
+    },
+    "level_20": {
+      "name": "Vingt et plus",
+      "description": "A atteint le niveau 20."
+    },
+    "level_40": {
+      "name": "Passé le cap",
+      "description": "A atteint le niveau 40."
+    },
+    "level_60": {
+      "name": "Au sommet",
+      "description": "A atteint le niveau 60."
+    },
+    "quest_marathon": {
+      "name": "Coursier",
+      "description": "A rendu dix quêtes en une journée."
+    },
+    "first_dungeon_quest": {
+      "name": "Dans les profondeurs",
+      "description": "A rendu une quête de donjon pour la première fois."
+    },
+    "first_gold": {
+      "name": "En or",
+      "description": "A gagné une pièce d'or en une journée."
+    },
+    "first_sale": {
+      "name": "Ouvert aux affaires",
+      "description": "A vendu un objet à l'hôtel des ventes pour la première fois."
+    },
+    "big_spender": {
+      "name": "Panier percé",
+      "description": "A dépensé une pièce d'or en une journée."
+    },
+    "first_craft": {
+      "name": "Fait main",
+      "description": "A fabriqué un objet pour la première fois."
+    },
+    "skill_100": {
+      "name": "Compagnon",
+      "description": "Un métier a atteint 100."
+    },
+    "first_group": {
+      "name": "Mieux à plusieurs",
+      "description": "A rejoint un groupe pour la première fois."
+    },
+    "in_character": {
+      "name": "Dans le rôle",
+      "description": "A dit une première réplique dans le rôle."
+    },
+    "first_challenge": {
+      "name": "Un héritage commence",
+      "description": "A accompli un défi Legacy pour la première fois."
+    },
+    "challenger": {
+      "name": "Challenger",
+      "description": "A accompli dix défis Legacy."
+    },
+    "night_owl": {
+      "name": "Oiseau de nuit",
+      "description": "A joué entre trois et six heures du matin."
     }
   },
   "settings": {

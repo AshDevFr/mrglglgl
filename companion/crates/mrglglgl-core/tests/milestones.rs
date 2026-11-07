@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use mrglglgl_core::archive::merge_snapshot;
 use mrglglgl_core::db::Database;
 use mrglglgl_core::discovery::CharacterSource;
-use mrglglgl_core::milestones::{self, Award, MILESTONES, compute, facts};
+use mrglglgl_core::milestones::{self, Award, DayFacts, all, compute, facts};
 use mrglglgl_core::schema::{self, Day, Event, EventKind, Journal, Killer};
 
 fn synthetic() -> Journal {
@@ -57,9 +57,17 @@ fn awards_from_raw_days_and_from_compacted_digests() {
             // From the compacted 2026-11-01 day: only its digest remains.
             ("kept_the_boot", "2026-11-01"),
             ("sleeps_with_fishes", "2026-11-01"),
+            ("first_death", "2026-11-01"),
             // From raw events.
             ("first_murloc", "2026-11-08"),
             ("slain_by_murloc", "2026-11-08"),
+            ("first_elite", "2026-11-08"),
+            ("first_boss", "2026-11-08"),
+            ("first_craft", "2026-11-08"),
+            ("first_group", "2026-11-08"),
+            ("first_sale", "2026-11-08"),
+            ("in_character", "2026-11-08"),
+            ("first_challenge", "2026-11-08"),
             ("only_fished", "2026-11-09"),
             ("quiet_day", "2026-11-10"),
         ])
@@ -80,8 +88,8 @@ fn kept_the_boot_needs_only_one_boot_and_is_the_first_milestone() {
             day: "2026-11-03".into()
         }
     );
-    assert_eq!(MILESTONES[0].id, "kept_the_boot");
-    assert!(!MILESTONES[0].proposed);
+    assert_eq!(all()[0].id, "kept_the_boot");
+    assert!(!all()[0].proposed);
 }
 
 #[test]
@@ -191,21 +199,81 @@ fn awards_are_stored_once_and_never_move() {
 }
 
 #[test]
-fn proposals_are_marked_and_each_can_be_turned_off() {
-    let proposed: Vec<_> = MILESTONES
-        .iter()
-        .filter(|m| m.proposed)
-        .map(|m| m.id)
-        .collect();
-    assert_eq!(
-        proposed,
-        [
-            "boot_collector",
-            "sleeps_with_fishes",
-            "bad_day",
-            "tourist",
-            "quiet_day"
-        ]
+fn the_milestones_file_names_real_facts_with_unique_ids_all_approved() {
+    let ids: std::collections::BTreeSet<_> = all().iter().map(|m| m.id.as_str()).collect();
+    assert_eq!(ids.len(), all().len(), "an id is used twice");
+    for m in all() {
+        assert!(
+            DayFacts::default().value(&m.fact).is_some(),
+            "{} names an unknown fact {}",
+            m.id,
+            m.fact
+        );
+        assert!(m.at_least > 0, "{}", m.id);
+        assert!(m.enabled && !m.proposed, "{}", m.id);
+    }
+}
+
+fn day_of(events: Vec<Event>) -> Day {
+    Day {
+        events: Some(events),
+        ..Day::default()
+    }
+}
+
+#[test]
+fn levels_nights_dungeon_quests_and_falls_each_earn_their_stamp() {
+    use chrono::{Local, TimeZone};
+    let four_am = Local
+        .with_ymd_and_hms(2026, 11, 3, 4, 0, 0)
+        .single()
+        .unwrap()
+        .timestamp();
+    let mut late = event(EventKind::SessionStart);
+    late.time = four_am;
+    let mut tenth = event(EventKind::Level);
+    tenth.level = Some(10);
+    let mut journal = Journal::default();
+    journal.quests.insert(
+        100,
+        schema::Quest {
+            kind: Some("dungeon".into()),
+            ..Default::default()
+        },
     );
-    assert!(MILESTONES.iter().all(|m| m.enabled));
+    journal.days.insert(
+        "2026-11-03".into(),
+        day_of(vec![
+            late,
+            tenth,
+            event(EventKind::QuestTurnin {
+                quest_id: Some(100),
+                xp: None,
+                money: None,
+            }),
+            event(EventKind::Death {
+                killer: None,
+                environment: Some("Falling".into()),
+            }),
+            event(EventKind::Death {
+                killer: None,
+                environment: Some("Lava".into()),
+            }),
+        ]),
+    );
+    let got = awarded(&compute(&journal))
+        .into_keys()
+        .map(|id| id.to_string())
+        .collect::<Vec<_>>();
+    for id in [
+        "night_owl",
+        "level_10",
+        "first_dungeon_quest",
+        "fell",
+        "lava",
+        "first_death",
+    ] {
+        assert!(got.contains(&id.to_string()), "{id} missing from {got:?}");
+    }
+    assert!(!got.contains(&"level_20".to_string()));
 }

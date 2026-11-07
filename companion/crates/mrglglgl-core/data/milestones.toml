@@ -1,0 +1,297 @@
+# The milestones: cosmetic stamps awarded from the archive. Each is a rule over the facts of one
+# day (see `DayFacts` in src/milestones.rs for the facts there are):
+#
+#   rule = "first_day"  the first day the fact reaches `at_least`
+#   rule = "total"      the day the fact, added up day by day, reaches `at_least`
+#
+# A stamp is stored by `id` and never moves, so an id is never renamed or reused once shipped.
+# `name` is the English name prompts and exports use; the window takes names and descriptions
+# from the locale catalogues under `milestones.<id>`. `proposed` marks one not yet approved;
+# `enabled = false` turns one off without losing stamps already given.
+
+# The first stamp most players get: a single boot is enough.
+[[milestone]]
+id = "kept_the_boot"
+name = "Kept the Boot"
+rule = "first_day"
+fact = "boots"
+at_least = 1
+
+[[milestone]]
+id = "first_murloc"
+name = "First Blood (Fishy)"
+rule = "first_day"
+fact = "murloc_kills"
+at_least = 1
+
+[[milestone]]
+id = "slain_by_murloc"
+name = "Mrglglgl'd"
+rule = "first_day"
+fact = "deaths_by_murloc"
+at_least = 1
+
+[[milestone]]
+id = "traitor"
+name = "Traitor"
+rule = "total"
+fact = "murloc_kills"
+at_least = 100
+
+[[milestone]]
+id = "only_fished"
+name = "Gone Fishin'"
+rule = "first_day"
+fact = "only_fished"
+at_least = 1
+
+[[milestone]]
+id = "boot_collector"
+name = "Cobbler's Apprentice"
+rule = "total"
+fact = "boots"
+at_least = 5
+
+[[milestone]]
+id = "sleeps_with_fishes"
+name = "Sleeps With the Fishes"
+rule = "first_day"
+fact = "drownings"
+at_least = 1
+
+[[milestone]]
+id = "bad_day"
+name = "Character Building"
+rule = "first_day"
+fact = "deaths"
+at_least = 3
+
+[[milestone]]
+id = "tourist"
+name = "Tourist"
+rule = "first_day"
+fact = "discoveries"
+at_least = 5
+
+[[milestone]]
+id = "quiet_day"
+name = "Nothing to Report"
+rule = "first_day"
+fact = "nothing_happened"
+at_least = 1
+
+# Fishing
+
+[[milestone]]
+id = "big_catch"
+name = "The One That Didn't Get Away"
+rule = "total"
+fact = "fish"
+at_least = 100
+
+[[milestone]]
+id = "junk_dealer"
+name = "One Fish's Trash"
+rule = "first_day"
+fact = "junk"
+at_least = 10
+
+# Fights
+
+[[milestone]]
+id = "first_elite"
+name = "Punching Up"
+rule = "first_day"
+fact = "elites"
+at_least = 1
+
+[[milestone]]
+id = "first_rare"
+name = "Rare Sighting"
+rule = "first_day"
+fact = "rares"
+at_least = 1
+
+[[milestone]]
+id = "first_boss"
+name = "Bossed Around"
+rule = "first_day"
+fact = "bosses"
+at_least = 1
+
+[[milestone]]
+id = "big_hunt"
+name = "Pest Control"
+rule = "first_day"
+fact = "kills"
+at_least = 50
+
+[[milestone]]
+id = "murloc_massacre"
+name = "Mrgl Mrgl No!"
+rule = "first_day"
+fact = "murloc_kills"
+at_least = 20
+
+# Deaths
+
+[[milestone]]
+id = "first_death"
+name = "Spirit Healer's Regular"
+rule = "first_day"
+fact = "deaths"
+at_least = 1
+
+[[milestone]]
+id = "fell"
+name = "Gravity Wins"
+rule = "first_day"
+fact = "falls"
+at_least = 1
+
+[[milestone]]
+id = "lava"
+name = "Hot Tub"
+rule = "first_day"
+fact = "lava"
+at_least = 1
+
+# Exploring and levels
+
+[[milestone]]
+id = "wanderer"
+name = "Wanderer"
+rule = "total"
+fact = "discoveries"
+at_least = 50
+
+[[milestone]]
+id = "growth_spurt"
+name = "Growth Spurt"
+rule = "first_day"
+fact = "levels_gained"
+at_least = 3
+
+[[milestone]]
+id = "level_10"
+name = "Double Digits"
+rule = "first_day"
+fact = "level"
+at_least = 10
+
+[[milestone]]
+id = "level_20"
+name = "Twenty and Counting"
+rule = "first_day"
+fact = "level"
+at_least = 20
+
+[[milestone]]
+id = "level_40"
+name = "Over the Hill"
+rule = "first_day"
+fact = "level"
+at_least = 40
+
+[[milestone]]
+id = "level_60"
+name = "The Top of the Mountain"
+rule = "first_day"
+fact = "level"
+at_least = 60
+
+# Quests
+
+[[milestone]]
+id = "quest_marathon"
+name = "Errand Runner"
+rule = "first_day"
+fact = "quests_done"
+at_least = 10
+
+[[milestone]]
+id = "first_dungeon_quest"
+name = "Down Below"
+rule = "first_day"
+fact = "dungeon_quests_done"
+at_least = 1
+
+# Money and trade
+
+[[milestone]]
+id = "first_gold"
+name = "Golden"
+rule = "first_day"
+fact = "money_in"
+at_least = 10000
+
+[[milestone]]
+id = "first_sale"
+name = "Open for Business"
+rule = "first_day"
+fact = "auctions_sold"
+at_least = 1
+
+[[milestone]]
+id = "big_spender"
+name = "Big Spender"
+rule = "first_day"
+fact = "money_out"
+at_least = 10000
+
+# Professions
+
+[[milestone]]
+id = "first_craft"
+name = "Handmade"
+rule = "first_day"
+fact = "crafted"
+at_least = 1
+
+[[milestone]]
+id = "skill_100"
+name = "Journeyman"
+rule = "first_day"
+fact = "profession_rank"
+at_least = 100
+
+# Company and role play
+
+[[milestone]]
+id = "first_group"
+name = "Better Together"
+rule = "first_day"
+fact = "group_joins"
+at_least = 1
+
+[[milestone]]
+id = "in_character"
+name = "In Character"
+rule = "first_day"
+fact = "own_lines"
+at_least = 1
+
+# Legacy Challenges
+
+[[milestone]]
+id = "first_challenge"
+name = "Legacy Begins"
+rule = "first_day"
+fact = "challenges"
+at_least = 1
+
+[[milestone]]
+id = "challenger"
+name = "Challenger"
+rule = "total"
+fact = "challenges"
+at_least = 10
+
+# Time
+
+[[milestone]]
+id = "night_owl"
+name = "Night Owl"
+rule = "first_day"
+fact = "night_sessions"
+at_least = 1

@@ -1,5 +1,5 @@
 meddling: true
-hash: 3be27b6bfd8bf6905ea103bd25eb7a9f532150704d8e88a80fdb2903baed4941
+hash: 731885d5645ad270538b54a3fa6923ca40a5cd2e59162a46627b93f686412fc4
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as one short journal entry, in the first person, as the adventurer.
@@ -44,6 +44,6 @@ Before this week (memory only):
 - Boots kept so far: 1
 - Murlocs slain in total: 1
 - Deaths by murloc in total: 1
-- Milestones earned: Kept the Boot, First Blood (Fishy), Mrglglgl'd, Sleeps With the Fishes
+- Milestones earned: Kept the Boot, First Blood (Fishy), Mrglglgl'd, Sleeps With the Fishes, Punching Up, Bossed Around, Spirit Healer's Regular, Open for Business, Handmade, Better Together, In Character, Legacy Begins
 
 Write this week's chapter in English, about 250 words.

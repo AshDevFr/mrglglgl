@@ -215,6 +215,118 @@
     "quiet_day": {
       "name": "Nothing to Report",
       "description": "Logged in, and nothing happened."
+    },
+    "big_catch": {
+      "name": "The One That Didn't Get Away",
+      "description": "Caught a hundred fish."
+    },
+    "junk_dealer": {
+      "name": "One Fish's Trash",
+      "description": "Fished up ten pieces of junk in one day."
+    },
+    "first_elite": {
+      "name": "Punching Up",
+      "description": "Slew an elite for the first time."
+    },
+    "first_rare": {
+      "name": "Rare Sighting",
+      "description": "Slew a rare creature for the first time."
+    },
+    "first_boss": {
+      "name": "Bossed Around",
+      "description": "Defeated a dungeon or raid boss for the first time."
+    },
+    "big_hunt": {
+      "name": "Pest Control",
+      "description": "Fifty kills in one day."
+    },
+    "murloc_massacre": {
+      "name": "Mrgl Mrgl No!",
+      "description": "Twenty murlocs in one day."
+    },
+    "first_death": {
+      "name": "Spirit Healer's Regular",
+      "description": "Died for the first time."
+    },
+    "fell": {
+      "name": "Gravity Wins",
+      "description": "Died from a fall."
+    },
+    "lava": {
+      "name": "Hot Tub",
+      "description": "Died in lava."
+    },
+    "wanderer": {
+      "name": "Wanderer",
+      "description": "Discovered fifty places."
+    },
+    "growth_spurt": {
+      "name": "Growth Spurt",
+      "description": "Gained three levels in one day."
+    },
+    "level_10": {
+      "name": "Double Digits",
+      "description": "Reached level 10."
+    },
+    "level_20": {
+      "name": "Twenty and Counting",
+      "description": "Reached level 20."
+    },
+    "level_40": {
+      "name": "Over the Hill",
+      "description": "Reached level 40."
+    },
+    "level_60": {
+      "name": "The Top of the Mountain",
+      "description": "Reached level 60."
+    },
+    "quest_marathon": {
+      "name": "Errand Runner",
+      "description": "Turned in ten quests in one day."
+    },
+    "first_dungeon_quest": {
+      "name": "Down Below",
+      "description": "Turned in a dungeon quest for the first time."
+    },
+    "first_gold": {
+      "name": "Golden",
+      "description": "Earned a gold piece in one day."
+    },
+    "first_sale": {
+      "name": "Open for Business",
+      "description": "Sold something at the auction house for the first time."
+    },
+    "big_spender": {
+      "name": "Big Spender",
+      "description": "Spent a gold piece in one day."
+    },
+    "first_craft": {
+      "name": "Handmade",
+      "description": "Crafted something for the first time."
+    },
+    "skill_100": {
+      "name": "Journeyman",
+      "description": "A profession reached 100."
+    },
+    "first_group": {
+      "name": "Better Together",
+      "description": "Joined a group for the first time."
+    },
+    "in_character": {
+      "name": "In Character",
+      "description": "Said a first line in character."
+    },
+    "first_challenge": {
+      "name": "Legacy Begins",
+      "description": "Completed a Legacy Challenge for the first time."
+    },
+    "challenger": {
+      "name": "Challenger",
+      "description": "Completed ten Legacy Challenges."
+    },
+    "night_owl": {
+      "name": "Night Owl",
+      "description": "Played between three and six in the morning."
     }
   },
   "settings": {

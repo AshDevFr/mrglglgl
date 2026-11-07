@@ -5,7 +5,7 @@
 
 use std::path::PathBuf;
 
-use mrglglgl_core::milestones::{MILESTONES, compute};
+use mrglglgl_core::milestones::{all, compute};
 use mrglglgl_core::schema;
 
 fn ui_test_data() -> PathBuf {
@@ -26,6 +26,6 @@ fn write_frontend_test_data() {
     let journal = schema::journal_from_text(&std::fs::read_to_string(fixture).unwrap()).unwrap();
     write("synthetic-journal.json", &journal);
     write("synthetic-awards.json", &compute(&journal));
-    let ids: Vec<&str> = MILESTONES.iter().map(|m| m.id).collect();
+    let ids: Vec<&str> = all().iter().map(|m| m.id.as_str()).collect();
     write("milestone-ids.json", &ids);
 }

@@ -107,7 +107,7 @@ const PROFESSION_SKILLS: &[i64] = &[
     393, // Skinning
 ];
 
-fn is_profession(id: Option<i64>, category: Option<&str>) -> bool {
+pub(crate) fn is_profession(id: Option<i64>, category: Option<&str>) -> bool {
     match id {
         Some(id) => PROFESSION_SKILLS.contains(&id),
         None => matches!(category, Some("Professions" | "Secondary Skills")),
