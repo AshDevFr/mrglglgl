@@ -5,4 +5,12 @@ export type Quest = { title: string | null, text: string | null,
  * Day the quest was last accepted or turned in; its text is dropped in game once this falls
  * outside the retention window.
  */
-last: string | null, };
+last: string | null, 
+/**
+ * The quest's level, from the quest log when it was accepted.
+ */
+level: number | null, 
+/**
+ * `"elite"`, `"dungeon"`, `"raid"` or `"group"`; none for an ordinary quest.
+ */
+kind: string | null, };

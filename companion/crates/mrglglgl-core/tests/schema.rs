@@ -368,6 +368,8 @@ fn reads_every_documented_field() {
         "qty",
         "who",
         "moment",
+        // Quest record fields beyond title, text and last
+        "kind",
     ]
     .into_iter()
     .collect();
@@ -416,4 +418,22 @@ fn reads_what_the_addon_notes_about_itself() {
     assert_eq!(errors.count, 3);
     assert_eq!(errors.last_event.as_deref(), Some("LOOT_OPENED"));
     assert!(errors.last_message.unwrap().contains("boom"));
+}
+
+#[test]
+fn reads_a_quests_level_and_kind() {
+    let journal =
+        mrglglgl_core::schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
+    let caravan = &journal.quests[&749];
+    assert_eq!(caravan.title.as_deref(), Some("The Ravaged Caravan"));
+    assert_eq!(caravan.level, Some(6));
+    assert_eq!(caravan.kind, None, "an ordinary quest has no kind");
+    let text = "MrglglglCharDB = { [\"schema\"] = 1, [\"quests\"] = { [800] = { [\"title\"] = \"Into the Mines\", [\"lv\"] = 18, [\"kind\"] = \"dungeon\" } } }";
+    let dungeon = &mrglglgl_core::schema::journal_from_text(text)
+        .unwrap()
+        .quests[&800];
+    assert_eq!(
+        (dungeon.level, dungeon.kind.as_deref()),
+        (Some(18), Some("dungeon"))
+    );
 }

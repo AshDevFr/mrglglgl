@@ -154,7 +154,23 @@ function Mock.install()
 	_G.GetQuestID = function() return Mock.questDetail and Mock.questDetail.id end
 	_G.GetTitleText = function() return Mock.questDetail and Mock.questDetail.title end
 	_G.GetQuestText = function() return Mock.questDetail and Mock.questDetail.text end
-	_G.C_QuestLog = { GetTitleForQuestID = function(id) return Mock.questTitles[id] end }
+	-- Quests in the log by ID: { level = 9, tagID = 81, isElite = false }.
+	Mock.questLog = {}
+	_G.C_QuestLog = {
+		GetTitleForQuestID = function(id) return Mock.questTitles[id] end,
+		GetLogIndexForQuestID = function(id) return Mock.questLog[id] and id or nil end,
+		GetInfo = function(index)
+			local q = Mock.questLog[index]
+			return q and { questID = index, level = q.level } or nil
+		end,
+		GetQuestTagInfo = function(id)
+			local q = Mock.questLog[id]
+			if not q or (q.tagID == nil and not q.isElite) then
+				return nil
+			end
+			return { tagID = q.tagID, tagName = q.tagName, isElite = q.isElite == true }
+		end,
+	}
 	_G.SelectQuestLogEntry = function() Mock.questLogSelections = Mock.questLogSelections + 1 end
 	_G.C_QuestLog.SetSelectedQuest = _G.SelectQuestLogEntry
 	Mock.loot, Mock.fishing, Mock.chatLockdown = {}, false, false

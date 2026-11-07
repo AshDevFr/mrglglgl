@@ -17,6 +17,7 @@ function facts(overrides: Partial<DayFacts>): DayFacts {
     acceptedUnnamed: 0,
     turnedIn: [],
     turnedInUnnamed: 0,
+    questTags: {},
     kills: [],
     notable: [],
     murlocs: 0,
@@ -344,8 +345,20 @@ describe("quests and skills on the page", () => {
   const journal = {
     ...syntheticJournal,
     quests: {
-      1: { title: "Fizsprocket's Notes", text: null, last: null },
-      2: { title: "Swoop Hunting", text: null, last: null },
+      1: {
+        title: "Fizsprocket's Notes",
+        text: null,
+        last: null,
+        level: 9,
+        kind: "elite",
+      },
+      2: {
+        title: "Swoop Hunting",
+        text: null,
+        last: null,
+        level: null,
+        kind: null,
+      },
     },
   };
 

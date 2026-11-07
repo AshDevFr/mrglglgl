@@ -26,6 +26,10 @@ local function storeQuest(questId)
 	if quest.text == nil and detail and Storage.records("questText") then
 		quest.text = detail.text
 	end
+	-- Shown as [9], [9+] (elite), [9D] (dungeon), [9R] (raid) or [9G] (group) beside the title.
+	local level, kind = Compat.GetQuestLevelAndKind(questId)
+	quest.lv = level or quest.lv
+	quest.kind = kind or quest.kind
 end
 
 ns.On("QUEST_ACCEPTED", function(_, questId)

@@ -108,4 +108,26 @@ describe("Quests", function()
 		assert.same({}, events("quest_turnin"))
 		assert.is_nil(_G.MrglglglCharDB.quests[749])
 	end)
+
+	it("records a quest's level and kind from the quest log, for [9], [9+] and [9D]", function()
+		Mock.questLog[749] = { level = 9 }
+		Mock.questLog[751] = { level = 12, isElite = true, tagName = "Elite" }
+		Mock.questLog[752] = { level = 18, tagID = 81, tagName = "Dungeon", isElite = true }
+		for _, id in ipairs({ 749, 751, 752 }) do
+			offer(id, "Quest " .. id, "Text.")
+			Mock.fire("QUEST_ACCEPTED", id)
+		end
+		local quests = _G.MrglglglCharDB.quests
+		assert.same({ 9, nil }, { quests[749].lv, quests[749].kind })
+		assert.same({ 12, "elite" }, { quests[751].lv, quests[751].kind })
+		assert.same({ 18, "dungeon" }, { quests[752].lv, quests[752].kind })
+	end)
+
+	it("records no level or kind when the client does not give them", function()
+		_G.C_QuestLog.GetInfo, _G.C_QuestLog.GetQuestTagInfo = nil, nil
+		offer(749, "The Ravaged Caravan", "Text.")
+		Mock.fire("QUEST_ACCEPTED", 749)
+		assert.is_nil(_G.MrglglglCharDB.quests[749].lv)
+		assert.is_nil(_G.MrglglglCharDB.quests[749].kind)
+	end)
 end)

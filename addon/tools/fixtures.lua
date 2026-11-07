@@ -100,6 +100,7 @@ local function play()
 		Mock.questDetail = { id = 749, title = "The Ravaged Caravan",
 			text = "Some marauding wolves have attacked a caravan near Red Rocks." }
 		Mock.fire("QUEST_DETAIL", 0)
+		Mock.questLog[749] = { level = 6 }
 		Mock.fire("QUEST_ACCEPTED", 749)
 		Mock.setUnit("target", { guid = creature(2958, 2), name = "Prairie Wolf", classification = "normal" })
 		Mock.fire("PLAYER_TARGET_CHANGED")

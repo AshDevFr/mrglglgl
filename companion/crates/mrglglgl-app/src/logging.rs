@@ -71,6 +71,21 @@ fn newest(dir: &Path) -> PathBuf {
         .unwrap_or_else(|| dir.to_path_buf())
 }
 
+/// The only addresses the app opens in the browser: Wowhead pages, from names in a day's list.
+const LINK_PREFIX: &str = "https://www.wowhead.com/";
+
+/// Opens a Wowhead page in the system's browser. Any other address is refused, so the window
+/// cannot be used to open arbitrary links.
+#[tauri::command]
+pub fn open_link(app: AppHandle, url: String) -> Result<(), String> {
+    if !url.starts_with(LINK_PREFIX) || url.chars().any(char::is_whitespace) {
+        return Err(format!("not a Wowhead address: {url}"));
+    }
+    app.opener()
+        .open_url(url, None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 /// Shows the newest log file in the system's file manager.
 #[tauri::command]
 pub fn show_log(app: AppHandle) -> Result<(), String> {

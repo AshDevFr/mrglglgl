@@ -287,7 +287,9 @@
     "wowAutomatic": "Find it automatically again",
     "wowUnsaved": "Save to use this.",
     "chosenMissing": "The folder you chose has no World of Warcraft in it",
-    "chosenMissingNext": "Choose the game folder (the one containing _forever_), or find it automatically again, then save."
+    "chosenMissingNext": "Choose the game folder (the one containing _forever_), or find it automatically again, then save.",
+    "wowhead": "Link names to Wowhead",
+    "wowheadHelp": "In What happened, quests, places, creatures, items and skills open Wowhead's search in your browser."
   },
   "writing": {
     "loading": {

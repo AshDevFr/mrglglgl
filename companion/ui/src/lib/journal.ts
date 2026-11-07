@@ -170,6 +170,8 @@ export interface DayFacts {
   /** Quests handed in whose title the journal never learned, as when the quest was taken before
    * the addon recorded quests. */
   turnedInUnnamed: number;
+  /** Each titled quest's level and kind as players write them, by title: "[9]", "[9+]", "[18D]". */
+  questTags: Record<string, string>;
   kills: KillLine[];
   notable: KillLine[];
   murlocs: number;
@@ -211,7 +213,7 @@ function questFacts(
   turnedInIds: number[],
 ): Pick<
   DayFacts,
-  "accepted" | "acceptedUnnamed" | "turnedIn" | "turnedInUnnamed"
+  "accepted" | "acceptedUnnamed" | "turnedIn" | "turnedInUnnamed" | "questTags"
 > {
   const done = unique(turnedInIds);
   const taken = unique(acceptedIds).filter((id) => !done.includes(id));
@@ -227,12 +229,36 @@ function questFacts(
   };
   const a = split(taken);
   const t = split(done);
+  const questTags: Record<string, string> = {};
+  for (const id of [...taken, ...done]) {
+    const quest = journal.quests[id];
+    const tag = quest ? questTag(quest.level, quest.kind) : null;
+    if (quest?.title && tag) questTags[quest.title] = tag;
+  }
   return {
     accepted: a.titles,
     acceptedUnnamed: a.unnamed,
     turnedIn: t.titles,
     turnedInUnnamed: t.unnamed,
+    questTags,
   };
+}
+
+const KIND_MARK: Record<string, string> = {
+  elite: "+",
+  dungeon: "D",
+  raid: "R",
+  group: "G",
+};
+
+/** A quest's level and kind the way players write them: [9], [9+] elite, [18D] dungeon, [40R]
+ * raid, [12G] group. Nothing without a level. */
+export function questTag(
+  level: number | null | undefined,
+  kind: string | null | undefined,
+): string | null {
+  if (level === null || level === undefined) return null;
+  return `[${level}${(kind && KIND_MARK[kind]) ?? ""}]`;
 }
 
 function place(zone: string | null, subzone: string | null): string | null {
@@ -338,6 +364,7 @@ function eventFacts(
     acceptedUnnamed: 0,
     turnedIn: [],
     turnedInUnnamed: 0,
+    questTags: {},
     kills,
     notable: kills.filter((k) => NOTABLE.has(k.classification)),
     murlocs: kills.filter((k) => k.murloc).reduce((n, k) => n + k.count, 0),

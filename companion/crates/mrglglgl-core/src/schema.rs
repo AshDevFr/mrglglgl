@@ -290,6 +290,10 @@ pub struct Quest {
     /// Day the quest was last accepted or turned in; its text is dropped in game once this falls
     /// outside the retention window.
     pub last: Option<String>,
+    /// The quest's level, from the quest log when it was accepted.
+    pub level: Option<i64>,
+    /// `"elite"`, `"dungeon"`, `"raid"` or `"group"`; none for an ordinary quest.
+    pub kind: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -776,6 +780,8 @@ pub fn journal_from(file: &SavedVariables) -> Result<Journal, JournalError> {
                             title: string(q, "title"),
                             text: string(q, "text"),
                             last: string(q, "last"),
+                            level: int(q, "lv"),
+                            kind: string(q, "kind"),
                         },
                     ))
                 })

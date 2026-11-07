@@ -50,6 +50,38 @@ function Compat.GetQuestDetailText()
 	return GetQuestID(), GetTitleText(), GetQuestText()
 end
 
+-- Tag IDs the quest log uses for the kinds of quest players mark in brackets ([9D], [9R], [9G]).
+local QUEST_TAGS = { [1] = "group", [62] = "raid", [81] = "dungeon" }
+
+-- The level and kind of a quest in the player's quest log: level, then "elite", "dungeon", "raid",
+-- "group" or nil. Read while the quest is in the log (at QUEST_ACCEPTED); reading changes no
+-- selection. Every call is checked first: none of them is confirmed on Forever yet, and a missing
+-- one gives nothing rather than an error.
+function Compat.GetQuestLevelAndKind(questId)
+	local log = C_QuestLog
+	if not log then
+		return nil, nil
+	end
+	local level
+	local index = log.GetLogIndexForQuestID and log.GetLogIndexForQuestID(questId)
+	if index and log.GetInfo then
+		local info = log.GetInfo(index)
+		level = info and tonumber(info.level) or nil
+		if level and level <= 0 then
+			level = nil
+		end
+	end
+	local kind
+	local tag = log.GetQuestTagInfo and log.GetQuestTagInfo(questId)
+	if tag then
+		kind = QUEST_TAGS[tag.tagID]
+		if kind == nil and (tag.isElite or tag.tagName == "Elite") then
+			kind = "elite"
+		end
+	end
+	return level, kind
+end
+
 function Compat.IsFishingLoot()
 	return IsFishingLoot ~= nil and IsFishingLoot() == true
 end

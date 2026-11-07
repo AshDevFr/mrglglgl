@@ -322,6 +322,12 @@ fn merge_quest(into: &mut Quest, from: &Quest) {
     if from.text.is_some() {
         into.text.clone_from(&from.text);
     }
+    if from.level.is_some() {
+        into.level = from.level;
+    }
+    if from.kind.is_some() {
+        into.kind.clone_from(&from.kind);
+    }
     // Day keys sort as strings, so the later of the two is kept.
     if from.last > into.last {
         into.last.clone_from(&from.last);

@@ -93,6 +93,11 @@ export function restoreAddon(flavor: string): Promise<Installed> {
   return invoke<Installed>("restore_addon", { flavor });
 }
 
+/** Opens a Wowhead page in the browser; the app refuses any other address. */
+export function openLink(url: string): Promise<void> {
+  return invoke("open_link", { url });
+}
+
 export function showLog(): Promise<void> {
   return invoke("show_log");
 }

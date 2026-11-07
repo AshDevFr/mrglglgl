@@ -693,6 +693,7 @@ MrglglglCharDB = {
 ["quests"] = {
 [749] = {
 ["last"] = "2026-11-08",
+["lv"] = 6,
 ["text"] = "Some marauding wolves have attacked a caravan near Red Rocks.",
 ["title"] = "The Ravaged Caravan",
 },

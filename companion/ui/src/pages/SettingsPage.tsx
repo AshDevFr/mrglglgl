@@ -12,6 +12,7 @@ import { NarratorsPanel } from "@/components/NarratorsPanel";
 import { PaperField } from "@/components/PaperField";
 import { SettingsForm } from "@/components/SettingsForm";
 import { WebsitePanel } from "@/components/WebsitePanel";
+import { WowheadField } from "@/components/WowheadField";
 import { ZoomField } from "@/components/ZoomField";
 import { applyLanguage } from "@/i18n";
 import { problem } from "@/i18n/problems";
@@ -82,6 +83,7 @@ export function SettingsPage() {
             <Stack gap="xl" maw={640}>
               <PaperField />
               <ZoomField />
+              <WowheadField />
               <SettingsForm view={view.data} onSave={save} section="general" />
               <LogPanel />
             </Stack>
