@@ -537,12 +537,13 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         }
     }
 
-    let milestones_today: Vec<String> = r
-        .awards
-        .iter()
-        .filter(|a| a.day == r.day)
-        .map(|a| milestones::name(&a.id).to_string())
-        .collect();
+    let milestones_today: Vec<String> = milestones::rarest(
+        r.awards.iter().filter(|a| a.day == r.day),
+        milestones::TOLD_PER_DAY,
+    )
+    .into_iter()
+    .map(|a| milestones::name(&a.id).to_string())
+    .collect();
     let hints = hint_lines(r.narrator, &patterns);
     let level = record.level_from.zip(record.level_to);
 
@@ -653,12 +654,13 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
         .filter_map(|r| r.level_from)
         .min()
         .zip(records.iter().filter_map(|r| r.level_to).max());
-    let milestones_week: Vec<String> = r
-        .awards
-        .iter()
-        .filter(|a| days.contains(&a.day))
-        .map(|a| milestones::name(&a.id).to_string())
-        .collect();
+    let milestones_week: Vec<String> = milestones::rarest(
+        r.awards.iter().filter(|a| days.contains(&a.day)),
+        milestones::TOLD_PER_DAY * 2,
+    )
+    .into_iter()
+    .map(|a| milestones::name(&a.id).to_string())
+    .collect();
     let end = days.last().cloned().unwrap_or_default();
     let user = format!(
         "Notes for the week of {from} to {to}.\n\n{adventurer}\n\n\

@@ -80,6 +80,7 @@ fn award(id: &str, day: &str) -> Award {
     Award {
         id: id.into(),
         day: day.into(),
+        rarity: 1,
     }
 }
 

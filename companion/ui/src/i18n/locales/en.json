@@ -327,6 +327,87 @@
     "night_owl": {
       "name": "Night Owl",
       "description": "Played between three and six in the morning."
+    },
+    "more": "More milestones",
+    "level_30": {
+      "name": "Thirty Something",
+      "description": "Reached level 30."
+    },
+    "level_50": {
+      "name": "Seasoned",
+      "description": "Reached level 50."
+    },
+    "murloc_nemesis": {
+      "name": "Murloc Nemesis",
+      "description": "Slew a thousand murlocs."
+    },
+    "fisher_king": {
+      "name": "Fisher King",
+      "description": "Caught a thousand fish."
+    },
+    "sole_survivor": {
+      "name": "Sole Survivor",
+      "description": "Fished up twenty-five boots."
+    },
+    "ten_thousand_cuts": {
+      "name": "Ten Thousand Cuts",
+      "description": "Ten thousand kills."
+    },
+    "cartographer": {
+      "name": "Cartographer",
+      "description": "Discovered two hundred places."
+    },
+    "hero_of_the_people": {
+      "name": "Hero of the People",
+      "description": "Turned in a hundred quests."
+    },
+    "legend_of_the_realm": {
+      "name": "Legend of the Realm",
+      "description": "Turned in five hundred quests."
+    },
+    "delver": {
+      "name": "Delver",
+      "description": "Turned in twenty-five dungeon quests."
+    },
+    "boss_hunter": {
+      "name": "Boss Hunter",
+      "description": "Defeated fifty bosses."
+    },
+    "well_off": {
+      "name": "Well Off",
+      "description": "Earned a hundred gold in all."
+    },
+    "tycoon": {
+      "name": "Tycoon",
+      "description": "Earned a thousand gold in all."
+    },
+    "auction_mogul": {
+      "name": "Auction Mogul",
+      "description": "Sold a hundred items at the auction house."
+    },
+    "master_craftsman": {
+      "name": "Master Craftsman",
+      "description": "A profession reached 300."
+    },
+    "frequent_flyer": {
+      "name": "Frequent Flyer",
+      "description": "Died a hundred times."
+    },
+    "life_of_the_party": {
+      "name": "Life of the Party",
+      "description": "Joined fifty groups."
+    },
+    "creature_of_the_night": {
+      "name": "Creature of the Night",
+      "description": "Ten sessions between three and six in the morning."
+    },
+    "half_a_legacy": {
+      "name": "Half a Legacy",
+      "description": "Completed fifty Legacy Challenges."
+    },
+    "living_legend": {
+      "name": "Living Legend",
+      "description": "Completed a hundred Legacy Challenges."
     }
   },
   "settings": {

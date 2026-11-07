@@ -310,6 +310,30 @@
   transform: rotate(-0.6deg);
 }
 
+/* The stamps a busy day earned beyond the ones pressed on it: a short list in stamp ink. */
+.more-milestones {
+  margin-top: 1.5rem;
+  max-width: 40em;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.more-milestones h3 {
+  margin: 0 0 0.25em;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant: small-caps;
+  letter-spacing: 0.02em;
+  color: var(--stamp);
+}
+.more-milestones ul {
+  margin: 0;
+  padding-left: 1.1em;
+}
+.more-milestones strong {
+  color: var(--stamp);
+  font-weight: 600;
+}
+
 /* What happened, as recorded: a label column and the items under each other. */
 .fact-list {
   display: grid;

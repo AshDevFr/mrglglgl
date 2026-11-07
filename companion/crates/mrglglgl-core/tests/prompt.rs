@@ -143,9 +143,17 @@ fn a_day_prompt_carries_everything_the_entry_is_grounded_in() {
     for beat in beats::extract(&j, "2026-11-08", &awards, &Thresholds::default()).texts() {
         assert!(p.user.contains(&beat), "beat {beat}");
     }
-    for award in awards.iter().filter(|a| a.day == "2026-11-08") {
-        assert!(
+    // The rarest stamps of the day are told; the rest stay on the page only.
+    let today: Vec<_> = awards.iter().filter(|a| a.day == "2026-11-08").collect();
+    let told = milestones::rarest(today.iter().copied(), milestones::TOLD_PER_DAY);
+    assert!(
+        today.len() > told.len(),
+        "the sample day has more stamps than are told"
+    );
+    for award in &today {
+        assert_eq!(
             p.user.contains(milestones::name(&award.id)),
+            told.contains(award),
             "milestone {}",
             award.id
         );

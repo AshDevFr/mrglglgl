@@ -1309,11 +1309,14 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
     if !sold.is_empty() || !won.is_empty() {
         beats.push(Beat::Auctions { sold, won });
     }
-    let earned: Vec<String> = awards
-        .iter()
-        .filter(|a| a.day == day)
-        .map(|a| milestones::name(&a.id).to_string())
-        .collect();
+    // A day with many stamps (a character's first days earn several) tells only the rarest.
+    let earned: Vec<String> = milestones::rarest(
+        awards.iter().filter(|a| a.day == day),
+        milestones::TOLD_PER_DAY,
+    )
+    .into_iter()
+    .map(|a| milestones::name(&a.id).to_string())
+    .collect();
     if !earned.is_empty() || !record.achievements.is_empty() {
         beats.push(Beat::Milestones {
             names: earned,

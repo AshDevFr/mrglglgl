@@ -85,7 +85,8 @@ fn kept_the_boot_needs_only_one_boot_and_is_the_first_milestone() {
         awards[0],
         Award {
             id: "kept_the_boot".into(),
-            day: "2026-11-03".into()
+            day: "2026-11-03".into(),
+            rarity: 1,
         }
     );
     assert_eq!(all()[0].id, "kept_the_boot");

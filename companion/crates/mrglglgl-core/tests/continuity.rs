@@ -85,6 +85,7 @@ fn awards() -> Vec<Award> {
     vec![Award {
         id: "kept_the_boot".into(),
         day: "2026-11-15".into(),
+        rarity: 1,
     }]
 }
 

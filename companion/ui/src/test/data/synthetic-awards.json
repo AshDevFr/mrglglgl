@@ -1,58 +1,72 @@
 [
   {
     "id": "kept_the_boot",
-    "day": "2026-11-01"
+    "day": "2026-11-01",
+    "rarity": 1
   },
   {
     "id": "first_murloc",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 1
   },
   {
     "id": "slain_by_murloc",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 2
   },
   {
     "id": "only_fished",
-    "day": "2026-11-09"
+    "day": "2026-11-09",
+    "rarity": 2
   },
   {
     "id": "sleeps_with_fishes",
-    "day": "2026-11-01"
+    "day": "2026-11-01",
+    "rarity": 2
   },
   {
     "id": "quiet_day",
-    "day": "2026-11-10"
+    "day": "2026-11-10",
+    "rarity": 1
   },
   {
     "id": "first_elite",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 1
   },
   {
     "id": "first_boss",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 2
   },
   {
     "id": "first_death",
-    "day": "2026-11-01"
+    "day": "2026-11-01",
+    "rarity": 1
   },
   {
     "id": "first_sale",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 2
   },
   {
     "id": "first_craft",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 1
   },
   {
     "id": "first_group",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 1
   },
   {
     "id": "in_character",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 2
   },
   {
     "id": "first_challenge",
-    "day": "2026-11-08"
+    "day": "2026-11-08",
+    "rarity": 1
   }
 ]

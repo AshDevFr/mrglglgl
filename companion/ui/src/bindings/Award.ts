@@ -4,4 +4,8 @@ export type Award = { id: string,
 /**
  * The day it was earned, `YYYY-MM-DD`.
  */
-day: string, };
+day: string, 
+/**
+ * The milestone's rarity, 1 to 5.
+ */
+rarity: number, };

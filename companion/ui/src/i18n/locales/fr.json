@@ -327,6 +327,87 @@
     "night_owl": {
       "name": "Oiseau de nuit",
       "description": "A joué entre trois et six heures du matin."
+    },
+    "more": "Autres jalons",
+    "level_30": {
+      "name": "La trentaine",
+      "description": "A atteint le niveau 30."
+    },
+    "level_50": {
+      "name": "Aguerri",
+      "description": "A atteint le niveau 50."
+    },
+    "murloc_nemesis": {
+      "name": "Fléau des murlocs",
+      "description": "A tué mille murlocs."
+    },
+    "fisher_king": {
+      "name": "Roi pêcheur",
+      "description": "A pêché mille poissons."
+    },
+    "sole_survivor": {
+      "name": "Une semelle de trop",
+      "description": "A pêché vingt-cinq bottes."
+    },
+    "ten_thousand_cuts": {
+      "name": "Dix mille coups",
+      "description": "Dix mille victimes."
+    },
+    "cartographer": {
+      "name": "Cartographe",
+      "description": "A découvert deux cents lieux."
+    },
+    "hero_of_the_people": {
+      "name": "Héros du peuple",
+      "description": "A rendu cent quêtes."
+    },
+    "legend_of_the_realm": {
+      "name": "Légende du royaume",
+      "description": "A rendu cinq cents quêtes."
+    },
+    "delver": {
+      "name": "Explorateur des profondeurs",
+      "description": "A rendu vingt-cinq quêtes de donjon."
+    },
+    "boss_hunter": {
+      "name": "Chasseur de boss",
+      "description": "A vaincu cinquante boss."
+    },
+    "well_off": {
+      "name": "À l'aise",
+      "description": "A gagné cent pièces d'or en tout."
+    },
+    "tycoon": {
+      "name": "Magnat",
+      "description": "A gagné mille pièces d'or en tout."
+    },
+    "auction_mogul": {
+      "name": "Roi des enchères",
+      "description": "A vendu cent objets à l'hôtel des ventes."
+    },
+    "master_craftsman": {
+      "name": "Maître artisan",
+      "description": "Un métier a atteint 300."
+    },
+    "frequent_flyer": {
+      "name": "Abonné du cimetière",
+      "description": "Mort cent fois."
+    },
+    "life_of_the_party": {
+      "name": "L'âme de la fête",
+      "description": "A rejoint cinquante groupes."
+    },
+    "creature_of_the_night": {
+      "name": "Créature de la nuit",
+      "description": "Dix sessions entre trois et six heures du matin."
+    },
+    "half_a_legacy": {
+      "name": "Un demi-héritage",
+      "description": "A accompli cinquante défis Legacy."
+    },
+    "living_legend": {
+      "name": "Légende vivante",
+      "description": "A accompli cent défis Legacy."
     }
   },
   "settings": {

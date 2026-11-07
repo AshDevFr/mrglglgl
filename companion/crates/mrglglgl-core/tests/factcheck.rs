@@ -78,8 +78,8 @@ fn an_entry_that_sticks_to_the_notes_passes() {
         test my patience. Then came Hogger, a tough fight that ended with a Carving Knife in my \
         pack, a quiet treasure for a Tauren like me.\n\nBut the day turned sour when a Murloc \
         Streamrunner finally caught me in Red Rocks, sending me back to the start. Reaching level \
-        6 felt like a warm sun after a cold rain, and seeing the milestones \"First Blood (Fishy)\" \
-        and \"Mrglglgl'd\" stamped on my record made the stumble worth it.";
+        6 felt like a warm sun after a cold rain, and seeing the milestones \"Mrglglgl'd\" and \
+        \"Bossed Around\" stamped on my record made the stumble worth it.";
     assert_eq!(check(whole, &facts), Vec::<String>::new());
     assert_eq!(check(cosy, &facts), Vec::<String>::new());
 }

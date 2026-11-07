@@ -75,6 +75,26 @@ describe("JournalPage", () => {
     );
   });
 
+  it("presses the rarest stamps of a busy day and lists the rest at the end", () => {
+    renderWithProviders(
+      <JournalPage
+        journal={syntheticJournal}
+        day="2026-11-08"
+        awards={syntheticAwards}
+      />,
+    );
+    const day = syntheticAwards.filter((a) => a.day === "2026-11-08");
+    expect(day.length).toBeGreaterThan(3);
+    expect(screen.getAllByRole("img", { name: /: / })).toHaveLength(3);
+    expect(
+      screen.getByRole("img", { name: /^Mrglglgl'd:/ }),
+    ).toBeInTheDocument();
+    const more = screen.getByRole("heading", { name: "More milestones" })
+      .parentElement as HTMLElement;
+    expect(within(more).getAllByRole("listitem")).toHaveLength(day.length - 3);
+    expect(more).toHaveTextContent("First Blood (Fishy)");
+  });
+
   it("presses the day's milestones onto the page as stamps", () => {
     renderWithProviders(
       <JournalPage

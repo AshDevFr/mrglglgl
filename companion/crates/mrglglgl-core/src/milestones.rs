@@ -112,6 +112,8 @@ pub struct Milestone {
     pub id: String,
     /// The English name, as prompts and exports use it. The UI translates by id instead.
     pub name: String,
+    /// 1 (most players earn it early) to 5 (few ever will).
+    pub rarity: i64,
     /// Suggested but not yet approved by the project owner.
     #[serde(default)]
     pub proposed: bool,
@@ -140,6 +142,18 @@ pub fn all() -> &'static [Milestone] {
             .expect("data/milestones.toml matches Milestone")
             .milestone
     })
+}
+
+/// How many stamps of one day a narrator hears of, and the day's page presses: the rarest.
+pub const TOLD_PER_DAY: usize = 3;
+
+/// The rarest `n` of `awards`, rarest first; among equals, the journal's list order.
+pub fn rarest<'a>(awards: impl IntoIterator<Item = &'a Award>, n: usize) -> Vec<&'a Award> {
+    let order = |id: &str| all().iter().position(|m| m.id == id).unwrap_or(usize::MAX);
+    let mut list: Vec<&Award> = awards.into_iter().collect();
+    list.sort_by_key(|a| (std::cmp::Reverse(a.rarity), order(&a.id)));
+    list.truncate(n);
+    list
 }
 
 /// The English name of a milestone, or its id when unknown.
@@ -389,6 +403,8 @@ pub struct Award {
     pub id: String,
     /// The day it was earned, `YYYY-MM-DD`.
     pub day: String,
+    /// The milestone's rarity, 1 to 5.
+    pub rarity: i64,
 }
 
 /// The milestones a journal has earned and the first day each was earned, from its days alone.
@@ -425,6 +441,7 @@ pub fn compute(journal: &Journal) -> Vec<Award> {
             Some(Award {
                 id: m.id.to_string(),
                 day: day.clone(),
+                rarity: m.rarity,
             })
         })
         .collect()
@@ -458,6 +475,7 @@ pub fn awards(db: &Database, character_id: i64) -> Result<Vec<Award>, DbError> {
             stored.get(&m.id).map(|day| Award {
                 id: m.id.to_string(),
                 day: day.clone(),
+                rarity: m.rarity,
             })
         })
         .collect())

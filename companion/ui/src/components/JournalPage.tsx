@@ -8,6 +8,7 @@ import type { Screenshot } from "@/bindings/Screenshot";
 import { dayFactRows } from "@/lib/factList";
 import { formatDay } from "@/lib/format";
 import { dayFacts } from "@/lib/journal";
+import { splitStamps } from "@/lib/milestones";
 import { daySentences } from "@/lib/sentences";
 import { EntryPanel } from "./EntryPanel";
 import { FactList } from "./FactList";
@@ -77,7 +78,10 @@ export function JournalPage({
   const { t, i18n } = useTranslation();
   const facts = dayFacts(journal, journal.days[day]);
   const sentences = daySentences(facts, t, i18n.language);
-  const stamps = awards.filter((a) => a.day === day);
+  // A character's first days can earn many stamps: the rarest are pressed, the rest listed.
+  const { pressed: stamps, more } = splitStamps(
+    awards.filter((a) => a.day === day),
+  );
   // The day as recorded, item by item; when nothing was, the plain sentence that says so.
   const plain = (
     <FactList
@@ -104,6 +108,20 @@ export function JournalPage({
         plain
       )}
       {screenshots.length > 0 && <PinnedPhotos screenshots={screenshots} />}
+      {more.length > 0 && (
+        <section className="more-milestones">
+          <h3>{t("milestones.more")}</h3>
+          <ul>
+            {more.map((a) => (
+              <li key={a.id}>
+                <strong>{t(`milestones.${a.id}.name`)}</strong>
+                {": "}
+                {t(`milestones.${a.id}.description`)}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       {facts.compacted && <p className="note">{t("character.compacted")}</p>}
     </article>
   );

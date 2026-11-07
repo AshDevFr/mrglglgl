@@ -15,6 +15,9 @@ use crate::db::{Database, DbError};
 use crate::milestones::{self, Award};
 use crate::schema::Journal;
 
+/// The most milestone titles the continuity sheet carries.
+const TITLES_KEPT: usize = 10;
+
 /// Running jokes kept at most; the newest win.
 pub const MAX_JOKES: usize = 5;
 /// The longest running joke accepted, in characters.
@@ -126,11 +129,16 @@ impl ContinuitySheet {
         };
         let stats = &journal.stats;
         Self {
-            titles: awards
-                .iter()
-                .filter(|a| before.is_none_or(|b| a.day.as_str() < b))
-                .map(|a| milestones::name(&a.id).to_string())
-                .collect(),
+            // The rarest titles only: a long-lived character holds dozens.
+            titles: milestones::rarest(
+                awards
+                    .iter()
+                    .filter(|a| before.is_none_or(|b| a.day.as_str() < b)),
+                TITLES_KEPT,
+            )
+            .into_iter()
+            .map(|a| milestones::name(&a.id).to_string())
+            .collect(),
             nemesis,
             companions: companions
                 .into_iter()
