@@ -61,6 +61,9 @@ describe("JournalPage", () => {
     expect(row("Spent")).toHaveTextContent("Repairs: 1s 28c");
     expect(row("Gold")).toHaveTextContent("23s 50c → 43s 94c");
     expect(row("Auction house")).toHaveTextContent("Sold Copper Ore");
+    expect(row("Legacy Challenges")).toHaveTextContent(
+      "Explore Moonglade (Kalimdor)",
+    );
     expect(row("Chat")).toHaveTextContent(
       "[Say] You: The wolves grow bold this season.",
     );

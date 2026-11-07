@@ -151,6 +151,14 @@ function Compat.RegisterSettingsCategory(category)
 function Compat.OpenSettings(category)
 ```
 
+## Achievements and Legacy Challenges
+
+| ID | Item | Status | Evidence |
+|---|---|---|---|
+| API-achievements | The achievement API is present: `GetAchievementInfo`, `C_AchievementInfo`, `GetCategoryList`, `GetCategoryInfo`, `GetCategoryNumAchievements`, `GetNumCompletedAchievements` | verified-in-game | S-13: `/dump GetAchievementInfo, C_AchievementInfo` returned the function and the table; `GetNumCompletedAchievements()` = 111, 1; `#GetCategoryList()` = 29 |
+| API-legacy-are-achievements | Legacy Challenges are achievements worth 0 points, in categories: Classes (one per class), Tradeskills (one per profession), Dungeons, Raids, Player vs. Player (Ranks, Reputations, Season Journey), Adventure (Explorer, Eastern Kingdoms, Kalimdor), Tier 1 Gear. IDs are Forever's own (Wrath's ID 6 does not exist) | verified-in-game | S-13: the one completed achievement is `855 Explore Moonglade 0` (0 points) in category 14778 "Kalimdor" (parent 15596 "Adventure"); `LegacyChallengesUnviewed` = `{ [855] = 14778 }`; `GetTotalAchievementPoints()` = 0; `GetAchievementInfo(6)` is empty. There is no `C_Legacy`/`C_LegacySystem`; the Legacy window is UI code (`LegacySystemFrame_LoadUI`, `ToggleLegacyChallenges`, `ShowLegacyChallenge`) |
+| API-achievement-earned | `ACHIEVEMENT_EARNED(achievementID, alreadyEarned)` fires when one is completed | unconfirmed | API docs (Achievement). fallback: registered only when `C_EventUtils.IsEventValid` says the client knows it (Compat.EventExists), so a missing event leaves the addon loading; whether it fires for a Legacy Challenge is the next in-game check |
+
 ## Professions
 
 | ID | Item | Status | Evidence |

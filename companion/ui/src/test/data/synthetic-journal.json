@@ -117,7 +117,8 @@
           "moneyIn": 0,
           "moneyOut": 0,
           "auctions": 0,
-          "chat": 0
+          "chat": 0,
+          "achievements": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -178,6 +179,7 @@
           "out": {}
         },
         "auctions": [],
+        "achievements": [],
         "balStart": 2350,
         "balEnd": 2350,
         "onlyFished": false,
@@ -358,6 +360,21 @@
           "level": 6,
           "balance": null,
           "kind": {
+            "kind": "achievement",
+            "achievementId": 855,
+            "name": "Explore Moonglade",
+            "category": "Kalimdor",
+            "points": 0
+          }
+        },
+        {
+          "time": 1794164656,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 6,
+          "balance": null,
+          "kind": {
             "kind": "death",
             "killer": {
               "name": "Murloc Streamrunner",
@@ -496,7 +513,8 @@
           "moneyIn": 2267,
           "moneyOut": 223,
           "auctions": 1,
-          "chat": 3
+          "chat": 3,
+          "achievements": 1
         },
         "levelFrom": 5,
         "levelTo": 6,
@@ -632,6 +650,13 @@
             "name": "Copper Ore"
           }
         ],
+        "achievements": [
+          {
+            "achievementId": 855,
+            "name": "Explore Moonglade",
+            "category": "Kalimdor"
+          }
+        ],
         "balStart": 2350,
         "balEnd": 4394,
         "onlyFished": false,
@@ -730,7 +755,8 @@
           "moneyIn": 0,
           "moneyOut": 0,
           "auctions": 0,
-          "chat": 0
+          "chat": 0,
+          "achievements": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -764,6 +790,7 @@
           "out": {}
         },
         "auctions": [],
+        "achievements": [],
         "balStart": 4394,
         "balEnd": 4394,
         "onlyFished": true,
@@ -832,7 +859,8 @@
           "moneyIn": 0,
           "moneyOut": 0,
           "auctions": 0,
-          "chat": 0
+          "chat": 0,
+          "achievements": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -858,6 +886,7 @@
           "out": {}
         },
         "auctions": [],
+        "achievements": [],
         "balStart": 4394,
         "balEnd": 4394,
         "onlyFished": false,

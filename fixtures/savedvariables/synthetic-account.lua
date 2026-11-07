@@ -24,6 +24,7 @@ MrglglglDB = {
 },
 ["lootQuality"] = 3,
 ["record"] = {
+["achievements"] = true,
 ["chat"] = true,
 ["deaths"] = true,
 ["fishing"] = true,

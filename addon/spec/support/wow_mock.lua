@@ -229,6 +229,19 @@ function Mock.install()
 	-- Money, in copper, and the client functions the addon hooks to tell repairs and auction mail.
 	Mock.money = 0
 	_G.GetMoney = function() return Mock.money end
+	-- Achievements as Forever has them: Legacy Challenges worth 0 points, in categories.
+	Mock.achievements = { [855] = { name = "Explore Moonglade", points = 0, category = 14778 } }
+	Mock.categories = { [14778] = "Kalimdor" }
+	_G.GetAchievementInfo = function(id)
+		local a = Mock.achievements[id]
+		if a then
+			return id, a.name, a.points, true
+		end
+	end
+	_G.GetAchievementCategory = function(id)
+		return Mock.achievements[id] and Mock.achievements[id].category
+	end
+	_G.GetCategoryInfo = function(id) return Mock.categories[id], -1, 0 end
 	Mock.hooks = {}
 	_G.hooksecurefunc = function(name, callback)
 		local original = _G[name]

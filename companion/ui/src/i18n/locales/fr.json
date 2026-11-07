@@ -156,7 +156,9 @@
       },
       "sold": "Vendu {{list}} à l'hôtel des ventes.",
       "won": "Remporté {{list}} à l'hôtel des ventes."
-    }
+    },
+    "challenges_one": "Accompli le défi Legacy {{list}}.",
+    "challenges_other": "Accompli les défis Legacy {{list}}."
   },
   "photo": {
     "alt": "Capture d'écran : {{moment}}",
@@ -763,7 +765,8 @@
       "guild": "Guilde",
       "officer": "Officier",
       "whisper": "Chuchoter"
-    }
+    },
+    "achievements": "Défis Legacy"
   },
   "money": {
     "gold": "{{n}} po",
@@ -787,7 +790,8 @@
       "loot": "Butin notable",
       "money": "Argent et hôtel des ventes",
       "group": "Membres du groupe",
-      "chat": "Discussion"
+      "chat": "Discussion",
+      "achievements": "Défis Legacy"
     },
     "shared": "Narrateurs, site web et exports",
     "view": "Ce qui s'est passé"

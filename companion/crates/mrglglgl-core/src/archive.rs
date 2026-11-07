@@ -211,7 +211,8 @@ fn fullness(digest: &Digest) -> (bool, usize, i64) {
         + d.skills.len()
         + d.crafted.len()
         + d.gathered.len()
-        + d.auctions.len();
+        + d.auctions.len()
+        + d.achievements.len();
     let c = &d.counts;
     let counted = c.sessions
         + c.levels
@@ -227,7 +228,8 @@ fn fullness(digest: &Digest) -> (bool, usize, i64) {
         + c.crafted
         + c.gathered
         + c.auctions
-        + c.chat;
+        + c.chat
+        + c.achievements;
     (!d.thin, listed, counted)
 }
 

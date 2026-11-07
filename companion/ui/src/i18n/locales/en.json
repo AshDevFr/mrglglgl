@@ -156,7 +156,9 @@
       },
       "sold": "Sold {{list}} at the auction house.",
       "won": "Won {{list}} at the auction house."
-    }
+    },
+    "challenges_one": "Completed the Legacy Challenge {{list}}.",
+    "challenges_other": "Completed the Legacy Challenges {{list}}."
   },
   "photo": {
     "alt": "Screenshot: {{moment}}",
@@ -763,7 +765,8 @@
       "guild": "Guild",
       "officer": "Officer",
       "whisper": "Whisper"
-    }
+    },
+    "achievements": "Legacy Challenges"
   },
   "money": {
     "gold": "{{n}}g",
@@ -787,7 +790,8 @@
       "loot": "Notable loot",
       "money": "Money and the auction house",
       "group": "Group members",
-      "chat": "Chat"
+      "chat": "Chat",
+      "achievements": "Legacy Challenges"
     },
     "shared": "Narrators, website and exports",
     "view": "What happened"

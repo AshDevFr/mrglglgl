@@ -619,3 +619,15 @@ fn the_players_own_lines_are_told_in_character_and_others_never_are() {
     );
     assert!(!texts.iter().any(|t| t.contains("thin the pack")));
 }
+
+#[test]
+fn a_legacy_challenge_completed_is_told_by_name() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../fixtures/savedvariables/synthetic-character.lua");
+    let j = journal_from_text(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let texts = beats::extract(&j, "2026-11-08", &[], &Thresholds::default()).texts();
+    assert!(
+        texts.contains(&"Completed the Legacy Challenge \"Explore Moonglade\"".to_string()),
+        "{texts:?}"
+    );
+}

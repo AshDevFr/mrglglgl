@@ -24,6 +24,7 @@ export const DATA_CATEGORIES = [
   "professions",
   "loot",
   "money",
+  "achievements",
   "group",
   "chat",
 ] as const;

@@ -160,6 +160,8 @@ pub struct DayRecord {
     /// The player's own lines said aloud (say, emote, yell), as `(channel, text)`. Other
     /// players' lines are never part of a record: they are not the player's to hand a narrator.
     pub spoken: Vec<(String, String)>,
+    /// Achievements completed (Legacy Challenges on Forever), by name, in order.
+    pub achievements: Vec<String>,
     pub only_fished: bool,
     pub nothing_happened: bool,
 }
@@ -195,7 +197,7 @@ impl DayRecord {
             .filter(|l| l.own() && matches!(l.channel.as_str(), "say" | "emote" | "yell"))
             .map(|l| (l.channel.clone(), l.text.clone()))
             .collect();
-        if !r.spoken.is_empty() {
+        if !r.spoken.is_empty() || !r.achievements.is_empty() {
             r.nothing_happened = false;
         }
         if !r.skills.is_empty()
@@ -217,6 +219,23 @@ impl DayRecord {
             digest.map(|d| d.money.clone()).unwrap_or_default()
         } else {
             day.money.clone()
+        };
+        self.achievements = match &day.events {
+            Some(events) => events
+                .iter()
+                .filter_map(|e| match &e.kind {
+                    EventKind::Achievement { name, .. } => name.clone(),
+                    _ => None,
+                })
+                .collect(),
+            None => digest
+                .map(|d| {
+                    d.achievements
+                        .iter()
+                        .filter_map(|a| a.name.clone())
+                        .collect()
+                })
+                .unwrap_or_default(),
         };
         self.auctions = match &day.events {
             Some(events) => events
@@ -599,9 +618,11 @@ pub enum Beat {
     Bosses {
         names: Vec<String>,
     },
-    /// Milestones earned that day, as one beat so they do not crowd out the day itself.
+    /// Milestones stamped that day and Legacy Challenges (the game's achievements) completed, as
+    /// one beat so they do not crowd out the day itself.
     Milestones {
         names: Vec<String>,
+        challenges: Vec<String>,
     },
     /// A trade or secondary skill that rose.
     Profession {
@@ -820,12 +841,28 @@ impl Beat {
                 format!("Grouped with {}", and_list(&parts))
             }
             Beat::Bosses { names } => format!("Defeated {}", and_list(names)),
-            Beat::Milestones { names } => {
-                let quoted: Vec<String> = names.iter().map(|n| format!("\"{n}\"")).collect();
-                if names.len() == 1 {
-                    format!("Earned the milestone {}", quoted[0])
-                } else {
-                    format!("Earned the milestones {}", and_list(&quoted))
+            Beat::Milestones { names, challenges } => {
+                let told = |list: &[String], one: &str, many: &str| {
+                    let quoted: Vec<String> = list.iter().map(|n| format!("\"{n}\"")).collect();
+                    let kind = if list.len() == 1 { one } else { many };
+                    format!("{kind} {}", and_list(&quoted))
+                };
+                let mut parts = Vec::new();
+                if !names.is_empty() {
+                    parts.push(told(names, "earned the milestone", "earned the milestones"));
+                }
+                if !challenges.is_empty() {
+                    parts.push(told(
+                        challenges,
+                        "completed the Legacy Challenge",
+                        "completed the Legacy Challenges",
+                    ));
+                }
+                let text = parts.join(" and ");
+                let mut chars = text.chars();
+                match chars.next() {
+                    Some(first) => format!("{}{}", first.to_uppercase(), chars.as_str()),
+                    None => text,
                 }
             }
             Beat::Profession { name, from, to } => format!("{name} rose from {from} to {to}"),
@@ -1277,8 +1314,11 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         .filter(|a| a.day == day)
         .map(|a| milestones::name(&a.id).to_string())
         .collect();
-    if !earned.is_empty() {
-        beats.push(Beat::Milestones { names: earned });
+    if !earned.is_empty() || !record.achievements.is_empty() {
+        beats.push(Beat::Milestones {
+            names: earned,
+            challenges: record.achievements.clone(),
+        });
     }
 
     // Keep the most important beats, then tell them in day order.

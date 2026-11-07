@@ -44,6 +44,7 @@ Keys are short because SavedVariables size counts. Types: `int` and `number` are
 | `settings.record.group` | bool | Record group members met |
 | `settings.record.professions` | bool | Record profession skill-ups, crafting and gathering |
 | `settings.record.money` | bool | Record the balance at each session's start and end, money earned and spent by source, and auction house events |
+| `settings.record.achievements` | bool | Record achievements completed; on Forever these are the Legacy Challenges |
 | `settings.record.chat` | bool | Record chat lines in the channels chosen under `settings.chat`; off by default |
 | `settings.chat.say`, `settings.chat.emote`, `settings.chat.yell`, `settings.chat.party`, `settings.chat.raid`, `settings.chat.guild`, `settings.chat.officer`, `settings.chat.whisper`, `settings.chat.channel` | bool | Record the player's own lines in that channel while chat is on; `say`, `emote` and `yell` default to `true`, the rest to `false` |
 | `settings.chat.sayOthers`, `settings.chat.emoteOthers`, `settings.chat.yellOthers`, `settings.chat.partyOthers`, `settings.chat.raidOthers`, `settings.chat.guildOthers`, `settings.chat.officerOthers`, `settings.chat.whisperOthers`, `settings.chat.channelOthers` | bool | Record other players' lines in that channel while chat is on; all default to `false` |
@@ -92,7 +93,7 @@ A day is a local calendar date. Each event belongs to the day of its own timesta
 
 | Field | Type | Meaning |
 |---|---|---|
-| `ev` | array? | Raw events in time order; once compacted, only the key moments (sessions, levels, deaths, bosses, discoveries, quests taken and handed in, screenshots, group joins, auction events), absent if there were none |
+| `ev` | array? | Raw events in time order; once compacted, only the key moments (sessions, levels, deaths, bosses, discoveries, quests taken and handed in, screenshots, group joins, auction events, achievements), absent if there were none |
 | `c` | bool? | `true` once the day is compacted: `ev` holds only key moments and `digest` is what the whole day was |
 | `kills` | table? | Kill aggregates keyed by NPC ID |
 | `anonKills` | int? | Kills whose target the client withheld (dungeons, raids, encounters, PvP) |
@@ -133,6 +134,7 @@ Event kinds and their extra fields:
 | `fish` | `item` int, `name` string?, `junk` bool?, `boot` bool? | A fishing catch. `name`, `junk` (poor quality) and `boot` are filled once the client has the item's data; a catch whose data never arrived has only `item` |
 | `loot` | `item` int, `name` string, `ql` int, `qty` int?, `src` string? | An item at or above `settings.lootQuality`; `qty` is absent when read from the loot window rather than the loot message. `src = "window"` marks an item only seen in a loot window, which in a group may have gone to someone else; absent when the character received it |
 | `group_join` | `who` string | Grouped with `who` (`"Firstname-Surname"`) for the first time that day; see `companions[who]` |
+| `achievement` | `ach` int, `name` string?, `cat` string?, `pts` int? | Completed achievement `ach` (on Forever, a Legacy Challenge, worth 0 points), with its category, e.g. "Kalimdor". One another character on the account earned first is not recorded |
 | `auction` | `act` string, `name` string? | At the auction house: `act` is `"listed"`, `"sold"`, `"won"`, `"outbid"`, `"expired"` or `"cancelled"`; `name` is the item, absent for `"listed"` (the client's message does not name it) |
 | `screenshot` | `moment` string | The addon took a screenshot: `"levelUp"`, `"death"`, `"bossKill"`, `"firstBoot"`, `"firstMurlocKill"` or `"firstDeathByMurloc"`. The file is `_forever_/Screenshots/WoWScrnShot_MMDDYY_HHMMSS.jpg` taken about a second after `t` |
 
@@ -203,7 +205,7 @@ lists hold the highlights: `kills` the 10 most killed, `deaths` 5, `loot`, `fish
 | Field | Type | Meaning |
 |---|---|---|
 | `v` | int | Digest version. Days rebuilt from raw events get the current version; compacted days keep theirs |
-| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered`, `moneyIn`, `moneyOut` (copper), `auctions`, `chat` (lines) |
+| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered`, `moneyIn`, `moneyOut` (copper), `auctions`, `chat` (lines), `achievements` |
 | `levelFrom`, `levelTo` | int? | Lowest and highest level seen that day |
 | `zones` | array | Zones in the order first seen |
 | `subzones` | array | Subzones in the order first seen |
@@ -220,6 +222,7 @@ lists hold the highlights: `kills` the 10 most killed, `deaths` 5, `loot`, `fish
 | `crafted`, `gathered` | array | `{ item, name?, n, via? }` per item |
 | `money` | table | `{ inc = {source = copper}, out = {source = copper} }`, as the day's `money` |
 | `auctions` | array | `{ act, name? }` per auction house event |
+| `achievements` | array | `{ ach, name?, cat? }` per achievement completed |
 | `balStart`, `balEnd` | int? | The day's first and last known balance, in copper |
 | `onlyFished` | bool | Caught fish, and no kills, quest activity, crafting or gathering |
 | `thin` | bool? | The day is older than 90 days: record lists keep 3 entries, name lists 5, `subzones` is empty; counts unchanged |

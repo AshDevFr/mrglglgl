@@ -313,6 +313,7 @@ fn reads_every_documented_field() {
         "settings.record.professions",
         "settings.record.money",
         "settings.record.chat",
+        "settings.record.achievements",
         "settings.chat.say",
         "settings.chat.emote",
         "settings.chat.yell",
@@ -425,6 +426,7 @@ fn reads_every_documented_field() {
         "group_join",
         "screenshot",
         "auction",
+        "achievement",
         // Event fields beyond the common ones
         "area",
         "src",
@@ -453,6 +455,11 @@ fn reads_every_documented_field() {
         "auctions",
         "balStart",
         "balEnd",
+        // Achievements
+        "ach",
+        "cat",
+        "pts",
+        "achievements",
         // Chat
         "chat",
         "ch",

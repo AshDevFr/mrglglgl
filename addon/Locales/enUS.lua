@@ -16,6 +16,7 @@ ns.RegisterLocale("enUS", {
 	CATEGORY_PROFESSIONS = "Professions",
 	CATEGORY_MONEY = "Money",
 	CATEGORY_CHAT = "Chat",
+	CATEGORY_ACHIEVEMENTS = "Legacy Challenges",
 
 	STATUS_HEADER = "Recorded today (%s):",
 	STATUS_SESSIONS = "Sessions: %d",
@@ -30,6 +31,7 @@ ns.RegisterLocale("enUS", {
 	STATUS_PROFESSIONS = "Professions: %d skills raised, %d items crafted, %d gathered",
 	STATUS_MONEY = "Money: %s in, %s out, %d auction events",
 	STATUS_CHAT = "Chat: %d lines",
+	STATUS_ACHIEVEMENTS = "Legacy Challenges completed: %d",
 	STATUS_NOT_RECORDED = "%s: not recorded (turned off in settings)",
 	STATUS_BOOTS_TOTAL = "Boots kept, all time: %d",
 	STATUS_UNAVAILABLE = "The journal is not available: it was saved by a newer version of the addon.",
@@ -52,6 +54,7 @@ ns.RegisterLocale("enUS", {
 	TIP_GROUP = "The names of players you group with. These are other people's names.",
 	TIP_PROFESSIONS = "Skill-ups in every profession, items you craft, and what you mine, pick or skin.",
 	TIP_MONEY = "Your gold when you log in and out, what you earn and spend each day and where (loot, quests, vendors, repairs, trainers, flights, mail, the auction house), and your auctions.",
+	TIP_ACHIEVEMENTS = "Each Legacy Challenge (achievement) you complete, with its name and category.",
 	TIP_CHAT = "What is said in the chat channels you choose below, for role play. Off by default.",
 	SETTINGS_LOOT_QUALITY = "Notable loot quality",
 	TIP_LOOT_QUALITY = "The lowest item quality recorded as notable loot.",

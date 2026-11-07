@@ -198,6 +198,34 @@ function Compat.After(name, callback)
 	return false
 end
 
+-- Whether this client knows an event. Registering one it does not know is an error on clients that
+-- check, so an event not yet seen on Forever is registered only when the client says it exists.
+function Compat.EventExists(event)
+	local utils = _G.C_EventUtils
+	if utils and type(utils.IsEventValid) == "function" then
+		return utils.IsEventValid(event) == true
+	end
+	return true
+end
+
+-- An achievement's name, points and category name. On Forever the Legacy Challenges are
+-- achievements worth 0 points, sorted into categories such as "Kalimdor" or "Druid".
+function Compat.GetAchievement(id)
+	if type(_G.GetAchievementInfo) ~= "function" then
+		return nil
+	end
+	local _, name, points = _G.GetAchievementInfo(id)
+	if type(name) ~= "string" then
+		return nil
+	end
+	local category
+	if type(_G.GetAchievementCategory) == "function" and type(_G.GetCategoryInfo) == "function" then
+		local categoryId = _G.GetAchievementCategory(id)
+		category = categoryId and _G.GetCategoryInfo(categoryId)
+	end
+	return { name = name, points = points, category = type(category) == "string" and category or nil }
+end
+
 -- The auction house's chat messages, by what happened. Looked up by name: a message missing on
 -- this client is skipped.
 local AUCTION_MESSAGES = {

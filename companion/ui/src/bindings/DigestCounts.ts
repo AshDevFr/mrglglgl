@@ -16,4 +16,4 @@ moneyIn: number, moneyOut: number, auctions: number,
 /**
  * Chat lines recorded.
  */
-chat: number, };
+chat: number, achievements: number, };

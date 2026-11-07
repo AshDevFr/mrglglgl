@@ -28,6 +28,7 @@ Loot.lua
 Professions.lua
 Money.lua
 Chat.lua
+Achievements.lua
 Group.lua
 Digest.lua
 Compact.lua

@@ -1,5 +1,5 @@
 meddling: false
-hash: 24ca0b2480bfa95498b7847930a0b4dd3f68df6fa5249dd51017e25b4b35990b
+hash: 32569f584b01d53a611f75070a746dea3e483319358d376e4165031f6b950d08
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as one short journal entry, in the first person, as the adventurer.
@@ -32,7 +32,7 @@ What happened today (the only events you may write about):
 - Completed the quest "The Ravaged Caravan"
 - Died to a Murloc Streamrunner in Red Rocks
 - Reached level 6
-- Earned the milestones "First Blood (Fishy)" and "Mrglglgl'd"
+- Earned the milestones "First Blood (Fishy)" and "Mrglglgl'd" and completed the Legacy Challenge "Explore Moonglade"
 
 Patterns of the day: new zone, rare loot, murloc death
 How to tell a day like this:

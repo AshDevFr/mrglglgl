@@ -29,6 +29,8 @@ MrglglglCharDB = {
 ["digest"] = {
 ["accepted"] = {
 },
+["achievements"] = {
+},
 ["auctions"] = {
 },
 ["balEnd"] = 2350,
@@ -39,6 +41,7 @@ MrglglglCharDB = {
 },
 ["counts"] = {
 ["accepted"] = 0,
+["achievements"] = 0,
 ["anonKills"] = 0,
 ["auctions"] = 0,
 ["boots"] = 1,
@@ -213,6 +216,13 @@ MrglglglCharDB = {
 ["accepted"] = {
 749,
 },
+["achievements"] = {
+{
+["ach"] = 855,
+["cat"] = "Kalimdor",
+["name"] = "Explore Moonglade",
+},
+},
 ["auctions"] = {
 {
 ["act"] = "sold",
@@ -229,6 +239,7 @@ MrglglglCharDB = {
 },
 ["counts"] = {
 ["accepted"] = 1,
+["achievements"] = 1,
 ["anonKills"] = 1,
 ["auctions"] = 1,
 ["boots"] = 0,
@@ -498,6 +509,18 @@ MrglglglCharDB = {
 ["z"] = "Mulgore",
 },
 {
+["ach"] = 855,
+["cat"] = "Kalimdor",
+["k"] = "achievement",
+["lv"] = 6,
+["m"] = 7,
+["name"] = "Explore Moonglade",
+["pts"] = 0,
+["sz"] = "Red Rocks",
+["t"] = 1794164656,
+["z"] = "Mulgore",
+},
+{
 ["k"] = "death",
 ["killer"] = {
 ["murloc"] = true,
@@ -583,6 +606,8 @@ MrglglglCharDB = {
 ["digest"] = {
 ["accepted"] = {
 },
+["achievements"] = {
+},
 ["auctions"] = {
 },
 ["balEnd"] = 4394,
@@ -593,6 +618,7 @@ MrglglglCharDB = {
 },
 ["counts"] = {
 ["accepted"] = 0,
+["achievements"] = 0,
 ["anonKills"] = 0,
 ["auctions"] = 0,
 ["boots"] = 0,
@@ -706,6 +732,8 @@ MrglglglCharDB = {
 ["digest"] = {
 ["accepted"] = {
 },
+["achievements"] = {
+},
 ["auctions"] = {
 },
 ["balEnd"] = 4394,
@@ -716,6 +744,7 @@ MrglglglCharDB = {
 },
 ["counts"] = {
 ["accepted"] = 0,
+["achievements"] = 0,
 ["anonKills"] = 0,
 ["auctions"] = 0,
 ["boots"] = 0,

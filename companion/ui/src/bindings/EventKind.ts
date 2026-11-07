@@ -14,7 +14,11 @@ environment: string | null, } | { "kind": "boss", encounterId: number | null, na
  * Read from a group loot window (`src = "window"`): it dropped, not necessarily for
  * the player. Defaults for events archived before it existed.
  */
-seen: boolean, } | { "kind": "groupJoin", who: string | null, } | { "kind": "screenshot", moment: string | null, } | { "kind": "auction", 
+seen: boolean, } | { "kind": "groupJoin", who: string | null, } | { "kind": "screenshot", moment: string | null, } | { "kind": "achievement", achievementId: number | null, name: string | null, 
+/**
+ * Its category, e.g. "Kalimdor" or "Druid".
+ */
+category: string | null, points: number | null, } | { "kind": "auction", 
 /**
  * `"listed"`, `"sold"`, `"won"`, `"outbid"`, `"expired"` or `"cancelled"`.
  */

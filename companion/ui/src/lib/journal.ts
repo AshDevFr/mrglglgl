@@ -195,6 +195,8 @@ export interface DayFacts {
   /** Chat lines in the channels the player chose. Shown in the app only: other players' words
    * never go to the website, exports or a narrator. */
   chat: ChatLine[];
+  /** Achievements completed, which on Forever are the Legacy Challenges: name and category. */
+  achievements: { name: string; category: string | null }[];
   screenshots: number;
   onlyFished: boolean;
   nothingHappened: boolean;
@@ -272,11 +274,26 @@ function place(zone: string | null, subzone: string | null): string | null {
   return subzone || zone || null;
 }
 
+/** Achievements completed: from the day's events, which a compacted day keeps, else its digest. */
+function achievementFacts(day: Day): DayFacts["achievements"] {
+  if (day.events !== null) {
+    return day.events.flatMap((e) =>
+      e.kind.kind === "achievement" && e.kind.name
+        ? [{ name: e.kind.name, category: e.kind.category }]
+        : [],
+    );
+  }
+  return (day.digest?.achievements ?? []).flatMap((a) =>
+    a.name ? [{ name: a.name, category: a.category }] : [],
+  );
+}
+
 /** Facts from raw events when the archive has them, from the digest otherwise. */
 export function dayFacts(journal: Journal, day: Day): DayFacts {
   const facts = eventFacts(journal, day);
   const work = professions(day);
   const money = moneyFacts(day);
+  const achievements = achievementFacts(day);
   const busy =
     work.skills.length > 0 ||
     work.crafted.length > 0 ||
@@ -284,12 +301,14 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
     money.earned.length > 0 ||
     money.spent.length > 0 ||
     money.auctions.length > 0 ||
-    (day.chat ?? []).length > 0;
+    (day.chat ?? []).length > 0 ||
+    achievements.length > 0;
   return {
     ...facts,
     ...work,
     money,
     chat: day.chat ?? [],
+    achievements,
     nothingHappened: facts.nothingHappened && !busy,
   };
 }
@@ -297,7 +316,10 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
 function eventFacts(
   journal: Journal,
   day: Day,
-): Omit<DayFacts, "skills" | "crafted" | "gathered" | "money" | "chat"> {
+): Omit<
+  DayFacts,
+  "skills" | "crafted" | "gathered" | "money" | "chat" | "achievements"
+> {
   const digest = day.digest;
   // A compacted day keeps a few key events; its digest is what the whole day was.
   if (day.events === null || day.compacted) {
@@ -369,7 +391,7 @@ function eventFacts(
     .sort((a, b) => b.count - a.count || (a.npcId ?? 0) - (b.npcId ?? 0));
   const facts: Omit<
     DayFacts,
-    "skills" | "crafted" | "gathered" | "money" | "chat"
+    "skills" | "crafted" | "gathered" | "money" | "chat" | "achievements"
   > = {
     levelFrom: null,
     levelTo: null,

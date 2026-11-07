@@ -19,7 +19,7 @@ local THIN_AFTER_DAYS = 365
 local KEPT_KINDS = {
 	session_start = true, session_end = true, level = true, death = true, boss = true,
 	discover = true, quest_accept = true, quest_turnin = true, screenshot = true, group_join = true,
-	auction = true,
+	auction = true, achievement = true,
 }
 
 -- Day keys sort as strings, so a day is older than the cutoff when its key sorts before it.

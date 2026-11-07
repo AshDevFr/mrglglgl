@@ -56,6 +56,7 @@ local CATEGORIES = {
 		counts = { "moneyIn", "moneyOut", "auctions" }, lists = { "auctions" },
 	},
 	chat = { raw = { "chat" }, counts = { "chat" } },
+	achievements = { kinds = { achievement = true }, counts = { "achievements" }, lists = { "achievements" } },
 	group = {
 		kinds = { group_join = true }, counts = { "group" }, lists = { "companions" },
 		journal = function(journal) journal.companions = {} end,

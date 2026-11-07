@@ -203,6 +203,12 @@ export function dayFactRows(facts: DayFacts, t: TFunction): FactRow[] {
       return plain(`[${channel}] ${said}`);
     }),
   );
+  add(
+    "achievements",
+    facts.achievements.map((a) =>
+      named(a.name, a.category ? `${a.name} (${a.category})` : a.name),
+    ),
+  );
   // Other players: their names are theirs, not something to look up.
   add(
     "companions",

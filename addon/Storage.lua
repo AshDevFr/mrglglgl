@@ -13,7 +13,7 @@ local DEFAULT_SETTINGS = {
 	record = {
 		sessions = true, levels = true, quests = true, questText = true, zones = true,
 		kills = true, deaths = true, fishing = true, loot = true, group = true, professions = true,
-		money = true, chat = false,
+		money = true, chat = false, achievements = true,
 	},
 	-- Chat channels, once chat is on: the player's own lines (`say`) and others' (`sayOthers`).
 	chat = {

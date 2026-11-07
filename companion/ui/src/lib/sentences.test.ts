@@ -41,6 +41,7 @@ function facts(overrides: Partial<DayFacts>): DayFacts {
       auctions: [],
     },
     chat: [],
+    achievements: [],
     screenshots: 0,
     onlyFished: false,
     nothingHappened: false,
@@ -468,5 +469,15 @@ describe("chat", () => {
     const day = syntheticJournal.days["2026-11-08"];
     const told = daySentences(dayFacts(syntheticJournal, day), i18n.t, "en");
     expect(told.join(" ")).not.toMatch(/wolves grow bold|thin the pack/);
+  });
+});
+
+describe("Legacy Challenges", () => {
+  it("tells a challenge completed by name", () => {
+    const day = syntheticJournal.days["2026-11-08"];
+    const told = daySentences(dayFacts(syntheticJournal, day), i18n.t, "en");
+    expect(told).toContain(
+      'Completed the Legacy Challenge "Explore Moonglade".',
+    );
   });
 });

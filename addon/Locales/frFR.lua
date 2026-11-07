@@ -14,6 +14,7 @@ ns.RegisterLocale("frFR", {
 	CATEGORY_PROFESSIONS = "Métiers",
 	CATEGORY_MONEY = "Argent",
 	CATEGORY_CHAT = "Discussion",
+	CATEGORY_ACHIEVEMENTS = "Défis Legacy",
 
 	STATUS_HEADER = "Noté aujourd'hui (%s) :",
 	STATUS_SESSIONS = "Sessions : %d",
@@ -28,6 +29,7 @@ ns.RegisterLocale("frFR", {
 	STATUS_PROFESSIONS = "Métiers : %d compétences montées, %d objets fabriqués, %d récoltés",
 	STATUS_MONEY = "Argent : %s gagnés, %s dépensés, %d événements à l'hôtel des ventes",
 	STATUS_CHAT = "Discussion : %d lignes",
+	STATUS_ACHIEVEMENTS = "Défis Legacy accomplis : %d",
 	STATUS_NOT_RECORDED = "%s : non noté (désactivé dans les options)",
 	STATUS_BOOTS_TOTAL = "Bottes gardées, depuis toujours : %d",
 	STATUS_UNAVAILABLE = "Le journal n'est pas disponible : il a été enregistré par une version plus récente de l'addon.",
@@ -52,6 +54,7 @@ ns.RegisterLocale("frFR", {
 		.. "cueilles ou dépèces.",
 	TIP_MONEY = "Ton or à la connexion et à la déconnexion, ce que tu gagnes et dépenses chaque jour et où (butin, "
 		.. "quêtes, marchands, réparations, maîtres, vols, courrier, hôtel des ventes), et tes enchères.",
+	TIP_ACHIEVEMENTS = "Chaque défi Legacy (haut fait) que tu accomplis, avec son nom et sa catégorie.",
 	TIP_CHAT = "Ce qui se dit dans les canaux choisis ci-dessous, pour le jeu de rôle. Désactivé par défaut.",
 	SETTINGS_LOOT_QUALITY = "Qualité du butin notable",
 	TIP_LOOT_QUALITY = "La qualité d'objet la plus basse notée comme butin notable.",

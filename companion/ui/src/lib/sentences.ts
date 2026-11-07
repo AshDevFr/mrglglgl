@@ -189,6 +189,14 @@ export function daySentences(
   if (sold.length > 0)
     sentences.push(t("page.money.sold", { list: list(sold) }));
   if (won.length > 0) sentences.push(t("page.money.won", { list: list(won) }));
+  if (facts.achievements.length > 0) {
+    sentences.push(
+      t("page.challenges", {
+        count: facts.achievements.length,
+        list: list(facts.achievements.map((a) => `"${a.name}"`)),
+      }),
+    );
+  }
   if (facts.companions.length > 0) {
     sentences.push(t("page.grouped", { list: list(facts.companions) }));
   }

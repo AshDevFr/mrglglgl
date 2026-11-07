@@ -25,6 +25,7 @@ pub const CATEGORIES: &[&str] = &[
     "professions",
     "loot",
     "money",
+    "achievements",
     "group",
     "chat",
 ];
@@ -63,6 +64,7 @@ fn category(kind: &EventKind) -> Option<&'static str> {
         EventKind::Loot { .. } => "loot",
         EventKind::GroupJoin { .. } => "group",
         EventKind::Auction { .. } => "money",
+        EventKind::Achievement { .. } => "achievements",
         EventKind::Screenshot { .. } | EventKind::Unknown { .. } => return None,
     })
 }
@@ -209,6 +211,10 @@ fn strip_digest(d: &mut Digest, off: &dyn Fn(&str) -> bool) {
     }
     if off("chat") {
         c.chat = 0;
+    }
+    if off("achievements") {
+        c.achievements = 0;
+        d.achievements.clear();
     }
 }
 

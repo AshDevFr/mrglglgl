@@ -311,6 +311,14 @@ pub enum EventKind {
     Screenshot {
         moment: Option<String>,
     },
+    /// An achievement completed; on Forever, a Legacy Challenge.
+    Achievement {
+        achievement_id: Option<i64>,
+        name: Option<String>,
+        /// Its category, e.g. "Kalimdor" or "Druid".
+        category: Option<String>,
+        points: Option<i64>,
+    },
     /// At the auction house.
     Auction {
         /// `"listed"`, `"sold"`, `"won"`, `"outbid"`, `"expired"` or `"cancelled"`.
@@ -397,6 +405,7 @@ pub struct Digest {
     pub gathered: Vec<DigestItem>,
     pub money: Money,
     pub auctions: Vec<DigestAuction>,
+    pub achievements: Vec<DigestAchievement>,
     /// The day's first and last known balance, in copper.
     pub bal_start: Option<i64>,
     pub bal_end: Option<i64>,
@@ -438,6 +447,16 @@ pub struct DigestCounts {
     pub auctions: i64,
     /// Chat lines recorded.
     pub chat: i64,
+    pub achievements: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct DigestAchievement {
+    pub achievement_id: Option<i64>,
+    pub name: Option<String>,
+    pub category: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -654,6 +673,12 @@ fn event(t: &Table) -> Option<Event> {
         "screenshot" => EventKind::Screenshot {
             moment: string(t, "moment"),
         },
+        "achievement" => EventKind::Achievement {
+            achievement_id: int(t, "ach"),
+            name: string(t, "name"),
+            category: string(t, "cat"),
+            points: int(t, "pts"),
+        },
         "auction" => EventKind::Auction {
             act: string(t, "act"),
             name: string(t, "name"),
@@ -719,6 +744,7 @@ fn digest(t: &Table) -> Digest {
             money_out: count("moneyOut"),
             auctions: count("auctions"),
             chat: count("chat"),
+            achievements: count("achievements"),
         },
         level_from: int(t, "levelFrom"),
         level_to: int(t, "levelTo"),
@@ -764,6 +790,11 @@ fn digest(t: &Table) -> Digest {
         auctions: records(t, "auctions", |a| DigestAuction {
             act: string(a, "act"),
             name: string(a, "name"),
+        }),
+        achievements: records(t, "achievements", |a| DigestAchievement {
+            achievement_id: int(a, "ach"),
+            name: string(a, "name"),
+            category: string(a, "cat"),
         }),
         bal_start: int(t, "balStart"),
         bal_end: int(t, "balEnd"),

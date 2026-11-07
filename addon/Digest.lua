@@ -15,7 +15,7 @@ Digest.VERSION = 2
 -- from, possibly weeks later.
 local TOP_KILLS = 40
 local LIST_CAP = 60
-local RECORD_CAPS = { deaths = 20, loot = 30, fish = 30, notableKills = 30, auctions = 30 }
+local RECORD_CAPS = { deaths = 20, loot = 30, fish = 30, notableKills = 30, auctions = 30, achievements = 30 }
 
 local NOTABLE_CLASSIFICATIONS = { elite = true, rare = true, rareelite = true, worldboss = true }
 
@@ -35,7 +35,9 @@ end
 -- Old days keep only their highlights: exact counts, and the first few entries of each list. The
 -- app has archived the full day long before; in game nothing reads old digests in detail.
 local THIN_RECORDS, THIN_NAMES = 3, 5
-local RECORD_LISTS = { "deaths", "kills", "notableKills", "fish", "loot", "skills", "crafted", "gathered", "auctions" }
+local RECORD_LISTS = {
+	"deaths", "kills", "notableKills", "fish", "loot", "skills", "crafted", "gathered", "auctions", "achievements",
+}
 local NAME_LISTS = { "zones", "discovered", "accepted", "turnedIn", "companions", "bosses" }
 
 function Digest.thin(digest)
@@ -63,12 +65,13 @@ function Digest.build(day)
 		loot = 0, discoveries = 0, bosses = 0, group = 0, screenshots = 0,
 		kills = 0, murlocs = 0, anonKills = day.anonKills or 0, skillUps = 0, crafted = 0, gathered = 0,
 		moneyIn = 0, moneyOut = 0, auctions = 0, chat = day.chat and #day.chat or 0,
+		achievements = 0,
 	}
 	local digest = {
 		v = Digest.VERSION, counts = counts,
 		zones = {}, subzones = {}, discovered = {}, deaths = {}, accepted = {}, turnedIn = {},
 		fish = {}, loot = {}, companions = {}, bosses = {}, kills = {}, notableKills = {},
-		skills = {}, crafted = {}, gathered = {}, auctions = {},
+		skills = {}, crafted = {}, gathered = {}, auctions = {}, achievements = {},
 		money = { inc = {}, out = {} },
 	}
 	local zonesSeen, subzonesSeen, fishByItem = {}, {}, {}
@@ -129,6 +132,9 @@ function Digest.build(day)
 		elseif k == "auction" then
 			counts.auctions = counts.auctions + 1
 			push(digest.auctions, { act = e.act, name = e.name }, RECORD_CAPS.auctions)
+		elseif k == "achievement" then
+			counts.achievements = counts.achievements + 1
+			push(digest.achievements, { ach = e.ach, name = e.name, cat = e.cat }, RECORD_CAPS.achievements)
 		end
 	end
 
@@ -196,7 +202,7 @@ function Digest.build(day)
 
 	digest.levelFrom, digest.levelTo = lowLevel, highLevel
 	local busy = counts.kills + counts.deaths + counts.accepted + counts.turnedIn + counts.loot
-		+ counts.levels + counts.discoveries + counts.bosses + counts.group
+		+ counts.levels + counts.discoveries + counts.bosses + counts.group + counts.achievements
 		+ counts.skillUps + counts.crafted + counts.gathered + counts.chat
 	digest.onlyFished = counts.fish > 0 and counts.kills == 0 and counts.accepted == 0 and counts.turnedIn == 0
 		and counts.crafted == 0 and counts.gathered == 0

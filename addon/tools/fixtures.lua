@@ -162,6 +162,8 @@ local function play()
 		speak("SAY", "The wolves grow bold this season.", "Wren", "Player-1-0001")
 		speak("SAY", "Then we thin the pack before nightfall.", "Tamsin", "Player-1-0002")
 		speak("EMOTE", "checks the string of her bow.", "Wren", "Player-1-0001")
+		-- A Legacy Challenge, as Forever awards them: an achievement worth 0 points.
+		Mock.fire("ACHIEVEMENT_EARNED", 855, false)
 		Mock.recap = { { event = "SWING_DAMAGE", sourceName = "Murloc Streamrunner", sourceGUID = creature(732, 2) } }
 		Mock.fire("PLAYER_DEAD")
 		Mock.advance(2)
