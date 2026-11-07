@@ -40,6 +40,7 @@ const PATTERNS = [
   "murloc_heavy",
   "murloc_death",
   "nothing_happened",
+  "final_death",
 ];
 
 const SAMPLE = "sample";

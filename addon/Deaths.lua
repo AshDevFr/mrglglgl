@@ -39,6 +39,10 @@ local function record(attempt)
 		return
 	end
 	local fields = events and events[1] and killerFrom(events[1]) or {}
+	-- On a hardcore realm a death is the character's last: the journal says so, for a eulogy.
+	if Compat.IsHardcore() then
+		fields.final = true
+	end
 	Day.append("death", fields)
 	local stats = Storage.journal().stats
 	if fields.env == "Drowning" then

@@ -292,6 +292,9 @@ pub enum EventKind {
         killer: Option<Killer>,
         /// The environmental cause, e.g. `"Drowning"`.
         environment: Option<String>,
+        /// On a hardcore character, a death that ends it.
+        #[serde(default)]
+        final_death: bool,
     },
     Boss {
         encounter_id: Option<i64>,
@@ -714,6 +717,7 @@ fn event(t: &Table) -> Option<Event> {
         "death" => EventKind::Death {
             killer: table(t, "killer").map(killer),
             environment: string(t, "env"),
+            final_death: boolean(t, "final").unwrap_or(false),
         },
         "boss" => EventKind::Boss {
             encounter_id: int(t, "enc"),

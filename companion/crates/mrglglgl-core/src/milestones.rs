@@ -320,6 +320,7 @@ pub fn facts(day: &Day) -> DayFacts {
             EventKind::Death {
                 killer,
                 environment,
+                ..
             } => {
                 f.deaths += 1;
                 if killer.as_ref().is_some_and(|k| k.murloc) {

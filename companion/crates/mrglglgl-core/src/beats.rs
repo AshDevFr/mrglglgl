@@ -230,6 +230,8 @@ pub struct DayRecord {
     pub achievements: Vec<String>,
     /// How the character grew, from the progress events, which compaction keeps.
     pub progress: Progress,
+    /// A hardcore character died for good that day.
+    pub final_death: bool,
     pub only_fished: bool,
     pub nothing_happened: bool,
 }
@@ -514,12 +516,16 @@ impl DayRecord {
                 EventKind::Death {
                     killer,
                     environment,
-                } => r.deaths.push(DeathLine {
-                    killer: killer.as_ref().and_then(|k| k.name.clone()),
-                    murloc: killer.as_ref().is_some_and(|k| k.murloc),
-                    environment: environment.clone(),
-                    place: place(&event.zone, &event.subzone),
-                }),
+                    final_death,
+                } => {
+                    r.final_death |= *final_death;
+                    r.deaths.push(DeathLine {
+                        killer: killer.as_ref().and_then(|k| k.name.clone()),
+                        murloc: killer.as_ref().is_some_and(|k| k.murloc),
+                        environment: environment.clone(),
+                        place: place(&event.zone, &event.subzone),
+                    });
+                }
                 EventKind::Fish {
                     item_id,
                     name,
@@ -603,10 +609,12 @@ pub enum Pattern {
     MurlocHeavy,
     MurlocDeath,
     NothingHappened,
+    /// A hardcore character's last day.
+    FinalDeath,
 }
 
 impl Pattern {
-    pub const ALL: [Pattern; 8] = [
+    pub const ALL: [Pattern; 9] = [
         Pattern::ManyDeaths,
         Pattern::OnlyFished,
         Pattern::BigLevelJump,
@@ -615,6 +623,7 @@ impl Pattern {
         Pattern::MurlocHeavy,
         Pattern::MurlocDeath,
         Pattern::NothingHappened,
+        Pattern::FinalDeath,
     ];
 
     pub fn key(self) -> &'static str {
@@ -627,6 +636,7 @@ impl Pattern {
             Pattern::MurlocHeavy => "murloc_heavy",
             Pattern::MurlocDeath => "murloc_death",
             Pattern::NothingHappened => "nothing_happened",
+            Pattern::FinalDeath => "final_death",
         }
     }
 }
@@ -746,6 +756,8 @@ pub enum Beat {
     Instances {
         runs: Vec<(String, Option<i64>)>,
     },
+    /// A hardcore character died for good: the day is its last.
+    Farewell,
     /// A few of the player's own lines, said or acted out in character.
     Spoke {
         lines: Vec<(String, String)>,
@@ -796,6 +808,7 @@ impl Beat {
             Beat::Money { .. } => 11,
             Beat::Spoke { .. } => 8,
             Beat::Instances { .. } => 4,
+            Beat::Farewell => 0,
             Beat::Collected { .. } => 5,
             Beat::Reputation { .. } => 7,
             Beat::Gear { .. } => 8,
@@ -830,6 +843,7 @@ impl Beat {
             Beat::Money { .. } => 10,
             Beat::Spoke { .. } => 9,
             Beat::Travel { .. } => 1,
+            Beat::Farewell => 12,
             Beat::Instances { .. } => 5,
             Beat::Learned { .. } => 10,
             Beat::Collected { .. } => 10,
@@ -1056,6 +1070,9 @@ impl Beat {
                     })
                     .collect();
                 format!("Ran {}", and_list(&parts))
+            }
+            Beat::Farewell => {
+                "Died for good: on this hardcore character, this was the last day".to_string()
             }
             Beat::Spoke { lines } => {
                 let told: Vec<String> = lines
@@ -1468,6 +1485,9 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         }
         items
     };
+    if record.final_death {
+        beats.push(Beat::Farewell);
+    }
     let p = &record.progress;
     if !p.instances.is_empty() {
         beats.push(Beat::Instances {
@@ -1566,6 +1586,9 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
     }
     if record.nothing_happened {
         patterns.insert(Pattern::NothingHappened);
+    }
+    if record.final_death {
+        patterns.insert(Pattern::FinalDeath);
     }
 
     DayBeats {

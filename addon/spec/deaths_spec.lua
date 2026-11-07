@@ -44,6 +44,18 @@ describe("Deaths", function()
 		assert.equals(1, _G.MrglglglCharDB.stats.deathsByMurloc)
 	end)
 
+	it("marks a death on a hardcore realm as the character's last", function()
+		Mock.recap = { drowning() }
+		Mock.fire("PLAYER_DEAD")
+		Mock.advance(1)
+		assert.is_nil(deaths()[1].final)
+		_G.C_GameRules = { IsHardcoreActive = function() return true end }
+		Mock.fire("PLAYER_DEAD")
+		Mock.advance(1)
+		assert.is_true(deaths()[2].final)
+		_G.C_GameRules = nil
+	end)
+
 	it("records drowning as the environment, with no creature", function()
 		Mock.recap = { drowning(), swing("Prairie Wolf", "Creature-0-6867-1-2-2958-00000000AA") }
 		Mock.fire("PLAYER_DEAD")

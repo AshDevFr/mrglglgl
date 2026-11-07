@@ -752,7 +752,8 @@
       "rare_loot": "Quelque chose de rare",
       "murloc_heavy": "Beaucoup de murlocs",
       "murloc_death": "Tué par un murloc",
-      "nothing_happened": "Rien ne s'est passé"
+      "nothing_happened": "Rien ne s'est passé",
+      "final_death": "Hardcore : mort pour de bon"
     },
     "save": "Enregistrer",
     "saved": "Enregistré.",

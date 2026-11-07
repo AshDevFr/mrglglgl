@@ -464,6 +464,7 @@ fn reads_every_documented_field() {
         "src",
         "killer",
         "env",
+        "final",
         "enc",
         "q",
         "xp",

@@ -356,6 +356,13 @@ function Compat.GetCompletedAchievements()
 	return completed
 end
 
+-- True on a hardcore realm, where a death ends the character. Classic's C_GameRules answers it;
+-- a client without it is not hardcore as far as the addon can tell.
+function Compat.IsHardcore()
+	local rules = _G.C_GameRules
+	return rules ~= nil and type(rules.IsHardcoreActive) == "function" and rules.IsHardcoreActive() == true
+end
+
 -- The auction house's chat messages, by what happened. Looked up by name: a message missing on
 -- this client is skipped.
 local AUCTION_MESSAGES = {

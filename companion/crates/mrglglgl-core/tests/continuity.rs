@@ -22,6 +22,7 @@ fn event(kind: EventKind) -> Event {
 
 fn death_to(name: &str, murloc: bool) -> Event {
     event(EventKind::Death {
+        final_death: false,
         killer: Some(Killer {
             name: Some(name.into()),
             npc_id: None,

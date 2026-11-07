@@ -135,7 +135,7 @@ Event kinds and their extra fields:
 | `zone` | | Entered zone `z` |
 | `subzone` | | Entered subzone `sz` (at most once per subzone per minute) |
 | `discover` | `area` string, `src` string | First time this character found `area`: `src` is `"message"` (the client's discovery message) or `"visit"` (first recorded visit) |
-| `death` | `killer` table?, `env` string? | The player died. `killer` = `{ name, npc?, murloc }` for a creature (`npc` is its NPC ID when readable); `env` is the environmental cause from the client, e.g. `"Drowning"`, `"Falling"`. Neither is present when the client withheld or had no death recap |
+| `death` | `killer` table?, `env` string?, `final` bool? | The player died; `final` is true on a hardcore realm, where the death ends the character. `killer` = `{ name, npc?, murloc }` for a creature (`npc` is its NPC ID when readable); `env` is the environmental cause from the client, e.g. `"Drowning"`, `"Falling"`. Neither is present when the client withheld or had no death recap |
 | `boss` | `enc` int, `name` string | A boss encounter was won (`BOSS_KILL`) |
 | `quest_accept` | `q` int | Accepted quest `q`; its title and description are in `quests[q]` |
 | `quest_turnin` | `q` int, `xp` int, `money` int | Turned in quest `q`, with the XP and copper it rewarded |

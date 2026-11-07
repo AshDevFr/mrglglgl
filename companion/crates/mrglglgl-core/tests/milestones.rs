@@ -124,6 +124,7 @@ fn running_totals_award_on_the_day_they_reach_the_threshold() {
 #[test]
 fn a_bad_day_and_a_tourist_day() {
     let death = || EventKind::Death {
+        final_death: false,
         killer: Some(Killer {
             name: Some("Prairie Wolf".into()),
             npc_id: Some(2958),
@@ -253,10 +254,12 @@ fn levels_nights_dungeon_quests_and_falls_each_earn_their_stamp() {
                 money: None,
             }),
             event(EventKind::Death {
+                final_death: false,
                 killer: None,
                 environment: Some("Falling".into()),
             }),
             event(EventKind::Death {
+                final_death: false,
                 killer: None,
                 environment: Some("Lava".into()),
             }),

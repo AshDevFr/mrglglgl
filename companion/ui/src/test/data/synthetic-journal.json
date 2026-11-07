@@ -60,7 +60,8 @@
           "kind": {
             "kind": "death",
             "killer": null,
-            "environment": "Drowning"
+            "environment": "Drowning",
+            "finalDeath": false
           }
         },
         {
@@ -388,7 +389,8 @@
               "npcId": 732,
               "murloc": true
             },
-            "environment": null
+            "environment": null,
+            "finalDeath": false
           }
         },
         {

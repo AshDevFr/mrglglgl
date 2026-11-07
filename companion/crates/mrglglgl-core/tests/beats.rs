@@ -47,6 +47,7 @@ fn boot() -> EventKind {
 
 fn murloc_death() -> EventKind {
     EventKind::Death {
+        final_death: false,
         killer: Some(Killer {
             name: Some("Murloc Streamrunner".into()),
             npc_id: Some(732),
@@ -237,6 +238,7 @@ fn many_deaths_collapse_by_cause() {
             event(murloc_death()),
             event(murloc_death()),
             event(EventKind::Death {
+                final_death: false,
                 killer: None,
                 environment: Some("Drowning".into()),
             }),
@@ -663,4 +665,38 @@ fn growing_up_is_told_without_other_players_names() {
             .iter()
             .any(|t| t.contains("Tamsin") && t.contains("duel"))
     );
+}
+
+#[test]
+fn a_hardcore_death_makes_the_day_a_farewell_with_a_eulogy_hint() {
+    let mut death = event(murloc_death());
+    if let EventKind::Death { final_death, .. } = &mut death.kind {
+        *final_death = true;
+    }
+    let day = Day {
+        events: Some(vec![death]),
+        ..Day::default()
+    };
+    let j = journal(vec![("2026-11-20", day)]);
+    let day_beats = beats::extract(&j, "2026-11-20", &[], &Thresholds::default());
+    assert!(day_beats.patterns.contains(&Pattern::FinalDeath));
+    // Told last, as the day ended.
+    assert_eq!(
+        day_beats.texts().last().map(String::as_str),
+        Some("Died for good: on this hardcore character, this was the last day")
+    );
+    for id in [
+        "murloc_scribe",
+        "grumpy_dwarf",
+        "pompous_noble",
+        "smug_academic",
+        "murloc_speak",
+    ] {
+        assert!(
+            mrglglgl_core::narrators::get(id, "en")
+                .hints
+                .contains_key("final_death"),
+            "{id} has no eulogy hint"
+        );
+    }
 }
