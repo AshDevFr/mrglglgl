@@ -202,3 +202,15 @@ fn a_new_narrator_starts_blank_with_the_shared_parts_filled_in() {
     let saved = narrators::save(dir.path(), mine).unwrap();
     assert_eq!(saved.id, "custom_the_tired_innkeeper");
 }
+
+#[test]
+fn every_built_in_narrator_speaks_french_with_a_french_example() {
+    for info in narrators::all().iter().filter(|n| n.language == "en") {
+        let fr = narrators::get(&info.id, "fr");
+        assert_eq!(fr.language, "fr", "{} has no French profile", info.id);
+        assert_ne!(fr.name, info.name, "{} keeps its English name", info.id);
+        assert!(fr.example.entry.contains(" je ") || fr.example.entry.contains("j'"), "{}", info.id);
+        // The instructions are the same in both languages, apart from the translated label.
+        assert_eq!(fr.hints, info.hints, "{}", info.id);
+    }
+}

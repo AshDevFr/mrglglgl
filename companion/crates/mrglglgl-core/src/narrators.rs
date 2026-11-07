@@ -88,9 +88,13 @@ const BUILT_IN: &[&str] = &[
     include_str!("../narrators/murloc_scribe.en.toml"),
     include_str!("../narrators/murloc_scribe.fr.toml"),
     include_str!("../narrators/grumpy_dwarf.en.toml"),
+    include_str!("../narrators/grumpy_dwarf.fr.toml"),
     include_str!("../narrators/pompous_noble.en.toml"),
+    include_str!("../narrators/pompous_noble.fr.toml"),
     include_str!("../narrators/smug_academic.en.toml"),
+    include_str!("../narrators/smug_academic.fr.toml"),
     include_str!("../narrators/murloc_speak.en.toml"),
+    include_str!("../narrators/murloc_speak.fr.toml"),
 ];
 
 /// Reads a profile from its TOML text.
