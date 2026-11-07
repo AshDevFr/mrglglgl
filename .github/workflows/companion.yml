@@ -87,9 +87,15 @@ jobs:
       # registry-based install discovery, which no other job builds.
       - name: Core tests
         run: cargo test -p mrglglgl-core
+      # Test builds make no update files: those need the updater's private key, which only the
+      # release workflow is given.
       - name: Build unsigned installers
         working-directory: companion/crates/mrglglgl-app
-        run: ../../ui/node_modules/.bin/tauri build --bundles ${{ matrix.bundles }}
+        # Bash on every OS: PowerShell would mangle the JSON's quotes on their way to tauri.
+        shell: bash
+        run: >-
+          ../../ui/node_modules/.bin/tauri build --bundles ${{ matrix.bundles }}
+          --config '{"bundle":{"createUpdaterArtifacts":false}}'
       - uses: actions/upload-artifact@v7
         with:
           name: mrglglgl-${{ matrix.os }}

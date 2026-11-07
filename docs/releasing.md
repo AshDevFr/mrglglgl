@@ -5,7 +5,11 @@ The addon and the app are released separately, each from its own tag on `main`.
 | Part | Tag | Workflow | Publishes |
 |---|---|---|---|
 | Addon | `addon-vX.Y.Z` (prerelease: `addon-vX.Y.Z-beta.N`) | `addon-release.yml` | A GitHub release with `Mrglglgl-<tag>-forever.zip`; CurseForge and Wago too once their project IDs are in the TOC and `CF_API_KEY` / `WAGO_API_TOKEN` are repository secrets |
-| App | `companion-vX.Y.Z` (prerelease: `companion-vX.Y.Z-beta.N`) | `companion-release.yml` | A GitHub release with the macOS `.dmg` and the Windows installer, and a changelog of the app's own commits |
+| App | `companion-vX.Y.Z` (prerelease: `companion-vX.Y.Z-beta.N`) | `companion-release.yml` | A GitHub release with the macOS `.dmg` and the Windows installer, the signed update files and `latest.json` for the in-app updater, and a changelog of the app's own commits |
+
+Both release workflows also record build provenance: GitHub signs, through Sigstore, that each
+published file came from that workflow at that commit. Anyone can check a download with
+`gh attestation verify <file> --repo AshDevFr/mrglglgl`.
 
 The documentation site (`docs-site/`, Starlight) is not tagged: `docs.yml` rebuilds it and
 uploads it to Cloudflare Pages on every push to `main` that touches it or the app's interface. Its
@@ -20,8 +24,11 @@ demo` shows the same thing locally; `npm --prefix docs-site run screenshots` tak
    - `make -C companion check`
 3. If the addon's journal format changed, `docs/schema.md` says so, the shared fixtures are
    regenerated (`make -C addon fixtures`), and the app reads them (its schema tests pass).
-4. For the app: bump `version` in `companion/Cargo.toml` and in the Tauri config to the tag's
-   version.
+4. For the app: bump `version` in `companion/Cargo.toml`, the Tauri config and
+   `companion/ui/package.json` to the tag's version.
+5. For the app: the `TAURI_SIGNING_PRIVATE_KEY` secret holds the updater's private key (kept
+   outside the repository, backed up). Without it the release still publishes, with no in-app
+   update; the workflow warns.
 
 ## Tagging
 
@@ -41,4 +48,6 @@ repository's releases page when it finishes.
   ad hoc (`signingIdentity: "-"`): without it, macOS calls the downloaded app damaged and offers no
   way to open it. The release notes tell players to choose Open Anyway.
   An Apple Developer ID exists, so signing is an additive change to `companion-release.yml`.
-- There is no auto-updater until builds are signed.
+- The in-app updater reads `latest.json` from the latest stable release only: prereleases are
+  never offered. It verifies each update with the updater key, which is separate from code
+  signing, so updates install on unsigned builds too.
