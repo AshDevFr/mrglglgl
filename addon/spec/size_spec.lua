@@ -107,16 +107,18 @@ local function yearSize(profile, keep, chatOn)
 		return bytes
 end
 
--- The guard: a heavy year at the default retention stays under this. Owner decision
--- (2026-11-06): compacted days keep their key events and aggregates, so the budget is 8 MB
--- (about 6.8 MB measured); whether the client loads a file this size quickly is an in-game check.
-local HEAVY_DEFAULT_LIMIT = 8 * 1024 * 1024
+-- The guard: a heavy year stays under this, chat on or off. Owner decision (2026-11-06): the
+-- client has no size limit for SavedVariables, only load time at login and /reload, so the
+-- budget is 12 MB, enough for a year of heavy role play with chat on (about 9 MB measured).
+-- Whether the client loads a file this size quickly is an in-game check.
+local HEAVY_LIMIT = 12 * 1024 * 1024
 
 describe("SavedVariables size", function()
-	-- Default settings, so chat (opt-in) is off; the role-play case is reported below.
-	it("keeps a heavy year at the default settings under 8 MB", function()
-		local bytes = yearSize("heavy", 30, false)
-		assert.is_true(bytes < HEAVY_DEFAULT_LIMIT, ("%.0f KB"):format(bytes / 1024))
+	it("keeps a heavy year at the default retention under 12 MB, even with role-play chat on", function()
+		for _, chatOn in ipairs({ false, true }) do
+			local bytes = yearSize("heavy", 30, chatOn)
+			assert.is_true(bytes < HEAVY_LIMIT, ("%.0f KB"):format(bytes / 1024))
+		end
 	end)
 
 	it("reports a year at every retention setting", function()
