@@ -19,3 +19,10 @@ The app finds the game by itself and shows the folder it uses. Choose a folder o
 the wrong place: the game folder (the one containing `_forever_`) or a flavor folder such as
 `_forever_`. **Find it automatically again** goes back to finding it by itself. A folder found
 automatically is never saved, so the app still finds the game if it moves.
+
+## Language
+
+The app's interface is in English or French. **Language**, in **General**, is **Same as the
+system** by default; choose **English** or French to override it. It is separate from **Language of
+the journal** in **Writing**, which sets the language the built-in narrators write in (English or
+French, or **Same as the app**).

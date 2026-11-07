@@ -3,9 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "node scripts/reference.mjs",
+    "predev": "node scripts/reference.mjs && node scripts/milestones.mjs",
     "dev": "astro dev",
-    "prebuild": "node scripts/reference.mjs",
+    "prebuild": "node scripts/reference.mjs && node scripts/milestones.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "screenshots": "playwright test --config screenshots/playwright.config.ts"

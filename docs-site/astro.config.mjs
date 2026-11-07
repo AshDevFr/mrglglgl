@@ -41,6 +41,7 @@ export default defineConfig({
             { slug: "guide/sharing" },
             { slug: "guide/website" },
             { slug: "guide/addon" },
+            { slug: "guide/recorded" },
             { slug: "guide/settings" },
             { slug: "guide/your-data" },
           ],
@@ -49,6 +50,8 @@ export default defineConfig({
           label: "Reference",
           items: [
             { slug: "reference/narrator-files" },
+            // Generated from the app's milestone data (scripts/milestones.mjs).
+            { slug: "reference/milestones" },
             { slug: "reference/website-themes" },
             // Copied from docs/ before each build (scripts/reference.mjs).
             { slug: "reference/journal-format" },

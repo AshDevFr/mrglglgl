@@ -5,24 +5,34 @@ description: What the addon records, its settings in game, and managing it from 
 
 The addon quietly records your character's day: sessions, levels, quests, zones and places
 discovered, kills, deaths and what killed you, fishing (boots included), notable loot, the people
-you grouped with, and professions. It shows nothing unless you ask.
+you grouped with, professions, money and the auction house, and the Legacy Challenges you
+complete. Chat, for role play, can be recorded too but is off by default. It shows nothing unless
+you ask. The newer kinds are described in [What gets recorded](/guide/recorded/).
 
 ## In game
 
 - `/mrgl status` shows what has been recorded today.
 - `/mrgl settings` opens its panel, also under Options, AddOns, Mrglglgl.
 
-In the panel you choose:
+The settings are spread over pages under **Mrglglgl** in Options, AddOns:
 
-- **What gets recorded:** each category can be turned off. Quest descriptions are most of the
-  journal's size; the names of people you group with are other people's names.
-- **Notable loot quality:** the lowest item quality recorded as notable loot.
-- **Keep full detail for:** 14, 30 (the default), 60 or 90 days. Older days keep their key
-  moments and a daily summary; the app keeps the full history once it has seen it.
-- **Screenshots:** take a game screenshot on a level up, a death, a boss kill and a few firsts,
-  for the app to show with the day. Off by default.
-- **Forget recorded data:** delete what this character has recorded in a category. Copies the app
-  already has are not affected.
+- **Mrglglgl** (the main page):
+  - **What gets recorded:** each category can be turned off. Quest descriptions are most of the
+    journal's size; the names of people you group with are other people's names; **Chat** is off
+    by default.
+  - **Notable loot quality:** the lowest item quality recorded as notable loot.
+  - **Storage**, **Keep full detail for:** 14, 30 (the default), 60 or 90 days. Older days keep
+    their key moments and a daily summary; the app keeps the full history once it has seen it.
+- **Chat:** under **Chat channels**, two switches per channel, "your lines" and "others' lines".
+  See [What gets recorded](/guide/recorded/#chat-for-role-play).
+- **Screenshots:** take a game screenshot on a level up, a death, a boss kill and a few firsts
+  (your first boot, first murloc slain, first death by murloc), for the app to show with the day.
+  Off by default.
+- **Forget:** **Forget recorded data** deletes what this character has recorded in a category.
+  Press **Forget** twice to confirm. Copies the app already has are not affected.
+
+The addon speaks the language of your game client: English, or French on a French client. The
+app's own language is chosen separately (see [Settings](/guide/settings/#language)).
 
 ## From the app
 

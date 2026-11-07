@@ -4,7 +4,8 @@ description: Days, weeks, milestones, rewriting an entry and editing it by hand.
 ---
 
 Each day is a page: the narrator's entry once it is written, the milestones stamped that day, any
-screenshots the addon took, and **What happened**, the plain record the entry was written from.
+screenshots the addon took, and **What happened**, the plain record the entry was written from (including money, the auction house, chat you chose to
+record, and Legacy Challenges: see [What gets recorded](/guide/recorded/)).
 Days are grouped by week; the week's chapter is written once the week is over.
 
 ![A character's journal: the week's chapter and a written day with its milestone stamps.](../../../assets/screenshots/journal.png)
@@ -48,6 +49,13 @@ day spent only fishing. They appear on the day they happened and together on the
 **Milestones** tab.
 
 ![The Milestones tab: every stamp a character has earned.](../../../assets/screenshots/milestones.png)
+
+There are 58, each with a rarity from one star to five. A day that earns several presses its three
+rarest on its page and lists the rest under **More milestones**; the narrator is told about those
+three only, so a big day is not a list. Every stamp, with what earns it, is in
+[Every milestone](/reference/milestones/). If you turn a kind of data off for a character
+(**Data used…**, see [What gets recorded](/guide/recorded/#choosing-which-data-the-app-uses)), the
+milestones it earned go with it.
 
 ## A day with nothing written
 

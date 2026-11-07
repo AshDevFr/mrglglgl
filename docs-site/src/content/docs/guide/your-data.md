@@ -16,6 +16,11 @@ Each time the game saves a journal, the app keeps a copy in its own data folder;
 forever). Your journal's full history stays in the app whatever you choose: backups are only a
 safety net.
 
+To keep a kind of data out of what narrators, the website and exports see (or out of the app's
+view), without deleting it, use **Data used…** on the character's **⋯** menu: see
+[What gets recorded](/guide/recorded/#choosing-which-data-the-app-uses). Other players' chat lines
+are never sent to a narrator, never go on the website and are never exported.
+
 Forgetting data in the game, with the addon's "Forget recorded" buttons, changes only the game's
 files. To remove a character's history from the app, remove the character in the app.
 
