@@ -43,6 +43,7 @@ Keys are short because SavedVariables size counts. Types: `int` and `number` are
 | `settings.record.loot` | bool | Record notable loot |
 | `settings.record.group` | bool | Record group members met |
 | `settings.record.professions` | bool | Record profession skill-ups, crafting and gathering |
+| `settings.record.money` | bool | Record the balance at each session's start and end, money earned and spent by source, and auction house events |
 | `settings.lootQuality` | int | Minimum item quality counted as notable loot (3 = rare) |
 | `settings.retentionDays` | int | Days of raw events kept before compaction: 7, 14 or 30 |
 | `settings.screenshots.levelUp` | bool | Take a screenshot on level-up |
@@ -88,13 +89,14 @@ A day is a local calendar date. Each event belongs to the day of its own timesta
 
 | Field | Type | Meaning |
 |---|---|---|
-| `ev` | array? | Raw events in time order; once compacted, only the key moments (sessions, levels, deaths, bosses, discoveries, quests taken and handed in, screenshots, group joins), absent if there were none |
+| `ev` | array? | Raw events in time order; once compacted, only the key moments (sessions, levels, deaths, bosses, discoveries, quests taken and handed in, screenshots, group joins, auction events), absent if there were none |
 | `c` | bool? | `true` once the day is compacted: `ev` holds only key moments and `digest` is what the whole day was |
 | `kills` | table? | Kill aggregates keyed by NPC ID |
 | `anonKills` | int? | Kills whose target the client withheld (dungeons, raids, encounters, PvP) |
 | `skills` | table? | Skills that rose that day, keyed by skill ID |
 | `crafted` | table? | Items crafted that day, keyed by item ID |
 | `gathered` | table? | Items mined, picked or skinned that day, keyed by item ID |
+| `money` | table? | Money earned and spent that day by source; see Money |
 | `digest` | table? | The day's summary, built from the whole day; never rebuilt after compaction |
 
 ### Event (`days[key].ev[i]`)
@@ -114,8 +116,8 @@ Event kinds and their extra fields:
 
 | Kind | Extra fields | Meaning |
 |---|---|---|
-| `session_start` | | Logged in |
-| `session_end` | | Logged out |
+| `session_start` | `bal` int? | Logged in; `bal` is the balance in copper, when money is recorded |
+| `session_end` | `bal` int? | Logged out; `bal` is the balance in copper, when money is recorded |
 | `level` | | Reached level `lv` |
 | `zone` | | Entered zone `z` |
 | `subzone` | | Entered subzone `sz` (at most once per subzone per minute) |
@@ -127,6 +129,7 @@ Event kinds and their extra fields:
 | `fish` | `item` int, `name` string?, `junk` bool?, `boot` bool? | A fishing catch. `name`, `junk` (poor quality) and `boot` are filled once the client has the item's data; a catch whose data never arrived has only `item` |
 | `loot` | `item` int, `name` string, `ql` int, `qty` int?, `src` string? | An item at or above `settings.lootQuality`; `qty` is absent when read from the loot window rather than the loot message. `src = "window"` marks an item only seen in a loot window, which in a group may have gone to someone else; absent when the character received it |
 | `group_join` | `who` string | Grouped with `who` (`"Firstname-Surname"`) for the first time that day; see `companions[who]` |
+| `auction` | `act` string, `name` string? | At the auction house: `act` is `"listed"`, `"sold"`, `"won"`, `"outbid"`, `"expired"` or `"cancelled"`; `name` is the item, absent for `"listed"` (the client's message does not name it) |
 | `screenshot` | `moment` string | The addon took a screenshot: `"levelUp"`, `"death"`, `"bossKill"`, `"firstBoot"`, `"firstMurlocKill"` or `"firstDeathByMurloc"`. The file is `_forever_/Screenshots/WoWScrnShot_MMDDYY_HHMMSS.jpg` taken about a second after `t` |
 
 ### Kill aggregate (`days[key].kills[npcID]`)
@@ -157,6 +160,19 @@ of items. Skill IDs and item IDs do not depend on the client's language; names d
 | `crafted[id].name`, `gathered[id].name` | string? | Item name |
 | `gathered[id].via` | string | The gathering skill used, e.g. "Mining", "Herb Gathering", "Skinning" |
 
+### Money (`days[key].money`)
+
+Every change of the player's money, summed by where it came from (`inc`) or went (`out`), in
+copper. The source is what the player was doing when the balance changed: `loot`, `quest`
+(rewards), `vendor` (sales and purchases), `repair`, `trainer`, `travel` (flights), `trade`,
+`mail`, `auction` (deposits and buyouts at the auction house, and sales and refunds taken from
+its mail), or `other`.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `inc` | table? | Copper earned, by source |
+| `out` | table? | Copper spent, by source |
+
 ### Digest (`days[key].digest`)
 
 The day's summary, rebuilt at every login and logout while the day still has raw events. Once a
@@ -169,7 +185,7 @@ lists hold the highlights: `kills` the 10 most killed, `deaths` 5, `loot`, `fish
 | Field | Type | Meaning |
 |---|---|---|
 | `v` | int | Digest version. Days rebuilt from raw events get the current version; compacted days keep theirs |
-| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered` |
+| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered`, `moneyIn`, `moneyOut` (copper), `auctions` |
 | `levelFrom`, `levelTo` | int? | Lowest and highest level seen that day |
 | `zones` | array | Zones in the order first seen |
 | `subzones` | array | Subzones in the order first seen |
@@ -184,6 +200,9 @@ lists hold the highlights: `kills` the 10 most killed, `deaths` 5, `loot`, `fish
 | `bosses` | array | Encounter names won |
 | `skills` | array | `{ skill, name, cat?, from, to }` per skill that rose |
 | `crafted`, `gathered` | array | `{ item, name?, n, via? }` per item |
+| `money` | table | `{ inc = {source = copper}, out = {source = copper} }`, as the day's `money` |
+| `auctions` | array | `{ act, name? }` per auction house event |
+| `balStart`, `balEnd` | int? | The day's first and last known balance, in copper |
 | `onlyFished` | bool | Caught fish, and no kills, quest activity, crafting or gathering |
 | `thin` | bool? | The day is older than 90 days: record lists keep 3 entries, name lists 5, `subzones` is empty; counts unchanged |
 | `nothingHappened` | bool | No kills, deaths, quests, fishing, loot, levels, discoveries, bosses, companions or profession activity |

@@ -14,4 +14,12 @@ environment: string | null, } | { "kind": "boss", encounterId: number | null, na
  * Read from a group loot window (`src = "window"`): it dropped, not necessarily for
  * the player. Defaults for events archived before it existed.
  */
-seen: boolean, } | { "kind": "groupJoin", who: string | null, } | { "kind": "screenshot", moment: string | null, } | { "kind": "unknown", name: string, };
+seen: boolean, } | { "kind": "groupJoin", who: string | null, } | { "kind": "screenshot", moment: string | null, } | { "kind": "auction", 
+/**
+ * `"listed"`, `"sold"`, `"won"`, `"outbid"`, `"expired"` or `"cancelled"`.
+ */
+act: string | null, 
+/**
+ * The item; absent for `"listed"`, whose message does not name it.
+ */
+name: string | null, } | { "kind": "unknown", name: string, };

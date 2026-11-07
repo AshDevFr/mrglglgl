@@ -130,6 +130,32 @@
       "Herb Gathering": "Picked {{list}}.",
       "Herbalism": "Picked {{list}}.",
       "Skinning": "Skinned {{list}}."
+    },
+    "money": {
+      "earned": "Earned {{amount}}.",
+      "earnedMostly": "Earned {{amount}}, mostly {{where}}.",
+      "spent": "Spent {{amount}}.",
+      "spentMostly": "Spent {{amount}}, mostly {{where}}.",
+      "earnedFrom": {
+        "loot": "from loot",
+        "quest": "from quests",
+        "vendor": "selling to vendors",
+        "mail": "by mail",
+        "auction": "at the auction house",
+        "trade": "in trades"
+      },
+      "spentFrom": {
+        "vendor": "at vendors",
+        "repair": "on repairs",
+        "trainer": "on training",
+        "travel": "on flights",
+        "mail": "by mail",
+        "auction": "at the auction house",
+        "trade": "in trades",
+        "quest": "on quests"
+      },
+      "sold": "Sold {{list}} at the auction house.",
+      "won": "Won {{list}} at the auction house."
     }
   },
   "photo": {
@@ -697,6 +723,36 @@
     "catches_one": "{{count}} catch",
     "catches_other": "{{count}} catches",
     "screenshotCount_one": "{{count}} taken",
-    "screenshotCount_other": "{{count}} taken"
+    "screenshotCount_other": "{{count}} taken",
+    "earned": "Earned",
+    "spent": "Spent",
+    "purse": "Gold",
+    "auctions": "Auction house",
+    "moneyLine": "{{source}}: {{amount}}",
+    "source": {
+      "loot": "Loot",
+      "quest": "Quests",
+      "vendor": "Vendors",
+      "repair": "Repairs",
+      "trainer": "Training",
+      "travel": "Flights",
+      "mail": "Mail",
+      "auction": "Auction house",
+      "trade": "Trades",
+      "other": "Other"
+    },
+    "auction": {
+      "listed": "Listed an item",
+      "sold": "Sold {{name}}",
+      "won": "Won {{name}}",
+      "outbid": "Outbid on {{name}}",
+      "expired": "{{name}} did not sell",
+      "cancelled": "Took {{name}} off the market"
+    }
+  },
+  "money": {
+    "gold": "{{n}}g",
+    "silver": "{{n}}s",
+    "copper": "{{n}}c"
   }
 }

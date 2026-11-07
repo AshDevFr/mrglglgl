@@ -33,6 +33,13 @@ function facts(overrides: Partial<DayFacts>): DayFacts {
     skills: [],
     crafted: [],
     gathered: [],
+    money: {
+      earned: [],
+      spent: [],
+      balStart: null,
+      balEnd: null,
+      auctions: [],
+    },
     screenshots: 0,
     onlyFished: false,
     nothingHappened: false,
@@ -424,5 +431,33 @@ describe("quests and skills on the page", () => {
     expect(
       say({ seenLoot: ["Gnarled Staff"], loot: ["Carving Knife"] }),
     ).toEqual(["Saw a Gnarled Staff drop.", "Found a Carving Knife."]);
+  });
+});
+
+describe("money", () => {
+  it("tells money earned and spent with where most of it went, and auction sales", () => {
+    const day = syntheticJournal.days["2026-11-08"];
+    const told = daySentences(dayFacts(syntheticJournal, day), i18n.t, "en");
+    expect(told).toContain("Earned 22s 67c, mostly at the auction house.");
+    expect(told).toContain("Spent 2s 23c, mostly on repairs.");
+    expect(told).toContain("Sold Copper Ore at the auction house.");
+  });
+
+  it("leaves out where when no source holds half", () => {
+    expect(
+      say({
+        money: {
+          earned: [
+            { source: "loot", copper: 40 },
+            { source: "quest", copper: 35 },
+            { source: "vendor", copper: 30 },
+          ],
+          spent: [],
+          balStart: null,
+          balEnd: null,
+          auctions: [],
+        },
+      }),
+    ).toEqual(["Earned 1s 5c."]);
   });
 });

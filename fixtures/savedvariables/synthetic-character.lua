@@ -29,6 +29,10 @@ MrglglglCharDB = {
 ["digest"] = {
 ["accepted"] = {
 },
+["auctions"] = {
+},
+["balEnd"] = 2350,
+["balStart"] = 2350,
 ["bosses"] = {
 },
 ["companions"] = {
@@ -36,6 +40,7 @@ MrglglglCharDB = {
 ["counts"] = {
 ["accepted"] = 0,
 ["anonKills"] = 0,
+["auctions"] = 0,
 ["boots"] = 1,
 ["bosses"] = 0,
 ["crafted"] = 0,
@@ -48,6 +53,8 @@ MrglglglCharDB = {
 ["kills"] = 1,
 ["levels"] = 0,
 ["loot"] = 0,
+["moneyIn"] = 0,
+["moneyOut"] = 0,
 ["murlocs"] = 0,
 ["screenshots"] = 0,
 ["sessions"] = 1,
@@ -96,6 +103,12 @@ MrglglglCharDB = {
 ["levelTo"] = 5,
 ["loot"] = {
 },
+["money"] = {
+["inc"] = {
+},
+["out"] = {
+},
+},
 ["notableKills"] = {
 },
 ["nothingHappened"] = false,
@@ -114,6 +127,7 @@ MrglglglCharDB = {
 },
 ["ev"] = {
 {
+["bal"] = 2350,
 ["k"] = "session_start",
 ["lv"] = 5,
 ["m"] = 7,
@@ -151,6 +165,7 @@ MrglglglCharDB = {
 ["z"] = "Mulgore",
 },
 {
+["bal"] = 2350,
 ["k"] = "session_end",
 ["lv"] = 5,
 ["m"] = 7,
@@ -179,6 +194,14 @@ MrglglglCharDB = {
 ["accepted"] = {
 749,
 },
+["auctions"] = {
+{
+["act"] = "sold",
+["name"] = "Copper Ore",
+},
+},
+["balEnd"] = 4394,
+["balStart"] = 2350,
 ["bosses"] = {
 "Hogger",
 },
@@ -188,6 +211,7 @@ MrglglglCharDB = {
 ["counts"] = {
 ["accepted"] = 1,
 ["anonKills"] = 1,
+["auctions"] = 1,
 ["boots"] = 0,
 ["bosses"] = 1,
 ["crafted"] = 5,
@@ -200,6 +224,8 @@ MrglglglCharDB = {
 ["kills"] = 26,
 ["levels"] = 1,
 ["loot"] = 1,
+["moneyIn"] = 2267,
+["moneyOut"] = 223,
 ["murlocs"] = 1,
 ["screenshots"] = 1,
 ["sessions"] = 1,
@@ -277,6 +303,18 @@ MrglglglCharDB = {
 ["qty"] = 1,
 },
 },
+["money"] = {
+["inc"] = {
+["auction"] = 1840,
+["loot"] = 42,
+["quest"] = 75,
+["vendor"] = 310,
+},
+["out"] = {
+["repair"] = 128,
+["travel"] = 95,
+},
+},
 ["notableKills"] = {
 {
 ["cls"] = "elite",
@@ -317,6 +355,7 @@ MrglglglCharDB = {
 },
 ["ev"] = {
 {
+["bal"] = 2350,
 ["k"] = "session_start",
 ["lv"] = 5,
 ["m"] = 7,
@@ -408,6 +447,16 @@ MrglglglCharDB = {
 ["z"] = "Mulgore",
 },
 {
+["act"] = "sold",
+["k"] = "auction",
+["lv"] = 6,
+["m"] = 7,
+["name"] = "Copper Ore",
+["sz"] = "Red Rocks",
+["t"] = 1794164611,
+["z"] = "Mulgore",
+},
+{
 ["item"] = 2140,
 ["k"] = "loot",
 ["lv"] = 6,
@@ -416,7 +465,7 @@ MrglglglCharDB = {
 ["ql"] = 3,
 ["qty"] = 1,
 ["sz"] = "Red Rocks",
-["t"] = 1794164491,
+["t"] = 1794164641,
 ["z"] = "Mulgore",
 },
 {
@@ -424,7 +473,7 @@ MrglglglCharDB = {
 ["lv"] = 6,
 ["m"] = 7,
 ["sz"] = "Red Rocks",
-["t"] = 1794164491,
+["t"] = 1794164641,
 ["who"] = "Tamsin-Reedwater",
 ["z"] = "Mulgore",
 },
@@ -438,15 +487,16 @@ MrglglglCharDB = {
 ["lv"] = 6,
 ["m"] = 7,
 ["sz"] = "Red Rocks",
-["t"] = 1794164491.5,
+["t"] = 1794164641.5,
 ["z"] = "Mulgore",
 },
 {
+["bal"] = 4394,
 ["k"] = "session_end",
 ["lv"] = 6,
 ["m"] = 7,
 ["sz"] = "Red Rocks",
-["t"] = 1794164553,
+["t"] = 1794164703,
 ["z"] = "Mulgore",
 },
 },
@@ -482,6 +532,18 @@ MrglglglCharDB = {
 ["name"] = "Flatland Cougar",
 },
 },
+["money"] = {
+["inc"] = {
+["auction"] = 1840,
+["loot"] = 42,
+["quest"] = 75,
+["vendor"] = 310,
+},
+["out"] = {
+["repair"] = 128,
+["travel"] = 95,
+},
+},
 ["skills"] = {
 [129] = {
 ["cat"] = "Secondary Skills",
@@ -501,6 +563,10 @@ MrglglglCharDB = {
 ["digest"] = {
 ["accepted"] = {
 },
+["auctions"] = {
+},
+["balEnd"] = 4394,
+["balStart"] = 4394,
 ["bosses"] = {
 },
 ["companions"] = {
@@ -508,6 +574,7 @@ MrglglglCharDB = {
 ["counts"] = {
 ["accepted"] = 0,
 ["anonKills"] = 0,
+["auctions"] = 0,
 ["boots"] = 0,
 ["bosses"] = 0,
 ["crafted"] = 0,
@@ -520,6 +587,8 @@ MrglglglCharDB = {
 ["kills"] = 0,
 ["levels"] = 0,
 ["loot"] = 0,
+["moneyIn"] = 0,
+["moneyOut"] = 0,
 ["murlocs"] = 0,
 ["screenshots"] = 0,
 ["sessions"] = 1,
@@ -548,6 +617,12 @@ MrglglglCharDB = {
 ["levelTo"] = 5,
 ["loot"] = {
 },
+["money"] = {
+["inc"] = {
+},
+["out"] = {
+},
+},
 ["notableKills"] = {
 },
 ["nothingHappened"] = false,
@@ -565,6 +640,7 @@ MrglglglCharDB = {
 },
 ["ev"] = {
 {
+["bal"] = 4394,
 ["k"] = "session_start",
 ["lv"] = 5,
 ["m"] = 7,
@@ -595,6 +671,7 @@ MrglglglCharDB = {
 ["z"] = "Mulgore",
 },
 {
+["bal"] = 4394,
 ["k"] = "session_end",
 ["lv"] = 5,
 ["m"] = 7,
@@ -608,6 +685,10 @@ MrglglglCharDB = {
 ["digest"] = {
 ["accepted"] = {
 },
+["auctions"] = {
+},
+["balEnd"] = 4394,
+["balStart"] = 4394,
 ["bosses"] = {
 },
 ["companions"] = {
@@ -615,6 +696,7 @@ MrglglglCharDB = {
 ["counts"] = {
 ["accepted"] = 0,
 ["anonKills"] = 0,
+["auctions"] = 0,
 ["boots"] = 0,
 ["bosses"] = 0,
 ["crafted"] = 0,
@@ -627,6 +709,8 @@ MrglglglCharDB = {
 ["kills"] = 0,
 ["levels"] = 0,
 ["loot"] = 0,
+["moneyIn"] = 0,
+["moneyOut"] = 0,
 ["murlocs"] = 0,
 ["screenshots"] = 0,
 ["sessions"] = 1,
@@ -649,6 +733,12 @@ MrglglglCharDB = {
 ["levelTo"] = 5,
 ["loot"] = {
 },
+["money"] = {
+["inc"] = {
+},
+["out"] = {
+},
+},
 ["notableKills"] = {
 },
 ["nothingHappened"] = true,
@@ -666,6 +756,7 @@ MrglglglCharDB = {
 },
 ["ev"] = {
 {
+["bal"] = 4394,
 ["k"] = "session_start",
 ["lv"] = 5,
 ["m"] = 7,
@@ -674,6 +765,7 @@ MrglglglCharDB = {
 ["z"] = "Mulgore",
 },
 {
+["bal"] = 4394,
 ["k"] = "session_end",
 ["lv"] = 5,
 ["m"] = 7,

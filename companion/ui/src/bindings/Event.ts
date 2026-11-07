@@ -5,4 +5,8 @@ export type Event = {
 /**
  * Unix time.
  */
-time: number, zone: string | null, subzone: string | null, mapId: number | null, level: number | null, kind: EventKind, };
+time: number, zone: string | null, subzone: string | null, mapId: number | null, level: number | null, 
+/**
+ * The balance in copper, on session events when money is recorded.
+ */
+balance: number | null, kind: EventKind, };

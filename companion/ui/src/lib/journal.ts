@@ -2,6 +2,7 @@ import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { Day } from "@/bindings/Day";
 import type { Journal } from "@/bindings/Journal";
 import type { StoredCharacter } from "@/bindings/StoredCharacter";
+import { type MoneyFacts, moneyFacts } from "./money";
 
 /** "Wren Hollowbrook", or the folder name until the journal has been read. */
 export function displayName(character: StoredCharacter): string {
@@ -188,6 +189,8 @@ export interface DayFacts {
   skills: SkillLine[];
   crafted: ItemLine[];
   gathered: ItemLine[];
+  /** Money earned and spent by source, the balance, and auction house events. */
+  money: MoneyFacts;
   screenshots: number;
   onlyFished: boolean;
   nothingHappened: boolean;
@@ -269,13 +272,18 @@ function place(zone: string | null, subzone: string | null): string | null {
 export function dayFacts(journal: Journal, day: Day): DayFacts {
   const facts = eventFacts(journal, day);
   const work = professions(day);
+  const money = moneyFacts(day);
   const busy =
     work.skills.length > 0 ||
     work.crafted.length > 0 ||
-    work.gathered.length > 0;
+    work.gathered.length > 0 ||
+    money.earned.length > 0 ||
+    money.spent.length > 0 ||
+    money.auctions.length > 0;
   return {
     ...facts,
     ...work,
+    money,
     nothingHappened: facts.nothingHappened && !busy,
   };
 }
@@ -283,7 +291,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
 function eventFacts(
   journal: Journal,
   day: Day,
-): Omit<DayFacts, "skills" | "crafted" | "gathered"> {
+): Omit<DayFacts, "skills" | "crafted" | "gathered" | "money"> {
   const digest = day.digest;
   // A compacted day keeps a few key events; its digest is what the whole day was.
   if (day.events === null || day.compacted) {
@@ -353,7 +361,7 @@ function eventFacts(
       murloc: k.murloc,
     }))
     .sort((a, b) => b.count - a.count || (a.npcId ?? 0) - (b.npcId ?? 0));
-  const facts: Omit<DayFacts, "skills" | "crafted" | "gathered"> = {
+  const facts: Omit<DayFacts, "skills" | "crafted" | "gathered" | "money"> = {
     levelFrom: null,
     levelTo: null,
     leveledUp: false,

@@ -27,6 +27,7 @@ fn event(kind: EventKind) -> Event {
         subzone: None,
         map_id: None,
         level: Some(5),
+        balance: None,
         kind,
     }
 }

@@ -9,7 +9,8 @@ ns.Settings = SettingsPanel
 
 -- Categories in panel order; their labels and tooltips come from the locale table.
 local RECORD = {
-	"sessions", "levels", "quests", "questText", "zones", "kills", "deaths", "fishing", "professions", "loot", "group",
+	"sessions", "levels", "quests", "questText", "zones", "kills", "deaths", "fishing", "professions", "loot",
+	"money", "group",
 }
 local SCREENSHOTS = { "levelUp", "death", "bossKill", "firstBoot", "firstMurlocKill", "firstDeathByMurloc" }
 

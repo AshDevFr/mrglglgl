@@ -241,6 +241,34 @@ fn reads_profession_skill_ups_crafting_and_gathering() {
     assert_eq!(digest.gathered.len(), 2);
 }
 
+#[test]
+fn reads_money_balances_and_auction_events() {
+    let journal = schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
+    let day = &journal.days["2026-11-08"];
+    assert_eq!(day.money.inc["auction"], 1840);
+    assert_eq!(day.money.out["repair"], 128);
+    assert_eq!((day.money.earned(), day.money.spent()), (2267, 223));
+    let events = day.events.as_ref().unwrap();
+    assert_eq!(events[0].balance, Some(2350));
+    assert!(events.iter().any(|e| e.kind
+        == EventKind::Auction {
+            act: Some("sold".into()),
+            name: Some("Copper Ore".into()),
+        }));
+    let digest = day.digest.as_ref().unwrap();
+    assert_eq!(
+        (
+            digest.counts.money_in,
+            digest.counts.money_out,
+            digest.counts.auctions
+        ),
+        (2267, 223, 1)
+    );
+    assert_eq!((digest.bal_start, digest.bal_end), (Some(2350), Some(4394)));
+    assert_eq!(digest.money, day.money);
+    assert_eq!(digest.auctions[0].name.as_deref(), Some("Copper Ore"));
+}
+
 /// Every field and event kind `docs/schema.md` documents must be read by the model, or listed
 /// here as deliberately skipped. A field added to the doc fails this test until it is handled.
 #[test]
@@ -259,6 +287,7 @@ fn reads_every_documented_field() {
         "settings.record.loot",
         "settings.record.group",
         "settings.record.professions",
+        "settings.record.money",
         "settings.lootQuality",
         "settings.retentionDays",
         "settings.screenshots.levelUp",
@@ -352,6 +381,7 @@ fn reads_every_documented_field() {
         "quest_turnin",
         "group_join",
         "screenshot",
+        "auction",
         // Event fields beyond the common ones
         "area",
         "src",
@@ -370,6 +400,16 @@ fn reads_every_documented_field() {
         "moment",
         // Quest record fields beyond title, text and last
         "kind",
+        // Money
+        "bal",
+        "act",
+        "inc",
+        "out",
+        "moneyIn",
+        "moneyOut",
+        "auctions",
+        "balStart",
+        "balEnd",
     ]
     .into_iter()
     .collect();

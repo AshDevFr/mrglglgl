@@ -57,6 +57,10 @@ describe("JournalPage", () => {
     expect(row("Grouped with")).toHaveTextContent("Tamsin Reedwater");
     expect(row("Level")).toHaveTextContent("5 → 6");
     expect(row("Discovered")).toHaveTextContent("Thunder Bluff");
+    expect(row("Earned")).toHaveTextContent("Auction house: 18s 40c");
+    expect(row("Spent")).toHaveTextContent("Repairs: 1s 28c");
+    expect(row("Gold")).toHaveTextContent("23s 50c → 43s 94c");
+    expect(row("Auction house")).toHaveTextContent("Sold Copper Ore");
   });
 
   it("presses the day's milestones onto the page as stamps", () => {

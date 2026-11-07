@@ -1,6 +1,9 @@
 import type { TFunction } from "i18next";
 import { articleEn, countedName, joinList } from "./grammar";
 import type { DayFacts } from "./journal";
+import { gold, type MoneyLine } from "./money";
+
+const unique = <T>(items: T[]): T[] => [...new Set(items)];
 
 /** A day's facts as short plain sentences, in the order the day is told. */
 export function daySentences(
@@ -157,6 +160,35 @@ export function daySentences(
       }),
     );
   }
+  // Money told with where most of it came from or went, when one source holds half or more.
+  const told = (side: MoneyLine[], key: "earned" | "spent") => {
+    const total = side.reduce((n, m) => n + m.copper, 0);
+    if (total === 0) return;
+    const top = side[0];
+    const mostly =
+      top.copper * 2 >= total
+        ? t(`page.money.${key}From.${top.source}`, { defaultValue: "" })
+        : "";
+    sentences.push(
+      t(mostly ? `page.money.${key}Mostly` : `page.money.${key}`, {
+        amount: gold(total, t),
+        where: mostly,
+      }),
+    );
+  };
+  told(facts.money.earned, "earned");
+  told(facts.money.spent, "spent");
+  const traded = (act: string) =>
+    unique(
+      facts.money.auctions
+        .filter((a) => a.act === act && a.name)
+        .map((a) => a.name as string),
+    );
+  const sold = traded("sold");
+  const won = traded("won");
+  if (sold.length > 0)
+    sentences.push(t("page.money.sold", { list: list(sold) }));
+  if (won.length > 0) sentences.push(t("page.money.won", { list: list(won) }));
   if (facts.companions.length > 0) {
     sentences.push(t("page.grouped", { list: list(facts.companions) }));
   }

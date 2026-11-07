@@ -210,7 +210,8 @@ fn fullness(digest: &Digest) -> (bool, usize, i64) {
         + d.bosses.len()
         + d.skills.len()
         + d.crafted.len()
-        + d.gathered.len();
+        + d.gathered.len()
+        + d.auctions.len();
     let c = &d.counts;
     let counted = c.sessions
         + c.levels
@@ -224,7 +225,8 @@ fn fullness(digest: &Digest) -> (bool, usize, i64) {
         + c.kills
         + c.skill_ups
         + c.crafted
-        + c.gathered;
+        + c.gathered
+        + c.auctions;
     (!d.thin, listed, counted)
 }
 
@@ -289,6 +291,19 @@ fn merge_day(stored: Day, incoming: Day, incoming_newer: bool) -> Day {
         kept
     };
 
+    // Each source keeps the larger sum: the game only ever adds to one within a day, until the
+    // player uses Forget.
+    let mut money = stored.money;
+    for (side, incoming) in [
+        (&mut money.inc, incoming.money.inc),
+        (&mut money.out, incoming.money.out),
+    ] {
+        for (source, copper) in incoming {
+            let kept = side.entry(source).or_insert(0);
+            *kept = (*kept).max(copper);
+        }
+    }
+
     let digest = match (stored.digest, incoming.digest) {
         (Some(s), Some(i)) => Some(
             if fullness(&i) > fullness(&s) || (fullness(&i) == fullness(&s) && incoming_newer) {
@@ -307,6 +322,7 @@ fn merge_day(stored: Day, incoming: Day, incoming_newer: bool) -> Day {
         skills,
         crafted: items(stored.crafted, incoming.crafted),
         gathered: items(stored.gathered, incoming.gathered),
+        money,
         digest,
         // The longer event list is kept, and a whole day's is longer than a compacted one's.
         compacted: stored.compacted && incoming.compacted,

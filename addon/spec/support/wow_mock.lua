@@ -226,6 +226,34 @@ function Mock.install()
 	_G.LOOT_ITEM_SELF_MULTIPLE = "You receive loot: %sx%d"
 	_G.LOOT_ITEM_PUSHED_SELF = "You receive item: %s"
 	_G.ERR_ZONE_EXPLORED = "Discovered: %s"
+	-- Money, in copper, and the client functions the addon hooks to tell repairs and auction mail.
+	Mock.money = 0
+	_G.GetMoney = function() return Mock.money end
+	Mock.hooks = {}
+	_G.hooksecurefunc = function(name, callback)
+		local original = _G[name]
+		Mock.hooks[name] = true
+		_G[name] = function(...)
+			local result = original(...)
+			callback(...)
+			return result
+		end
+	end
+	_G.RepairAllItems = function() end
+	_G.TakeInboxMoney = function() end
+	_G.AutoLootMailItem = function() end
+	Mock.inbox = {}
+	_G.GetInboxHeaderInfo = function(index)
+		local mail = Mock.inbox[index] or {}
+		return nil, nil, mail.sender, mail.subject
+	end
+	_G.ERR_AUCTION_STARTED = "Auction created."
+	_G.ERR_AUCTION_SOLD_S = "A buyer has been found for your auction of %s."
+	_G.ERR_AUCTION_WON_S = "You won an auction for %s"
+	_G.ERR_AUCTION_OUTBID_S = "You have been outbid on %s."
+	_G.ERR_AUCTION_EXPIRED_S = "Your auction of %s has expired."
+	_G.ERR_AUCTION_REMOVED_S = "Your auction of %s has been cancelled."
+	_G.AUCTION_SOLD_MAIL_SUBJECT = "Auction successful: %s"
 	_G.ERR_ZONE_EXPLORED_XP = "Discovered %s: %d experience gained"
 	_G.COMBATLOG_XPGAIN_FIRSTPERSON = "%s dies, you gain %d experience."
 	_G.COMBATLOG_XPGAIN_FIRSTPERSON_GROUP = "%s dies, you gain %d experience. (+%d group bonus)"

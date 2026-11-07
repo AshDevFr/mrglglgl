@@ -15,6 +15,7 @@ fn event(kind: EventKind) -> Event {
         subzone: Some("Red Rocks".into()),
         map_id: Some(7),
         level: Some(9),
+        balance: None,
         kind,
     }
 }
@@ -569,4 +570,32 @@ fn an_item_seen_in_a_group_loot_window_is_told_as_seen_not_received() {
         !told.patterns.contains(&Pattern::RareLoot),
         "a rare find is one the adventurer kept"
     );
+}
+
+#[test]
+fn money_and_auction_sales_are_told_with_where_most_of_it_came_from() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../fixtures/savedvariables/synthetic-character.lua");
+    let j = journal_from_text(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let all = Thresholds {
+        max_beats: 20,
+        ..Thresholds::default()
+    };
+    let texts = beats::extract(&j, "2026-11-08", &[], &all).texts();
+    for expected in [
+        "Earned 22s 67c, mostly at the auction house; spent 2s 23c, mostly on repairs",
+        "Sold Copper Ore at the auction house",
+    ] {
+        assert!(
+            texts.iter().any(|t| t == expected),
+            "missing {expected}: {texts:?}"
+        );
+    }
+}
+
+#[test]
+fn copper_reads_as_the_game_shows_it() {
+    assert_eq!(beats::gold(32_005), "3g 20s 5c");
+    assert_eq!(beats::gold(10_000), "1g");
+    assert_eq!(beats::gold(0), "0c");
 }

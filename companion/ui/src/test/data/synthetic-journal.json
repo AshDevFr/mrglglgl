@@ -19,6 +19,7 @@
           "subzone": "Bloodhoof Village",
           "mapId": 7,
           "level": 5,
+          "balance": 2350,
           "kind": {
             "kind": "sessionStart"
           }
@@ -29,6 +30,7 @@
           "subzone": "Red Cloud Mesa",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "discover",
             "area": "Mulgore",
@@ -41,6 +43,7 @@
           "subzone": "Red Cloud Mesa",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "discover",
             "area": "Red Cloud Mesa",
@@ -53,6 +56,7 @@
           "subzone": "Red Cloud Mesa",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "death",
             "killer": null,
@@ -65,6 +69,7 @@
           "subzone": "Red Cloud Mesa",
           "mapId": 7,
           "level": 5,
+          "balance": 2350,
           "kind": {
             "kind": "sessionEnd"
           }
@@ -82,6 +87,10 @@
       "skills": {},
       "crafted": {},
       "gathered": {},
+      "money": {
+        "inc": {},
+        "out": {}
+      },
       "digest": {
         "version": 2,
         "counts": {
@@ -103,7 +112,10 @@
           "anonKills": 0,
           "skillUps": 0,
           "crafted": 0,
-          "gathered": 0
+          "gathered": 0,
+          "moneyIn": 0,
+          "moneyOut": 0,
+          "auctions": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -159,6 +171,13 @@
         "skills": [],
         "crafted": [],
         "gathered": [],
+        "money": {
+          "inc": {},
+          "out": {}
+        },
+        "auctions": [],
+        "balStart": 2350,
+        "balEnd": 2350,
         "onlyFished": false,
         "nothingHappened": false,
         "thin": false
@@ -173,6 +192,7 @@
           "subzone": "Bloodhoof Village",
           "mapId": 7,
           "level": 5,
+          "balance": 2350,
           "kind": {
             "kind": "sessionStart"
           }
@@ -183,6 +203,7 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "zone"
           }
@@ -193,6 +214,7 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "subzone"
           }
@@ -203,6 +225,7 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "discover",
             "area": "Red Rocks",
@@ -215,6 +238,7 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "discover",
             "area": "Thunder Bluff",
@@ -227,6 +251,7 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "questAccept",
             "questId": 749
@@ -238,6 +263,7 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "boss",
             "encounterId": 1144,
@@ -250,6 +276,7 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "questTurnin",
             "questId": 749,
@@ -263,6 +290,7 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 6,
+          "balance": null,
           "kind": {
             "kind": "level"
           }
@@ -273,17 +301,32 @@
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 6,
+          "balance": null,
           "kind": {
             "kind": "screenshot",
             "moment": "levelUp"
           }
         },
         {
-          "time": 1794164491,
+          "time": 1794164611,
           "zone": "Mulgore",
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 6,
+          "balance": null,
+          "kind": {
+            "kind": "auction",
+            "act": "sold",
+            "name": "Copper Ore"
+          }
+        },
+        {
+          "time": 1794164641,
+          "zone": "Mulgore",
+          "subzone": "Red Rocks",
+          "mapId": 7,
+          "level": 6,
+          "balance": null,
           "kind": {
             "kind": "loot",
             "itemId": 2140,
@@ -294,22 +337,24 @@
           }
         },
         {
-          "time": 1794164491,
+          "time": 1794164641,
           "zone": "Mulgore",
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 6,
+          "balance": null,
           "kind": {
             "kind": "groupJoin",
             "who": "Tamsin-Reedwater"
           }
         },
         {
-          "time": 1794164491,
+          "time": 1794164641,
           "zone": "Mulgore",
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 6,
+          "balance": null,
           "kind": {
             "kind": "death",
             "killer": {
@@ -321,11 +366,12 @@
           }
         },
         {
-          "time": 1794164553,
+          "time": 1794164703,
           "zone": "Mulgore",
           "subzone": "Red Rocks",
           "mapId": 7,
           "level": 6,
+          "balance": 4394,
           "kind": {
             "kind": "sessionEnd"
           }
@@ -385,6 +431,18 @@
           "via": "Mining"
         }
       },
+      "money": {
+        "inc": {
+          "auction": 1840,
+          "loot": 42,
+          "quest": 75,
+          "vendor": 310
+        },
+        "out": {
+          "repair": 128,
+          "travel": 95
+        }
+      },
       "digest": {
         "version": 2,
         "counts": {
@@ -406,7 +464,10 @@
           "anonKills": 1,
           "skillUps": 6,
           "crafted": 5,
-          "gathered": 2
+          "gathered": 2,
+          "moneyIn": 2267,
+          "moneyOut": 223,
+          "auctions": 1
         },
         "levelFrom": 5,
         "levelTo": 6,
@@ -524,6 +585,26 @@
             "via": "Mining"
           }
         ],
+        "money": {
+          "inc": {
+            "auction": 1840,
+            "loot": 42,
+            "quest": 75,
+            "vendor": 310
+          },
+          "out": {
+            "repair": 128,
+            "travel": 95
+          }
+        },
+        "auctions": [
+          {
+            "act": "sold",
+            "name": "Copper Ore"
+          }
+        ],
+        "balStart": 2350,
+        "balEnd": 4394,
         "onlyFished": false,
         "nothingHappened": false,
         "thin": false
@@ -538,6 +619,7 @@
           "subzone": "Bloodhoof Village",
           "mapId": 7,
           "level": 5,
+          "balance": 4394,
           "kind": {
             "kind": "sessionStart"
           }
@@ -548,6 +630,7 @@
           "subzone": "Bloodhoof Village",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "fish",
             "itemId": 6303,
@@ -562,6 +645,7 @@
           "subzone": "Bloodhoof Village",
           "mapId": 7,
           "level": 5,
+          "balance": null,
           "kind": {
             "kind": "fish",
             "itemId": 6303,
@@ -576,6 +660,7 @@
           "subzone": "Bloodhoof Village",
           "mapId": 7,
           "level": 5,
+          "balance": 4394,
           "kind": {
             "kind": "sessionEnd"
           }
@@ -586,6 +671,10 @@
       "skills": {},
       "crafted": {},
       "gathered": {},
+      "money": {
+        "inc": {},
+        "out": {}
+      },
       "digest": {
         "version": 2,
         "counts": {
@@ -607,7 +696,10 @@
           "anonKills": 0,
           "skillUps": 0,
           "crafted": 0,
-          "gathered": 0
+          "gathered": 0,
+          "moneyIn": 0,
+          "moneyOut": 0,
+          "auctions": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -636,6 +728,13 @@
         "skills": [],
         "crafted": [],
         "gathered": [],
+        "money": {
+          "inc": {},
+          "out": {}
+        },
+        "auctions": [],
+        "balStart": 4394,
+        "balEnd": 4394,
         "onlyFished": true,
         "nothingHappened": false,
         "thin": false
@@ -650,6 +749,7 @@
           "subzone": "Bloodhoof Village",
           "mapId": 7,
           "level": 5,
+          "balance": 4394,
           "kind": {
             "kind": "sessionStart"
           }
@@ -660,6 +760,7 @@
           "subzone": "Bloodhoof Village",
           "mapId": 7,
           "level": 5,
+          "balance": 4394,
           "kind": {
             "kind": "sessionEnd"
           }
@@ -670,6 +771,10 @@
       "skills": {},
       "crafted": {},
       "gathered": {},
+      "money": {
+        "inc": {},
+        "out": {}
+      },
       "digest": {
         "version": 2,
         "counts": {
@@ -691,7 +796,10 @@
           "anonKills": 0,
           "skillUps": 0,
           "crafted": 0,
-          "gathered": 0
+          "gathered": 0,
+          "moneyIn": 0,
+          "moneyOut": 0,
+          "auctions": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -712,6 +820,13 @@
         "skills": [],
         "crafted": [],
         "gathered": [],
+        "money": {
+          "inc": {},
+          "out": {}
+        },
+        "auctions": [],
+        "balStart": 4394,
+        "balEnd": 4394,
         "onlyFished": false,
         "nothingHappened": true,
         "thin": false

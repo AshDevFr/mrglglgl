@@ -8,4 +8,8 @@ kills: number, murlocs: number, anonKills: number,
 /**
  * Ranks gained across all skills.
  */
-skillUps: number, crafted: number, gathered: number, };
+skillUps: number, crafted: number, gathered: number, 
+/**
+ * Copper earned and spent.
+ */
+moneyIn: number, moneyOut: number, auctions: number, };

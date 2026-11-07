@@ -13,7 +13,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 use crate::milestones::{self, Award};
-use crate::schema::{Day, EventKind, Journal};
+use crate::schema::{Day, EventKind, Journal, Money};
 
 /// Thresholds for the day patterns, kept as data so they can be tuned without code changes.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -151,6 +151,10 @@ pub struct DayRecord {
     pub skills: Vec<SkillLine>,
     pub crafted: Vec<ItemLine>,
     pub gathered: Vec<ItemLine>,
+    /// Copper earned and spent, by source.
+    pub money: Money,
+    /// Auction house events as `(act, item)`, in order.
+    pub auctions: Vec<(String, Option<String>)>,
     pub only_fished: bool,
     pub nothing_happened: bool,
 }
@@ -179,10 +183,44 @@ impl DayRecord {
     pub fn of(day: &Day) -> Self {
         let mut r = Self::of_events(day);
         r.read_professions(day);
-        if !r.skills.is_empty() || !r.crafted.is_empty() || !r.gathered.is_empty() {
+        r.read_money(day);
+        if !r.skills.is_empty()
+            || !r.crafted.is_empty()
+            || !r.gathered.is_empty()
+            || !r.money.is_empty()
+            || !r.auctions.is_empty()
+        {
             r.nothing_happened = false;
         }
         r
+    }
+
+    /// Money and auctions: the day's own records while it has them, the digest otherwise. A
+    /// compacted day keeps its money and its auction events.
+    fn read_money(&mut self, day: &Day) {
+        let digest = day.digest.as_ref();
+        self.money = if day.money.is_empty() {
+            digest.map(|d| d.money.clone()).unwrap_or_default()
+        } else {
+            day.money.clone()
+        };
+        self.auctions = match &day.events {
+            Some(events) => events
+                .iter()
+                .filter_map(|e| match &e.kind {
+                    EventKind::Auction { act, name } => Some((act.clone()?, name.clone())),
+                    _ => None,
+                })
+                .collect(),
+            None => digest
+                .map(|d| {
+                    d.auctions
+                        .iter()
+                        .filter_map(|a| Some((a.act.clone()?, a.name.clone())))
+                        .collect()
+                })
+                .unwrap_or_default(),
+        };
     }
 
     /// Profession activity: the day's own maps while it has them, the digest after compaction.
@@ -569,6 +607,18 @@ pub enum Beat {
     Practice {
         skills: Vec<(String, i64, i64)>,
     },
+    /// Money earned and spent, with where most of each came from or went.
+    Money {
+        earned: i64,
+        spent: i64,
+        earned_mostly: Option<String>,
+        spent_mostly: Option<String>,
+    },
+    /// Items sold and bought at the auction house.
+    Auctions {
+        sold: Vec<String>,
+        won: Vec<String>,
+    },
     /// Quests handed in; `unnamed` counts those whose title the journal never learned.
     QuestsDone {
         titles: Vec<String>,
@@ -606,6 +656,8 @@ impl Beat {
             Beat::QuestsTaken { .. } => 10,
             Beat::Travelled { .. } => 11,
             Beat::Practice { .. } => 12,
+            Beat::Auctions { .. } => 9,
+            Beat::Money { .. } => 11,
         }
     }
 
@@ -630,6 +682,8 @@ impl Beat {
             Beat::LevelUp { .. } => 10,
             Beat::Profession { .. } => 10,
             Beat::Practice { .. } => 10,
+            Beat::Auctions { .. } => 10,
+            Beat::Money { .. } => 10,
             Beat::Milestones { .. } => 11,
         }
     }
@@ -755,6 +809,46 @@ impl Beat {
                 }
             }
             Beat::Profession { name, from, to } => format!("{name} rose from {from} to {to}"),
+            Beat::Money {
+                earned,
+                spent,
+                earned_mostly,
+                spent_mostly,
+            } => {
+                let side = |verb: &str, copper: i64, mostly: &Option<String>| {
+                    let mut part = format!("{verb} {}", gold(copper));
+                    if let Some(where_) = mostly {
+                        part.push_str(&format!(", mostly {where_}"));
+                    }
+                    part
+                };
+                let mut parts = Vec::new();
+                if *earned > 0 {
+                    parts.push(side("Earned", *earned, &money_place(earned_mostly, true)));
+                }
+                if *spent > 0 {
+                    let verb = if parts.is_empty() { "Spent" } else { "spent" };
+                    parts.push(side(verb, *spent, &money_place(spent_mostly, false)));
+                }
+                parts.join("; ")
+            }
+            Beat::Auctions { sold, won } => {
+                let mut parts = Vec::new();
+                if !sold.is_empty() {
+                    parts.push(format!("sold {}", and_list(sold)));
+                }
+                if !won.is_empty() {
+                    parts.push(format!("won {}", and_list(won)));
+                }
+                let told = parts.join(" and ");
+                let mut chars = told.chars();
+                let first = chars.next().map(|c| c.to_uppercase().to_string());
+                format!(
+                    "{}{} at the auction house",
+                    first.unwrap_or_default(),
+                    chars.as_str()
+                )
+            }
             Beat::Crafted { items } => format!("Crafted {}", and_list(&counted(items))),
             Beat::Gathered { via, items } => match via {
                 Some(skill) => format!("Gathered {} ({skill})", and_list(&counted(items))),
@@ -775,6 +869,50 @@ impl Beat {
             }
         }
     }
+}
+
+/// Copper as the game shows it: "3g 20s 5c", leaving out empty parts.
+pub fn gold(copper: i64) -> String {
+    let (g, s, c) = (copper / 10_000, copper / 100 % 100, copper % 100);
+    let mut parts = Vec::new();
+    if g > 0 {
+        parts.push(format!("{g}g"));
+    }
+    if s > 0 {
+        parts.push(format!("{s}s"));
+    }
+    if c > 0 || parts.is_empty() {
+        parts.push(format!("{c}c"));
+    }
+    parts.join(" ")
+}
+
+/// Where money came from or went, as told: "at the auction house", "on repairs".
+fn money_place(source: &Option<String>, earned: bool) -> Option<String> {
+    let told = match (source.as_deref()?, earned) {
+        ("loot", _) => "from loot",
+        ("quest", true) => "from quests",
+        ("quest", false) => "on quests",
+        ("vendor", true) => "selling to vendors",
+        ("vendor", false) => "at vendors",
+        ("repair", _) => "on repairs",
+        ("trainer", _) => "on training",
+        ("travel", _) => "on flights",
+        ("mail", _) => "by mail",
+        ("auction", _) => "at the auction house",
+        ("trade", _) => "in trades",
+        _ => return None,
+    };
+    Some(told.to_string())
+}
+
+/// The source holding at least half of a side, if one does.
+fn mostly(side: &BTreeMap<String, i64>) -> Option<String> {
+    let total: i64 = side.values().sum();
+    side.iter()
+        .filter(|(_, copper)| **copper * 2 >= total && **copper > 0)
+        .max_by_key(|(_, copper)| **copper)
+        .map(|(source, _)| source.clone())
 }
 
 /// "the quest \"A\"", "the quests \"A\" and \"B\", and 1 other quest", "2 quests".
@@ -1076,6 +1214,28 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         .collect();
     if !practice.is_empty() {
         beats.push(Beat::Practice { skills: practice });
+    }
+    let (earned, spent) = (record.money.earned(), record.money.spent());
+    if earned > 0 || spent > 0 {
+        beats.push(Beat::Money {
+            earned,
+            spent,
+            earned_mostly: mostly(&record.money.inc),
+            spent_mostly: mostly(&record.money.out),
+        });
+    }
+    let traded = |wanted: &str| -> Vec<String> {
+        let mut items = Vec::new();
+        for (act, name) in &record.auctions {
+            if let (true, Some(name)) = (act == wanted, name) {
+                push_unique(&mut items, name);
+            }
+        }
+        items
+    };
+    let (sold, won) = (traded("sold"), traded("won"));
+    if !sold.is_empty() || !won.is_empty() {
+        beats.push(Beat::Auctions { sold, won });
     }
     let earned: Vec<String> = awards
         .iter()

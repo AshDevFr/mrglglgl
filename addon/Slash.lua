@@ -19,6 +19,9 @@ local STATUS = {
 	{ "fishing", function(c) return L.STATUS_FISHING:format(c.fish, c.junk, c.boots) end },
 	{ "professions", function(c) return L.STATUS_PROFESSIONS:format(c.skillUps, c.crafted, c.gathered) end },
 	{ "loot", function(c) return L.STATUS_LOOT:format(c.loot) end },
+	{ "money", function(c)
+		return L.STATUS_MONEY:format(ns.Money.format(c.moneyIn), ns.Money.format(c.moneyOut), c.auctions)
+	end },
 	{ "group", function(c) return L.STATUS_GROUP:format(c.group) end },
 }
 

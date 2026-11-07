@@ -1,5 +1,6 @@
 import type { TFunction } from "i18next";
 import type { DayFacts } from "./journal";
+import { gold, type MoneyLine } from "./money";
 
 /** One thing in a row: its text, and the name to look up when names link to Wowhead. */
 export interface FactItem {
@@ -145,6 +146,38 @@ export function dayFactRows(facts: DayFacts, t: TFunction): FactRow[] {
           : counted(i.name, i.count),
       ),
     ),
+  );
+  const sources = (side: MoneyLine[]) =>
+    side.map((m) =>
+      plain(
+        t("facts.moneyLine", {
+          source: t(`facts.source.${m.source}`, {
+            defaultValue: t("facts.source.other"),
+          }),
+          amount: gold(m.copper, t),
+        }),
+      ),
+    );
+  add("earned", sources(facts.money.earned));
+  add("spent", sources(facts.money.spent));
+  const { balStart, balEnd } = facts.money;
+  if (balEnd !== null) {
+    add("purse", [
+      plain(
+        balStart !== null && balStart !== balEnd
+          ? `${gold(balStart, t)} → ${gold(balEnd, t)}`
+          : gold(balEnd, t),
+      ),
+    ]);
+  }
+  add(
+    "auctions",
+    facts.money.auctions.map((a) => {
+      const text = t(`facts.auction.${a.act}`, {
+        name: a.name ?? t("facts.unknownItem"),
+      });
+      return a.name ? named(a.name, text) : plain(text);
+    }),
   );
   // Other players: their names are theirs, not something to look up.
   add(

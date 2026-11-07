@@ -15,7 +15,7 @@ Digest.VERSION = 2
 -- from, possibly weeks later.
 local TOP_KILLS = 40
 local LIST_CAP = 60
-local RECORD_CAPS = { deaths = 20, loot = 30, fish = 30, notableKills = 30 }
+local RECORD_CAPS = { deaths = 20, loot = 30, fish = 30, notableKills = 30, auctions = 30 }
 
 local NOTABLE_CLASSIFICATIONS = { elite = true, rare = true, rareelite = true, worldboss = true }
 
@@ -35,7 +35,7 @@ end
 -- Old days keep only their highlights: exact counts, and the first few entries of each list. The
 -- app has archived the full day long before; in game nothing reads old digests in detail.
 local THIN_RECORDS, THIN_NAMES = 3, 5
-local RECORD_LISTS = { "deaths", "kills", "notableKills", "fish", "loot", "skills", "crafted", "gathered" }
+local RECORD_LISTS = { "deaths", "kills", "notableKills", "fish", "loot", "skills", "crafted", "gathered", "auctions" }
 local NAME_LISTS = { "zones", "discovered", "accepted", "turnedIn", "companions", "bosses" }
 
 function Digest.thin(digest)
@@ -62,12 +62,14 @@ function Digest.build(day)
 		sessions = 0, levels = 0, accepted = 0, turnedIn = 0, deaths = 0, fish = 0, junk = 0, boots = 0,
 		loot = 0, discoveries = 0, bosses = 0, group = 0, screenshots = 0,
 		kills = 0, murlocs = 0, anonKills = day.anonKills or 0, skillUps = 0, crafted = 0, gathered = 0,
+		moneyIn = 0, moneyOut = 0, auctions = 0,
 	}
 	local digest = {
 		v = Digest.VERSION, counts = counts,
 		zones = {}, subzones = {}, discovered = {}, deaths = {}, accepted = {}, turnedIn = {},
 		fish = {}, loot = {}, companions = {}, bosses = {}, kills = {}, notableKills = {},
-		skills = {}, crafted = {}, gathered = {},
+		skills = {}, crafted = {}, gathered = {}, auctions = {},
+		money = { inc = {}, out = {} },
 	}
 	local zonesSeen, subzonesSeen, fishByItem = {}, {}, {}
 	local lowLevel, highLevel
@@ -79,6 +81,11 @@ function Digest.build(day)
 		end
 		addOnce(digest.zones, zonesSeen, e.z)
 		local k = e.k
+		if (k == "session_start" or k == "session_end") and e.bal then
+			-- The day's first and last known balance.
+			digest.balStart = digest.balStart or e.bal
+			digest.balEnd = e.bal
+		end
 		if k == "session_start" then
 			counts.sessions = counts.sessions + 1
 		elseif k == "level" then
@@ -119,6 +126,9 @@ function Digest.build(day)
 			push(digest.bosses, e.name)
 		elseif k == "screenshot" then
 			counts.screenshots = counts.screenshots + 1
+		elseif k == "auction" then
+			counts.auctions = counts.auctions + 1
+			push(digest.auctions, { act = e.act, name = e.name }, RECORD_CAPS.auctions)
 		end
 	end
 
@@ -170,6 +180,18 @@ function Digest.build(day)
 		local g = day.gathered[id]
 		counts.gathered = counts.gathered + g.n
 		push(digest.gathered, { item = id, name = g.name, n = g.n, via = g.via })
+	end
+
+	-- Money by source: a handful of sources, so the maps are copied whole.
+	for _, direction in ipairs({ "inc", "out" }) do
+		for source, amount in pairs((day.money or {})[direction] or {}) do
+			digest.money[direction][source] = amount
+			if direction == "inc" then
+				counts.moneyIn = counts.moneyIn + amount
+			else
+				counts.moneyOut = counts.moneyOut + amount
+			end
+		end
 	end
 
 	digest.levelFrom, digest.levelTo = lowLevel, highLevel

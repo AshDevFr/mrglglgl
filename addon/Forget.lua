@@ -51,6 +51,10 @@ local CATEGORIES = {
 		raw = { "skills", "crafted", "gathered" },
 		counts = { "skillUps", "crafted", "gathered" }, lists = { "skills", "crafted", "gathered" },
 	},
+	money = {
+		kinds = { auction = true }, raw = { "money" }, balances = true,
+		counts = { "moneyIn", "moneyOut", "auctions" }, lists = { "auctions" },
+	},
 	group = {
 		kinds = { group_join = true }, counts = { "group" }, lists = { "companions" },
 		journal = function(journal) journal.companions = {} end,
@@ -65,6 +69,10 @@ local function scrubDigest(digest, spec)
 	end
 	for _, list in ipairs(spec.lists or {}) do
 		digest[list] = {}
+	end
+	if spec.balances then
+		digest.money = { inc = {}, out = {} }
+		digest.balStart, digest.balEnd = nil, nil
 	end
 	if spec.kinds and spec.kinds.fish then
 		digest.onlyFished = false
@@ -90,6 +98,12 @@ function Forget.category(journal, category)
 		end
 		for _, field in ipairs(spec.raw or {}) do
 			day[field] = nil
+		end
+		-- Balances ride on session events, which belong to sessions; only the balance goes.
+		if spec.balances then
+			for _, event in ipairs(day.ev or {}) do
+				event.bal = nil
+			end
 		end
 		if hasRaw then
 			day.digest = Digest.build(day)

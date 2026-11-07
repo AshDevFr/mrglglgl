@@ -509,6 +509,25 @@ fn a_compacted_snapshot_never_drops_professions_the_archive_holds() {
 }
 
 #[test]
+fn money_forgotten_in_the_game_stays_in_the_archive_and_new_money_adds() {
+    let (db, id, raw) = one_day();
+    let day = &raw.days["2026-11-08"];
+    assert!(!day.money.is_empty());
+    let mut later = raw.clone();
+    let d = later.days.get_mut("2026-11-08").unwrap();
+    // Forget cleared the day's money, then the player sold something else.
+    d.money = schema::Money::default();
+    d.money.inc.insert("vendor".into(), 500);
+
+    merge_snapshot(&db, id, &raw, 100).unwrap();
+    merge_snapshot(&db, id, &later, 200).unwrap();
+    let kept = &archive::load(&db, id).unwrap().unwrap().days["2026-11-08"];
+    assert_eq!(kept.money.inc["auction"], 1840);
+    assert_eq!(kept.money.inc["vendor"], 500);
+    assert_eq!(kept.money.out, day.money.out);
+}
+
+#[test]
 fn a_thinned_digest_never_replaces_a_fuller_one() {
     let (db, id, mut j) = one_day();
     let d = j.days.get_mut("2026-11-08").unwrap();

@@ -33,6 +33,7 @@ fn fishing_day() -> Day {
             subzone: None,
             map_id: None,
             level: Some(9),
+            balance: None,
             kind: EventKind::Fish {
                 item_id: Some(6291),
                 name: Some("Raw Brilliant Smallfish".into()),

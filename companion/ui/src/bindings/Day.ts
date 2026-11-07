@@ -3,6 +3,7 @@ import type { Digest } from "./Digest";
 import type { Event } from "./Event";
 import type { ItemCount } from "./ItemCount";
 import type { KillAggregate } from "./KillAggregate";
+import type { Money } from "./Money";
 import type { SkillRecord } from "./SkillRecord";
 
 export type Day = { 
@@ -21,7 +22,11 @@ crafted: { [key in number]: ItemCount },
 /**
  * Items gathered from nodes and corpses that day, by item ID.
  */
-gathered: { [key in number]: ItemCount }, digest: Digest | null, 
+gathered: { [key in number]: ItemCount }, 
+/**
+ * Money earned and spent that day, by source.
+ */
+money: Money, digest: Digest | null, 
 /**
  * The game compacted the day: `events` holds only its key moments, and the digest is what
  * the whole day was.

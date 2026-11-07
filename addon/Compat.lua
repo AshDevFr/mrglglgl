@@ -182,6 +182,77 @@ function Compat.ParseLootMessage(text)
 end
 
 -- Returns itemLink, quantity for a "You create" message about the player, or nil.
+-- The player's money in copper, or nil if the client does not give it.
+function Compat.GetMoney()
+	local get = _G.GetMoney
+	return get and get() or nil
+end
+
+-- Runs after a client function each time it is called, when that function exists: repairs and
+-- taking money from mail are actions, not events.
+function Compat.After(name, callback)
+	if type(_G[name]) == "function" and _G.hooksecurefunc then
+		_G.hooksecurefunc(name, callback)
+		return true
+	end
+	return false
+end
+
+-- The auction house's chat messages, by what happened. Looked up by name: a message missing on
+-- this client is skipped.
+local AUCTION_MESSAGES = {
+	{ "ERR_AUCTION_SOLD_S", "sold" },
+	{ "ERR_AUCTION_WON_S", "won" },
+	{ "ERR_AUCTION_OUTBID_S", "outbid" },
+	{ "ERR_AUCTION_EXPIRED_S", "expired" },
+	{ "ERR_AUCTION_REMOVED_S", "cancelled" },
+}
+
+-- Returns what happened at the auction house ("listed", "sold", "won", "outbid", "expired",
+-- "cancelled") and the item's name, or nil for any other message.
+function Compat.ParseAuctionMessage(text)
+	if type(text) ~= "string" then
+		return nil
+	end
+	if _G.ERR_AUCTION_STARTED and text == _G.ERR_AUCTION_STARTED then
+		return "listed", nil
+	end
+	for _, entry in ipairs(AUCTION_MESSAGES) do
+		local format = _G[entry[1]]
+		if type(format) == "string" then
+			local name = text:match(patternFromGlobalString(format))
+			if name then
+				return entry[2], name
+			end
+		end
+	end
+	return nil
+end
+
+-- The mail subjects the auction house sends; money taken from such a mail is auction money.
+local AUCTION_MAIL_SUBJECTS = {
+	"AUCTION_SOLD_MAIL_SUBJECT", "AUCTION_OUTBID_MAIL_SUBJECT", "AUCTION_REMOVED_MAIL_SUBJECT",
+	"AUCTION_EXPIRED_MAIL_SUBJECT", "AUCTION_WON_MAIL_SUBJECT",
+}
+
+function Compat.IsAuctionMail(index)
+	local header = _G.GetInboxHeaderInfo
+	if not header then
+		return false
+	end
+	local _, _, _, subject = header(index)
+	if type(subject) ~= "string" then
+		return false
+	end
+	for _, name in ipairs(AUCTION_MAIL_SUBJECTS) do
+		local format = _G[name]
+		if type(format) == "string" and subject:match(patternFromGlobalString(format)) then
+			return true
+		end
+	end
+	return false
+end
+
 function Compat.ParseCreateMessage(text)
 	if text == nil or Compat.IsSecret(text) then
 		return nil

@@ -155,10 +155,37 @@ pub struct Day {
     pub crafted: BTreeMap<i64, ItemCount>,
     /// Items gathered from nodes and corpses that day, by item ID.
     pub gathered: BTreeMap<i64, ItemCount>,
+    /// Money earned and spent that day, by source.
+    pub money: Money,
     pub digest: Option<Digest>,
     /// The game compacted the day: `events` holds only its key moments, and the digest is what
     /// the whole day was.
     pub compacted: bool,
+}
+
+/// Money earned (`inc`) and spent (`out`) over a day, in copper, by where it came from or went:
+/// `loot`, `quest`, `vendor`, `repair`, `trainer`, `travel`, `mail`, `auction`, `trade` or
+/// `other`.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(default)]
+pub struct Money {
+    pub inc: BTreeMap<String, i64>,
+    pub out: BTreeMap<String, i64>,
+}
+
+impl Money {
+    pub fn earned(&self) -> i64 {
+        self.inc.values().sum()
+    }
+
+    pub fn spent(&self) -> i64 {
+        self.out.values().sum()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.inc.is_empty() && self.out.is_empty()
+    }
 }
 
 /// A skill's rise over one day: the first rank seen and the last.
@@ -193,6 +220,9 @@ pub struct Event {
     pub subzone: Option<String>,
     pub map_id: Option<i64>,
     pub level: Option<i64>,
+    /// The balance in copper, on session events when money is recorded.
+    #[serde(default)]
+    pub balance: Option<i64>,
     pub kind: EventKind,
 }
 
@@ -252,6 +282,13 @@ pub enum EventKind {
     },
     Screenshot {
         moment: Option<String>,
+    },
+    /// At the auction house.
+    Auction {
+        /// `"listed"`, `"sold"`, `"won"`, `"outbid"`, `"expired"` or `"cancelled"`.
+        act: Option<String>,
+        /// The item; absent for `"listed"`, whose message does not name it.
+        name: Option<String>,
     },
     /// A kind added by a newer addon, kept so the day still shows it happened.
     Unknown {
@@ -330,6 +367,11 @@ pub struct Digest {
     pub skills: Vec<DigestSkill>,
     pub crafted: Vec<DigestItem>,
     pub gathered: Vec<DigestItem>,
+    pub money: Money,
+    pub auctions: Vec<DigestAuction>,
+    /// The day's first and last known balance, in copper.
+    pub bal_start: Option<i64>,
+    pub bal_end: Option<i64>,
     pub only_fished: bool,
     pub nothing_happened: bool,
     /// Older than 90 days: the lists hold only the highlights; counts are exact.
@@ -362,6 +404,18 @@ pub struct DigestCounts {
     pub skill_ups: i64,
     pub crafted: i64,
     pub gathered: i64,
+    /// Copper earned and spent.
+    pub money_in: i64,
+    pub money_out: i64,
+    pub auctions: i64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct DigestAuction {
+    pub act: Option<String>,
+    pub name: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -566,6 +620,10 @@ fn event(t: &Table) -> Option<Event> {
         "screenshot" => EventKind::Screenshot {
             moment: string(t, "moment"),
         },
+        "auction" => EventKind::Auction {
+            act: string(t, "act"),
+            name: string(t, "name"),
+        },
         _ => EventKind::Unknown { name: kind_name },
     };
     Some(Event {
@@ -574,6 +632,7 @@ fn event(t: &Table) -> Option<Event> {
         subzone: string(t, "sz"),
         map_id: int(t, "m"),
         level: int(t, "lv"),
+        balance: int(t, "bal"),
         kind,
     })
 }
@@ -622,6 +681,9 @@ fn digest(t: &Table) -> Digest {
             skill_ups: count("skillUps"),
             crafted: count("crafted"),
             gathered: count("gathered"),
+            money_in: count("moneyIn"),
+            money_out: count("moneyOut"),
+            auctions: count("auctions"),
         },
         level_from: int(t, "levelFrom"),
         level_to: int(t, "levelTo"),
@@ -663,9 +725,36 @@ fn digest(t: &Table) -> Digest {
         }),
         crafted: records(t, "crafted", digest_item),
         gathered: records(t, "gathered", digest_item),
+        money: table(t, "money").map(money).unwrap_or_default(),
+        auctions: records(t, "auctions", |a| DigestAuction {
+            act: string(a, "act"),
+            name: string(a, "name"),
+        }),
+        bal_start: int(t, "balStart"),
+        bal_end: int(t, "balEnd"),
         only_fished: boolean(t, "onlyFished").unwrap_or(false),
         nothing_happened: boolean(t, "nothingHappened").unwrap_or(false),
         thin: boolean(t, "thin").unwrap_or(false),
+    }
+}
+
+/// Reads `{ inc = {source = copper}, out = {source = copper} }`.
+fn money(t: &Table) -> Money {
+    let side = |key: &str| {
+        table(t, key)
+            .map(|m| {
+                m.iter()
+                    .filter_map(|(k, v)| match k {
+                        Key::String(source) => Some((source.clone(), v.as_i64()?)),
+                        _ => None,
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    Money {
+        inc: side("inc"),
+        out: side("out"),
     }
 }
 
@@ -722,6 +811,7 @@ fn day(t: &Table) -> Day {
         }),
         crafted: by_id(t, "crafted", item_count),
         gathered: by_id(t, "gathered", item_count),
+        money: table(t, "money").map(money).unwrap_or_default(),
         digest: table(t, "digest").map(digest),
         compacted: boolean(t, "c").unwrap_or(false),
     }

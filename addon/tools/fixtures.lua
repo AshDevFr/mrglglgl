@@ -51,13 +51,15 @@ local function session(saved, start, play)
 		{ skillID = 129, name = "First Aid", rank = 30 },
 	}
 	Mock.zone, Mock.subzone = "Mulgore", "Bloodhoof Village"
+	-- The purse carries over between sessions, as in the game.
+	Mock.money = saved.money or 2350
 	Mock.fire("ADDON_LOADED", "Mrglglgl")
 	Mock.fire("PLAYER_LOGIN")
 	Mock.fire("PLAYER_ENTERING_WORLD", true, false)
 	play()
 	Mock.advance(60)
 	Mock.fire("PLAYER_LOGOUT")
-	saved.account, saved.character = _G.MrglglglDB, _G.MrglglglCharDB
+	saved.account, saved.character, saved.money = _G.MrglglglDB, _G.MrglglglCharDB, Mock.money
 end
 
 local function fish(id, name)
@@ -115,9 +117,37 @@ local function play()
 		Mock.fire("PARTY_KILL", PLAYER, Mock.SECRET)
 		Mock.fire("BOSS_KILL", 1144, "Hogger")
 		Mock.fire("QUEST_TURNED_IN", 749, 450, 75)
+		local function pay(copper)
+			Mock.money = Mock.money + copper
+			Mock.fire("PLAYER_MONEY")
+		end
+		pay(75)
 		Mock.fire("PLAYER_LEVEL_UP", 6)
 		Mock.advance(1)
 		Mock.fire("SCREENSHOT_SUCCEEDED")
+		Mock.advance(30)
+		-- A day's money: coin from a wolf, a vendor visit with a repair, a flight, an auction sold.
+		Mock.fire("LOOT_OPENED", false, false)
+		pay(42)
+		Mock.fire("LOOT_CLOSED")
+		Mock.advance(30)
+		Mock.fire("MERCHANT_SHOW")
+		pay(310)
+		_G.RepairAllItems()
+		pay(-128)
+		Mock.fire("MERCHANT_CLOSED")
+		Mock.advance(30)
+		Mock.fire("TAXIMAP_OPENED")
+		Mock.fire("TAXIMAP_CLOSED")
+		pay(-95)
+		Mock.advance(30)
+		Mock.fire("CHAT_MSG_SYSTEM", "A buyer has been found for your auction of Copper Ore.")
+		Mock.inbox[1] = { sender = "Auction House", subject = "Auction successful: Copper Ore" }
+		Mock.fire("MAIL_SHOW")
+		_G.TakeInboxMoney(1)
+		pay(1840)
+		Mock.fire("MAIL_CLOSED")
+		Mock.advance(30)
 		Mock.fire("CHAT_MSG_LOOT", "You receive loot: " .. itemLink(2140, "Carving Knife"), "Wren")
 		Mock.groupSize = 2
 		Mock.setUnit("party1", { guid = "Player-1-0002", name = "Tamsin", surname = "Reedwater" })

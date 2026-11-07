@@ -25,6 +25,7 @@ data\Junk.lua
 Fishing.lua
 Loot.lua
 Professions.lua
+Money.lua
 Group.lua
 Digest.lua
 Compact.lua

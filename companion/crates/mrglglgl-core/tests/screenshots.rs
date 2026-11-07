@@ -28,6 +28,7 @@ fn screenshot_event(time: i64, moment: &str) -> Event {
         subzone: None,
         map_id: None,
         level: Some(6),
+        balance: None,
         kind: EventKind::Screenshot {
             moment: Some(moment.into()),
         },

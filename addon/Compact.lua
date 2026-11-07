@@ -19,6 +19,7 @@ local THIN_AFTER_DAYS = 365
 local KEPT_KINDS = {
 	session_start = true, session_end = true, level = true, death = true, boss = true,
 	discover = true, quest_accept = true, quest_turnin = true, screenshot = true, group_join = true,
+	auction = true,
 }
 
 -- Day keys sort as strings, so a day is older than the cutoff when its key sorts before it.
@@ -30,7 +31,7 @@ local function cutoffKey(now, keepDays)
 end
 
 -- Per-day fields that hold raw data, as opposed to the digest.
-local RAW_FIELDS = { "ev", "kills", "anonKills", "skills", "crafted", "gathered" }
+local RAW_FIELDS = { "ev", "kills", "anonKills", "skills", "crafted", "gathered", "money" }
 
 function Compact.hasRaw(day)
 	for _, field in ipairs(RAW_FIELDS) do
