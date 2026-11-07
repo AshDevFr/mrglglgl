@@ -73,6 +73,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      # Build provenance: GitHub signs, through Sigstore, that each file came from this workflow.
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -81,6 +84,14 @@ jobs:
         with:
           path: installers
           merge-multiple: true
+      # Anyone can check a download with `gh attestation verify <file> --repo <this repo>`. It
+      # proves where the file was built, not who the developer is: macOS and Windows still warn.
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: |
+            installers/**/*.dmg
+            installers/**/*.exe
+            installers/**/*.app.tar.gz
       # Only the app's own commits, between app tags.
       - uses: orhun/git-cliff-action@v4
         id: changelog
@@ -101,6 +112,12 @@ jobs:
             echo "whether to trust them. On macOS, open the app once; when it says it cannot verify the"
             echo "developer, open System Settings > Privacy & Security and choose Open Anyway. On Windows,"
             echo "choose More info then Run anyway in the SmartScreen prompt."
+            echo
+            echo "## Checking a download"
+            echo
+            echo "GitHub signs where each file was built. With the GitHub command line, run"
+            echo "\`gh attestation verify <file> --repo ${{ github.repository }}\` to check that it"
+            echo "came from this repository's release workflow and was not changed since."
           } > notes.md
           prerelease=""
           # Only the version decides: companion-v0.2.0-beta.1 is a test version, the tag's own

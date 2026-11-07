@@ -30,6 +30,19 @@ xattr -dr com.apple.quarantine /Applications/Mrglglgl.app
 Then open it as usual.
 :::
 
+:::note[Checking a download]
+GitHub signs where each release file was built. If you have the
+[GitHub command line](https://cli.github.com/), this checks that a download came from Mrglglgl's
+own release workflow and was not changed since:
+
+```sh
+gh attestation verify Mrglglgl_0.1.3_aarch64.dmg --repo AshDevFr/mrglglgl
+```
+
+It proves where the file comes from, not who wrote it, so macOS and Windows still ask once whether
+to trust the app. Releases from 0.1.3 on carry it.
+:::
+
 ## 2. Install the addon
 
 The easiest way is from the app: open **Settings**, then the **Addon** tab, and press
