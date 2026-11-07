@@ -46,7 +46,7 @@ describe("Digest", function()
 			sessions = 1, levels = 1, accepted = 1, turnedIn = 1, deaths = 1, fish = 3, junk = 1, boots = 1,
 			loot = 1, discoveries = 1, bosses = 1, group = 1, screenshots = 0,
 			kills = 30, murlocs = 4, anonKills = 2, skillUps = 0, crafted = 0, gathered = 0,
-			moneyIn = 0, moneyOut = 0, auctions = 0,
+			moneyIn = 0, moneyOut = 0, auctions = 0, chat = 0,
 		}, d.counts)
 		assert.same({ "Mulgore", "Thunder Bluff" }, d.zones)
 		assert.same({ 5, 6 }, { d.levelFrom, d.levelTo })

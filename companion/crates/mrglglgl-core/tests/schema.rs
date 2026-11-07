@@ -269,6 +269,30 @@ fn reads_money_balances_and_auction_events() {
     assert_eq!(digest.auctions[0].name.as_deref(), Some("Copper Ore"));
 }
 
+#[test]
+fn reads_chat_lines_own_and_others() {
+    let journal = schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
+    let day = &journal.days["2026-11-08"];
+    let lines: Vec<_> = day
+        .chat
+        .iter()
+        .map(|l| (l.channel.as_str(), l.who.as_deref(), l.text.as_str()))
+        .collect();
+    assert_eq!(
+        lines,
+        [
+            ("say", None, "The wolves grow bold this season."),
+            (
+                "say",
+                Some("Tamsin"),
+                "Then we thin the pack before nightfall."
+            ),
+            ("emote", None, "checks the string of her bow."),
+        ]
+    );
+    assert_eq!(day.digest.as_ref().unwrap().counts.chat, 3);
+}
+
 /// Every field and event kind `docs/schema.md` documents must be read by the model, or listed
 /// here as deliberately skipped. A field added to the doc fails this test until it is handled.
 #[test]
@@ -288,6 +312,25 @@ fn reads_every_documented_field() {
         "settings.record.group",
         "settings.record.professions",
         "settings.record.money",
+        "settings.record.chat",
+        "settings.chat.say",
+        "settings.chat.emote",
+        "settings.chat.yell",
+        "settings.chat.party",
+        "settings.chat.raid",
+        "settings.chat.guild",
+        "settings.chat.officer",
+        "settings.chat.whisper",
+        "settings.chat.channel",
+        "settings.chat.sayOthers",
+        "settings.chat.emoteOthers",
+        "settings.chat.yellOthers",
+        "settings.chat.partyOthers",
+        "settings.chat.raidOthers",
+        "settings.chat.guildOthers",
+        "settings.chat.officerOthers",
+        "settings.chat.whisperOthers",
+        "settings.chat.channelOthers",
         "settings.lootQuality",
         "settings.retentionDays",
         "settings.screenshots.levelUp",
@@ -410,6 +453,12 @@ fn reads_every_documented_field() {
         "auctions",
         "balStart",
         "balEnd",
+        // Chat
+        "chat",
+        "ch",
+        "msg",
+        "to",
+        "cn",
     ]
     .into_iter()
     .collect();

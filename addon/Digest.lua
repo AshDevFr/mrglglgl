@@ -62,7 +62,7 @@ function Digest.build(day)
 		sessions = 0, levels = 0, accepted = 0, turnedIn = 0, deaths = 0, fish = 0, junk = 0, boots = 0,
 		loot = 0, discoveries = 0, bosses = 0, group = 0, screenshots = 0,
 		kills = 0, murlocs = 0, anonKills = day.anonKills or 0, skillUps = 0, crafted = 0, gathered = 0,
-		moneyIn = 0, moneyOut = 0, auctions = 0,
+		moneyIn = 0, moneyOut = 0, auctions = 0, chat = day.chat and #day.chat or 0,
 	}
 	local digest = {
 		v = Digest.VERSION, counts = counts,
@@ -197,7 +197,7 @@ function Digest.build(day)
 	digest.levelFrom, digest.levelTo = lowLevel, highLevel
 	local busy = counts.kills + counts.deaths + counts.accepted + counts.turnedIn + counts.loot
 		+ counts.levels + counts.discoveries + counts.bosses + counts.group
-		+ counts.skillUps + counts.crafted + counts.gathered
+		+ counts.skillUps + counts.crafted + counts.gathered + counts.chat
 	digest.onlyFished = counts.fish > 0 and counts.kills == 0 and counts.accepted == 0 and counts.turnedIn == 0
 		and counts.crafted == 0 and counts.gathered == 0
 	digest.nothingHappened = busy + counts.fish == 0

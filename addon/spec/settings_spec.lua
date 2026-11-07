@@ -20,7 +20,12 @@ describe("Settings panel", function()
 			assert.equals("checkbox", control.kind)
 			assert.is_true(control.setting:GetValue(), label)
 		end
-		assert.same({ "What gets recorded", "Storage", "Screenshots", "Forget recorded data" }, Mock.headers)
+		local chat = Mock.controls.MRGLGLGL_RECORD_CHAT
+		assert.is_false(chat.setting:GetValue(), "chat is opt-in")
+		assert.is_true(Mock.controls.MRGLGLGL_CHAT_SAY.setting:GetValue())
+		assert.is_false(Mock.controls.MRGLGLGL_CHAT_SAY_OTHERS.setting:GetValue())
+		assert.same({ "What gets recorded", "Chat channels", "Storage", "Screenshots", "Forget recorded data" },
+			Mock.headers)
 	end)
 
 	it("stops recording a category the moment it is unticked, without a reload", function()

@@ -31,7 +31,7 @@ local function cutoffKey(now, keepDays)
 end
 
 -- Per-day fields that hold raw data, as opposed to the digest.
-local RAW_FIELDS = { "ev", "kills", "anonKills", "skills", "crafted", "gathered", "money" }
+local RAW_FIELDS = { "ev", "kills", "anonKills", "skills", "crafted", "gathered", "money", "chat" }
 
 function Compact.hasRaw(day)
 	for _, field in ipairs(RAW_FIELDS) do
@@ -63,6 +63,9 @@ function Compact.run(journal, now, keepDays)
 				end
 			end
 			day.ev = #kept > 0 and kept or nil
+			-- What was said is the largest part of a day; the app has archived it by now, and
+			-- the digest keeps how many lines there were.
+			day.chat = nil
 			day.c = true
 			compacted = compacted + 1
 		end

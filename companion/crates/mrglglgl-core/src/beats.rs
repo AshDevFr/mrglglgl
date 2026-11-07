@@ -31,6 +31,8 @@ pub struct Thresholds {
     pub rare_loot_quality: i64,
     /// Days of fishing in a row that make a streak worth mentioning.
     pub fishing_streak_days: i64,
+    /// The most of the player's own chat lines a day hands the narrator.
+    pub spoken_lines: usize,
 }
 
 impl Default for Thresholds {
@@ -155,6 +157,9 @@ pub struct DayRecord {
     pub money: Money,
     /// Auction house events as `(act, item)`, in order.
     pub auctions: Vec<(String, Option<String>)>,
+    /// The player's own lines said aloud (say, emote, yell), as `(channel, text)`. Other
+    /// players' lines are never part of a record: they are not the player's to hand a narrator.
+    pub spoken: Vec<(String, String)>,
     pub only_fished: bool,
     pub nothing_happened: bool,
 }
@@ -184,6 +189,15 @@ impl DayRecord {
         let mut r = Self::of_events(day);
         r.read_professions(day);
         r.read_money(day);
+        r.spoken = day
+            .chat
+            .iter()
+            .filter(|l| l.own() && matches!(l.channel.as_str(), "say" | "emote" | "yell"))
+            .map(|l| (l.channel.clone(), l.text.clone()))
+            .collect();
+        if !r.spoken.is_empty() {
+            r.nothing_happened = false;
+        }
         if !r.skills.is_empty()
             || !r.crafted.is_empty()
             || !r.gathered.is_empty()
@@ -614,6 +628,10 @@ pub enum Beat {
         earned_mostly: Option<String>,
         spent_mostly: Option<String>,
     },
+    /// A few of the player's own lines, said or acted out in character.
+    Spoke {
+        lines: Vec<(String, String)>,
+    },
     /// Items sold and bought at the auction house.
     Auctions {
         sold: Vec<String>,
@@ -658,6 +676,7 @@ impl Beat {
             Beat::Practice { .. } => 12,
             Beat::Auctions { .. } => 9,
             Beat::Money { .. } => 11,
+            Beat::Spoke { .. } => 8,
         }
     }
 
@@ -684,6 +703,7 @@ impl Beat {
             Beat::Practice { .. } => 10,
             Beat::Auctions { .. } => 10,
             Beat::Money { .. } => 10,
+            Beat::Spoke { .. } => 9,
             Beat::Milestones { .. } => 11,
         }
     }
@@ -831,6 +851,16 @@ impl Beat {
                     parts.push(side(verb, *spent, &money_place(spent_mostly, false)));
                 }
                 parts.join("; ")
+            }
+            Beat::Spoke { lines } => {
+                let told: Vec<String> = lines
+                    .iter()
+                    .map(|(channel, text)| match channel.as_str() {
+                        "emote" => format!("*{text}*"),
+                        _ => format!("\"{text}\""),
+                    })
+                    .collect();
+                format!("In character: {}", told.join(" "))
             }
             Beat::Auctions { sold, won } => {
                 let mut parts = Vec::new();
@@ -1233,6 +1263,11 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         }
         items
     };
+    if !record.spoken.is_empty() {
+        beats.push(Beat::Spoke {
+            lines: record.spoken.iter().take(t.spoken_lines).cloned().collect(),
+        });
+    }
     let (sold, won) = (traded("sold"), traded("won"));
     if !sold.is_empty() || !won.is_empty() {
         beats.push(Beat::Auctions { sold, won });

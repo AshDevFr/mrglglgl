@@ -91,6 +91,7 @@
         "inc": {},
         "out": {}
       },
+      "chat": [],
       "digest": {
         "version": 2,
         "counts": {
@@ -115,7 +116,8 @@
           "gathered": 0,
           "moneyIn": 0,
           "moneyOut": 0,
-          "auctions": 0
+          "auctions": 0,
+          "chat": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -349,7 +351,7 @@
           }
         },
         {
-          "time": 1794164641,
+          "time": 1794164656,
           "zone": "Mulgore",
           "subzone": "Red Rocks",
           "mapId": 7,
@@ -366,7 +368,7 @@
           }
         },
         {
-          "time": 1794164703,
+          "time": 1794164718,
           "zone": "Mulgore",
           "subzone": "Red Rocks",
           "mapId": 7,
@@ -443,6 +445,32 @@
           "travel": 95
         }
       },
+      "chat": [
+        {
+          "time": 1794164641,
+          "channel": "say",
+          "text": "The wolves grow bold this season.",
+          "who": null,
+          "to": null,
+          "channelName": null
+        },
+        {
+          "time": 1794164646,
+          "channel": "say",
+          "text": "Then we thin the pack before nightfall.",
+          "who": "Tamsin",
+          "to": null,
+          "channelName": null
+        },
+        {
+          "time": 1794164651,
+          "channel": "emote",
+          "text": "checks the string of her bow.",
+          "who": null,
+          "to": null,
+          "channelName": null
+        }
+      ],
       "digest": {
         "version": 2,
         "counts": {
@@ -467,7 +495,8 @@
           "gathered": 2,
           "moneyIn": 2267,
           "moneyOut": 223,
-          "auctions": 1
+          "auctions": 1,
+          "chat": 3
         },
         "levelFrom": 5,
         "levelTo": 6,
@@ -675,6 +704,7 @@
         "inc": {},
         "out": {}
       },
+      "chat": [],
       "digest": {
         "version": 2,
         "counts": {
@@ -699,7 +729,8 @@
           "gathered": 0,
           "moneyIn": 0,
           "moneyOut": 0,
-          "auctions": 0
+          "auctions": 0,
+          "chat": 0
         },
         "levelFrom": 5,
         "levelTo": 5,
@@ -775,6 +806,7 @@
         "inc": {},
         "out": {}
       },
+      "chat": [],
       "digest": {
         "version": 2,
         "counts": {
@@ -799,7 +831,8 @@
           "gathered": 0,
           "moneyIn": 0,
           "moneyOut": 0,
-          "auctions": 0
+          "auctions": 0,
+          "chat": 0
         },
         "levelFrom": 5,
         "levelTo": 5,

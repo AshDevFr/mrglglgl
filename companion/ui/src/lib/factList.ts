@@ -179,6 +179,30 @@ export function dayFactRows(facts: DayFacts, t: TFunction): FactRow[] {
       return a.name ? named(a.name, text) : plain(text);
     }),
   );
+  add(
+    "chat",
+    facts.chat.map((line) => {
+      const channel =
+        line.channel === "channel" && line.channelName
+          ? line.channelName
+          : t(`facts.channel.${line.channel}`, { defaultValue: line.channel });
+      // An emote is told as an action; a built-in one is already a whole sentence.
+      const said =
+        line.channel === "textEmote"
+          ? line.text
+          : line.channel === "emote"
+            ? line.who
+              ? `${line.who} ${line.text}`
+              : `*${line.text}*`
+            : line.to
+              ? t("facts.chatTo", { who: line.to, text: line.text })
+              : t("facts.chatSaid", {
+                  who: line.who ?? t("facts.chatYou"),
+                  text: line.text,
+                });
+      return plain(`[${channel}] ${said}`);
+    }),
+  );
   // Other players: their names are theirs, not something to look up.
   add(
     "companions",

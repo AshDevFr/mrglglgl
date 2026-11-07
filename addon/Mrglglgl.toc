@@ -26,6 +26,7 @@ Fishing.lua
 Loot.lua
 Professions.lua
 Money.lua
+Chat.lua
 Group.lua
 Digest.lua
 Compact.lua

@@ -23,6 +23,7 @@ local STATUS = {
 		return L.STATUS_MONEY:format(ns.Money.format(c.moneyIn), ns.Money.format(c.moneyOut), c.auctions)
 	end },
 	{ "group", function(c) return L.STATUS_GROUP:format(c.group) end },
+	{ "chat", function(c) return L.STATUS_CHAT:format(c.chat) end },
 }
 
 local function today()

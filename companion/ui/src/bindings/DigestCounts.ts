@@ -12,4 +12,8 @@ skillUps: number, crafted: number, gathered: number,
 /**
  * Copper earned and spent.
  */
-moneyIn: number, moneyOut: number, auctions: number, };
+moneyIn: number, moneyOut: number, auctions: number, 
+/**
+ * Chat lines recorded.
+ */
+chat: number, };

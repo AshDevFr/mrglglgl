@@ -20,8 +20,8 @@ use serde::{Deserialize, Serialize};
 use crate::db::{BackupRetention, Database, DbError};
 use crate::discovery::CharacterSource;
 use crate::schema::{
-    self, AddonErrors, AddonHeartbeat, Character, Companion, Day, Digest, ItemCount, Journal,
-    JournalError, Quest, Stats,
+    self, AddonErrors, AddonHeartbeat, Character, ChatLine, Companion, Day, Digest, ItemCount,
+    Journal, JournalError, Quest, Stats,
 };
 use crate::watch::{modified_unix, now_unix};
 
@@ -226,7 +226,8 @@ fn fullness(digest: &Digest) -> (bool, usize, i64) {
         + c.skill_ups
         + c.crafted
         + c.gathered
-        + c.auctions;
+        + c.auctions
+        + c.chat;
     (!d.thin, listed, counted)
 }
 
@@ -304,6 +305,17 @@ fn merge_day(stored: Day, incoming: Day, incoming_newer: bool) -> Day {
         }
     }
 
+    // The game drops chat when it compacts a day, and Forget clears it: every line either copy
+    // holds is kept, once, in time order.
+    let mut chat = stored.chat;
+    let mut seen: std::collections::HashSet<ChatLine> = chat.iter().cloned().collect();
+    for line in incoming.chat {
+        if seen.insert(line.clone()) {
+            chat.push(line);
+        }
+    }
+    chat.sort_by_key(|l| l.time);
+
     let digest = match (stored.digest, incoming.digest) {
         (Some(s), Some(i)) => Some(
             if fullness(&i) > fullness(&s) || (fullness(&i) == fullness(&s) && incoming_newer) {
@@ -323,6 +335,7 @@ fn merge_day(stored: Day, incoming: Day, incoming_newer: bool) -> Day {
         crafted: items(stored.crafted, incoming.crafted),
         gathered: items(stored.gathered, incoming.gathered),
         money,
+        chat,
         digest,
         // The longer event list is kept, and a whole day's is longer than a compacted one's.
         compacted: stored.compacted && incoming.compacted,

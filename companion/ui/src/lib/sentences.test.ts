@@ -40,6 +40,7 @@ function facts(overrides: Partial<DayFacts>): DayFacts {
       balEnd: null,
       auctions: [],
     },
+    chat: [],
     screenshots: 0,
     onlyFished: false,
     nothingHappened: false,
@@ -459,5 +460,13 @@ describe("money", () => {
         },
       }),
     ).toEqual(["Earned 1s 5c."]);
+  });
+});
+
+describe("chat", () => {
+  it("never tells chat in the sentences, which the website and exports use", () => {
+    const day = syntheticJournal.days["2026-11-08"];
+    const told = daySentences(dayFacts(syntheticJournal, day), i18n.t, "en");
+    expect(told.join(" ")).not.toMatch(/wolves grow bold|thin the pack/);
   });
 });

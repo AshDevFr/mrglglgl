@@ -152,6 +152,16 @@ local function play()
 		Mock.groupSize = 2
 		Mock.setUnit("party1", { guid = "Player-1-0002", name = "Tamsin", surname = "Reedwater" })
 		Mock.fire("GROUP_ROSTER_UPDATE")
+		-- A little role play with Tamsin: chat on, with her say lines too.
+		_G.MrglglglDB.settings.record.chat = true
+		_G.MrglglglDB.settings.chat.sayOthers = true
+		local function speak(event, text, sender, guid)
+			Mock.fire("CHAT_MSG_" .. event, text, sender, "Taur-ahe", "", "", "", 0, 0, "", nil, 1, guid)
+			Mock.advance(5)
+		end
+		speak("SAY", "The wolves grow bold this season.", "Wren", "Player-1-0001")
+		speak("SAY", "Then we thin the pack before nightfall.", "Tamsin", "Player-1-0002")
+		speak("EMOTE", "checks the string of her bow.", "Wren", "Player-1-0001")
 		Mock.recap = { { event = "SWING_DAMAGE", sourceName = "Murloc Streamrunner", sourceGUID = creature(732, 2) } }
 		Mock.fire("PLAYER_DEAD")
 		Mock.advance(2)

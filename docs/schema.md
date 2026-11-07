@@ -44,6 +44,9 @@ Keys are short because SavedVariables size counts. Types: `int` and `number` are
 | `settings.record.group` | bool | Record group members met |
 | `settings.record.professions` | bool | Record profession skill-ups, crafting and gathering |
 | `settings.record.money` | bool | Record the balance at each session's start and end, money earned and spent by source, and auction house events |
+| `settings.record.chat` | bool | Record chat lines in the channels chosen under `settings.chat`; off by default |
+| `settings.chat.say`, `settings.chat.emote`, `settings.chat.yell`, `settings.chat.party`, `settings.chat.raid`, `settings.chat.guild`, `settings.chat.officer`, `settings.chat.whisper`, `settings.chat.channel` | bool | Record the player's own lines in that channel while chat is on; `say`, `emote` and `yell` default to `true`, the rest to `false` |
+| `settings.chat.sayOthers`, `settings.chat.emoteOthers`, `settings.chat.yellOthers`, `settings.chat.partyOthers`, `settings.chat.raidOthers`, `settings.chat.guildOthers`, `settings.chat.officerOthers`, `settings.chat.whisperOthers`, `settings.chat.channelOthers` | bool | Record other players' lines in that channel while chat is on; all default to `false` |
 | `settings.lootQuality` | int | Minimum item quality counted as notable loot (3 = rare) |
 | `settings.retentionDays` | int | Days of raw events kept before compaction: 7, 14 or 30 |
 | `settings.screenshots.levelUp` | bool | Take a screenshot on level-up |
@@ -53,7 +56,7 @@ Keys are short because SavedVariables size counts. Types: `int` and `number` are
 | `settings.screenshots.firstMurlocKill` | bool | Take a screenshot on the first murloc slain |
 | `settings.screenshots.firstDeathByMurloc` | bool | Take a screenshot on the first death by murloc |
 
-All `record` flags default to `true` and all `screenshots` flags to `false`.
+All `record` flags default to `true` except `chat`, and all `screenshots` flags to `false`.
 
 ## `MrglglglCharDB` (per character)
 
@@ -97,6 +100,7 @@ A day is a local calendar date. Each event belongs to the day of its own timesta
 | `crafted` | table? | Items crafted that day, keyed by item ID |
 | `gathered` | table? | Items mined, picked or skinned that day, keyed by item ID |
 | `money` | table? | Money earned and spent that day by source; see Money |
+| `chat` | array? | Chat lines in time order, when chat is recorded; see Chat. Removed when the day is compacted, and capped at 2000 lines a day |
 | `digest` | table? | The day's summary, built from the whole day; never rebuilt after compaction |
 
 ### Event (`days[key].ev[i]`)
@@ -173,6 +177,20 @@ its mail), or `other`.
 | `inc` | table? | Copper earned, by source |
 | `out` | table? | Copper spent, by source |
 
+### Chat (`days[key].chat[i]`)
+
+A line said in a channel the player chose. Link, colour and texture codes are removed; an item
+link reads as its name in brackets.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `t` | int | Unix time |
+| `ch` | string | `say`, `emote` (a custom emote, without the speaker's name), `textEmote` (a built-in emote, a whole sentence such as "You wave."), `yell`, `party`, `raid`, `guild`, `officer`, `whisper` or `channel` |
+| `msg` | string | What was said |
+| `who` | string? | The speaker, as the client names them; absent for the player's own lines |
+| `to` | string? | For a whisper the player sent: who it went to |
+| `cn` | string? | For a numbered channel: its name, e.g. "General" |
+
 ### Digest (`days[key].digest`)
 
 The day's summary, rebuilt at every login and logout while the day still has raw events. Once a
@@ -185,7 +203,7 @@ lists hold the highlights: `kills` the 10 most killed, `deaths` 5, `loot`, `fish
 | Field | Type | Meaning |
 |---|---|---|
 | `v` | int | Digest version. Days rebuilt from raw events get the current version; compacted days keep theirs |
-| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered`, `moneyIn`, `moneyOut` (copper), `auctions` |
+| `counts` | table | `sessions`, `levels`, `accepted`, `turnedIn`, `deaths`, `fish`, `junk`, `boots`, `loot`, `discoveries`, `bosses`, `group`, `screenshots`, `kills` (including anonymous), `murlocs`, `anonKills`, `skillUps` (ranks gained), `crafted`, `gathered`, `moneyIn`, `moneyOut` (copper), `auctions`, `chat` (lines) |
 | `levelFrom`, `levelTo` | int? | Lowest and highest level seen that day |
 | `zones` | array | Zones in the order first seen |
 | `subzones` | array | Subzones in the order first seen |

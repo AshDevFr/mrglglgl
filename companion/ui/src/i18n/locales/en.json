@@ -748,6 +748,21 @@
       "outbid": "Outbid on {{name}}",
       "expired": "{{name}} did not sell",
       "cancelled": "Took {{name}} off the market"
+    },
+    "chat": "Chat",
+    "chatSaid": "{{who}}: {{text}}",
+    "chatTo": "To {{who}}: {{text}}",
+    "chatYou": "You",
+    "channel": {
+      "say": "Say",
+      "emote": "Emote",
+      "textEmote": "Emote",
+      "yell": "Yell",
+      "party": "Party",
+      "raid": "Raid",
+      "guild": "Guild",
+      "officer": "Officer",
+      "whisper": "Whisper"
     }
   },
   "money": {

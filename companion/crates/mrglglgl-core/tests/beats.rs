@@ -599,3 +599,23 @@ fn copper_reads_as_the_game_shows_it() {
     assert_eq!(beats::gold(10_000), "1g");
     assert_eq!(beats::gold(0), "0c");
 }
+
+#[test]
+fn the_players_own_lines_are_told_in_character_and_others_never_are() {
+    let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../fixtures/savedvariables/synthetic-character.lua");
+    let j = journal_from_text(&std::fs::read_to_string(path).unwrap()).unwrap();
+    let all = Thresholds {
+        max_beats: 20,
+        ..Thresholds::default()
+    };
+    let texts = beats::extract(&j, "2026-11-08", &[], &all).texts();
+    assert!(
+        texts.contains(
+            &"In character: \"The wolves grow bold this season.\" *checks the string of her bow.*"
+                .to_string()
+        ),
+        "{texts:?}"
+    );
+    assert!(!texts.iter().any(|t| t.contains("thin the pack")));
+}

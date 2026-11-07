@@ -10,7 +10,7 @@ ns.Settings = SettingsPanel
 -- Categories in panel order; their labels and tooltips come from the locale table.
 local RECORD = {
 	"sessions", "levels", "quests", "questText", "zones", "kills", "deaths", "fishing", "professions", "loot",
-	"money", "group",
+	"money", "group", "chat",
 }
 local SCREENSHOTS = { "levelUp", "death", "bossKill", "firstBoot", "firstMurlocKill", "firstDeathByMurloc" }
 
@@ -36,13 +36,30 @@ local function addRecordToggles(layout)
 		Compat.AddCheckbox(category, "MRGLGLGL_RECORD_" .. label, L["CATEGORY_" .. label], L["TIP_" .. label],
 			function() return settings().record[key] end,
 			function(value) settings().record[key] = value end,
-			true)
+			key ~= "chat")
 	end
 	Compat.AddDropdown(category, "MRGLGLGL_LOOT_QUALITY", L.SETTINGS_LOOT_QUALITY, L.TIP_LOOT_QUALITY,
 		{ { 2, L.QUALITY_UNCOMMON }, { 3, L.QUALITY_RARE }, { 4, L.QUALITY_EPIC } },
 		function() return settings().lootQuality end,
 		function(value) settings().lootQuality = value end,
 		3)
+end
+
+-- Each channel twice: the player's own lines, and other players' lines.
+local function addChat(layout)
+	Compat.AddSettingsHeader(layout, L.SETTINGS_CHAT_HEADER)
+	for _, channel in ipairs(ns.Chat.CHANNELS) do
+		local label = channel:gsub("%u", "_%0"):upper()
+		for _, suffix in ipairs({ "", "Others" }) do
+			local key = channel .. suffix
+			local name = (suffix == "" and L.CHAT_OWN or L.CHAT_OTHERS):format(L["CHANNEL_" .. label])
+			Compat.AddCheckbox(category, "MRGLGLGL_CHAT_" .. key:gsub("%u", "_%0"):upper(), name,
+				suffix == "" and L.TIP_CHAT_OWN or L.TIP_CHAT_OTHERS,
+				function() return settings().chat[key] end,
+				function(value) settings().chat[key] = value end,
+				suffix == "" and (channel == "say" or channel == "emote" or channel == "yell"))
+		end
+	end
 end
 
 local function addRetention(layout)
@@ -103,6 +120,7 @@ ns.On("ADDON_LOADED", function(_, loaded)
 	local layout
 	category, layout = Compat.CreateSettingsCategory(L.ADDON_TITLE)
 	addRecordToggles(layout)
+	addChat(layout)
 	addRetention(layout)
 	addScreenshots(layout)
 	addForget(layout)

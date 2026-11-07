@@ -157,10 +157,38 @@ pub struct Day {
     pub gathered: BTreeMap<i64, ItemCount>,
     /// Money earned and spent that day, by source.
     pub money: Money,
+    /// Chat lines in the channels the player chose, in time order.
+    pub chat: Vec<ChatLine>,
     pub digest: Option<Digest>,
     /// The game compacted the day: `events` holds only its key moments, and the digest is what
     /// the whole day was.
     pub compacted: bool,
+}
+
+/// A line said in a chat channel.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct ChatLine {
+    /// Unix time.
+    pub time: i64,
+    /// `say`, `emote`, `textEmote`, `yell`, `party`, `raid`, `guild`, `officer`, `whisper` or
+    /// `channel`.
+    pub channel: String,
+    pub text: String,
+    /// The speaker; none for the player's own lines. Other players' words are theirs: they stay
+    /// out of the website, exports and anything sent to a narrator.
+    pub who: Option<String>,
+    /// For a whisper the player sent: who it went to.
+    pub to: Option<String>,
+    /// For a numbered channel: its name, e.g. "General".
+    pub channel_name: Option<String>,
+}
+
+impl ChatLine {
+    pub fn own(&self) -> bool {
+        self.who.is_none()
+    }
 }
 
 /// Money earned (`inc`) and spent (`out`) over a day, in copper, by where it came from or went:
@@ -408,6 +436,8 @@ pub struct DigestCounts {
     pub money_in: i64,
     pub money_out: i64,
     pub auctions: i64,
+    /// Chat lines recorded.
+    pub chat: i64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -496,6 +526,10 @@ pub struct AccountSettings {
     pub retention_days: Option<i64>,
     /// Screenshot moments (`levelUp`, ...) and whether each is on.
     pub screenshots: BTreeMap<String, bool>,
+    /// Chat channels and whether each is recorded: `say` for the player's own lines,
+    /// `sayOthers` for other players'.
+    #[serde(default)]
+    pub chat: BTreeMap<String, bool>,
 }
 
 // ── Reading ──────────────────────────────────────────────────────────────────
@@ -684,6 +718,7 @@ fn digest(t: &Table) -> Digest {
             money_in: count("moneyIn"),
             money_out: count("moneyOut"),
             auctions: count("auctions"),
+            chat: count("chat"),
         },
         level_from: int(t, "levelFrom"),
         level_to: int(t, "levelTo"),
@@ -812,6 +847,19 @@ fn day(t: &Table) -> Day {
         crafted: by_id(t, "crafted", item_count),
         gathered: by_id(t, "gathered", item_count),
         money: table(t, "money").map(money).unwrap_or_default(),
+        chat: records(t, "chat", |c| {
+            Some(ChatLine {
+                time: c.get("t").and_then(Value::as_f64)? as i64,
+                channel: string(c, "ch")?,
+                text: string(c, "msg")?,
+                who: string(c, "who"),
+                to: string(c, "to"),
+                channel_name: string(c, "cn"),
+            })
+        })
+        .into_iter()
+        .flatten()
+        .collect(),
         digest: table(t, "digest").map(digest),
         compacted: boolean(t, "c").unwrap_or(false),
     }
@@ -956,5 +1004,6 @@ pub fn account_settings_from(file: &SavedVariables) -> Option<AccountSettings> {
         loot_quality: settings.and_then(|s| int(s, "lootQuality")),
         retention_days: settings.and_then(|s| int(s, "retentionDays")),
         screenshots: flags(settings.and_then(|s| table(s, "screenshots"))),
+        chat: flags(settings.and_then(|s| table(s, "chat"))),
     })
 }

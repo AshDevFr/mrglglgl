@@ -11,4 +11,9 @@ record: { [key in string]: boolean }, lootQuality: number | null, retentionDays:
 /**
  * Screenshot moments (`levelUp`, ...) and whether each is on.
  */
-screenshots: { [key in string]: boolean }, };
+screenshots: { [key in string]: boolean }, 
+/**
+ * Chat channels and whether each is recorded: `say` for the player's own lines,
+ * `sayOthers` for other players'.
+ */
+chat: { [key in string]: boolean }, };

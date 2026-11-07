@@ -46,6 +46,7 @@ MrglglglCharDB = {
 ["auctions"] = 0,
 ["boots"] = 1,
 ["bosses"] = 0,
+["chat"] = 0,
 ["crafted"] = 0,
 ["deaths"] = 1,
 ["discoveries"] = 2,
@@ -187,6 +188,24 @@ MrglglglCharDB = {
 },
 ["2026-11-08"] = {
 ["anonKills"] = 1,
+["chat"] = {
+{
+["ch"] = "say",
+["msg"] = "The wolves grow bold this season.",
+["t"] = 1794164641,
+},
+{
+["ch"] = "say",
+["msg"] = "Then we thin the pack before nightfall.",
+["t"] = 1794164646,
+["who"] = "Tamsin",
+},
+{
+["ch"] = "emote",
+["msg"] = "checks the string of her bow.",
+["t"] = 1794164651,
+},
+},
 ["crafted"] = {
 [1251] = {
 ["n"] = 5,
@@ -217,6 +236,7 @@ MrglglglCharDB = {
 ["auctions"] = 1,
 ["boots"] = 0,
 ["bosses"] = 1,
+["chat"] = 3,
 ["crafted"] = 5,
 ["deaths"] = 1,
 ["discoveries"] = 2,
@@ -491,7 +511,7 @@ MrglglglCharDB = {
 ["lv"] = 6,
 ["m"] = 7,
 ["sz"] = "Red Rocks",
-["t"] = 1794164641.5,
+["t"] = 1794164656.5,
 ["z"] = "Mulgore",
 },
 {
@@ -500,7 +520,7 @@ MrglglglCharDB = {
 ["lv"] = 6,
 ["m"] = 7,
 ["sz"] = "Red Rocks",
-["t"] = 1794164703,
+["t"] = 1794164718,
 ["z"] = "Mulgore",
 },
 },
@@ -582,6 +602,7 @@ MrglglglCharDB = {
 ["auctions"] = 0,
 ["boots"] = 0,
 ["bosses"] = 0,
+["chat"] = 0,
 ["crafted"] = 0,
 ["deaths"] = 0,
 ["discoveries"] = 0,
@@ -704,6 +725,7 @@ MrglglglCharDB = {
 ["auctions"] = 0,
 ["boots"] = 0,
 ["bosses"] = 0,
+["chat"] = 0,
 ["crafted"] = 0,
 ["deaths"] = 0,
 ["discoveries"] = 0,

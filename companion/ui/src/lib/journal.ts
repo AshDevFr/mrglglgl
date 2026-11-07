@@ -1,4 +1,5 @@
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
+import type { ChatLine } from "@/bindings/ChatLine";
 import type { Day } from "@/bindings/Day";
 import type { Journal } from "@/bindings/Journal";
 import type { StoredCharacter } from "@/bindings/StoredCharacter";
@@ -191,6 +192,9 @@ export interface DayFacts {
   gathered: ItemLine[];
   /** Money earned and spent by source, the balance, and auction house events. */
   money: MoneyFacts;
+  /** Chat lines in the channels the player chose. Shown in the app only: other players' words
+   * never go to the website, exports or a narrator. */
+  chat: ChatLine[];
   screenshots: number;
   onlyFished: boolean;
   nothingHappened: boolean;
@@ -279,11 +283,13 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
     work.gathered.length > 0 ||
     money.earned.length > 0 ||
     money.spent.length > 0 ||
-    money.auctions.length > 0;
+    money.auctions.length > 0 ||
+    (day.chat ?? []).length > 0;
   return {
     ...facts,
     ...work,
     money,
+    chat: day.chat ?? [],
     nothingHappened: facts.nothingHappened && !busy,
   };
 }
@@ -291,7 +297,7 @@ export function dayFacts(journal: Journal, day: Day): DayFacts {
 function eventFacts(
   journal: Journal,
   day: Day,
-): Omit<DayFacts, "skills" | "crafted" | "gathered" | "money"> {
+): Omit<DayFacts, "skills" | "crafted" | "gathered" | "money" | "chat"> {
   const digest = day.digest;
   // A compacted day keeps a few key events; its digest is what the whole day was.
   if (day.events === null || day.compacted) {
@@ -361,7 +367,10 @@ function eventFacts(
       murloc: k.murloc,
     }))
     .sort((a, b) => b.count - a.count || (a.npcId ?? 0) - (b.npcId ?? 0));
-  const facts: Omit<DayFacts, "skills" | "crafted" | "gathered" | "money"> = {
+  const facts: Omit<
+    DayFacts,
+    "skills" | "crafted" | "gathered" | "money" | "chat"
+  > = {
     levelFrom: null,
     levelTo: null,
     leveledUp: false,

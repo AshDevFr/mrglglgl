@@ -528,6 +528,28 @@ fn money_forgotten_in_the_game_stays_in_the_archive_and_new_money_adds() {
 }
 
 #[test]
+fn chat_the_game_dropped_stays_in_the_archive_and_new_lines_join_it() {
+    let (db, id, raw) = one_day();
+    let day = &raw.days["2026-11-08"];
+    assert_eq!(day.chat.len(), 3);
+    let mut later = raw.clone();
+    let d = later.days.get_mut("2026-11-08").unwrap();
+    // The game dropped the first lines (Forget), and one more was said.
+    let mut extra = d.chat[0].clone();
+    extra.time += 3600;
+    extra.text = "Back to Bloodhoof, then.".into();
+    d.chat = vec![d.chat[2].clone(), extra.clone()];
+
+    merge_snapshot(&db, id, &raw, 100).unwrap();
+    merge_snapshot(&db, id, &later, 200).unwrap();
+    merge_snapshot(&db, id, &later, 300).unwrap();
+    let kept = &archive::load(&db, id).unwrap().unwrap().days["2026-11-08"];
+    assert_eq!(kept.chat.len(), 4, "each line once");
+    assert_eq!(kept.chat[..3], day.chat[..]);
+    assert_eq!(kept.chat[3], extra);
+}
+
+#[test]
 fn a_thinned_digest_never_replaces_a_fuller_one() {
     let (db, id, mut j) = one_day();
     let d = j.days.get_mut("2026-11-08").unwrap();

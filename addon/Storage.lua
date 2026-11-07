@@ -13,7 +13,14 @@ local DEFAULT_SETTINGS = {
 	record = {
 		sessions = true, levels = true, quests = true, questText = true, zones = true,
 		kills = true, deaths = true, fishing = true, loot = true, group = true, professions = true,
-		money = true,
+		money = true, chat = false,
+	},
+	-- Chat channels, once chat is on: the player's own lines (`say`) and others' (`sayOthers`).
+	chat = {
+		say = true, emote = true, yell = true, party = false, raid = false, guild = false, officer = false,
+		whisper = false, channel = false,
+		sayOthers = false, emoteOthers = false, yellOthers = false, partyOthers = false, raidOthers = false,
+		guildOthers = false, officerOthers = false, whisperOthers = false, channelOthers = false,
 	},
 	lootQuality = 3,
 	retentionDays = 30,

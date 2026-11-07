@@ -61,6 +61,15 @@ describe("JournalPage", () => {
     expect(row("Spent")).toHaveTextContent("Repairs: 1s 28c");
     expect(row("Gold")).toHaveTextContent("23s 50c → 43s 94c");
     expect(row("Auction house")).toHaveTextContent("Sold Copper Ore");
+    expect(row("Chat")).toHaveTextContent(
+      "[Say] You: The wolves grow bold this season.",
+    );
+    expect(row("Chat")).toHaveTextContent(
+      "[Say] Tamsin: Then we thin the pack before nightfall.",
+    );
+    expect(row("Chat")).toHaveTextContent(
+      "[Emote] *checks the string of her bow.*",
+    );
   });
 
   it("presses the day's milestones onto the page as stamps", () => {
