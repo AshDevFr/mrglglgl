@@ -36,3 +36,14 @@ jobs:
       - uses: actions/attest-build-provenance@v4
         with:
           subject-path: .release/*.zip
+      # The app's updater reads latest.json from the repository's "latest" release, and a new
+      # addon release would take that title: give it back to the newest stable app release.
+      - name: Keep the newest app release as the latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          app=$(gh release list --exclude-pre-releases --limit 50 --json tagName \
+            --jq '[.[] | select(.tagName | startswith("companion-v"))][0].tagName')
+          if [ -n "$app" ]; then
+            gh release edit "$app" --latest
+          fi

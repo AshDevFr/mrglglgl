@@ -48,6 +48,7 @@ repository's releases page when it finishes.
   ad hoc (`signingIdentity: "-"`): without it, macOS calls the downloaded app damaged and offers no
   way to open it. The release notes tell players to choose Open Anyway.
   An Apple Developer ID exists, so signing is an additive change to `companion-release.yml`.
-- The in-app updater reads `latest.json` from the latest stable release only: prereleases are
-  never offered. It verifies each update with the updater key, which is separate from code
+- The in-app updater reads `latest.json` from the repository's "latest" release, so that title
+  must stay with the newest stable app release: the addon workflow hands it back after publishing.
+  Prereleases are never offered. It verifies each update with the updater key, which is separate from code
   signing, so updates install on unsigned builds too.
