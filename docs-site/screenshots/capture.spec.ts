@@ -37,6 +37,20 @@ async function settled(page: Page) {
   await page.waitForTimeout(300);
 }
 
+test("home", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText(/Addon: Version/)).toBeVisible();
+  await settled(page);
+  await page.screenshot({ path: out("home") });
+});
+
+test("first run", async ({ page }) => {
+  await page.goto("/?empty");
+  await expect(page.getByText(/No journals yet/)).toBeVisible();
+  await settled(page);
+  await page.screenshot({ path: out("first-run") });
+});
+
 test("journal", async ({ page }) => {
   await page.goto("/characters/1?day=2026-11-08");
   await expect(page.getByText("Hogger fell")).toBeVisible();

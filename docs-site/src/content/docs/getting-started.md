@@ -49,8 +49,15 @@ out or type `/reload`, and only then can the app see it.
 ## 4. Choose who writes
 
 Open the app. It finds World of Warcraft in the usual places; if it does not, choose the game
-folder under **Settings**, **General**. Your characters appear in the sidebar, grouped by account
-and realm.
+folder under **Settings**, **General**. Until a journal arrives, the main page says how they
+arrive and what to set up:
+
+![The app's first run: no journals yet, and the steps to get started.](../../assets/screenshots/first-run.png)
+
+Once you have played, your characters appear in the sidebar, grouped by account and realm. The
+main page shows the addon's state; if the addon is missing, it says so and offers to install it.
+
+![The app's main page with a character in the sidebar and the addon recording.](../../assets/screenshots/home.png)
 
 To have entries written, open **Settings**, **Writing**, and choose who writes:
 

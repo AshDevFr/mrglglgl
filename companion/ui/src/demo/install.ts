@@ -6,12 +6,13 @@ import {
   mockIPC,
   mockWindows,
 } from "@tauri-apps/api/mocks";
+import packageInfo from "../../package.json";
 import * as data from "./data";
 
 type Args = Record<string, unknown>;
 
 const answers: Record<string, (args: Args) => unknown> = {
-  app_info: () => ({ version: "0.1.0" }),
+  app_info: () => ({ version: packageInfo.version }),
   // "?empty" shows the app as on a first run, before any journal arrives.
   list_characters: () =>
     new URLSearchParams(window.location.search).has("empty")
