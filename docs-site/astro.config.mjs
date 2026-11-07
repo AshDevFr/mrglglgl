@@ -15,6 +15,18 @@ export default defineConfig({
           tag: "link",
           attrs: { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
         },
+        // The social card link previews show (scripts/social-card.mjs draws it). Starlight
+        // already sets each page's title and description.
+        ...[
+          ["og:image", "https://mrglglgl.pages.dev/social-card.png"],
+          ["og:image:width", "1200"],
+          ["og:image:height", "630"],
+          ["og:image:alt", "Mrglglgl: a blue murloc writing in a journal with a quill"],
+        ].map(([property, content]) => ({ tag: "meta", attrs: { property, content } })),
+        ...[
+          ["twitter:card", "summary_large_image"],
+          ["twitter:image", "https://mrglglgl.pages.dev/social-card.png"],
+        ].map(([name, content]) => ({ tag: "meta", attrs: { name, content } })),
       ],
       // The 404 page is src/content/docs/404.md, with the sleeping murloc.
       disable404Route: true,

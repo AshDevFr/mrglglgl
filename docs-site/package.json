@@ -8,7 +8,8 @@
     "prebuild": "node scripts/reference.mjs && node scripts/milestones.mjs",
     "build": "astro build",
     "preview": "astro preview",
-    "screenshots": "playwright test --config screenshots/playwright.config.ts"
+    "screenshots": "playwright test --config screenshots/playwright.config.ts",
+    "social-card": "node scripts/social-card.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "0.42.6",
