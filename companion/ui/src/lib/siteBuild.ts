@@ -16,7 +16,17 @@ export interface SiteBuild {
 export const REBUILD_DELAY_MS = 5000;
 
 let last: SiteBuild | null = null;
+let building = false;
 const listeners = new Set<() => void>();
+const notify = () => {
+  for (const listener of listeners) listener();
+};
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
 let timer: ReturnType<typeof setTimeout> | null = null;
 
 export function lastBuild(): SiteBuild | null {
@@ -25,10 +35,12 @@ export function lastBuild(): SiteBuild | null {
 
 /** The last build, kept up to date in a component. */
 export function useLastBuild(): SiteBuild | null {
-  return useSyncExternalStore((listener) => {
-    listeners.add(listener);
-    return () => listeners.delete(listener);
-  }, lastBuild);
+  return useSyncExternalStore(subscribe, lastBuild);
+}
+
+/** Whether the website is being built right now, kept up to date in a component. */
+export function useSiteBuilding(): boolean {
+  return useSyncExternalStore(subscribe, () => building);
 }
 
 /** Whether the site is set up enough to build. */
@@ -39,6 +51,8 @@ export function canBuild(site: SiteSettings): boolean {
 /** Builds the site now and records the result. */
 export async function rebuildSite(site: SiteSettings): Promise<SiteBuild> {
   let result: SiteBuild;
+  building = true;
+  notify();
   try {
     const report = await buildSite(await buildSiteData(site));
     result = { at: Date.now(), report, error: null };
@@ -46,7 +60,8 @@ export async function rebuildSite(site: SiteSettings): Promise<SiteBuild> {
     result = { at: Date.now(), report: null, error: String(e) };
   }
   last = result;
-  for (const listener of listeners) listener();
+  building = false;
+  notify();
   return result;
 }
 

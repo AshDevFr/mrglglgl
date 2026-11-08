@@ -1,0 +1,327 @@
+import {
+  Button,
+  Drawer,
+  Group,
+  Loader,
+  NavLink,
+  Progress,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { type ReactNode, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  activity,
+  cancelDownload,
+  cancelPreview,
+  cancelWriting,
+  listCharacters,
+  models,
+  onWriting,
+  retryWriting,
+  setWritingPaused,
+} from "@/api/commands";
+import type { Activity } from "@/bindings/Activity";
+import type { Job } from "@/bindings/Job";
+import { type Problem, problem } from "@/i18n/problems";
+import { formatDay } from "@/lib/format";
+import { displayName } from "@/lib/journal";
+import { useSiteBuilding } from "@/lib/siteBuild";
+import { slot } from "@/lib/writing";
+
+/** How often the list is read again while something runs, and while nothing does. */
+const BUSY_POLL_MS = 2000;
+const IDLE_POLL_MS = 15000;
+
+/** Things running or waiting their turn; failed entries wait for the player, not the app. */
+function busyCount(now: Activity | undefined, building: boolean): number {
+  if (!now) return building ? 1 : 0;
+  const jobs = now.jobs.filter((j) => j.state !== "failed").length;
+  return (
+    jobs + (now.preview ? 1 : 0) + (now.download ? 1 : 0) + (building ? 1 : 0)
+  );
+}
+
+/** The text of the entry being written, as it streams, to count its words. */
+function useStreamingText(): { key: string | null; text: string } {
+  const [live, setLive] = useState<{ key: string | null; text: string }>({
+    key: null,
+    text: "",
+  });
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    let cancelled = false;
+    onWriting((event) => {
+      const key = `${event.characterId}|${slot(event.kind, event.startDay)}`;
+      if (event.type === "chunk")
+        setLive((l) =>
+          l.key === key
+            ? { key, text: l.text + event.text }
+            : { key, text: event.text },
+        );
+      else if (event.type === "started" || event.type === "restarted")
+        setLive({ key, text: "" });
+      else setLive({ key: null, text: "" });
+      if (event.type === "started" || event.type === "finished")
+        void queryClient.invalidateQueries({ queryKey: ["activity"] });
+    }).then((unlisten) => {
+      if (cancelled) unlisten();
+      else stop = unlisten;
+    });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
+  }, [queryClient]);
+  return live;
+}
+
+/** An entry in the sidebar showing whether the app is working, and a drawer listing
+ * everything it works on, for every character: the entry being written, the line of entries
+ * waiting, those that failed, a narrator preview, a model download and a website build. */
+export function ActivityPanel() {
+  const { t } = useTranslation();
+  const [opened, setOpened] = useState(false);
+  const building = useSiteBuilding();
+  const now = useQuery({
+    queryKey: ["activity"],
+    queryFn: activity,
+    refetchInterval: (query) =>
+      busyCount(query.state.data, building) > 0 ? BUSY_POLL_MS : IDLE_POLL_MS,
+  });
+  const count = busyCount(now.data, building);
+  return (
+    <>
+      <NavLink
+        component="button"
+        label={count > 0 ? t("activity.count", { count }) : t("activity.title")}
+        leftSection={count > 0 ? <Loader size={12} /> : undefined}
+        onClick={() => setOpened(true)}
+      />
+      <Drawer
+        opened={opened}
+        onClose={() => setOpened(false)}
+        position="right"
+        title={t("activity.title")}
+      >
+        {now.data && <ActivityList now={now.data} building={building} />}
+      </Drawer>
+    </>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <Stack gap={6}>
+      <Title order={4} size="h6">
+        {title}
+      </Title>
+      <ul className="activity-list">{children}</ul>
+    </Stack>
+  );
+}
+
+function ActivityList({ now, building }: { now: Activity; building: boolean }) {
+  const { t, i18n } = useTranslation();
+  const queryClient = useQueryClient();
+  const live = useStreamingText();
+  const characters = useQuery({
+    queryKey: ["characters"],
+    queryFn: listCharacters,
+  });
+  const modelList = useQuery({
+    queryKey: ["models"],
+    queryFn: models,
+    enabled: now.download !== null,
+  });
+  const refresh = () =>
+    Promise.all(
+      [["activity"], ["writing"], ["review"], ["settings"]].map((queryKey) =>
+        queryClient.invalidateQueries({ queryKey }),
+      ),
+    );
+
+  const name = (id: number) => {
+    const found = characters.data?.find((c) => c.character.id === id);
+    return found ? displayName(found.character) : "";
+  };
+  const label = (job: Job) => {
+    const date = formatDay(job.startDay, i18n.language, true);
+    const when = job.kind === "week" ? t("writing.chapter", { date }) : date;
+    return `${name(job.characterId)} · ${when}`;
+  };
+
+  const running = now.jobs.filter((j) => j.state === "running");
+  const waiting = now.jobs.filter((j) => j.state === "pending");
+  const failed = now.jobs.filter((j) => j.state === "failed");
+  const nothing =
+    running.length + waiting.length + failed.length === 0 &&
+    !now.preview &&
+    !now.download &&
+    !building;
+  const words = live.text.split(/\s+/).filter(Boolean).length;
+  const download = now.download;
+  const percent = download
+    ? Math.floor((download.downloaded * 100) / Math.max(download.total, 1))
+    : 0;
+  const modelName =
+    modelList.data?.models.find((m) => m.id === download?.modelId)?.name ??
+    download?.modelId;
+
+  return (
+    <Stack gap="lg">
+      {now.blocked && (
+        <Text size="sm" className="note">
+          {problem(t, `writing.blocked.${now.blocked}` as Problem)}
+        </Text>
+      )}
+      {nothing && <Text size="sm">{t("activity.idle")}</Text>}
+
+      {(running.length > 0 || now.preview || download || building) && (
+        <Section title={t("activity.running")}>
+          {running.map((job) => (
+            <li key={`${job.characterId}|${slot(job.kind, job.startDay)}`}>
+              <Group justify="space-between" wrap="nowrap">
+                <Stack gap={0}>
+                  <Text size="sm">{label(job)}</Text>
+                  <Text size="xs" c="dimmed">
+                    {words > 0
+                      ? t("activity.words", { count: words })
+                      : t("activity.writing")}
+                  </Text>
+                </Stack>
+                <Button
+                  size="compact-xs"
+                  variant="subtle"
+                  color="red"
+                  onClick={() =>
+                    void cancelWriting(
+                      job.characterId,
+                      job.kind,
+                      job.startDay,
+                    ).then(refresh)
+                  }
+                >
+                  {t("activity.stop")}
+                </Button>
+              </Group>
+            </li>
+          ))}
+          {now.preview && (
+            <li>
+              <Group justify="space-between" wrap="nowrap">
+                <Stack gap={0}>
+                  <Text size="sm">
+                    {t("activity.preview", { narrator: now.preview.narrator })}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {now.preview.running
+                      ? t("activity.writing")
+                      : t("activity.previewWaiting")}
+                  </Text>
+                </Stack>
+                <Button
+                  size="compact-xs"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => void cancelPreview().then(refresh)}
+                >
+                  {t("activity.stop")}
+                </Button>
+              </Group>
+            </li>
+          )}
+          {download && (
+            <li>
+              <Group justify="space-between" wrap="nowrap">
+                <Stack gap={4} style={{ flex: 1 }}>
+                  <Text size="sm">
+                    {t("activity.download", { model: modelName })} · {percent}%
+                  </Text>
+                  <Progress value={percent} size="sm" />
+                </Stack>
+                <Button
+                  size="compact-xs"
+                  variant="subtle"
+                  color="red"
+                  onClick={() => void cancelDownload().then(refresh)}
+                >
+                  {t("activity.stop")}
+                </Button>
+              </Group>
+            </li>
+          )}
+          {building && (
+            <li>
+              <Text size="sm">{t("activity.site")}</Text>
+            </li>
+          )}
+        </Section>
+      )}
+
+      {waiting.length > 0 && (
+        <Section title={t("activity.waiting", { count: waiting.length })}>
+          {waiting.map((job) => (
+            <li key={`${job.characterId}|${slot(job.kind, job.startDay)}`}>
+              <Group justify="space-between" wrap="nowrap">
+                <Text size="sm">{label(job)}</Text>
+                <Text size="xs" c="dimmed">
+                  #{job.position ?? ""}
+                </Text>
+              </Group>
+            </li>
+          ))}
+        </Section>
+      )}
+
+      {failed.length > 0 && (
+        <Section title={t("activity.couldNotWrite", { count: failed.length })}>
+          {failed.map((job) => (
+            <li key={`${job.characterId}|${slot(job.kind, job.startDay)}`}>
+              <Group justify="space-between" wrap="nowrap">
+                <Stack gap={0}>
+                  <Text size="sm">{label(job)}</Text>
+                  <Text size="xs" c="dimmed">
+                    {problem(
+                      t,
+                      (job.lastError === "cancelled"
+                        ? "writing.reason.cancelled"
+                        : job.lastError === "timedOut"
+                          ? "writing.reason.timedOut"
+                          : "writing.reason.other") as Problem,
+                      { message: job.lastError ?? "" },
+                    )}
+                  </Text>
+                </Stack>
+                <Button
+                  size="compact-xs"
+                  variant="light"
+                  onClick={() =>
+                    void retryWriting(
+                      job.characterId,
+                      job.kind,
+                      job.startDay,
+                    ).then(refresh)
+                  }
+                >
+                  {t("activity.retry")}
+                </Button>
+              </Group>
+            </li>
+          ))}
+        </Section>
+      )}
+
+      <Button
+        variant="default"
+        size="xs"
+        onClick={() => void setWritingPaused(!now.paused).then(refresh)}
+      >
+        {now.paused ? t("activity.resume") : t("activity.pause")}
+      </Button>
+    </Stack>
+  );
+}

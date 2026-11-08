@@ -1,5 +1,6 @@
 import { convertFileSrc, invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import type { Activity } from "@/bindings/Activity";
 import type { AddonView } from "@/bindings/AddonView";
 import type { Alias } from "@/bindings/Alias";
 import type { AppInfo } from "@/bindings/AppInfo";
@@ -253,6 +254,11 @@ export function retryWriting(
   startDay: string,
 ): Promise<void> {
   return invoke<void>("retry_writing", { characterId, kind, startDay });
+}
+
+/** Everything the app is working on, for every character. */
+export function activity(): Promise<Activity> {
+  return invoke<Activity>("activity");
 }
 
 export function setWritingPaused(paused: boolean): Promise<void> {

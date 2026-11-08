@@ -82,6 +82,7 @@ fn main() {
             writing_commands::discard_draft,
             writing_commands::write_drafts,
             writing_commands::writing_status,
+            writing_commands::activity,
             writing_commands::write_now,
             writing_commands::write_so_far,
             writing_commands::cancel_writing,

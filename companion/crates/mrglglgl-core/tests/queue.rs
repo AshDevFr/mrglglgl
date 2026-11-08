@@ -787,3 +787,99 @@ fn an_entry_edited_by_hand_is_a_new_version_the_fact_check_does_not_vouch_for() 
     let so_far = save("So far.", StoryStatus::Accepted, CheckStatus::Passed, true);
     assert_eq!(stories::edit(&db, id, so_far, "Mine.").unwrap(), None);
 }
+
+#[test]
+fn every_characters_jobs_are_listed_in_the_order_they_run() {
+    let (db, wren) = setup();
+    let db = db.into_inner().unwrap();
+    let brakka = db
+        .upsert_character(
+            &CharacterSource {
+                flavor: "_forever_".into(),
+                account: "ACCOUNT1".into(),
+                realm_folder: "93".into(),
+                character_folder: "Brakka".into(),
+                journal_path: PathBuf::from("/wow/Brakka.lua"),
+            },
+            None,
+            None,
+        )
+        .unwrap();
+    archive::merge_snapshot(&db, brakka, &journal(), 1).unwrap();
+    queue::request(&db, wren, StoryKind::Day, DAYS[0], &Ask::default()).unwrap();
+    queue::request(&db, brakka, StoryKind::Day, DAYS[1], &Ask::default()).unwrap();
+
+    let all = queue::all_jobs(&db).unwrap();
+    let who: Vec<(i64, Option<u32>)> = all.iter().map(|j| (j.character_id, j.position)).collect();
+    assert_eq!(who, vec![(wren, Some(1)), (brakka, Some(2))]);
+    // A character's own list keeps the shared positions.
+    assert_eq!(queue::jobs(&db, brakka).unwrap()[0].position, Some(2));
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_preview_waiting_for_its_turn_shows_and_can_be_stopped() {
+    let (db, id) = setup();
+    let db = Arc::new(db);
+    queue::request(
+        &db.lock().unwrap(),
+        id,
+        StoryKind::Day,
+        DAYS[0],
+        &Ask::default(),
+    )
+    .unwrap();
+    let slow = "word ".repeat(100);
+    let provider = Arc::new(
+        FakeProvider::new([slow.as_str()]).with_pace(Pace::PerWord(Duration::from_millis(20))),
+    );
+    let control = Arc::new(Control::new(false));
+
+    // An entry takes the writer.
+    let (entry_db, entry_provider, entry_control) = (db.clone(), provider.clone(), control.clone());
+    let entry = tokio::spawn(async move {
+        run_next(
+            &entry_db,
+            entry_provider.as_ref(),
+            &entry_control,
+            "en",
+            &|_| {},
+        )
+        .await
+    });
+    while control.current().is_none() {
+        tokio::time::sleep(Duration::from_millis(5)).await;
+    }
+
+    // A preview asked meanwhile waits, and says so.
+    let (preview_db, preview_provider, preview_control) =
+        (db.clone(), provider.clone(), control.clone());
+    let preview = tokio::spawn(async move {
+        queue::preview(
+            &preview_db,
+            preview_provider.as_ref(),
+            &preview_control,
+            "en",
+            &heron(),
+            &PreviewDay::Sample,
+            &|_| {},
+        )
+        .await
+    });
+    while control.preview_status().is_none() {
+        tokio::time::sleep(Duration::from_millis(5)).await;
+    }
+    let status = control.preview_status().unwrap();
+    assert!(!status.running);
+    assert_eq!(status.narrator, heron().name);
+
+    // Stopping it does not wait for the entry to finish.
+    assert!(control.cancel_preview());
+    let result = tokio::time::timeout(Duration::from_millis(500), preview)
+        .await
+        .expect("a waiting preview stops at once")
+        .unwrap()
+        .unwrap();
+    assert_eq!(result, WriteResult::Cancelled);
+    assert!(control.preview_status().is_none());
+    entry.await.unwrap().unwrap();
+}

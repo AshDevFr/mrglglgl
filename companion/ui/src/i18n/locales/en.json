@@ -1063,5 +1063,24 @@
     "noSpaceNext": "Free some disk space, then press Resume download: it continues where it stopped.",
     "appTooOld": "this version of the addon needs a newer version of the app",
     "appTooOldNext": "Update the app, then try again."
+  },
+  "activity": {
+    "title": "Activity",
+    "count": "Activity ({{count}})",
+    "idle": "Nothing is running. Entries are written here, one at a time, as days finish.",
+    "running": "Running",
+    "waiting": "Waiting ({{count}})",
+    "couldNotWrite": "Could not be written ({{count}})",
+    "writing": "Writing…",
+    "words_one": "Writing… {{count}} word so far",
+    "words_other": "Writing… {{count}} words so far",
+    "preview": "Preview by {{narrator}}",
+    "previewWaiting": "Waits for the entry being written, then goes first.",
+    "download": "Downloading {{model}}",
+    "site": "Rebuilding the website",
+    "stop": "Stop",
+    "retry": "Try again",
+    "pause": "Pause writing",
+    "resume": "Resume writing"
   }
 }

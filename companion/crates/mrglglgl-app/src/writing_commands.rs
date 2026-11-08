@@ -3,11 +3,11 @@
 use std::path::{Path, PathBuf};
 
 use mrglglgl_core::archive;
-use mrglglgl_core::db::ProviderChoice;
+use mrglglgl_core::db::{ProviderChoice, Settings};
 use mrglglgl_core::discovery::{self, DiscoveryOverrides};
 use mrglglgl_core::export;
 use mrglglgl_core::narrators::{self, Invalid, Narrator, NarratorError, NarratorInfo};
-use mrglglgl_core::queue::{self, Job, PreviewDay};
+use mrglglgl_core::queue::{self, Job, JobState, PreviewDay, PreviewStatus};
 use mrglglgl_core::review::{self, ReviewItem};
 use mrglglgl_core::stories::{self, Story, StoryKind};
 use mrglglgl_core::writer::{CheckStatus, StreamEvent, WriteResult};
@@ -177,32 +177,74 @@ pub fn writing_status(
     let settings = db.settings().map_err(|e| e.to_string())?;
     let jobs = queue::jobs(&db, character_id).map_err(|e| e.to_string())?;
     drop(db);
+    let blocked = blocked(&state, &settings, !jobs.is_empty());
+    Ok(WritingStatus {
+        paused: settings.writing.paused,
+        current: state.control.current(),
+        jobs,
+        blocked: blocked.map(str::to_string),
+    })
+}
+
+/// Why nothing is being written, if something stands in the way. Waiting for the game to close
+/// or for the charger only counts when something waits to be written.
+fn blocked(state: &AppState, settings: &Settings, waiting: bool) -> Option<&'static str> {
     let ready = match settings.writing.provider {
         ProviderChoice::Local => {
-            writing::chosen_model(&writing::catalogue(&state.data_dir), &settings)
+            writing::chosen_model(&writing::catalogue(&state.data_dir), settings)
                 .is_some_and(|m| m.installed(&writing::models_dir(&state.data_dir)))
         }
-        ProviderChoice::Endpoint => writing::endpoint_config(&settings).is_some(),
+        ProviderChoice::Endpoint => writing::endpoint_config(settings).is_some(),
     };
-    let blocked = if settings.writing.paused {
+    if settings.writing.paused {
         Some("paused")
     } else if !ready {
         Some(match settings.writing.provider {
             ProviderChoice::Local => "noModel",
             ProviderChoice::Endpoint => "noEndpoint",
         })
-    } else if !settings.writing.write_while_playing && !jobs.is_empty() && writing::game_running() {
+    } else if !settings.writing.write_while_playing && waiting && writing::game_running() {
         Some("gameRunning")
-    } else if !settings.writing.write_on_battery && !jobs.is_empty() && crate::power::on_battery() {
+    } else if !settings.writing.write_on_battery && waiting && crate::power::on_battery() {
         Some("onBattery")
     } else {
         None
-    };
-    Ok(WritingStatus {
+    }
+}
+
+/// Everything the app is working on, for every character: the entry being written, what waits
+/// and what failed, a narrator preview, and a model download.
+#[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct Activity {
+    pub paused: bool,
+    /// Why nothing is being written, as in [`WritingStatus`].
+    pub blocked: Option<String>,
+    /// Every character's jobs: the one running, those waiting in order, then those that failed.
+    pub jobs: Vec<Job>,
+    pub preview: Option<PreviewStatus>,
+    pub download: Option<DownloadProgress>,
+}
+
+#[tauri::command]
+pub fn activity(state: State<'_, AppState>) -> Result<Activity, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let settings = db.settings().map_err(|e| e.to_string())?;
+    let jobs = queue::all_jobs(&db).map_err(|e| e.to_string())?;
+    drop(db);
+    let waiting = jobs.iter().any(|j| j.state != JobState::Failed);
+    Ok(Activity {
         paused: settings.writing.paused,
-        current: state.control.current(),
+        blocked: blocked(&state, &settings, waiting).map(str::to_string),
         jobs,
-        blocked: blocked.map(str::to_string),
+        preview: state.control.preview_status(),
+        download: state
+            .download
+            .lock()
+            .map_err(|e| e.to_string())?
+            .as_ref()
+            .map(|(progress, _)| progress.clone()),
     })
 }
 
@@ -631,7 +673,12 @@ pub async fn download_model(
         .cloned()
         .ok_or_else(|| format!("no model called {model_id}"))?;
     let cancel = CancellationToken::new();
-    *state.download.lock().map_err(|e| e.to_string())? = Some(cancel.clone());
+    let started = DownloadProgress {
+        model_id: model_id.clone(),
+        downloaded: entry.partial_bytes(&writing::models_dir(&state.data_dir)),
+        total: entry.size_bytes,
+    };
+    *state.download.lock().map_err(|e| e.to_string())? = Some((started, cancel.clone()));
     let (_, free) = machine(&state.data_dir);
     let mut last_percent = u64::MAX;
     let result = catalogue::download(
@@ -645,14 +692,17 @@ pub async fn download_model(
             let percent = p.downloaded * 1000 / p.total.max(1);
             if percent != last_percent {
                 last_percent = percent;
-                let _ = app.emit(
-                    MODEL_DOWNLOAD,
-                    DownloadProgress {
-                        model_id: model_id.clone(),
-                        downloaded: p.downloaded,
-                        total: p.total,
-                    },
-                );
+                let progress = DownloadProgress {
+                    model_id: model_id.clone(),
+                    downloaded: p.downloaded,
+                    total: p.total,
+                };
+                if let Ok(mut current) = state.download.lock()
+                    && let Some((shown, _)) = current.as_mut()
+                {
+                    *shown = progress.clone();
+                }
+                let _ = app.emit(MODEL_DOWNLOAD, progress);
             }
         },
     )
@@ -665,7 +715,7 @@ pub async fn download_model(
 
 #[tauri::command]
 pub fn cancel_download(state: State<'_, AppState>) {
-    if let Ok(Some(token)) = state.download.lock().map(|d| d.clone()) {
+    if let Ok(Some((_, token))) = state.download.lock().map(|d| d.clone()) {
         token.cancel();
     }
 }
@@ -745,7 +795,7 @@ pub fn default_export_folder() -> Option<String> {
 /// Mrglglgl.lua`), wherever it was found. Exports and the website are never written inside any.
 /// Never the filesystem root, which would refuse every folder.
 pub(crate) fn game_folders<'a>(
-    settings: &mrglglgl_core::db::Settings,
+    settings: &Settings,
     journals: impl IntoIterator<Item = &'a Path>,
 ) -> Vec<std::path::PathBuf> {
     let mut folders: Vec<std::path::PathBuf> = discovery::discover(&DiscoveryOverrides {

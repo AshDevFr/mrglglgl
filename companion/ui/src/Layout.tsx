@@ -20,6 +20,7 @@ import {
   onWriting,
   syncNow,
 } from "@/api/commands";
+import { ActivityPanel } from "@/components/ActivityPanel";
 import { CharacterTree } from "@/components/CharacterTree";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { scheduleRebuild } from "@/lib/siteBuild";
@@ -133,6 +134,7 @@ export function Layout() {
             }
             onClick={() => navigate({ to: "/review" })}
           />
+          <ActivityPanel />
           <NavLink
             component="button"
             label={t("nav.syncNow")}

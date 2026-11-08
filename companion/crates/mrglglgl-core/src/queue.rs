@@ -344,6 +344,14 @@ fn set_aside(db: &Database, job: &Job, reason: &str) -> Result<(), DbError> {
 
 /// A character's jobs, in the order they will run, failed ones last.
 pub fn jobs(db: &Database, character_id: i64) -> Result<Vec<Job>, DbError> {
+    Ok(all_jobs(db)?
+        .into_iter()
+        .filter(|job| job.character_id == character_id)
+        .collect())
+}
+
+/// Every character's jobs, in the order they will run, failed ones last.
+pub fn all_jobs(db: &Database) -> Result<Vec<Job>, DbError> {
     let mut stmt = db.conn().prepare(&format!(
         "SELECT {JOB_COLUMNS} FROM write_queue
          ORDER BY state = 'failed', state != 'running', {ORDER}"
@@ -360,7 +368,6 @@ pub fn jobs(db: &Database, character_id: i64) -> Result<Vec<Job>, DbError> {
             }
             job
         })
-        .filter(|job| job.character_id == character_id)
         .collect())
 }
 
@@ -401,6 +408,17 @@ pub enum QueueEvent {
     },
 }
 
+/// A narrator preview the player asked for.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewStatus {
+    /// The narrator's name, as the player sees it.
+    pub narrator: String,
+    /// It has its turn; until then it waits for the entry being written.
+    pub running: bool,
+}
+
 /// Shared between the writer loop and the commands that steer it.
 #[derive(Default)]
 pub struct Control {
@@ -410,8 +428,8 @@ pub struct Control {
     /// Taken for every generation, entry or preview: one model, one writer at a time. A preview
     /// waits for the entry being written, then goes before the next one.
     writer: tokio::sync::Mutex<()>,
-    /// The preview being written, to cancel it.
-    preview: Mutex<Option<CancellationToken>>,
+    /// The preview asked for, waiting or being written, and how to stop it.
+    preview: Mutex<Option<(PreviewStatus, CancellationToken)>>,
     wake: Notify,
     current: Mutex<Option<(Job, CancellationToken)>>,
 }
@@ -468,10 +486,19 @@ impl Control {
             .map(|(job, _)| job.clone())
     }
 
-    /// Stops the preview being written, if any. Returns whether there was one.
+    /// The preview asked for, if any: waiting for its turn or being written.
+    pub fn preview_status(&self) -> Option<PreviewStatus> {
+        self.preview
+            .lock()
+            .unwrap()
+            .as_ref()
+            .map(|(status, _)| status.clone())
+    }
+
+    /// Stops the preview asked for, waiting or being written. Returns whether there was one.
     pub fn cancel_preview(&self) -> bool {
         match self.preview.lock().unwrap().as_ref() {
-            Some(token) => {
+            Some((_, token)) => {
                 token.cancel();
                 true
             }
@@ -871,9 +898,24 @@ pub async fn preview(
         (prompt, language, allowed)
     };
 
-    let _turn = control.writer.lock().await;
     let cancel = CancellationToken::new();
-    *control.preview.lock().unwrap() = Some(cancel.clone());
+    *control.preview.lock().unwrap() = Some((
+        PreviewStatus {
+            narrator: narrator.name.clone(),
+            running: false,
+        },
+        cancel.clone(),
+    ));
+    // However the preview ends, it is no longer asked for.
+    let _asked = PreviewAsked(control);
+    // The player may stop it while it still waits for the entry being written.
+    let _turn = tokio::select! {
+        turn = control.writer.lock() => turn,
+        () = cancel.cancelled() => return Ok(WriteResult::Cancelled),
+    };
+    if let Some((status, _)) = control.preview.lock().unwrap().as_mut() {
+        status.running = true;
+    }
     let options = WriteOptions {
         language,
         max_tokens: prompt::tokens_for(prompt.words),
@@ -897,6 +939,14 @@ pub async fn preview(
         result
     };
     let (result, ()) = tokio::join!(write, forward);
-    *control.preview.lock().unwrap() = None;
     result.map_err(|e| plain(&e))
+}
+
+/// Clears the preview from [`Control`] when it ends, however it ends.
+struct PreviewAsked<'a>(&'a Control);
+
+impl Drop for PreviewAsked<'_> {
+    fn drop(&mut self) {
+        *self.0.preview.lock().unwrap() = None;
+    }
 }

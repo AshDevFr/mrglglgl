@@ -1063,5 +1063,24 @@
     "noSpaceNext": "Libère de la place sur le disque, puis appuie sur Reprendre le téléchargement : il continue là où il s'est arrêté.",
     "appTooOld": "cette version de l'addon demande une version plus récente de l'app",
     "appTooOldNext": "Mets l'app à jour, puis réessaie."
+  },
+  "activity": {
+    "title": "Activité",
+    "count": "Activité ({{count}})",
+    "idle": "Rien en cours. Les entrées s'écrivent ici, une à la fois, à mesure que les journées se terminent.",
+    "running": "En cours",
+    "waiting": "En attente ({{count}})",
+    "couldNotWrite": "Pas pu être écrites ({{count}})",
+    "writing": "Écriture…",
+    "words_one": "Écriture… {{count}} mot pour l'instant",
+    "words_other": "Écriture… {{count}} mots pour l'instant",
+    "preview": "Aperçu par {{narrator}}",
+    "previewWaiting": "Attend la fin de l'entrée en cours, puis passe en premier.",
+    "download": "Téléchargement de {{model}}",
+    "site": "Reconstruction du site",
+    "stop": "Arrêter",
+    "retry": "Réessayer",
+    "pause": "Mettre l'écriture en pause",
+    "resume": "Reprendre l'écriture"
   }
 }
