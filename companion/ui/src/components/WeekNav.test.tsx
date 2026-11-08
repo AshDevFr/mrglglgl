@@ -79,6 +79,16 @@ describe("WeekNav", () => {
     expect(onSelect).toHaveBeenLastCalledWith("2026-11-10");
   });
 
+  it("goes no further than the week holding today", () => {
+    renderNav("2026-11-12", "2026-11-12");
+    expect(screen.getByRole("button", { name: "Next week" })).toBeDisabled();
+    // A week back, the next one is there to return to.
+    renderNav("2026-11-05", "2026-11-12");
+    expect(
+      screen.getAllByRole("button", { name: "Next week" }).at(-1),
+    ).not.toBeDisabled();
+  });
+
   it("jumps to today and marks it", () => {
     const onSelect = renderNav("2026-11-10", "2026-11-12");
     const today = screen.getByRole("button", {

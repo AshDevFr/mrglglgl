@@ -2,7 +2,7 @@ import { Button, Group, Stack, Text } from "@mantine/core";
 import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { parseDay } from "@/lib/format";
-import { shiftWeek, weekDays } from "@/lib/weeks";
+import { shiftWeek, weekDays, weekStart } from "@/lib/weeks";
 
 interface Props {
   /** The day on screen, "YYYY-MM-DD". */
@@ -28,6 +28,8 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
     ),
   });
   const weekday = new Intl.DateTimeFormat(i18n.language, { weekday: "short" });
+  // Nothing is written ahead of today: the week holding it is as far as there is to go.
+  const inThisWeek = weekStart(selected) >= weekStart(today);
 
   // Arrow keys step through the days that can be opened; Home and End jump to the ends.
   function onDayKey(e: KeyboardEvent<HTMLButtonElement>) {
@@ -70,6 +72,7 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
           <Button
             variant="subtle"
             color="gray"
+            disabled={inThisWeek}
             onClick={() => onSelect(shiftWeek(selected, 1, written))}
           >
             {t("week.next")}
