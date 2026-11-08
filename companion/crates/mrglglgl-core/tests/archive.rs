@@ -782,3 +782,40 @@ fn the_addons_notes_are_read_without_the_days() {
     assert!(heartbeat.is_some(), "the sample journal notes its addon");
     assert_eq!(archive::addon_notes(&db, id + 1).unwrap(), (None, None));
 }
+
+#[test]
+fn the_current_level_is_the_newest_days_highest() {
+    use mrglglgl_core::schema::{Event, EventKind};
+    let db = Database::open_in_memory().unwrap();
+    let id = db
+        .upsert_character(&source(Path::new("/wow"), "Wren-Hollowbrook"), None, None)
+        .unwrap();
+    assert_eq!(archive::current_level(&db, id).unwrap(), None);
+
+    let mut journal = synthetic();
+    let newest = journal.days.keys().last().unwrap().clone();
+    let event = |time, level| Event {
+        time,
+        zone: None,
+        subzone: None,
+        map_id: None,
+        level: Some(level),
+        balance: None,
+        kind: EventKind::Level,
+    };
+    // The logout can carry the level from before the session's level-ups.
+    journal.days.get_mut(&newest).unwrap().events =
+        Some(vec![event(1, 5), event(2, 7), event(3, 6)]);
+    merge_snapshot(&db, id, &journal, 100).unwrap();
+    assert_eq!(archive::current_level(&db, id).unwrap(), Some(7));
+
+    // A day that only ever arrived compacted keeps its level in the digest.
+    let penny = db
+        .upsert_character(&source(Path::new("/wow"), "Penny"), None, None)
+        .unwrap();
+    let day = journal.days.get_mut(&newest).unwrap();
+    day.events = None;
+    day.digest.get_or_insert_with(Default::default).level_to = Some(8);
+    merge_snapshot(&db, penny, &journal, 100).unwrap();
+    assert_eq!(archive::current_level(&db, penny).unwrap(), Some(8));
+}

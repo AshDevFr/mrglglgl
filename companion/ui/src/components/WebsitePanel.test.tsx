@@ -17,6 +17,7 @@ const api = vi.hoisted(() => ({
       archived: false,
       milestones: 0,
       toReview: 0,
+      level: null,
     },
     {
       character: {
@@ -28,6 +29,7 @@ const api = vi.hoisted(() => ({
       archived: false,
       milestones: 0,
       toReview: 0,
+      level: null,
     },
   ]),
 }));

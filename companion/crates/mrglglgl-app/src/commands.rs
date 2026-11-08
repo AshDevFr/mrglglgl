@@ -43,6 +43,8 @@ pub struct CharacterSummary {
     pub milestones: u32,
     /// Days and weeks with a draft waiting for the player.
     pub to_review: u32,
+    /// The character's level now, from the newest days of its journal.
+    pub level: Option<i64>,
 }
 
 #[tauri::command]
@@ -57,10 +59,13 @@ pub fn list_characters(state: State<'_, AppState>) -> Result<Vec<CharacterSummar
                 .len() as u32;
             let to_review = mrglglgl_core::review::waiting(&db, character.id)
                 .map_err(|e| e.to_string())? as u32;
+            let level = mrglglgl_core::archive::current_level(&db, character.id)
+                .map_err(|e| e.to_string())?;
             Ok(CharacterSummary {
                 archived: !character.journal_path.is_file(),
                 milestones,
                 to_review,
+                level,
                 character,
             })
         })

@@ -57,7 +57,24 @@
     "removeConfirm": "Remove",
     "cancel": "Cancel",
     "noDays": "No days recorded yet.",
-    "compacted": "Summary only: the game kept the details for a few days and the app saw only this summary."
+    "compacted": "Summary only: the game kept the details for a few days and the app saw only this summary.",
+    "line": "Level {{level}} {{who}}",
+    "lineNoLevel": "{{who}}",
+    "classes": {
+      "warrior": "Warrior",
+      "paladin": "Paladin",
+      "hunter": "Hunter",
+      "rogue": "Rogue",
+      "priest": "Priest",
+      "shaman": "Shaman",
+      "mage": "Mage",
+      "warlock": "Warlock",
+      "druid": "Druid",
+      "deathknight": "Death Knight",
+      "monk": "Monk",
+      "demonhunter": "Demon Hunter",
+      "evoker": "Evoker"
+    }
   },
   "week": {
     "previous": "Previous week",

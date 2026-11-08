@@ -148,6 +148,7 @@ describe("keyboard", () => {
             archived: false,
             milestones: syntheticAwards.length,
             toReview: 0,
+            level: null,
             character: {
               id: 1,
               flavor: "_forever_",

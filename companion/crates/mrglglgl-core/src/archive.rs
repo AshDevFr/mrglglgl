@@ -566,6 +566,35 @@ pub fn load_for(
     Ok(load(db, character_id)?.map(|j| crate::usage::strip(&j, &hidden)))
 }
 
+/// Days read, newest first, looking for a level: a character's recent days nearly always carry
+/// one, and the whole archive is too much to read for a list of characters.
+const LEVEL_DAYS: i64 = 30;
+
+/// The character's level now: the newest day's highest level, or that day's digest when the
+/// addon compacted it. A level never goes down, but the game can stamp the logout with the level
+/// from before the session's level-ups, so the day's highest is the current one. Reads only the
+/// latest days, not the whole journal.
+pub fn current_level(db: &Database, character_id: i64) -> Result<Option<i64>, ArchiveError> {
+    let mut stmt = db.conn().prepare(
+        "SELECT data_json, format FROM archive_days WHERE character_id = ?1
+         ORDER BY day DESC LIMIT ?2",
+    )?;
+    let rows = stmt.query_map(rusqlite::params![character_id, LEVEL_DAYS], |row| {
+        Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+    })?;
+    for row in rows {
+        let (json, format) = row?;
+        let Some(day) = read_row::<Day>(&json, format) else {
+            continue;
+        };
+        let highest = day.events.iter().flatten().filter_map(|e| e.level).max();
+        if let Some(level) = highest.or(day.digest.and_then(|d| d.level_to)) {
+            return Ok(Some(level));
+        }
+    }
+    Ok(None)
+}
+
 /// What the addon last noted in a character's journal: its login heartbeat and the errors it
 /// caught. Reads the journal's record only, not its days.
 pub fn addon_notes(

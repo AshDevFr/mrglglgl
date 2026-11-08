@@ -43,6 +43,7 @@ export const characters: CharacterSummary[] = [
     archived: false,
     milestones: syntheticAwards.length,
     toReview: 0,
+    level: 12,
   },
 ];
 

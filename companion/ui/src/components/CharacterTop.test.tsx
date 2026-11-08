@@ -17,6 +17,7 @@ vi.mock("@/api/commands", () => ({
       archived: false,
       milestones: 6,
       toReview: 2,
+      level: null,
     },
   ],
   characterJournal: async () => syntheticJournal,

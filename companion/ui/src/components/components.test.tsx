@@ -20,6 +20,7 @@ const wren: CharacterSummary = {
   archived: false,
   milestones: 2,
   toReview: 0,
+  level: 12,
   character: {
     id: 1,
     flavor: "_forever_",
@@ -67,6 +68,33 @@ describe("CharacterTree", () => {
     expect(screen.getByText("Archived")).toBeInTheDocument();
     fireEvent.click(screen.getByText("Tamsin Reedwater"));
     expect(onSelect).toHaveBeenCalledWith(2);
+  });
+});
+
+describe("CharacterTree details", () => {
+  it("says each character's level, race and class", () => {
+    const unknown: CharacterSummary = {
+      ...wren,
+      level: null,
+      character: {
+        ...wren.character,
+        id: 3,
+        name: "Ash",
+        surname: null,
+        race: "Troll",
+        class: "EVOKERISH",
+      },
+    };
+    renderWithProviders(
+      <CharacterTree
+        characters={[wren, unknown]}
+        selectedId={1}
+        onSelect={() => {}}
+      />,
+    );
+    expect(screen.getByText("Level 12 Tauren Hunter")).toBeInTheDocument();
+    // No level read yet, and a class the app does not know: its token, made readable.
+    expect(screen.getByText("Troll Evokerish")).toBeInTheDocument();
   });
 });
 

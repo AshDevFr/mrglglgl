@@ -57,7 +57,24 @@
     "removeConfirm": "Retirer",
     "cancel": "Annuler",
     "noDays": "Aucune journée enregistrée pour le moment.",
-    "compacted": "Résumé seulement : le jeu n'a gardé les détails que quelques jours et l'application n'a vu que ce résumé."
+    "compacted": "Résumé seulement : le jeu n'a gardé les détails que quelques jours et l'application n'a vu que ce résumé.",
+    "line": "{{who}}, niveau {{level}}",
+    "lineNoLevel": "{{who}}",
+    "classes": {
+      "warrior": "guerrier",
+      "paladin": "paladin",
+      "hunter": "chasseur",
+      "rogue": "voleur",
+      "priest": "prêtre",
+      "shaman": "chaman",
+      "mage": "mage",
+      "warlock": "démoniste",
+      "druid": "druide",
+      "deathknight": "chevalier de la mort",
+      "monk": "moine",
+      "demonhunter": "chasseur de démons",
+      "evoker": "évocateur"
+    }
   },
   "week": {
     "previous": "Précédente",

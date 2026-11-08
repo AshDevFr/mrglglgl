@@ -9,4 +9,8 @@ archived: boolean, milestones: number,
 /**
  * Days and weeks with a draft waiting for the player.
  */
-toReview: number, };
+toReview: number, 
+/**
+ * The character's level now, from the newest days of its journal.
+ */
+level: number | null, };

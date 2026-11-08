@@ -2,7 +2,7 @@ import { Badge, Group, NavLink, Stack, Text } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import { formatTime } from "@/lib/format";
-import { displayName, groupCharacters } from "@/lib/journal";
+import { characterLine, displayName, groupCharacters } from "@/lib/journal";
 
 interface Props {
   characters: CharacterSummary[];
@@ -27,47 +27,63 @@ export function CharacterTree({ characters, selectedId, onSelect }: Props) {
               label={realm.realm}
               defaultOpened
             >
-              {realm.characters.map(({ character, archived, toReview }) => (
-                <NavLink
-                  component="button"
-                  key={character.id}
-                  active={character.id === selectedId}
-                  onClick={() => onSelect(character.id)}
-                  label={
-                    <Group gap={6}>
-                      <span>{displayName(character)}</span>
-                      {toReview > 0 && (
-                        <Badge
-                          size="xs"
-                          color="teal"
-                          title={t("review.draftsWaiting", { count: toReview })}
-                          aria-label={t("review.draftsWaiting", {
-                            count: toReview,
-                          })}
-                        >
-                          {toReview}
-                        </Badge>
-                      )}
-                      {archived && (
-                        <Badge
-                          size="xs"
-                          variant="light"
-                          title={t("sync.archivedHelp")}
-                        >
-                          {t("sync.archived")}
-                        </Badge>
-                      )}
-                    </Group>
-                  }
-                  description={
-                    character.lastSynced === null
-                      ? t("sync.neverSynced")
-                      : t("sync.lastSynced", {
-                          when: formatTime(character.lastSynced, i18n.language),
-                        })
-                  }
-                />
-              ))}
+              {realm.characters.map(
+                ({ character, archived, toReview, level }) => (
+                  <NavLink
+                    component="button"
+                    key={character.id}
+                    active={character.id === selectedId}
+                    onClick={() => onSelect(character.id)}
+                    label={
+                      <Group gap={6}>
+                        <span>{displayName(character)}</span>
+                        {toReview > 0 && (
+                          <Badge
+                            size="xs"
+                            color="teal"
+                            title={t("review.draftsWaiting", {
+                              count: toReview,
+                            })}
+                            aria-label={t("review.draftsWaiting", {
+                              count: toReview,
+                            })}
+                          >
+                            {toReview}
+                          </Badge>
+                        )}
+                        {archived && (
+                          <Badge
+                            size="xs"
+                            variant="light"
+                            title={t("sync.archivedHelp")}
+                          >
+                            {t("sync.archived")}
+                          </Badge>
+                        )}
+                      </Group>
+                    }
+                    description={
+                      <>
+                        {characterLine(t, character, level) && (
+                          <span style={{ display: "block" }}>
+                            {characterLine(t, character, level)}
+                          </span>
+                        )}
+                        <span style={{ display: "block" }}>
+                          {character.lastSynced === null
+                            ? t("sync.neverSynced")
+                            : t("sync.lastSynced", {
+                                when: formatTime(
+                                  character.lastSynced,
+                                  i18n.language,
+                                ),
+                              })}
+                        </span>
+                      </>
+                    }
+                  />
+                ),
+              )}
             </NavLink>
           ))}
         </div>
