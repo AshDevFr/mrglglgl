@@ -18,8 +18,13 @@ use crate::milestones::{self, Award};
 use crate::narrators::Narrator;
 use crate::schema::Journal;
 
-/// Words a day entry aims for.
+/// Words a day entry aims for on a light day.
 pub const DAY_WORDS: u32 = 120;
+/// Words a day entry aims for at most, however full the day: small local models repeat
+/// themselves more the longer they write.
+pub const DAY_WORDS_MAX: u32 = 400;
+/// Words of notes a light day holds; a day with more asks for a longer entry.
+const LIGHT_DAY_NOTES: usize = 60;
 /// Words a weekly chapter aims for.
 pub const WEEK_WORDS: u32 = 250;
 /// Earlier days remembered in a day prompt.
@@ -28,6 +33,31 @@ const MEMORY_DAYS: usize = 2;
 const MEMORY_BEATS: usize = 3;
 /// Quest text beyond this is cut, to keep small models' context for the day itself.
 const QUEST_TEXT_CHARS: usize = 500;
+
+/// The words a day entry aims for, from the words in its notes: a long session leaves long notes
+/// and earns a longer entry, half a word of entry for each word of notes past a light day's, to
+/// [`DAY_WORDS_MAX`]. Rounded to ten, as the prompt says it.
+pub fn day_words(notes_words: usize) -> u32 {
+    let extra = notes_words.saturating_sub(LIGHT_DAY_NOTES) / 2;
+    let words = (DAY_WORDS as usize + extra).min(DAY_WORDS_MAX as usize) as u32;
+    words / 10 * 10
+}
+
+/// Tokens a model may spend on an entry of `words`: about three per word, which covers French,
+/// the margin note and a reasoning model's thinking.
+pub fn tokens_for(words: u32) -> u32 {
+    (words * 10).div_ceil(3)
+}
+
+/// How an entry of `words` is laid out.
+fn day_length(words: u32) -> String {
+    let paragraphs = match words {
+        ..=160 => "One or two short paragraphs",
+        161..=280 => "Two or three paragraphs",
+        _ => "Three or four paragraphs",
+    };
+    format!("{paragraphs}, about {words} words")
+}
 
 /// How often the murloc asks for a margin note.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -191,6 +221,8 @@ pub struct Prompt {
     pub meddling: bool,
     /// Companions sent under stand-in names, if any.
     pub aliases: Vec<Alias>,
+    /// The words the entry aims for.
+    pub words: u32,
 }
 
 impl Prompt {
@@ -201,6 +233,7 @@ impl Prompt {
         names: &[String],
         pseudonyms: bool,
         note: &str,
+        words: u32,
     ) -> Self {
         let present: Vec<String> = names
             .iter()
@@ -231,6 +264,7 @@ impl Prompt {
             user,
             meddling,
             aliases,
+            words,
         }
     }
 }
@@ -315,13 +349,10 @@ fn system(
     meddling: bool,
     kind: Kind,
     preferences: Option<&str>,
+    words: u32,
 ) -> String {
     let (events, when, length) = match kind {
-        Kind::Day => (
-            "What happened today",
-            "today",
-            format!("One or two short paragraphs, about {DAY_WORDS} words"),
-        ),
+        Kind::Day => ("What happened today", "today", day_length(words)),
         Kind::Week => (
             "The week, day by day",
             "this week",
@@ -546,6 +577,8 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
     .collect();
     let hints = hint_lines(r.narrator, &patterns);
     let level = record.level_from.zip(record.level_to);
+    let notes = day_beats.texts_in(r.language);
+    let words = day_words(notes.iter().map(|t| t.split_whitespace().count()).sum());
 
     let mut user = format!(
         "Notes for {date}.\n\n{adventurer}\n\n\
@@ -553,7 +586,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
          Patterns of the day: {patterns}\n",
         date = dated(r.day),
         adventurer = adventurer(r.journal, level),
-        beats = bullets(&day_beats.texts_in(r.language)),
+        beats = bullets(&notes),
         patterns = if patterns.is_empty() {
             "none".to_string()
         } else {
@@ -570,7 +603,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         "\nMilestones stamped today: {milestones}\n\n\
          Quests touched today:\n{quests}\n\n\
          Earlier days (memory only, not today):\n{memory}\n\n\
-         {note}Write today's entry in {language}, about {DAY_WORDS} words.",
+         {note}Write today's entry in {language}, about {words} words.",
         milestones = if milestones_today.is_empty() {
             "none".to_string()
         } else {
@@ -583,12 +616,20 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
     ));
 
     Prompt::new(
-        system(r.narrator, r.language, meddling, Kind::Day, r.preferences),
+        system(
+            r.narrator,
+            r.language,
+            meddling,
+            Kind::Day,
+            r.preferences,
+            words,
+        ),
         user,
         meddling,
         &companion_names(&[&record], &sheet),
         r.pseudonyms,
         &note_line(r.note),
+        words,
     )
 }
 
@@ -699,12 +740,20 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
     );
     let record_refs: Vec<&DayRecord> = records.iter().collect();
     Prompt::new(
-        system(r.narrator, r.language, meddling, Kind::Week, r.preferences),
+        system(
+            r.narrator,
+            r.language,
+            meddling,
+            Kind::Week,
+            r.preferences,
+            WEEK_WORDS,
+        ),
         user,
         meddling,
         &companion_names(&record_refs, &sheet),
         r.pseudonyms,
         &note_line(r.note),
+        WEEK_WORDS,
     )
 }
 
@@ -726,5 +775,6 @@ pub fn rewrite_prompt(original: &Prompt, entry: &str, claims: &[String]) -> Prom
         facts: original.facts.clone(),
         meddling: original.meddling,
         aliases: original.aliases.clone(),
+        words: original.words,
     }
 }

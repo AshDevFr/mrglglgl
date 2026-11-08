@@ -36,8 +36,6 @@ use crate::writer::{self, StreamEvent, WriteOptions, WriteResult};
 pub const MAX_ATTEMPTS: i64 = 3;
 /// The pause before the first retry; each later one is four times longer.
 pub const FIRST_BACKOFF_SECS: i64 = 30;
-/// Tokens a day entry may use: about 120 words, a margin note, and room to spare.
-const DAY_TOKENS: u32 = 400;
 /// Tokens a weekly chapter may use.
 const WEEK_TOKENS: u32 = 800;
 
@@ -667,7 +665,7 @@ pub async fn run_next(
     let options = WriteOptions {
         language: prepared.language.clone(),
         max_tokens: match kind {
-            StoryKind::Day => DAY_TOKENS,
+            StoryKind::Day => prompt::tokens_for(prepared.prompt.words),
             StoryKind::Week => WEEK_TOKENS,
         },
         temperature: DEFAULT_TEMPERATURE,
@@ -878,7 +876,7 @@ pub async fn preview(
     *control.preview.lock().unwrap() = Some(cancel.clone());
     let options = WriteOptions {
         language,
-        max_tokens: DAY_TOKENS,
+        max_tokens: prompt::tokens_for(prompt.words),
         temperature: DEFAULT_TEMPERATURE,
         timeout: if is_endpoint {
             ENDPOINT_TIMEOUT

@@ -16,6 +16,12 @@ one day in three.
 **Language of the journal** writes entries in English or French, independently of the app's own
 language.
 
+## How long an entry is
+
+A day's entry grows with the day: a short session gets a paragraph or two, about 120 words, and a
+long one with much more in it gets up to about 400 words in a few paragraphs. A weekly chapter is
+about 250 words. To change one entry's length, rewrite it with a note such as "shorter".
+
 ## Writing preferences
 
 **Writing preferences**, in **Settings**, **Writing**, is a note to every narrator about how you

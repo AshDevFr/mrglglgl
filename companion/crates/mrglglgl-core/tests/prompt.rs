@@ -570,3 +570,82 @@ fn writing_preferences_shape_the_style_of_every_entry_and_never_become_facts() {
     });
     assert!(chapter.system.contains("\"No em dashes.\""));
 }
+
+#[test]
+fn a_fuller_day_asks_for_a_longer_entry_up_to_a_cap() {
+    // A light day keeps the usual length; every day longer grows with what it holds.
+    assert_eq!(prompt::day_words(0), prompt::DAY_WORDS);
+    assert_eq!(prompt::day_words(40), prompt::DAY_WORDS);
+    assert_eq!(prompt::day_words(300), 240);
+    assert!(prompt::day_words(200) < prompt::day_words(400));
+    assert_eq!(prompt::day_words(100_000), prompt::DAY_WORDS_MAX);
+    // Every length is a round number, as the prompt says it.
+    for n in [0, 77, 133, 301, 555] {
+        assert_eq!(prompt::day_words(n) % 10, 0, "{n}");
+    }
+}
+
+#[test]
+fn the_token_budget_leaves_room_for_the_words_asked() {
+    assert_eq!(prompt::tokens_for(prompt::DAY_WORDS), 400);
+    assert!(prompt::tokens_for(prompt::DAY_WORDS_MAX) >= prompt::DAY_WORDS_MAX * 3);
+}
+
+#[test]
+fn the_day_prompt_asks_for_the_length_its_notes_call_for() {
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let p = day(&j, &awards, "en", DEFAULT_NARRATOR, false);
+    let notes = beats::extract(&j, "2026-11-08", &awards, &Thresholds::default()).texts_in("en");
+    let notes_words = notes
+        .iter()
+        .map(|t| t.split_whitespace().count())
+        .sum::<usize>();
+    assert_eq!(p.words, prompt::day_words(notes_words));
+    assert!(
+        p.user.ends_with(&format!("about {} words.", p.words)),
+        "{}",
+        p.user
+    );
+    assert!(p.system.contains(&format!("about {} words", p.words)));
+}
+
+#[test]
+fn a_long_session_earns_a_longer_entry_than_a_short_one() {
+    let short = journal();
+    let mut long = journal();
+    // Hours more of fighting: many more kinds of creature killed the same day.
+    let kills = &mut long.days.get_mut("2026-11-08").unwrap().kills;
+    for n in 0..120 {
+        kills.insert(
+            900_000 + n,
+            mrglglgl_core::schema::KillAggregate {
+                count: 3,
+                name: Some(format!("Dunemaul Brute Number {n}")),
+                classification: "normal".into(),
+                murloc: false,
+            },
+        );
+    }
+    let short_p = day(
+        &short,
+        &milestones::compute(&short),
+        "en",
+        DEFAULT_NARRATOR,
+        false,
+    );
+    let long_p = day(
+        &long,
+        &milestones::compute(&long),
+        "en",
+        DEFAULT_NARRATOR,
+        false,
+    );
+    assert_eq!(short_p.words, prompt::DAY_WORDS);
+    assert!(long_p.words > short_p.words, "{} words", long_p.words);
+    assert!(
+        long_p
+            .system
+            .contains(&format!("about {} words", long_p.words))
+    );
+}
