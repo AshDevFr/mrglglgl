@@ -21,6 +21,13 @@ running, because writing uses the processor and the game may stutter. In **Setti
 On a day still going, **Write what happened so far** writes it up to now; the full entry is written
 once the day is over.
 
+**Activity**, in the sidebar, spins and counts while the app is working. It opens a list of
+everything under way, for every character: the entry being written and its words so far, the
+entries waiting in the order they will be written, those that could not be written, a narrator
+preview, a model download and a website build. From there you can stop what runs, try a failed
+entry again, or pause and resume writing. A narrator preview waits for the entry being written,
+then goes first, and the list says so.
+
 ## Writing again
 
 On a day you can write the entry again, pick another narrator for that day, or cancel a write in
