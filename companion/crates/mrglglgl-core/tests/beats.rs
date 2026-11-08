@@ -702,3 +702,82 @@ fn a_hardcore_death_makes_the_day_a_farewell_with_a_eulogy_hint() {
         );
     }
 }
+
+fn grouped_day(times: &[(&str, i64)]) -> Day {
+    let mut day = prowler_day();
+    let events = day.events.as_mut().unwrap();
+    for (who, _) in times {
+        events.push(event(EventKind::GroupJoin {
+            who: Some((*who).into()),
+        }));
+    }
+    day.grouped = times.iter().map(|(w, s)| ((*w).to_string(), *s)).collect();
+    day
+}
+
+#[test]
+fn a_long_session_together_names_the_companion_and_the_time() {
+    let j = journal(vec![(
+        "2026-11-17",
+        grouped_day(&[("Rowan-Elm", 75 * 60), ("Odo-Brightbarrel", 3 * 60)]),
+    )]);
+    let day = beats::extract(&j, "2026-11-17", &[], &Thresholds::default());
+    let texts = day.texts();
+    assert!(
+        texts
+            .contains(&"Grouped with Rowan (for the first time) for 1 hour 15 minutes".to_string()),
+        "{texts:?}"
+    );
+    // A few minutes grouped to kill something is not a companion worth naming.
+    assert!(!texts.iter().any(|t| t.contains("Odo")), "{texts:?}");
+    assert!(
+        day.texts_in("fr").contains(
+            &"En groupe avec Rowan (pour la première fois) pendant 1 heure 15".to_string()
+        ),
+        "{:?}",
+        day.texts_in("fr")
+    );
+}
+
+#[test]
+fn a_day_grouped_only_briefly_names_nobody() {
+    let j = journal(vec![("2026-11-17", grouped_day(&[("Rowan-Elm", 120)]))]);
+    let day = beats::extract(&j, "2026-11-17", &[], &Thresholds::default());
+    assert!(
+        !day.beats
+            .iter()
+            .any(|b| matches!(b, Beat::Companions { .. }))
+    );
+}
+
+#[test]
+fn a_long_session_together_survives_a_crowded_day() {
+    // The crowded day above drops its companion; a real session together is kept.
+    let mut day = grouped_day(&[("Rowan-Elm", 2 * 3600)]);
+    let events = day.events.as_mut().unwrap();
+    events.push(Event {
+        level: Some(10),
+        ..event(EventKind::Level)
+    });
+    events.push(event(EventKind::Boss {
+        encounter_id: Some(1),
+        name: Some("Lady Tidesong".into()),
+    }));
+    events.push(Event {
+        zone: Some("The Barrens".into()),
+        subzone: None,
+        ..event(EventKind::Zone)
+    });
+    day.kills
+        .extend(kills(&[(3035, "Flatland Cougar", 1, "rare", false)]));
+    let j = journal(vec![("2026-11-17", day)]);
+    let awards = [award("kept_the_boot", "2026-11-17")];
+    let day = beats::extract(&j, "2026-11-17", &awards, &Thresholds::default());
+    assert!(
+        day.texts()
+            .iter()
+            .any(|t| t.starts_with("Grouped with Rowan") && t.ends_with("for 2 hours")),
+        "{:?}",
+        day.texts()
+    );
+}

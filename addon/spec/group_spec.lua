@@ -13,6 +13,17 @@ local function joins()
 	return list
 end
 
+-- Seconds grouped with each companion, over every day.
+local function grouped()
+	local total = {}
+	for _, day in pairs(_G.MrglglglCharDB.days) do
+		for who, seconds in pairs(day.grp or {}) do
+			total[who] = (total[who] or 0) + seconds
+		end
+	end
+	return total
+end
+
 local function groupWith(...)
 	local members = { ... }
 	Mock.groupSize = #members + 1
@@ -69,10 +80,49 @@ describe("Group", function()
 		assert.same({}, joins())
 	end)
 
+	it("counts how long a companion stayed in the group", function()
+		groupWith({ name = "Tamsin", surname = "Reedwater" })
+		Mock.advance(3600)
+		groupWith()
+		assert.same({ ["Tamsin-Reedwater"] = 3600 }, grouped())
+	end)
+
+	it("counts each companion apart when one leaves and another stays", function()
+		local tamsin = { name = "Tamsin", surname = "Reedwater" }
+		groupWith(tamsin, { name = "Odo", surname = "Brightbarrel" })
+		Mock.advance(600)
+		groupWith(tamsin)
+		Mock.advance(1200)
+		Mock.fire("PLAYER_LOGOUT")
+		assert.same({ ["Tamsin-Reedwater"] = 1800, ["Odo-Brightbarrel"] = 600 }, grouped())
+	end)
+
+	it("adds up the time of several groupings the same day", function()
+		local tamsin = { name = "Tamsin", surname = "Reedwater" }
+		groupWith(tamsin)
+		Mock.advance(300)
+		groupWith()
+		Mock.advance(1000)
+		groupWith(tamsin)
+		Mock.advance(200)
+		Mock.fire("PLAYER_LOGOUT")
+		assert.same({ ["Tamsin-Reedwater"] = 500 }, grouped())
+	end)
+
+	it("counts no time for members whose names the client withholds", function()
+		groupWith({ name = Mock.SECRET, surname = Mock.SECRET })
+		Mock.advance(600)
+		groupWith()
+		assert.same({}, grouped())
+	end)
+
 	it("records nothing when group members are off", function()
 		_G.MrglglglDB.settings.record.group = false
 		groupWith({ name = "Tamsin", surname = "Reedwater" })
+		Mock.advance(600)
+		Mock.fire("PLAYER_LOGOUT")
 		assert.same({}, joins())
 		assert.same({}, _G.MrglglglCharDB.companions)
+		assert.same({}, grouped())
 	end)
 end)

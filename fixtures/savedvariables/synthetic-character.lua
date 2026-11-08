@@ -576,6 +576,9 @@ MrglglglCharDB = {
 ["via"] = "Mining",
 },
 },
+["grp"] = {
+["Tamsin-Reedwater"] = 77,
+},
 ["kills"] = {
 [732] = {
 ["cls"] = "unknown",

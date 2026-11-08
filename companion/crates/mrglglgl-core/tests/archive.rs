@@ -819,3 +819,32 @@ fn the_current_level_is_the_newest_days_highest() {
     merge_snapshot(&db, penny, &journal, 100).unwrap();
     assert_eq!(archive::current_level(&db, penny).unwrap(), Some(8));
 }
+
+#[test]
+fn time_grouped_keeps_the_longest_count_of_each_companion() {
+    let db = Database::open_in_memory().unwrap();
+    let id = db
+        .upsert_character(&source(Path::new("/wow"), "Wren-Hollowbrook"), None, None)
+        .unwrap();
+    let mut early = synthetic();
+    let day = early.days.keys().last().unwrap().clone();
+    early.days.get_mut(&day).unwrap().grouped = [("Tamsin-Reedwater".to_string(), 600)]
+        .into_iter()
+        .collect();
+    let mut later = early.clone();
+    later.days.get_mut(&day).unwrap().grouped = [
+        ("Tamsin-Reedwater".to_string(), 1800),
+        ("Odo".to_string(), 60),
+    ]
+    .into_iter()
+    .collect();
+    merge_snapshot(&db, id, &early, 100).unwrap();
+    merge_snapshot(&db, id, &later, 200).unwrap();
+    // An older snapshot read again changes nothing.
+    merge_snapshot(&db, id, &early, 300).unwrap();
+    let grouped = archive::load(&db, id).unwrap().unwrap().days[&day]
+        .grouped
+        .clone();
+    assert_eq!(grouped.get("Tamsin-Reedwater"), Some(&1800));
+    assert_eq!(grouped.get("Odo"), Some(&60));
+}

@@ -272,7 +272,13 @@ fn the_prompt_asks_for_a_margin_note_exactly_when_the_murloc_meddles() {
 
 #[test]
 fn companions_can_be_sent_under_stand_in_names() {
-    let j = journal();
+    let mut j = journal();
+    // The fixture groups with Tamsin for a moment; a companion is named after a real session.
+    j.days
+        .get_mut("2026-11-08")
+        .unwrap()
+        .grouped
+        .insert("Tamsin-Reedwater".into(), 3600);
     let awards = milestones::compute(&j);
     // The fixture day is busy; a higher cap keeps the companion's beat in the notes.
     let all = Thresholds {

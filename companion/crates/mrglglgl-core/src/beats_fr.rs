@@ -170,15 +170,23 @@ impl Beat {
                 format!("Passé du niveau {f} au niveau {to}")
             }
             Beat::LevelUp { to, .. } => format!("Atteint le niveau {to}"),
-            Beat::Companions { names, new } => {
+            Beat::Companions {
+                names,
+                new,
+                minutes,
+            } => {
                 let parts: Vec<String> = names
                     .iter()
-                    .map(|n| {
+                    .enumerate()
+                    .map(|(i, n)| {
+                        let mut part = n.clone();
                         if new.contains(n) {
-                            format!("{n} (pour la première fois)")
-                        } else {
-                            n.clone()
+                            part.push_str(" (pour la première fois)");
                         }
+                        if let Some(m) = minutes.get(i) {
+                            part.push_str(&format!(" pendant {}", super::beats::duration_fr(*m)));
+                        }
+                        part
                     })
                     .collect();
                 format!("En groupe avec {}", et_list(&parts))

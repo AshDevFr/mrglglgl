@@ -212,6 +212,8 @@ pub struct DayRecord {
     pub loot: Vec<LootLine>,
     /// Character names without their realm.
     pub companions: Vec<String>,
+    /// Seconds grouped with each companion, by name without the realm.
+    pub grouped: BTreeMap<String, i64>,
     pub bosses: Vec<String>,
     pub accepted: Vec<i64>,
     pub turned_in: Vec<i64>,
@@ -244,6 +246,45 @@ fn push_unique(list: &mut Vec<String>, item: &str) {
     }
 }
 
+/// Time grouped with a companion before they are named in the day's notes: shorter is a group
+/// formed to kill something, not a session together.
+const COMPANION_SECONDS: i64 = 15 * 60;
+
+/// Seconds as minutes, to the nearest quarter hour, never below one.
+fn quarter_hours(seconds: i64) -> i64 {
+    (((seconds as f64 / 60.0 / 15.0).round() as i64) * 15).max(15)
+}
+
+/// "45 minutes", "1 hour", "1 hour 15 minutes", "2 hours".
+fn duration_en(minutes: i64) -> String {
+    let (h, m) = (minutes / 60, minutes % 60);
+    let hours = match h {
+        0 => String::new(),
+        1 => "1 hour".to_string(),
+        _ => format!("{h} hours"),
+    };
+    match (h, m) {
+        (0, _) => format!("{m} minutes"),
+        (_, 0) => hours,
+        _ => format!("{hours} {m} minutes"),
+    }
+}
+
+/// "45 minutes", "1 heure", "1 heure 15", "2 heures".
+pub(crate) fn duration_fr(minutes: i64) -> String {
+    let (h, m) = (minutes / 60, minutes % 60);
+    let hours = if h == 1 {
+        "1 heure".to_string()
+    } else {
+        format!("{h} heures")
+    };
+    match (h, m) {
+        (0, _) => format!("{m} minutes"),
+        (_, 0) => hours,
+        _ => format!("{hours} {m}"),
+    }
+}
+
 /// "Rowan-Silverpine" is shown as "Rowan".
 fn companion_name(who: &str) -> String {
     who.split('-').next().unwrap_or(who).to_string()
@@ -268,6 +309,9 @@ impl DayRecord {
             .map(|l| (l.channel.clone(), l.text.clone()))
             .collect();
         r.progress = Progress::of(day);
+        for (who, seconds) in &day.grouped {
+            *r.grouped.entry(companion_name(who)).or_insert(0) += seconds;
+        }
         if !r.spoken.is_empty() || !r.achievements.is_empty() || !r.progress.is_empty() {
             r.nothing_happened = false;
         }
@@ -693,6 +737,9 @@ pub enum Beat {
     Companions {
         names: Vec<String>,
         new: Vec<String>,
+        /// Minutes spent with each, in the order of `names`, rounded to a quarter hour; empty on
+        /// a day recorded before the addon counted time grouped.
+        minutes: Vec<i64>,
     },
     Bosses {
         names: Vec<String>,
@@ -800,6 +847,8 @@ impl Beat {
             Beat::Profession { .. } => 9,
             Beat::Crafted { .. } => 9,
             Beat::Gathered { .. } => 9,
+            // A real session with friends is what the day was; a name met in passing is not.
+            Beat::Companions { minutes, .. } if !minutes.is_empty() => 3,
             Beat::Companions { .. } => 10,
             Beat::QuestsTaken { .. } => 10,
             Beat::Travelled { .. } => 11,
@@ -962,15 +1011,23 @@ impl Beat {
                 format!("Went from level {f} to level {to}")
             }
             Beat::LevelUp { to, .. } => format!("Reached level {to}"),
-            Beat::Companions { names, new } => {
+            Beat::Companions {
+                names,
+                new,
+                minutes,
+            } => {
                 let parts: Vec<String> = names
                     .iter()
-                    .map(|n| {
+                    .enumerate()
+                    .map(|(i, n)| {
+                        let mut part = n.clone();
                         if new.contains(n) {
-                            format!("{n} (for the first time)")
-                        } else {
-                            n.clone()
+                            part.push_str(" (for the first time)");
                         }
+                        if let Some(m) = minutes.get(i) {
+                            part.push_str(&format!(" for {}", duration_en(*m)));
+                        }
+                        part
                     })
                     .collect();
                 format!("Grouped with {}", and_list(&parts))
@@ -1410,15 +1467,31 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
             to,
         });
     }
-    if !record.companions.is_empty() {
+    // With time grouped counted, only companions who stayed a while are named, longest first;
+    // a day recorded before that names everyone met.
+    let (companions, minutes): (Vec<String>, Vec<i64>) = if record.grouped.is_empty() {
+        (record.companions.clone(), Vec::new())
+    } else {
+        let mut long: Vec<(&String, i64)> = record
+            .grouped
+            .iter()
+            .filter(|(_, s)| **s >= COMPANION_SECONDS)
+            .map(|(who, s)| (who, *s))
+            .collect();
+        long.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(b.0)));
+        long.into_iter()
+            .map(|(who, s)| (who.clone(), quarter_hours(s)))
+            .unzip()
+    };
+    if !companions.is_empty() {
         beats.push(Beat::Companions {
-            names: record.companions.clone(),
-            new: record
-                .companions
+            new: companions
                 .iter()
                 .filter(|c| !seen_companions.contains(*c))
                 .cloned()
                 .collect(),
+            names: companions,
+            minutes,
         });
     }
     for s in record.skills.iter().filter(|s| s.profession) {

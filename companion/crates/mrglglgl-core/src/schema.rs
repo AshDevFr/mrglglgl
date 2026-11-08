@@ -175,6 +175,8 @@ pub struct Day {
     pub money: Money,
     /// Chat lines in the channels the player chose, in time order.
     pub chat: Vec<ChatLine>,
+    /// Seconds grouped with each companion that day, keyed as in the journal's companions.
+    pub grouped: BTreeMap<String, i64>,
     pub digest: Option<Digest>,
     /// The game compacted the day: `events` holds only its key moments, and the digest is what
     /// the whole day was.
@@ -1012,6 +1014,16 @@ fn day(t: &Table) -> Day {
         .into_iter()
         .flatten()
         .collect(),
+        grouped: table(t, "grp")
+            .map(|grp| {
+                grp.iter()
+                    .filter_map(|(k, v)| match (k, v.as_f64()) {
+                        (Key::String(who), Some(seconds)) => Some((who.clone(), seconds as i64)),
+                        _ => None,
+                    })
+                    .collect()
+            })
+            .unwrap_or_default(),
         digest: table(t, "digest").map(digest),
         compacted: boolean(t, "c").unwrap_or(false),
     }

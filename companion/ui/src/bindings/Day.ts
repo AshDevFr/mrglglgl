@@ -31,7 +31,11 @@ money: Money,
 /**
  * Chat lines in the channels the player chose, in time order.
  */
-chat: Array<ChatLine>, digest: Digest | null, 
+chat: Array<ChatLine>, 
+/**
+ * Seconds grouped with each companion that day, keyed as in the journal's companions.
+ */
+grouped: { [key in string]: number }, digest: Digest | null, 
 /**
  * The game compacted the day: `events` holds only its key moments, and the digest is what
  * the whole day was.

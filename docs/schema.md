@@ -110,6 +110,7 @@ A day is a local calendar date. Each event belongs to the day of its own timesta
 | `gathered` | table? | Items mined, picked or skinned that day, keyed by item ID |
 | `money` | table? | Money earned and spent that day by source; see Money |
 | `chat` | array? | Chat lines in time order, when chat is recorded; see Chat. Removed when the day is compacted, and capped at 2000 lines a day |
+| `grp` | table? | Seconds grouped with each companion that day, keyed `"Firstname-Surname"` as in `companions`, when group members are recorded. Time is credited when the companion leaves, when the player leaves the group, and at logout or reload, to the day it is counted in. Kept when the day is compacted |
 | `digest` | table? | The day's summary, built from the whole day; never rebuilt after compaction |
 
 ### Event (`days[key].ev[i]`)

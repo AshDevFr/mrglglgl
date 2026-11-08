@@ -93,6 +93,7 @@
         "out": {}
       },
       "chat": [],
+      "grouped": {},
       "digest": {
         "version": 2,
         "counts": {
@@ -497,6 +498,9 @@
           "channelName": null
         }
       ],
+      "grouped": {
+        "Tamsin-Reedwater": 77
+      },
       "digest": {
         "version": 2,
         "counts": {
@@ -746,6 +750,7 @@
         "out": {}
       },
       "chat": [],
+      "grouped": {},
       "digest": {
         "version": 2,
         "counts": {
@@ -857,6 +862,7 @@
         "out": {}
       },
       "chat": [],
+      "grouped": {},
       "digest": {
         "version": 2,
         "counts": {
@@ -1069,6 +1075,7 @@
         "out": {}
       },
       "chat": [],
+      "grouped": {},
       "digest": {
         "version": 2,
         "counts": {

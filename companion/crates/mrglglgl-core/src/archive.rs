@@ -339,6 +339,15 @@ fn merge_day(stored: Day, incoming: Day, incoming_newer: bool) -> Day {
         gathered: items(stored.gathered, incoming.gathered),
         money,
         chat,
+        // The addon only adds to a companion's time: the larger of the two is the day's.
+        grouped: {
+            let mut grouped = stored.grouped;
+            for (who, seconds) in incoming.grouped {
+                let kept = grouped.entry(who).or_insert(0);
+                *kept = (*kept).max(seconds);
+            }
+            grouped
+        },
         digest,
         // The longer event list is kept, and a whole day's is longer than a compacted one's.
         compacted: stored.compacted && incoming.compacted,

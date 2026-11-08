@@ -242,6 +242,17 @@ fn reads_profession_skill_ups_crafting_and_gathering() {
 }
 
 #[test]
+fn reads_how_long_each_companion_was_in_the_group() {
+    let journal = schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
+    // The fixture groups with Tamsin, then logs out a little later.
+    assert_eq!(
+        journal.days["2026-11-08"].grouped.get("Tamsin-Reedwater"),
+        Some(&77)
+    );
+    assert!(journal.days["2026-11-09"].grouped.is_empty());
+}
+
+#[test]
 fn reads_money_balances_and_auction_events() {
     let journal = schema::journal_from_text(&shared("synthetic-character.lua")).unwrap();
     let day = &journal.days["2026-11-08"];
@@ -394,6 +405,7 @@ fn reads_every_documented_field() {
         "skills",
         "crafted",
         "gathered",
+        "grp",
         "digest",
         "t",
         "k",
