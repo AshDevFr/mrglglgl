@@ -31,6 +31,8 @@ tauri-plugin-dialog = "2.8.3"
 tauri-plugin-opener = "2.7"
 tauri-plugin-process = "2"
 tauri-plugin-updater = "2"
+# Remembers the window's size and place between launches.
+tauri-plugin-window-state = "2"
 # Scales screenshots to page width for exports; only the formats the game saves.
 image = { version = "0.25.10", default-features = false, features = ["jpeg", "png", "tga"] }
 # Renders the journal website through themes players can override (Jinja-style templates).
