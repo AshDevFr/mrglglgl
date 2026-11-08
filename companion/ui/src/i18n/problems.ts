@@ -9,6 +9,7 @@ import type { TFunction } from "i18next";
  */
 export const PROBLEMS = [
   "errors.load",
+  "errors.page",
   "settings.foundNone",
   "settings.chosenMissing",
   "settings.error",

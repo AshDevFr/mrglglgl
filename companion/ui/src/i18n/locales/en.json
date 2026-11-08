@@ -679,7 +679,14 @@
   },
   "errors": {
     "load": "The app could not read its data: {{message}}",
-    "loadNext": "Restart the app. If it happens again, report it on the project page with this message."
+    "loadNext": "Restart the app. If it happens again, report it on the project page with this message.",
+    "page": "This page broke: {{message}}",
+    "pageNext": "Press Try again, or go back to the journals; nothing was lost. If it happens again, open the details below and report it on the project page with them."
+  },
+  "errorPage": {
+    "tryAgain": "Try again",
+    "home": "Back to the journals",
+    "details": "Details for a report"
   },
   "firstRun": {
     "title": "Getting started",

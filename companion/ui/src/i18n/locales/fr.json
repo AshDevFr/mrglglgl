@@ -679,7 +679,14 @@
   },
   "errors": {
     "load": "L'application n'a pas pu lire ses données : {{message}}",
-    "loadNext": "Redémarre l'application. Si cela se reproduit, signale-le sur la page du projet avec ce message."
+    "loadNext": "Redémarre l'application. Si cela se reproduit, signale-le sur la page du projet avec ce message.",
+    "page": "Cette page a planté : {{message}}",
+    "pageNext": "Appuie sur Réessayer, ou reviens aux journaux ; rien n'est perdu. Si ça se reproduit, ouvre les détails ci-dessous et signale-le sur la page du projet avec eux."
+  },
+  "errorPage": {
+    "tryAgain": "Réessayer",
+    "home": "Revenir aux journaux",
+    "details": "Détails pour un signalement"
   },
   "firstRun": {
     "title": "Pour bien commencer",

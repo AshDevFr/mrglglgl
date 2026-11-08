@@ -5,6 +5,7 @@ import {
   Outlet,
   useNavigate,
 } from "@tanstack/react-router";
+import { ErrorPage } from "@/components/ErrorPage";
 import { Layout } from "@/Layout";
 import { CharacterPage } from "@/pages/CharacterPage";
 import { HomePage } from "@/pages/HomePage";
@@ -106,7 +107,12 @@ const routeTree = rootRoute.addChildren([
   printRoute,
 ]);
 
-export const router = createRouter({ routeTree });
+// A page that breaks shows what broke and a way back, inside the frame, instead of the
+// router's bare message that only a restart got past.
+export const router = createRouter({
+  routeTree,
+  defaultErrorComponent: ErrorPage,
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
