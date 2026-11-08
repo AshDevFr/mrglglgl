@@ -124,8 +124,8 @@
 /* Stamps sit over the page's top-right corner, as if pressed a little carelessly. */
 .journal-page .stamps {
   position: absolute;
-  top: -1.25rem;
-  right: -0.5rem;
+  top: -0.75rem;
+  right: -0.25rem;
   display: flex;
   gap: 0.25rem;
 }
