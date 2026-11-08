@@ -363,13 +363,35 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
                 "You may add at most one short footnote",
                 "Add one short footnote",
             )
-            .replace("then the optional footnote", "then the footnote");
+            .replace("then the optional footnote", "then the footnote")
+            // Not evaluated against the tested prompt yet. Entries grow with the day, so the
+            // persona no longer calls them short, and the point of view moved from the persona
+            // to the rules, where it holds for every narrator: a small model made the dwarf a
+            // spectator writing about "him".
+            .replace(
+                "as one short journal entry, in the first person, as the adventurer.",
+                "as a journal entry.",
+            )
+            .replace(
+                "3. Voice. ",
+                "3. Voice. Write as the adventurer, in the first person (\"I\"): the voice that \
+                 follows is how you write, never someone watching them. ",
+            )
+            // Long entries came out as one block of text, and small models end on a refrain.
+            .replace("5. Length. ", "5. Length and form. ")
+            .replace(
+                "then the footnote. Output only",
+                "then the footnote. Give each paragraph its own part of today: a place, a \
+                 stretch of fighting, a craft, who was with you. Leave a blank line between \
+                 paragraphs. Say each thing once. Output only",
+            );
         assert_eq!(p.system, expected, "{language}");
 
         // The notes keep the tested layout, in the same order.
         let headers = [
             "Notes for 2026-11-08.",
-            "Adventurer: Wren Hollowbrook, Tauren Hunter, level 5 (reached level 6 today).",
+            // "level 5 (reached level 6 today)" was read as a level-up from 6.
+            "Adventurer: Wren Hollowbrook, Tauren Hunter, went from level 5 to level 6 today.",
             "What happened today (the only events you may write about):",
             "Patterns of the day:",
             "Milestones stamped today:",

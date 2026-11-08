@@ -386,9 +386,12 @@ fn system(
          the light, the weather of the mood, but nothing that happened. Keep every number and \
          name exactly as given. Do not invent lore beyond what is given.\n\
          2. Earlier days are memory only. Never describe them as happening {when}.\n\
-         3. Voice. {voice}\n\
+         3. Voice. Write as the adventurer, in the first person (\"I\"): the voice that \
+         follows is how you write, never someone watching them. {voice}\n\
          4. The murloc. {murloc}\n\
-         5. Length. {length}. Output only the entry: no title, no greeting, no signature.\n\
+         5. Length and form. {length}. Give each paragraph its own part of {when}: a place, a \
+         stretch of fighting, a craft, who was with you. Leave a blank line between paragraphs. \
+         Say each thing once. Output only the entry: no title, no greeting, no signature.\n\
          6. Language. Write in {language}. Keep names of places, creatures, quests and people \
          exactly as given, untranslated.\n\
          {style}\n\
@@ -438,7 +441,7 @@ fn adventurer(journal: &Journal, level: Option<(i64, i64)>) -> String {
     }
     match level {
         Some((from, to)) if to > from => {
-            format!("{line}, level {from} (reached level {to} today).")
+            format!("{line}, went from level {from} to level {to} today.")
         }
         Some((from, _)) => format!("{line}, level {from}."),
         None => format!("{line}."),
