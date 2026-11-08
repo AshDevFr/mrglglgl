@@ -1,3 +1,4 @@
+import { Stack, Text, Tooltip } from "@mantine/core";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import type { Award } from "@/bindings/Award";
@@ -8,10 +9,58 @@ interface Props {
   size?: number;
   /** Degrees; stamps are never pressed perfectly straight. */
   tilt?: number;
+  /** Shows the stamp large, with its name and what it is for, on hover. Off where nobody can
+   * hover, such as an exported page. */
+  zoom?: boolean;
 }
 
-/** A milestone as a round rubber stamp: its name around the rim, the day in the middle. */
-export function InkStamp({ award, size = 72, tilt = -6 }: Props) {
+/** How large the stamp shows in its tooltip, where its rim can be read. */
+const ZOOMED_SIZE = 160;
+
+/** A milestone as a round rubber stamp: its name around the rim, the day in the middle. Small
+ * on the page, so hovering it shows it large with its name and description. */
+export function InkStamp({ award, size = 72, tilt = -6, zoom = true }: Props) {
+  const { t } = useTranslation();
+  // Without the tooltip, the browser's own hover text says what the stamp is for.
+  const mark = (
+    <StampMark award={award} size={size} tilt={tilt} titled={!zoom} />
+  );
+  if (!zoom) return mark;
+  return (
+    <Tooltip
+      withArrow
+      multiline
+      w={220}
+      label={
+        <Stack gap={4} align="center" py={4}>
+          <StampMark award={award} size={ZOOMED_SIZE} tilt={0} titled={false} />
+          <Text fw={700} size="sm" ta="center">
+            {t(`milestones.${award.id}.name`)}
+          </Text>
+          <Text size="xs" ta="center">
+            {t(`milestones.${award.id}.description`)}
+          </Text>
+        </Stack>
+      }
+    >
+      {/* The tooltip needs an element that takes a ref; the stamp is an SVG. */}
+      <span style={{ display: "inline-flex" }}>{mark}</span>
+    </Tooltip>
+  );
+}
+
+function StampMark({
+  award,
+  size,
+  tilt,
+  titled,
+}: {
+  award: Award;
+  size: number;
+  tilt: number;
+  /** Carries the description as the browser's hover text. */
+  titled: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const id = useId().replace(/:/g, "");
   const name = t(`milestones.${award.id}.name`);
@@ -25,7 +74,7 @@ export function InkStamp({ award, size = 72, tilt = -6 }: Props) {
       aria-label={`${name}: ${t(`milestones.${award.id}.description`)}`}
       style={{ transform: `rotate(${tilt}deg)` }}
     >
-      <title>{t(`milestones.${award.id}.description`)}</title>
+      {titled && <title>{t(`milestones.${award.id}.description`)}</title>}
       <defs>
         {/* Uneven ink: a slight wobble of every edge. */}
         <filter id={`rough-${id}`}>

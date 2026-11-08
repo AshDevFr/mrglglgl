@@ -98,6 +98,7 @@ export function ExportDocument({
                           key={a.id}
                           award={a}
                           tilt={TILTS[i % TILTS.length]}
+                          zoom={false}
                         />
                       ))}
                     </div>

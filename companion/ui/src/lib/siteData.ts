@@ -157,7 +157,7 @@ export async function buildSiteData(
       description: t(`milestones.${a.id}.description`),
       day: a.day,
       svg: renderToStaticMarkup(
-        createElement(InkStamp, { award: a, size: 96 }),
+        createElement(InkStamp, { award: a, size: 96, zoom: false }),
       ),
     });
 
