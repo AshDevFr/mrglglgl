@@ -29,4 +29,6 @@ The desktop app lives in `companion/` (Rust workspace + `ui/` React frontend, Ta
   writes nowhere else under the game folder (not `WTF/`, no SavedVariables, not `Screenshots/`,
   not another addon's folder) and never while the game runs. Exports, the website, backups and
   every other feature keep the full rule
-- Never execute Lua
+- Never execute Lua, with one exception: the addon's own tooling may be run from the repository,
+  `make -C addon check` (lint and specs), `make -C addon package-check` and `make -C addon fixtures`
+  (regenerates `fixtures/savedvariables/`), since that is the only way to verify an addon change
