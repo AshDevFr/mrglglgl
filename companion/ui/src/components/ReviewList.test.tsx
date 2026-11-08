@@ -6,6 +6,7 @@ import { ReviewList } from "@/components/ReviewList";
 import { renderWithProviders, syntheticJournal } from "@/test/render";
 
 const commands = vi.hoisted(() => ({
+  review: true,
   items: [] as unknown[],
   all: [] as unknown[],
   acceptDraft: vi.fn(() => Promise.resolve(true)),
@@ -17,6 +18,10 @@ vi.mock("@/lib/siteBuild", () => ({ scheduleRebuild: vi.fn() }));
 
 vi.mock("@/api/commands", () => ({
   reviewList: () => Promise.resolve(commands.items),
+  getSettings: () =>
+    Promise.resolve({
+      settings: { writing: { review: commands.review } },
+    }),
   reviewAll: () => Promise.resolve(commands.all),
   listCharacters: () =>
     Promise.resolve([
@@ -86,6 +91,7 @@ function item(day: string, extra: Partial<ReviewItem> = {}): ReviewItem {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  commands.review = true;
   commands.items = [
     item("2026-11-09", { drafts: [draft(7, "2026-11-09", "The wolves won.")] }),
     item("2026-11-08"),
@@ -167,6 +173,16 @@ describe("ReviewList", () => {
         null,
       ),
     );
+  });
+
+  it("says that writing here goes straight to the journal without review mode", async () => {
+    commands.review = false;
+    renderWithProviders(<ReviewList characterId={1} />);
+    expect(
+      await screen.findByText(
+        /Review mode is off, so what you write here goes straight into the journal/,
+      ),
+    ).toBeInTheDocument();
   });
 
   it("says when there is nothing to review", async () => {

@@ -127,8 +127,9 @@ pub struct Slot {
     pub start_day: String,
 }
 
-/// Writes days and weeks as drafts, ahead of the backlog: a selection from the To review list,
-/// or one rewrite with the player's note.
+/// Writes days and weeks ahead of the backlog: a selection from the To review list, or one
+/// rewrite with the player's note. Review mode decides, as for every entry, whether they wait as
+/// drafts or go straight into the journal.
 #[tauri::command]
 pub fn write_drafts(
     state: State<'_, AppState>,
@@ -138,9 +139,10 @@ pub fn write_drafts(
     note: Option<String>,
 ) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
+    let draft = db.settings().map_err(|e| e.to_string())?.writing.review;
     let ask = queue::Ask {
         narrator: narrator.as_deref(),
-        draft: true,
+        draft,
         note: note.as_deref(),
         partial: false,
     };

@@ -65,8 +65,13 @@ A day you did not play, or did not play with the addon, has nothing on its page 
 
 ## Reviewing before entries go in
 
-Turn on **Let me review entries first** in **Settings**, **Writing** to have
-background entries wait on the character's **To review** tab as drafts, to accept or discard.
-When every finished day has its entry, the tab says so:
+Turn on **Let me review entries first** in **Settings**, **Writing** to have every new entry
+wait as a draft, to accept or discard: the ones written in the background, and the ones you ask
+for, from the journal or from **To review**. Off, every entry goes straight into the journal.
+
+**To review**, in the sidebar, lists every character's finished days and weeks that have no entry
+yet, and the drafts waiting, under each character's name: choose days across characters and
+write, accept or discard them in one go. Each character's own **To review** tab shows the same
+list for that character. When every finished day has its entry, the list says so:
 
 ![The To review tab with nothing waiting.](../../../assets/screenshots/review-empty.png)

@@ -14,6 +14,7 @@ import {
   acceptDraft,
   characterJournal,
   discardDraft,
+  getSettings,
   listCharacters,
   listNarrators,
   reviewAll,
@@ -88,6 +89,9 @@ export function ReviewList({ characterId }: { characterId?: number }) {
     queryKey: ["narrators"],
     queryFn: listNarrators,
   });
+  const settings = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  // Review mode decides where what is written here goes, as everywhere else.
+  const direct = settings.data?.settings.writing.review === false;
 
   const refresh = (id: number) =>
     Promise.all(
@@ -153,7 +157,7 @@ export function ReviewList({ characterId }: { characterId?: number }) {
   return (
     <Stack gap="lg">
       <Text size="sm" c="dimmed">
-        {t("review.intro")}
+        {direct ? t("review.introDirect") : t("review.intro")}
       </Text>
       <Group gap="xs" wrap="wrap">
         <Select
