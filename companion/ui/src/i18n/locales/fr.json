@@ -1121,7 +1121,9 @@
     "stop": "Arrêter",
     "retry": "Réessayer",
     "pause": "Mettre l'écriture en pause",
-    "resume": "Reprendre l'écriture"
+    "resume": "Reprendre l'écriture",
+    "blocked": "L'écriture est bloquée",
+    "openSettings": "Ouvrir les Réglages"
   },
   "characterSettings": {
     "title": "Écriture pour ce personnage",

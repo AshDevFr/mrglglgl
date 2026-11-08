@@ -1121,7 +1121,9 @@
     "stop": "Stop",
     "retry": "Try again",
     "pause": "Pause writing",
-    "resume": "Resume writing"
+    "resume": "Resume writing",
+    "blocked": "Writing is blocked",
+    "openSettings": "Open Settings"
   },
   "characterSettings": {
     "title": "Writing for this character",

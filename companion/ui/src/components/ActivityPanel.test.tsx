@@ -40,6 +40,8 @@ const api = vi.hoisted(() => ({
 }));
 vi.mock("@/api/commands", () => api);
 vi.mock("@/lib/siteBuild", () => ({ useSiteBuilding: () => false }));
+const navigate = vi.hoisted(() => vi.fn());
+vi.mock("@tanstack/react-router", () => ({ useNavigate: () => navigate }));
 
 function job(extra: Partial<Job>): Job {
   return {
@@ -205,5 +207,56 @@ describe("ActivityPanel", () => {
       within(drawer).getByRole("button", { name: "Resume writing" }),
     ).toBeInTheDocument();
     expect(within(drawer).getByText(/Writing is paused/)).toBeInTheDocument();
+  });
+
+  it("warns that nothing can be written without a model, and points to it", async () => {
+    api.now = {
+      ...idle(),
+      blocked: "noModel",
+      jobs: [
+        job({ position: 1 }),
+        job({ startDay: "2026-11-06", position: 2 }),
+      ],
+    };
+    renderWithProviders(<ActivityPanel />);
+    // Nothing runs: the sidebar warns instead of spinning.
+    const entry = await screen.findByRole("button", { name: /Activity \(2\)/ });
+    expect(
+      within(entry).getByLabelText("Writing is blocked"),
+    ).toBeInTheDocument();
+    fireEvent.click(entry);
+    const drawer = await screen.findByRole("dialog");
+    const warning = within(drawer).getByRole("alert");
+    expect(warning).toHaveTextContent(
+      "No writing model is downloaded yet. Download one in Settings, under Writing models.",
+    );
+    fireEvent.click(
+      within(warning).getByRole("button", { name: "Open Settings" }),
+    );
+    expect(navigate).toHaveBeenCalledWith({ to: "/settings" });
+  });
+
+  it("opens the day a task writes, or the settings a download runs in", async () => {
+    api.now = {
+      ...idle(),
+      jobs: [job({ characterId: 2, startDay: "2026-11-06", position: 1 })],
+      download: { modelId: "qwen", downloaded: 620, total: 1000 },
+    };
+    renderWithProviders(<ActivityPanel />);
+    const drawer = await open(/Activity \(2\)/);
+    fireEvent.click(
+      await within(drawer).findByRole("button", {
+        name: /Brakka · Friday, November 6, 2026/,
+      }),
+    );
+    expect(navigate).toHaveBeenCalledWith({
+      to: "/characters/$characterId",
+      params: { characterId: "2" },
+      search: { day: "2026-11-06" },
+    });
+    fireEvent.click(
+      within(drawer).getByRole("button", { name: /Qwen3\.5 9B/ }),
+    );
+    expect(navigate).toHaveBeenLastCalledWith({ to: "/settings" });
   });
 });

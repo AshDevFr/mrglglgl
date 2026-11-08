@@ -1,4 +1,6 @@
 import {
+  Alert,
+  Anchor,
   Button,
   Drawer,
   Group,
@@ -10,6 +12,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -93,12 +96,32 @@ export function ActivityPanel() {
       busyCount(query.state.data, building) > 0 ? BUSY_POLL_MS : IDLE_POLL_MS,
   });
   const count = busyCount(now.data, building);
+  // Entries wait but none can be written: say so rather than spin as if working.
+  const stuck =
+    !!now.data?.blocked &&
+    !now.data.jobs.some((j) => j.state === "running") &&
+    !now.data.preview &&
+    !now.data.download &&
+    !building;
   return (
     <>
       <NavLink
         component="button"
         label={count > 0 ? t("activity.count", { count }) : t("activity.title")}
-        leftSection={count > 0 ? <Loader size={12} /> : undefined}
+        leftSection={
+          stuck ? (
+            <Text
+              component="span"
+              c="yellow"
+              fw={700}
+              aria-label={t("activity.blocked")}
+            >
+              !
+            </Text>
+          ) : count > 0 ? (
+            <Loader size={12} />
+          ) : undefined
+        }
         onClick={() => setOpened(true)}
       />
       <Drawer
@@ -107,7 +130,13 @@ export function ActivityPanel() {
         position="right"
         title={t("activity.title")}
       >
-        {now.data && <ActivityList now={now.data} building={building} />}
+        {now.data && (
+          <ActivityList
+            now={now.data}
+            building={building}
+            onLeave={() => setOpened(false)}
+          />
+        )}
       </Drawer>
     </>
   );
@@ -124,8 +153,18 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-function ActivityList({ now, building }: { now: Activity; building: boolean }) {
+function ActivityList({
+  now,
+  building,
+  onLeave,
+}: {
+  now: Activity;
+  building: boolean;
+  /** Closes the list before going to a page from it. */
+  onLeave: () => void;
+}) {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const live = useStreamingText();
   const characters = useQuery({
@@ -147,6 +186,19 @@ function ActivityList({ now, building }: { now: Activity; building: boolean }) {
   const name = (id: number) => {
     const found = characters.data?.find((c) => c.character.id === id);
     return found ? displayName(found.character) : "";
+  };
+  // A task opens where it lives: an entry on its day in the journal, the rest in Settings.
+  const openDay = (job: Job) => {
+    onLeave();
+    void navigate({
+      to: "/characters/$characterId",
+      params: { characterId: String(job.characterId) },
+      search: { day: job.startDay },
+    });
+  };
+  const openSettings = () => {
+    onLeave();
+    void navigate({ to: "/settings" });
   };
   const label = (job: Job) => {
     const date = formatDay(job.startDay, i18n.language, true);
@@ -174,9 +226,24 @@ function ActivityList({ now, building }: { now: Activity; building: boolean }) {
   return (
     <Stack gap="lg">
       {now.blocked && (
-        <Text size="sm" className="note">
-          {problem(t, `writing.blocked.${now.blocked}` as Problem)}
-        </Text>
+        <Alert color="yellow" role="alert">
+          <Stack gap="xs">
+            <Text size="sm">
+              {problem(t, `writing.blocked.${now.blocked}` as Problem)}
+            </Text>
+            {(now.blocked === "noModel" || now.blocked === "noEndpoint") && (
+              <Button
+                size="xs"
+                variant="light"
+                color="yellow"
+                w="fit-content"
+                onClick={openSettings}
+              >
+                {t("activity.openSettings")}
+              </Button>
+            )}
+          </Stack>
+        </Alert>
       )}
       {nothing && <Text size="sm">{t("activity.idle")}</Text>}
 
@@ -186,7 +253,14 @@ function ActivityList({ now, building }: { now: Activity; building: boolean }) {
             <li key={`${job.characterId}|${slot(job.kind, job.startDay)}`}>
               <Group justify="space-between" wrap="nowrap">
                 <Stack gap={0}>
-                  <Text size="sm">{label(job)}</Text>
+                  <Anchor
+                    component="button"
+                    size="sm"
+                    ta="left"
+                    onClick={() => openDay(job)}
+                  >
+                    {label(job)}
+                  </Anchor>
                   <Text size="xs" c="dimmed">
                     {words > 0
                       ? t("activity.words", { count: words })
@@ -238,9 +312,14 @@ function ActivityList({ now, building }: { now: Activity; building: boolean }) {
             <li>
               <Group justify="space-between" wrap="nowrap">
                 <Stack gap={4} style={{ flex: 1 }}>
-                  <Text size="sm">
+                  <Anchor
+                    component="button"
+                    size="sm"
+                    ta="left"
+                    onClick={openSettings}
+                  >
                     {t("activity.download", { model: modelName })} · {percent}%
-                  </Text>
+                  </Anchor>
                   <Progress value={percent} size="sm" />
                 </Stack>
                 <Button
@@ -256,7 +335,9 @@ function ActivityList({ now, building }: { now: Activity; building: boolean }) {
           )}
           {building && (
             <li>
-              <Text size="sm">{t("activity.site")}</Text>
+              <Anchor component="button" size="sm" onClick={openSettings}>
+                {t("activity.site")}
+              </Anchor>
             </li>
           )}
         </Section>
@@ -267,7 +348,14 @@ function ActivityList({ now, building }: { now: Activity; building: boolean }) {
           {waiting.map((job) => (
             <li key={`${job.characterId}|${slot(job.kind, job.startDay)}`}>
               <Group justify="space-between" wrap="nowrap">
-                <Text size="sm">{label(job)}</Text>
+                <Anchor
+                  component="button"
+                  size="sm"
+                  ta="left"
+                  onClick={() => openDay(job)}
+                >
+                  {label(job)}
+                </Anchor>
                 <Text size="xs" c="dimmed">
                   #{job.position ?? ""}
                 </Text>
@@ -283,7 +371,14 @@ function ActivityList({ now, building }: { now: Activity; building: boolean }) {
             <li key={`${job.characterId}|${slot(job.kind, job.startDay)}`}>
               <Group justify="space-between" wrap="nowrap">
                 <Stack gap={0}>
-                  <Text size="sm">{label(job)}</Text>
+                  <Anchor
+                    component="button"
+                    size="sm"
+                    ta="left"
+                    onClick={() => openDay(job)}
+                  >
+                    {label(job)}
+                  </Anchor>
                   <Text size="xs" c="dimmed">
                     {problem(
                       t,
