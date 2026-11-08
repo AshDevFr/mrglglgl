@@ -108,11 +108,12 @@ export function JournalPage({
         plain
       )}
       {screenshots.length > 0 && <PinnedPhotos screenshots={screenshots} />}
-      {more.length > 0 && (
+      {stamps.length > 0 && (
         <section className="more-milestones">
-          <h3>{t("milestones.more")}</h3>
+          <h3>{t("milestones.ofTheDay")}</h3>
           <ul>
-            {more.map((a) => (
+            {/* Every milestone of the day, the stamped ones first: the stamps are small. */}
+            {[...stamps, ...more].map((a) => (
               <li key={a.id}>
                 <strong>{t(`milestones.${a.id}.name`)}</strong>
                 {": "}

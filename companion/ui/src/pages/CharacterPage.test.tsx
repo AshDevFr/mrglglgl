@@ -90,10 +90,13 @@ describe("JournalPage", () => {
     expect(
       screen.getByRole("img", { name: /^Mrglglgl'd:/ }),
     ).toBeInTheDocument();
-    const more = screen.getByRole("heading", { name: "More milestones" })
+    // The list at the end holds every milestone of the day, the stamped ones first.
+    const all = screen.getByRole("heading", { name: "The day's milestones" })
       .parentElement as HTMLElement;
-    expect(within(more).getAllByRole("listitem")).toHaveLength(day.length - 3);
-    expect(more).toHaveTextContent("First Blood (Fishy)");
+    const items = within(all).getAllByRole("listitem");
+    expect(items).toHaveLength(day.length);
+    expect(items[0]).toHaveTextContent("Mrglglgl'd");
+    expect(all).toHaveTextContent("First Blood (Fishy)");
   });
 
   it("presses the day's milestones onto the page as stamps", () => {

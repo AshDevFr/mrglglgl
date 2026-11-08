@@ -11,7 +11,7 @@ interface Props {
 }
 
 /** A milestone as a round rubber stamp: its name around the rim, the day in the middle. */
-export function InkStamp({ award, size = 84, tilt = -6 }: Props) {
+export function InkStamp({ award, size = 72, tilt = -6 }: Props) {
   const { t, i18n } = useTranslation();
   const id = useId().replace(/:/g, "");
   const name = t(`milestones.${award.id}.name`);
