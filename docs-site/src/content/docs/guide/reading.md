@@ -74,7 +74,10 @@ A day you did not play, or did not play with the addon, has nothing on its page 
 
 Turn on **Let me review entries first** in **Settings**, **Writing** to have every new entry
 wait as a draft, to accept or discard: the ones written in the background, and the ones you ask
-for, from the journal or from **To review**. Off, every entry goes straight into the journal.
+for, from the journal or from **To review**. Off, every entry goes straight into the journal,
+except a rewrite of a draft that is waiting: you asked for another version to review, so it waits
+as a new draft. When a day's entry goes into the journal, older drafts of that day are set aside,
+so an old draft can never replace a newer entry.
 
 **To review**, in the sidebar, lists every character's finished days and weeks that have no entry
 yet, and the drafts waiting, under each character's name: choose days across characters and

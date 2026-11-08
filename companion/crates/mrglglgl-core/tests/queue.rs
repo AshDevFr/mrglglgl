@@ -883,3 +883,54 @@ async fn a_preview_waiting_for_its_turn_shows_and_can_be_stopped() {
     assert!(control.preview_status().is_none());
     entry.await.unwrap().unwrap();
 }
+
+fn story(id: i64, day: &str, status: StoryStatus, partial: bool) -> NewStory {
+    NewStory {
+        character_id: id,
+        kind: StoryKind::Day,
+        start_day: day.into(),
+        end_day: day.into(),
+        narrator: "murloc_scribe".into(),
+        language: "en".into(),
+        provider: "fake".into(),
+        model: "fake".into(),
+        prompt_hash: "h".into(),
+        text: "Words.".into(),
+        check: CheckStatus::Passed,
+        check_reason: None,
+        status,
+        note: None,
+        partial,
+    }
+}
+
+#[test]
+fn a_newer_entry_in_the_journal_sets_older_drafts_of_its_day_aside() {
+    let (db, id) = setup();
+    let db = db.lock().unwrap();
+    let old = stories::save(&db, &story(id, DAYS[0], StoryStatus::Draft, false)).unwrap();
+    let elsewhere = stories::save(&db, &story(id, DAYS[1], StoryStatus::Draft, false)).unwrap();
+    assert!(stories::draft_waiting(&db, id, StoryKind::Day, DAYS[0]).unwrap());
+
+    // A day told only so far is not the day's entry: the draft still waits.
+    stories::save(&db, &story(id, DAYS[0], StoryStatus::Accepted, true)).unwrap();
+    assert!(stories::draft_waiting(&db, id, StoryKind::Day, DAYS[0]).unwrap());
+
+    // The full entry goes in: the older draft could only ever replace it with less.
+    stories::save(&db, &story(id, DAYS[0], StoryStatus::Accepted, false)).unwrap();
+    let status = |sid: i64| {
+        stories::all(&db, id)
+            .unwrap()
+            .into_iter()
+            .find(|s| s.id == sid)
+            .unwrap()
+            .status
+    };
+    assert_eq!(status(old), StoryStatus::Discarded);
+    assert!(!stories::draft_waiting(&db, id, StoryKind::Day, DAYS[0]).unwrap());
+    assert_eq!(
+        status(elsewhere),
+        StoryStatus::Draft,
+        "other days keep theirs"
+    );
+}

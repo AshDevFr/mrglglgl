@@ -678,7 +678,7 @@
   "review": {
     "title": "To review",
     "intro": "Finished days and weeks without an entry in the journal, and drafts waiting for you. A draft goes into the journal only when you accept it.",
-    "introDirect": "Finished days and weeks without an entry in the journal. Review mode is off, so what you write here goes straight into the journal; turn on Let me review entries first, in Settings, to accept each entry yourself.",
+    "introDirect": "Finished days and weeks without an entry in the journal, and drafts waiting for you. Review mode is off, so what you write here goes straight into the journal, except a rewrite of a waiting draft, which waits as a new draft; turn on Let me review entries first, in Settings, to accept each entry yourself.",
     "empty": "Nothing to review. Every finished day has its entry.",
     "emptyAll": "Nothing to review for any character. Every finished day has its entry.",
     "notWritten": "Not written yet.",

@@ -116,9 +116,20 @@ pub struct NewStory {
     pub partial: bool,
 }
 
-/// Stores a new version and returns its id.
+/// Stores a new version and returns its id. A full entry going into the journal sets aside the
+/// drafts waiting for its day or week, as accepting a draft does: an older draft could only ever
+/// replace it. A day told only so far is not its full entry and leaves them waiting.
 pub fn save(db: &Database, story: &NewStory) -> Result<i64, DbError> {
-    Ok(db.conn().query_row(
+    let conn = db.conn();
+    let tx = conn.unchecked_transaction()?;
+    if story.status == StoryStatus::Accepted && !story.partial {
+        tx.execute(
+            "UPDATE stories SET status = 'discarded'
+             WHERE status = 'draft' AND character_id = ?1 AND kind = ?2 AND start_day = ?3",
+            params![story.character_id, story.kind.key(), story.start_day],
+        )?;
+    }
+    let id = tx.query_row(
         "INSERT INTO stories (character_id, kind, start_day, end_day, narrator, language,
              provider, model, prompt_hash, text, created_at, check_status, check_reason, status,
              note, partial)
@@ -142,6 +153,23 @@ pub fn save(db: &Database, story: &NewStory) -> Result<i64, DbError> {
             story.note,
             story.partial,
         ],
+        |row| row.get(0),
+    )?;
+    tx.commit()?;
+    Ok(id)
+}
+
+/// Whether a draft of this day or week waits for the player.
+pub fn draft_waiting(
+    db: &Database,
+    character_id: i64,
+    kind: StoryKind,
+    start_day: &str,
+) -> Result<bool, DbError> {
+    Ok(db.conn().query_row(
+        "SELECT EXISTS (SELECT 1 FROM stories WHERE status = 'draft' AND character_id = ?1
+             AND kind = ?2 AND start_day = ?3)",
+        params![character_id, kind.key(), start_day],
         |row| row.get(0),
     )?)
 }

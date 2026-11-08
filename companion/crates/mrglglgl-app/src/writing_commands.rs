@@ -129,7 +129,8 @@ pub struct Slot {
 
 /// Writes days and weeks ahead of the backlog: a selection from the To review list, or one
 /// rewrite with the player's note. Review mode decides, as for every entry, whether they wait as
-/// drafts or go straight into the journal.
+/// drafts or go straight into the journal; rewriting a draft that waits always makes a new
+/// draft, since the player asked for another version to review, not for a journal entry.
 #[tauri::command]
 pub fn write_drafts(
     state: State<'_, AppState>,
@@ -139,14 +140,16 @@ pub fn write_drafts(
     note: Option<String>,
 ) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
-    let draft = db.settings().map_err(|e| e.to_string())?.writing.review;
-    let ask = queue::Ask {
-        narrator: narrator.as_deref(),
-        draft,
-        note: note.as_deref(),
-        partial: false,
-    };
+    let review = db.settings().map_err(|e| e.to_string())?.writing.review;
     for slot in &slots {
+        let waiting = stories::draft_waiting(&db, character_id, slot.kind, &slot.start_day)
+            .map_err(|e| e.to_string())?;
+        let ask = queue::Ask {
+            narrator: narrator.as_deref(),
+            draft: review || waiting,
+            note: note.as_deref(),
+            partial: false,
+        };
         queue::request(&db, character_id, slot.kind, &slot.start_day, &ask)
             .map_err(|e| e.to_string())?;
     }
