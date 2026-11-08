@@ -389,7 +389,7 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
 }
 
 #[test]
-fn five_narrators_ship_and_unknown_ones_fall_back_to_the_scribe() {
+fn seven_narrators_ship_and_unknown_ones_fall_back_to_the_scribe() {
     let ids: Vec<String> = narrators::list().into_iter().map(|n| n.id).collect();
     assert_eq!(
         ids,
@@ -398,6 +398,8 @@ fn five_narrators_ship_and_unknown_ones_fall_back_to_the_scribe() {
             "grumpy_dwarf",
             "pompous_noble",
             "smug_academic",
+            "easygoing_troll",
+            "silly_elf",
             "murloc_speak"
         ]
     );

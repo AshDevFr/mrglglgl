@@ -6,8 +6,8 @@ description: Who writes your journal, the murloc's margin notes, writing prefere
 ## Choosing a narrator
 
 **Narrator**, in **Settings**, **Writing**, chooses who writes your journal. The murloc scribe is
-the default; the grumpy dwarf, the pompous noble and the smug academic are other styles you can
-choose. The murloc writing entirely in its own language is only used if you pick it. On any day
+the default; the grumpy dwarf, the pompous noble, the smug academic, the easygoing troll and the
+silly elf are other styles you can choose. The murloc writing entirely in its own language is only used if you pick it. On any day
 or week you can also pick a narrator for that entry alone.
 
 **Murloc margin notes** sets how often the murloc adds a note in the margin, from never to about

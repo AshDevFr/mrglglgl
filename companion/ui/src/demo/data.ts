@@ -130,6 +130,13 @@ export const narrators: NarratorInfo[] = [
     optIn: false,
     custom: false,
   },
+  {
+    id: "easygoing_troll",
+    name: "The easygoing troll",
+    optIn: false,
+    custom: false,
+  },
+  { id: "silly_elf", name: "The silly elf", optIn: false, custom: false },
   { id: "custom_heron", name: "The patient heron", optIn: false, custom: true },
 ];
 

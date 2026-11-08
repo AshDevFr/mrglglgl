@@ -93,6 +93,10 @@ const BUILT_IN: &[&str] = &[
     include_str!("../narrators/pompous_noble.fr.toml"),
     include_str!("../narrators/smug_academic.en.toml"),
     include_str!("../narrators/smug_academic.fr.toml"),
+    include_str!("../narrators/easygoing_troll.en.toml"),
+    include_str!("../narrators/easygoing_troll.fr.toml"),
+    include_str!("../narrators/silly_elf.en.toml"),
+    include_str!("../narrators/silly_elf.fr.toml"),
     include_str!("../narrators/murloc_speak.en.toml"),
     include_str!("../narrators/murloc_speak.fr.toml"),
 ];
