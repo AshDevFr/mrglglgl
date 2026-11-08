@@ -528,3 +528,21 @@ details.facts .fact-list {
     margin-top: 4rem;
   }
 }
+
+/* A stamp shown large on hover: a slip of the page's paper, in its ink. */
+.stamp-tooltip,
+.stamp-tooltip-arrow {
+  background-color: var(--page);
+  color: var(--ink);
+  border: 1px solid color-mix(in srgb, var(--stamp) 35%, transparent);
+}
+
+.stamp-tooltip {
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.25);
+}
+
+/* On the slip the stamp is printed plainly: blending is for ink soaking into the page. */
+.stamp-tooltip .ink-stamp {
+  mix-blend-mode: normal;
+  opacity: 1;
+}

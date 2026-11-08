@@ -12,6 +12,8 @@ describe("InkStamp", () => {
     const stamp = screen.getByRole("img", { name: /^Kept the Boot:/ });
     fireEvent.mouseEnter(stamp.parentElement as HTMLElement);
     const tip = await screen.findByRole("tooltip");
+    // On the page's paper, whatever the theme.
+    expect(tip).toHaveClass("stamp-tooltip");
     expect(within(tip).getByText("Kept the Boot")).toBeInTheDocument();
     expect(
       within(tip).getByText("Fished up a boot. Kept it."),

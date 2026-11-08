@@ -31,6 +31,8 @@ export function InkStamp({ award, size = 72, tilt = -6, zoom = true }: Props) {
       withArrow
       multiline
       w={220}
+      // On the page's own paper and ink, in every theme, not the library's grey.
+      classNames={{ tooltip: "stamp-tooltip", arrow: "stamp-tooltip-arrow" }}
       label={
         <Stack gap={4} align="center" py={4}>
           <StampMark award={award} size={ZOOMED_SIZE} tilt={0} titled={false} />
