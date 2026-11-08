@@ -283,3 +283,17 @@ async fn a_truncated_download_is_not_taken_for_a_model() {
     .await;
     assert_eq!(result, Err(DownloadError::Status(404)));
 }
+
+// In the same unit as the models list, so the player can compare the two, with the free space
+// measured: a wrong measurement then shows in the message.
+#[test]
+fn the_no_space_error_reads_in_gigabytes() {
+    let error = DownloadError::NoSpace {
+        needed: 3_814_679_712,
+        free: 1_250_000_000,
+    };
+    assert_eq!(
+        error.to_string(),
+        "not enough free disk space: 3.81 GB needed, 1.25 GB free"
+    );
+}

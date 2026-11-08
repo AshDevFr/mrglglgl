@@ -204,8 +204,12 @@ pub struct Progress {
 pub enum DownloadError {
     #[error("the download was cancelled")]
     Cancelled,
-    #[error("not enough free disk space: {needed} bytes needed")]
-    NoSpace { needed: u64 },
+    #[error(
+        "not enough free disk space: {} GB needed, {} GB free",
+        gigabytes(*needed),
+        gigabytes(*free)
+    )]
+    NoSpace { needed: u64, free: u64 },
     #[error("could not download the model: {0}")]
     Network(String),
     #[error("the server answered {0}")]
@@ -214,6 +218,11 @@ pub enum DownloadError {
     WrongSize { got: u64, expected: u64 },
     #[error("could not write the model file: {0}")]
     Io(String),
+}
+
+/// Bytes as decimal gigabytes, the unit the models list shows sizes in.
+fn gigabytes(bytes: u64) -> String {
+    format!("{:.2}", bytes as f64 / 1e9)
 }
 
 fn io(e: std::io::Error) -> DownloadError {
@@ -252,6 +261,7 @@ pub async fn download(
     {
         return Err(DownloadError::NoSpace {
             needed: remaining + DISK_MARGIN_BYTES,
+            free,
         });
     }
 
