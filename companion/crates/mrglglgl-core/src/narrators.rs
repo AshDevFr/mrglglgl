@@ -50,6 +50,18 @@ pub struct Example {
     pub margin_note: String,
 }
 
+/// Whose eyes the entry is written through.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "snake_case")]
+pub enum PointOfView {
+    /// As the adventurer, in the first person: the narrator is a voice, not a witness.
+    #[default]
+    Adventurer,
+    /// About the adventurer, by name: the narrator tells what it watched.
+    Observer,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
 pub struct Narrator {
@@ -60,6 +72,9 @@ pub struct Narrator {
     /// Shown only to players who turn it on.
     #[serde(default)]
     pub opt_in: bool,
+    /// Files saved before the setting existed write as the adventurer.
+    #[serde(default)]
+    pub point_of_view: PointOfView,
     pub persona: String,
     pub voice: String,
     /// How the murloc may show when no margin note is asked for.
@@ -315,6 +330,7 @@ pub fn blank(language: &str) -> Narrator {
         language: scribe.language.clone(),
         name: String::new(),
         opt_in: false,
+        point_of_view: PointOfView::default(),
         persona: String::new(),
         voice: String::new(),
         murloc: scribe.murloc.clone(),

@@ -671,3 +671,39 @@ fn a_long_session_earns_a_longer_entry_than_a_short_one() {
             .contains(&format!("about {} words", long_p.words))
     );
 }
+
+#[test]
+fn a_narrator_writes_as_the_adventurer_or_about_them_as_it_is_set() {
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let mut watcher = narrators::get("grumpy_dwarf", "en").clone();
+    assert_eq!(watcher.point_of_view, narrators::PointOfView::Adventurer);
+    let as_them = day(&j, &awards, "en", "grumpy_dwarf", false);
+    assert!(
+        as_them
+            .system
+            .contains("Write as the adventurer, in the first person")
+    );
+
+    watcher.point_of_view = narrators::PointOfView::Observer;
+    let about_them = day_prompt(&DayRequest {
+        character_id: 1,
+        journal: &j,
+        day: "2026-11-08",
+        awards: &awards,
+        running_jokes: &[],
+        narrator: &watcher,
+        language: "en",
+        meddling: Meddling::Off,
+        pseudonyms: false,
+        thresholds: &Thresholds::default(),
+        note: None,
+        preferences: None,
+    });
+    assert!(
+        about_them
+            .system
+            .contains("Write about the adventurer, by name")
+    );
+    assert!(!about_them.system.contains("in the first person"));
+}

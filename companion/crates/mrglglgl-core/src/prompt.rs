@@ -15,7 +15,7 @@ use sha2::{Digest, Sha256};
 use crate::beats::{self, DayRecord, Thresholds};
 use crate::continuity::ContinuitySheet;
 use crate::milestones::{self, Award};
-use crate::narrators::Narrator;
+use crate::narrators::{Narrator, PointOfView};
 use crate::schema::Journal;
 
 /// Words a day entry aims for on a light day.
@@ -386,8 +386,7 @@ fn system(
          the light, the weather of the mood, but nothing that happened. Keep every number and \
          name exactly as given. Do not invent lore beyond what is given.\n\
          2. Earlier days are memory only. Never describe them as happening {when}.\n\
-         3. Voice. Write as the adventurer, in the first person (\"I\"): the voice that \
-         follows is how you write, never someone watching them. {voice}\n\
+         3. Voice. {point_of_view} {voice}\n\
          4. The murloc. {murloc}\n\
          5. Length and form. {length}. Give each paragraph its own part of {when}: a place, a \
          stretch of fighting, a craft, who was with you. Leave a blank line between paragraphs. \
@@ -398,6 +397,16 @@ fn system(
          {intro}\n\n\
          {example}",
         style = preferences_rule(preferences),
+        point_of_view = match narrator.point_of_view {
+            PointOfView::Adventurer => {
+                "Write as the adventurer, in the first person (\"I\"): the voice that follows is \
+                 how you write, never someone watching them."
+            }
+            PointOfView::Observer => {
+                "Write about the adventurer, by name, as the one who watched the day: the voice \
+                 that follows is yours. When a pronoun is needed for the adventurer, use \"they\"."
+            }
+        },
         persona = narrator.persona.trim(),
         voice = narrator.voice.trim(),
         language = language_name(language),

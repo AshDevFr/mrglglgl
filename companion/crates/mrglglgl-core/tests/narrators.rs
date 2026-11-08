@@ -218,3 +218,29 @@ fn every_built_in_narrator_speaks_french_with_a_french_example() {
         assert_eq!(fr.hints, info.hints, "{}", info.id);
     }
 }
+
+#[test]
+fn a_narrator_keeps_its_point_of_view_and_older_files_write_as_the_adventurer() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut mine = dwarf_copy();
+    mine.point_of_view = narrators::PointOfView::Observer;
+    let saved = narrators::save(dir.path(), mine).unwrap();
+    assert_eq!(
+        Library::load(dir.path()).get(&saved.id, "en").point_of_view,
+        narrators::PointOfView::Observer
+    );
+
+    // A file saved before the setting existed has no such line.
+    let path = dir.path().join(format!("{}.toml", saved.id));
+    let text = std::fs::read_to_string(&path).unwrap();
+    let older: String = text
+        .lines()
+        .filter(|l| !l.starts_with("point_of_view"))
+        .map(|l| format!("{l}\n"))
+        .collect();
+    std::fs::write(&path, older).unwrap();
+    assert_eq!(
+        Library::load(dir.path()).get(&saved.id, "en").point_of_view,
+        narrators::PointOfView::Adventurer
+    );
+}

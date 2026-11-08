@@ -29,6 +29,7 @@ const heron: Narrator = {
   language: "en",
   name: "The heron",
   opt_in: false,
+  point_of_view: "adventurer",
   persona: "You are a heron who keeps this journal.",
   voice: "Patient, still, fond of water.",
   murloc: "No murloc.",
@@ -77,6 +78,21 @@ describe("NarratorEditor", () => {
       }),
     );
     await waitFor(() => expect(onSaved).toHaveBeenCalledWith(heron));
+  });
+
+  it("lets the narrator write about the adventurer instead of as them", async () => {
+    commands.saveNarrator.mockResolvedValue({ kind: "saved", narrator: heron });
+    renderWithProviders(<NarratorEditor initial={heron} />);
+    fireEvent.click(
+      screen.getByRole("radio", { name: "About the adventurer" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(commands.saveNarrator).toHaveBeenCalledWith({
+        ...heron,
+        point_of_view: "observer",
+      }),
+    );
   });
 
   it("names each field to fix", async () => {

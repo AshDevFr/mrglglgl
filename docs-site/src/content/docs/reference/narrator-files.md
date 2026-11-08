@@ -24,6 +24,7 @@ are not part of a narrator file. A narrator decides only how the entry sounds.
 | `language` | Prose language: `en` or `fr` |
 | `name` | Shown to players in Settings |
 | `opt_in` | `true` for a narrator only used when a player picks it (the full murloc-speak voice is one) |
+| `point_of_view` | `adventurer` (the default): the entry says "I", as the adventurer, and the narrator is the voice it is written in. `observer`: the narrator tells what it watched, calling the adventurer by name |
 | `persona` | Who is writing, in one or two sentences |
 | `voice` | How it sounds: warmth, humour, register |
 | `murloc` | How the murloc shows on a day without a margin note |

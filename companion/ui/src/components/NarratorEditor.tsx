@@ -2,6 +2,7 @@ import {
   Alert,
   Button,
   Group,
+  Radio,
   Select,
   Stack,
   Text,
@@ -22,6 +23,7 @@ import {
 } from "@/api/commands";
 import type { Invalid } from "@/bindings/Invalid";
 import type { Narrator } from "@/bindings/Narrator";
+import type { PointOfView } from "@/bindings/PointOfView";
 import type { PreviewDay } from "@/bindings/PreviewDay";
 import type { PreviewResult } from "@/bindings/PreviewResult";
 import { problem } from "@/i18n/problems";
@@ -125,6 +127,17 @@ export function NarratorEditor({ initial, onSaved }: Props) {
           (persona) => set({ persona }),
           t("narrators.personaHelp"),
         )}
+        <Radio.Group
+          label={t("narrators.pointOfView")}
+          description={t("narrators.pointOfViewHelp")}
+          value={draft.point_of_view}
+          onChange={(v) => set({ point_of_view: v as PointOfView })}
+        >
+          <Group gap="md" mt={4}>
+            <Radio value="adventurer" label={t("narrators.asAdventurer")} />
+            <Radio value="observer" label={t("narrators.aboutAdventurer")} />
+          </Group>
+        </Radio.Group>
         {text(
           "voice",
           t("narrators.voice"),

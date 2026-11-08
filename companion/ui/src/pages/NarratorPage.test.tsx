@@ -14,6 +14,7 @@ const blank: Narrator = {
   language: "en",
   name: "",
   opt_in: false,
+  point_of_view: "adventurer",
   persona: "",
   voice: "",
   murloc: "The murloc may show in passing.",

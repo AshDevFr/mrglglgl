@@ -40,8 +40,10 @@ happened.
 
 ![The narrators list in Settings.](../../../assets/screenshots/settings-narrators.png)
 
-The editor has a field for each part of a narrator: who they are, how they sound, how the murloc
-shows, the worked example, and hints for particular kinds of day. **Preview** writes a sample day
+The editor has a field for each part of a narrator: who they are, whose eyes the day is told
+through, how they sound, how the murloc shows, the worked example, and hints for particular kinds
+of day. Every built-in narrator writes as the adventurer, saying "I"; your own can instead tell the
+day as someone who watched it, calling the adventurer by name. **Preview** writes a sample day
 with the narrator before you save it. See [Narrator files](/reference/narrator-files/) for
 what each field does and what makes a narrator write well.
 

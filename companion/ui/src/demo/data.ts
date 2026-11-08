@@ -146,6 +146,7 @@ export const heron: Narrator = {
   language: "en",
   name: "The patient heron",
   opt_in: false,
+  point_of_view: "adventurer",
   persona:
     "You are a grey heron who has watched this adventurer from the shallows for years.",
   voice: "Still, patient and fond of water. Short sentences. Never hurried.",
