@@ -1,5 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { reviewList } from "@/api/commands";
 import type { ReviewItem } from "@/bindings/ReviewItem";
 import type { Story } from "@/bindings/Story";
 import { ReviewList } from "@/components/ReviewList";
@@ -202,6 +204,21 @@ describe("ReviewList", () => {
         /Review mode is off, so what you write here goes straight into the journal/,
       ),
     ).toBeInTheDocument();
+  });
+
+  it("shares the character's review cache with the journal page without breaking", async () => {
+    // The journal page caches the same list under the same key, in its own shape.
+    function JournalPageQuery() {
+      useQuery({ queryKey: ["review", 1], queryFn: () => reviewList(1) });
+      return null;
+    }
+    renderWithProviders(
+      <>
+        <JournalPageQuery />
+        <ReviewList characterId={1} />
+      </>,
+    );
+    expect(await row(/November 9, 2026/)).toHaveTextContent("The wolves won.");
   });
 
   it("says when there is nothing to review", async () => {

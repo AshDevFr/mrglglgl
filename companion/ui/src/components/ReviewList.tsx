@@ -76,13 +76,24 @@ export function ReviewList({ characterId }: { characterId?: number }) {
   const [narrator, setNarrator] = useState<string | null>(null);
   const everyone = characterId === undefined;
 
-  const groups = useQuery({
-    queryKey: everyone ? ["review", "all"] : ["review", characterId],
-    queryFn: async (): Promise<CharacterGroup[]> =>
-      everyone
-        ? reviewAll()
-        : [{ characterId, items: await reviewList(characterId) }],
+  // A character's list is cached as the journal page caches it, a plain list under
+  // ["review", id]; every character's list has its own key and shape.
+  const one = useQuery({
+    queryKey: ["review", characterId],
+    queryFn: () => reviewList(characterId ?? 0),
+    enabled: !everyone,
   });
+  const all = useQuery({
+    queryKey: ["review", "all"],
+    queryFn: reviewAll,
+    enabled: everyone,
+  });
+  const pending = everyone ? all.isPending : one.isPending;
+  const loaded: CharacterGroup[] = everyone
+    ? (all.data ?? [])
+    : characterId !== undefined && one.data
+      ? [{ characterId, items: one.data }]
+      : [];
   const characters = useQuery({
     queryKey: ["characters"],
     queryFn: listCharacters,
@@ -120,8 +131,8 @@ export function ReviewList({ characterId }: { characterId?: number }) {
       void discardDraft(id, storyId).then(() => refresh(id)),
   });
 
-  if (groups.isPending) return <EmptyState title={t("loading")} />;
-  const list = (groups.data ?? []).filter((g) => g.items.length > 0);
+  if (pending) return <EmptyState title={t("loading")} />;
+  const list = loaded.filter((g) => g.items.length > 0);
   if (list.length === 0)
     return (
       <EmptyState
