@@ -49,7 +49,7 @@ ns.On("ZONE_CHANGED_NEW_AREA", function() cache, cacheSize = {}, 0 end)
 local function refreshGroup()
 	groupGuids = {}
 	local player = UnitGUID("player")
-	if player then
+	if player and not Compat.IsSecret(player) then
 		groupGuids[player] = true
 	end
 	local prefix = IsInRaid() and "raid" or "party"
@@ -69,8 +69,11 @@ local function isMurloc(npcId, name)
 end
 
 function Kills.onPartyKill(attackerGUID, targetGUID)
-	-- First, and without allocating: most kills in a crowded zone are other players'.
-	if not groupGuids[attackerGUID] or not Storage.records("kills") then
+	-- In dungeons, encounters and PvP the client may keep the attacker secret too, and a secret
+	-- value cannot be a table key: such a kill cannot be told from another player's, so it is
+	-- left out, as theirs are. Then, without allocating: most kills in a crowded zone are other
+	-- players'.
+	if Compat.IsSecret(attackerGUID) or not groupGuids[attackerGUID] or not Storage.records("kills") then
 		return
 	end
 	local day = Day.get(Storage.journal(), Day.key(time()))

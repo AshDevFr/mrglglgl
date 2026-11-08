@@ -47,6 +47,15 @@ describe("Kills", function()
 		assert.is_true(grown < 1, ("allocated %.2f KB"):format(grown))
 	end)
 
+	-- The client refuses a secret value as a table key; plain Lua cannot, so this pins the outcome
+	-- and Kills.lua checks for a secret attacker before any lookup.
+	it("leaves out a kill whose attacker the client keeps secret", function()
+		Mock.fire("PARTY_KILL", Mock.SECRET, creature(2958))
+		Mock.fire("PARTY_KILL", Mock.SECRET, Mock.SECRET)
+		assert.is_nil(today().kills)
+		assert.is_nil(today().anonKills)
+	end)
+
 	it("aggregates 23 kills of one creature into a single record", function()
 		Mock.setUnit("target", { guid = creature(2958), name = "Prairie Wolf", classification = "normal" })
 		Mock.fire("PLAYER_TARGET_CHANGED")
