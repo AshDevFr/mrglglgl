@@ -107,7 +107,71 @@ fn clean(text: &str) -> String {
         let rest = out.split_once("\n\n").map_or("", |(_, rest)| rest);
         out = rest.to_string();
     }
-    out.trim().to_string()
+    drop_repeated_sentences(out.trim())
+}
+
+/// Sentences shorter than this may repeat: "Mrgl!" said twice is a voice, not a slip.
+const REPEAT_MIN_WORDS: usize = 4;
+
+/// Removes later copies of a sentence already said, word for word, which small models produce
+/// as a refrain. Only a line that loses a sentence is rebuilt: paragraphs, line breaks and the
+/// rest of the text stay as written.
+fn drop_repeated_sentences(text: &str) -> String {
+    let mut seen = std::collections::HashSet::new();
+    let mut lines = Vec::new();
+    for line in text.split('\n') {
+        let all = sentences(line);
+        let kept: Vec<&str> = all
+            .iter()
+            .copied()
+            .filter(|sentence| {
+                let key = sentence
+                    .split_whitespace()
+                    .map(str::to_lowercase)
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                key.split(' ').count() < REPEAT_MIN_WORDS || seen.insert(key)
+            })
+            .collect();
+        if kept.len() == all.len() {
+            lines.push(Some(line.to_string()));
+        } else if kept.is_empty() {
+            // The line was nothing but a repeat: drop it, keeping blank lines between paragraphs.
+            lines.push(None);
+        } else {
+            lines.push(Some(kept.join(" ")));
+        }
+    }
+    let joined = lines.into_iter().flatten().collect::<Vec<_>>().join("\n");
+    // A dropped line can leave three line breaks in a row where a paragraph break was.
+    let mut tidy = joined;
+    while tidy.contains("\n\n\n") {
+        tidy = tidy.replace("\n\n\n", "\n\n");
+    }
+    tidy.trim().to_string()
+}
+
+/// A line's sentences, each ending with its own punctuation and trimmed.
+fn sentences(paragraph: &str) -> Vec<&str> {
+    let mut out = Vec::new();
+    let mut start = 0;
+    let chars: Vec<(usize, char)> = paragraph.char_indices().collect();
+    for (i, &(at, c)) in chars.iter().enumerate() {
+        let next = chars.get(i + 1).map(|&(_, n)| n);
+        if matches!(c, '.' | '!' | '?') && next.is_none_or(char::is_whitespace) {
+            let end = at + c.len_utf8();
+            let sentence = paragraph[start..end].trim();
+            if !sentence.is_empty() {
+                out.push(sentence);
+            }
+            start = end;
+        }
+    }
+    let rest = paragraph[start..].trim();
+    if !rest.is_empty() {
+        out.push(rest);
+    }
+    out
 }
 
 async fn attempt(

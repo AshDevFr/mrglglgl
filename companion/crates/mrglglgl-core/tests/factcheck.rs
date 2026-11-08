@@ -245,3 +245,40 @@ fn a_rewrite_note_never_becomes_a_fact() {
     );
     assert_eq!(check(TRUE_ENTRY, &facts), Vec::<String>::new());
 }
+
+#[tokio::test]
+async fn a_sentence_said_twice_is_kept_once() {
+    // The shape the grumpy dwarf produced with Qwen3.5 4B: a closing line said twice.
+    let p = prompt("en");
+    let refrain = "The world is loud with his noise, and I'm just the old dwarf listening to it.";
+    let entry =
+        format!("{TRUE_ENTRY} {refrain}\n\nHogger was gone by evening. Mrgl! Mrgl! {refrain}");
+    let provider = FakeProvider::new([entry.as_str()]);
+    let result = write(&provider, &p, &options(), &CancellationToken::new(), None)
+        .await
+        .unwrap();
+    let WriteResult::Written { text, .. } = result else {
+        panic!("{result:?}");
+    };
+    assert_eq!(text.matches(refrain).count(), 1, "{text}");
+    // Paragraphs stay, and short exclamations may repeat.
+    assert!(
+        text.contains("\n\nHogger was gone by evening. Mrgl! Mrgl!"),
+        "{text}"
+    );
+}
+
+#[tokio::test]
+async fn line_breaks_inside_a_paragraph_survive() {
+    // Murloc-speak puts its translation on the next line of the same paragraph.
+    let p = prompt("en");
+    let entry = format!("Mrgl mrgl Prairie Wolf! Mrglglgl.\n(Translation: {TRUE_ENTRY})");
+    let provider = FakeProvider::new([entry.as_str()]);
+    let result = write(&provider, &p, &options(), &CancellationToken::new(), None)
+        .await
+        .unwrap();
+    assert!(
+        matches!(&result, WriteResult::Written { text, .. } if *text == entry),
+        "{result:?}"
+    );
+}
