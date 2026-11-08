@@ -1080,7 +1080,12 @@
     "install": "Mettre à jour et redémarrer",
     "later": "Plus tard",
     "failed": "La mise à jour n'a pas pu s'installer",
-    "failedNext": "Réessaie au prochain démarrage, ou télécharge la nouvelle version depuis la page des versions."
+    "failedNext": "Réessaie au prochain démarrage, ou télécharge la nouvelle version depuis la page des versions.",
+    "check": "Rechercher des mises à jour",
+    "checking": "Recherche d'une version plus récente…",
+    "latest": "À jour : version {{version}}.",
+    "checkFailed": "Impossible de rechercher les mises à jour",
+    "checkFailedNext": "Vérifie la connexion, puis réessaie ; l'app continue de fonctionner telle quelle."
   },
   "failure": {
     "offline": "le serveur est injoignable",

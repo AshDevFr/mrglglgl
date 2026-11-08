@@ -13,6 +13,20 @@ export async function availableUpdate(): Promise<Update | null> {
   }
 }
 
+/** The same check, asked for by the player, who needs to know when it failed: offline, or
+ * GitHub not answering. */
+export async function checkForUpdate(): Promise<{
+  update: Update | null;
+  failed: boolean;
+}> {
+  if (import.meta.env.VITE_DEMO === "1") return { update: null, failed: false };
+  try {
+    return { update: await check(), failed: false };
+  } catch {
+    return { update: null, failed: true };
+  }
+}
+
 /** Downloads and installs the update, then restarts into it. */
 export async function installAndRestart(update: Update): Promise<void> {
   await update.downloadAndInstall();

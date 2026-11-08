@@ -1080,7 +1080,12 @@
     "install": "Update and restart",
     "later": "Later",
     "failed": "The update could not be installed",
-    "failedNext": "Try again at the next start, or download the new version from the releases page."
+    "failedNext": "Try again at the next start, or download the new version from the releases page.",
+    "check": "Check for updates",
+    "checking": "Looking for a newer version…",
+    "latest": "Up to date: version {{version}}.",
+    "checkFailed": "Could not look for updates",
+    "checkFailedNext": "Check the connection, then try again; the app keeps working as it is."
   },
   "failure": {
     "offline": "the server could not be reached",
