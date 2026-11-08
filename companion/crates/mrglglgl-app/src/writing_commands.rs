@@ -1,6 +1,6 @@
 //! Commands for writing: entries and their versions, the queue, the models and the endpoint.
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use mrglglgl_core::archive;
 use mrglglgl_core::db::ProviderChoice;
@@ -494,21 +494,31 @@ pub struct ModelsView {
     pub advice: FirstRunAdvice,
 }
 
-/// Total memory, and free space on the disk holding `dir`.
-fn machine(dir: &Path) -> (u64, u64) {
+/// Total memory, and free space on the disk holding `dir` when it can be told.
+fn machine(dir: &Path) -> (u64, Option<u64>) {
     use sysinfo::{Disks, MemoryRefreshKind, RefreshKind, System};
     let system = System::new_with_specifics(
         RefreshKind::nothing().with_memory(MemoryRefreshKind::everything()),
     );
-    let disks = Disks::new_with_refreshed_list();
-    let dir = dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf());
-    let free = disks
+    let disks: Vec<(PathBuf, u64)> = Disks::new_with_refreshed_list()
         .list()
         .iter()
-        .filter(|d| dir.starts_with(d.mount_point()))
-        .max_by_key(|d| d.mount_point().as_os_str().len())
-        .map_or(0, |d| d.available_space());
-    (system.total_memory(), free)
+        .map(|d| (d.mount_point().to_path_buf(), d.available_space()))
+        .collect();
+    // On Windows the standard canonicalize returns a verbatim path (`\\?\C:\...`) that never
+    // starts with a mount point such as `C:\`; dunce gives the plain form back.
+    let dir = dunce::canonicalize(dir).unwrap_or_else(|_| dir.to_path_buf());
+    (system.total_memory(), free_space_on(&dir, &disks))
+}
+
+/// The free space of the deepest mount holding `dir`, or `None` when no mount does: that is a
+/// failed measurement, and must not read as a full disk.
+fn free_space_on(dir: &Path, disks: &[(PathBuf, u64)]) -> Option<u64> {
+    disks
+        .iter()
+        .filter(|(mount, _)| dir.starts_with(mount))
+        .max_by_key(|(mount, _)| mount.as_os_str().len())
+        .map(|(_, free)| *free)
 }
 
 #[tauri::command]
@@ -524,7 +534,9 @@ pub fn models(state: State<'_, AppState>) -> Result<ModelsView, String> {
     let dir = writing::models_dir(&state.data_dir);
     let recommended = catalogue.recommended(&language).map(|m| m.id.clone());
     let (ram, free) = machine(&state.data_dir);
-    let advice = match catalogue.advise(ram, free, &language) {
+    // Space that cannot be measured is not held against a model; the download stops cleanly if
+    // the disk does fill.
+    let advice = match catalogue.advise(ram, free.unwrap_or(u64::MAX), &language) {
         Advice::Recommend { id } => FirstRunAdvice::Recommend { id },
         Advice::BelowFloor {
             reason: Shortfall::Memory { needed_gb, has_gb },
@@ -589,7 +601,7 @@ pub async fn download_model(
         &entry,
         &writing::models_dir(&state.data_dir),
         catalogue::HUGGING_FACE,
-        Some(free),
+        free,
         &cancel,
         |p| {
             // A few hundred events, not one per network read.
@@ -833,4 +845,31 @@ pub fn print_page(window: tauri::WebviewWindow) -> Result<(), String> {
 #[tauri::command]
 pub fn endpoint_sends_off_machine(url: String) -> bool {
     endpoint::sends_off_machine(&url)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::free_space_on;
+    use std::path::{Path, PathBuf};
+
+    fn disks(list: &[(&str, u64)]) -> Vec<(PathBuf, u64)> {
+        list.iter().map(|(m, f)| (PathBuf::from(m), *f)).collect()
+    }
+
+    #[test]
+    fn the_deepest_mount_holding_the_folder_gives_the_free_space() {
+        let disks = disks(&[("/", 10), ("/Users", 20), ("/Volumes/Games", 30)]);
+        assert_eq!(
+            free_space_on(Path::new("/Users/ash/data"), &disks),
+            Some(20)
+        );
+    }
+
+    // A folder no disk claims means the measurement failed, not a full disk: reporting 0 blocked
+    // every model download.
+    #[test]
+    fn no_disk_holding_the_folder_means_unknown_not_full() {
+        let disks = disks(&[("/Volumes/Games", 30)]);
+        assert_eq!(free_space_on(Path::new("/Users/ash/data"), &disks), None);
+    }
 }
