@@ -72,6 +72,12 @@ const reviewRoute = createRoute({
   },
 });
 
+const reviewAllRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/review",
+  component: () => <ReviewPage />,
+});
+
 const narratorRoute = createRoute({
   getParentRoute: () => appRoute,
   path: "/narrators/$narratorId",
@@ -93,6 +99,7 @@ const routeTree = rootRoute.addChildren([
     characterRoute,
     milestonesRoute,
     reviewRoute,
+    reviewAllRoute,
     narratorRoute,
     settingsRoute,
   ]),

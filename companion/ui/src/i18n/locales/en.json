@@ -679,6 +679,7 @@
     "title": "To review",
     "intro": "Finished days and weeks without an entry in the journal, and drafts waiting for you. A draft goes into the journal only when you accept it.",
     "empty": "Nothing to review. Every finished day has its entry.",
+    "emptyAll": "Nothing to review for any character. Every finished day has its entry.",
     "notWritten": "Not written yet.",
     "discarded": "You threw the last draft away.",
     "replaces": "The journal already has an entry here; accepting this draft replaces it.",

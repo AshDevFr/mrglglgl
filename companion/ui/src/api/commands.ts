@@ -4,6 +4,7 @@ import type { AddonView } from "@/bindings/AddonView";
 import type { Alias } from "@/bindings/Alias";
 import type { AppInfo } from "@/bindings/AppInfo";
 import type { Award } from "@/bindings/Award";
+import type { CharacterReview } from "@/bindings/CharacterReview";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
 import type { DataUse } from "@/bindings/DataUse";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
@@ -175,6 +176,11 @@ export function characterStories(characterId: number): Promise<Story[]> {
 /** Finished days and weeks with no accepted entry, or with a draft waiting, newest first. */
 export function reviewList(characterId: number): Promise<ReviewItem[]> {
   return invoke<ReviewItem[]>("review_list", { characterId });
+}
+
+/** The To review list of every character with something on it. */
+export function reviewAll(): Promise<CharacterReview[]> {
+  return invoke<CharacterReview[]>("review_all");
 }
 
 /** Puts a draft in the journal; the other drafts for that day or week are discarded. */

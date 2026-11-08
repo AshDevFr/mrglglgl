@@ -50,6 +50,40 @@ pub fn review_list(
     review::items(&db, character_id, &journal, &writing::today()).map_err(|e| e.to_string())
 }
 
+/// One character's part of the To review list for every character.
+#[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct CharacterReview {
+    pub character_id: i64,
+    pub items: Vec<ReviewItem>,
+}
+
+/// The To review list of every character with something on it, in the characters' order.
+#[tauri::command]
+pub fn review_all(state: State<'_, AppState>) -> Result<Vec<CharacterReview>, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let today = writing::today();
+    let mut out = Vec::new();
+    for character in db.characters().map_err(|e| e.to_string())? {
+        let Some(journal) =
+            archive::load_for(&db, character.id, mrglglgl_core::usage::Audience::Shared)
+                .map_err(|e| e.to_string())?
+        else {
+            continue;
+        };
+        let items =
+            review::items(&db, character.id, &journal, &today).map_err(|e| e.to_string())?;
+        if !items.is_empty() {
+            out.push(CharacterReview {
+                character_id: character.id,
+                items,
+            });
+        }
+    }
+    Ok(out)
+}
+
 /// Puts a draft in the journal; the other drafts for that day or week are discarded.
 #[tauri::command]
 pub fn accept_draft(

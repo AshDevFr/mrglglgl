@@ -19,7 +19,8 @@ export function useWriting(characterId: number): LiveMap {
         if (event.characterId === characterId) {
           for (const queryKey of [
             ["stories", characterId],
-            ["review", characterId],
+            // Every To review list: this character's and the one for every character.
+            ["review"],
             ["characters"],
           ]) {
             void queryClient.invalidateQueries({ queryKey });

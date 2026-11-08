@@ -81,6 +81,9 @@ export function Layout() {
     };
   }, [queryClient]);
 
+  // Drafts waiting across every character, as each one's badge in the list counts them.
+  const toReview = (characters.data ?? []).reduce((n, c) => n + c.toReview, 0);
+
   return (
     <AppShell navbar={{ width: 280, breakpoint: "sm" }} padding={0}>
       <a href="#journal" className="skip-link">
@@ -121,6 +124,15 @@ export function Layout() {
           )}
         </AppShell.Section>
         <AppShell.Section>
+          <NavLink
+            component="button"
+            label={
+              toReview > 0
+                ? t("nav.reviewCount", { count: toReview })
+                : t("nav.review")
+            }
+            onClick={() => navigate({ to: "/review" })}
+          />
           <NavLink
             component="button"
             label={t("nav.syncNow")}

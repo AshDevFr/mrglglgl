@@ -76,6 +76,7 @@ fn main() {
             commands::delete_character,
             writing_commands::character_stories,
             writing_commands::review_list,
+            writing_commands::review_all,
             writing_commands::accept_draft,
             writing_commands::edit_story,
             writing_commands::discard_draft,

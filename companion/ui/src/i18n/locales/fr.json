@@ -679,6 +679,7 @@
     "title": "À relire",
     "intro": "Les journées et semaines terminées sans entrée dans le journal, et les brouillons qui t'attendent. Un brouillon n'entre dans le journal que si tu l'acceptes.",
     "empty": "Rien à relire. Chaque journée terminée a son entrée.",
+    "emptyAll": "Rien à relire, pour aucun personnage. Chaque journée terminée a son entrée.",
     "notWritten": "Pas encore écrite.",
     "discarded": "Tu as jeté le dernier brouillon.",
     "replaces": "Le journal a déjà une entrée ici ; accepter ce brouillon la remplace.",

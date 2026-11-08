@@ -14,7 +14,9 @@ import {
   acceptDraft,
   characterJournal,
   discardDraft,
+  listCharacters,
   listNarrators,
+  reviewAll,
   reviewList,
   writeDrafts,
 } from "@/api/commands";
@@ -22,8 +24,9 @@ import type { Journal } from "@/bindings/Journal";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { ReviewItem } from "@/bindings/ReviewItem";
 import { type Problem, problem } from "@/i18n/problems";
+import { dayFactRows } from "@/lib/factList";
 import { formatDay } from "@/lib/format";
-import { dayFacts } from "@/lib/journal";
+import { dayFacts, displayName } from "@/lib/journal";
 import { narratorLabel } from "@/lib/narrators";
 import { daySentences } from "@/lib/sentences";
 import { scheduleRebuild } from "@/lib/siteBuild";
@@ -31,12 +34,16 @@ import { useWriting } from "@/lib/useWriting";
 import { type Live, slot } from "@/lib/writing";
 import { EmptyState } from "./EmptyState";
 import { EntryText } from "./EntryPanel";
+import { FactList } from "./FactList";
 
 /** The longest rewrite note the writer takes; the backend cuts anything longer. */
 const NOTE_CHARS = 120;
 
 type Key = string;
 const keyOf = (item: ReviewItem): Key => slot(item.kind, item.startDay);
+/** A day or week of one character: the same day of two characters are two choices. */
+const choiceOf = (characterId: number, item: ReviewItem): Key =>
+  `${characterId}|${keyOf(item)}`;
 
 interface Actions {
   /** Writes these items as drafts, with an optional narrator and note. */
@@ -49,60 +56,81 @@ interface Actions {
   discard: (storyId: number) => void;
 }
 
-/** A character's finished days and weeks waiting for an entry, and the drafts waiting for the
- * player: write them, accept them, rewrite them with a note, or throw them away. */
-export function ReviewList({ characterId }: { characterId: number }) {
+/** One character's days and weeks on the list. */
+interface CharacterGroup {
+  characterId: number;
+  items: ReviewItem[];
+}
+
+/** Finished days and weeks waiting for an entry, and the drafts waiting for the player: write
+ * them, accept them, rewrite them with a note, or throw them away. One character's, or, without
+ * `characterId`, every character's under their names, chosen across characters in one go. */
+export function ReviewList({ characterId }: { characterId?: number }) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Set<Key>>(new Set());
   const [narrator, setNarrator] = useState<string | null>(null);
-  const live = useWriting(characterId);
+  const everyone = characterId === undefined;
 
-  const items = useQuery({
-    queryKey: ["review", characterId],
-    queryFn: () => reviewList(characterId),
+  const groups = useQuery({
+    queryKey: everyone ? ["review", "all"] : ["review", characterId],
+    queryFn: async (): Promise<CharacterGroup[]> =>
+      everyone
+        ? reviewAll()
+        : [{ characterId, items: await reviewList(characterId) }],
   });
-  const journal = useQuery({
-    queryKey: ["journal", characterId],
-    queryFn: () => characterJournal(characterId),
+  const characters = useQuery({
+    queryKey: ["characters"],
+    queryFn: listCharacters,
+    enabled: everyone,
   });
   const narrators = useQuery({
     queryKey: ["narrators"],
     queryFn: listNarrators,
   });
 
-  const refresh = () =>
+  const refresh = (id: number) =>
     Promise.all(
-      [
-        ["review", characterId],
-        ["stories", characterId],
-        ["characters"],
-        ["writing"],
-      ].map((queryKey) => queryClient.invalidateQueries({ queryKey })),
+      [["review"], ["stories", id], ["characters"], ["writing"]].map(
+        (queryKey) => queryClient.invalidateQueries({ queryKey }),
+      ),
     );
-  const actions: Actions = {
+  const actionsFor = (id: number): Actions => ({
     write: (chosen, who, note) =>
       void writeDrafts(
-        characterId,
+        id,
         chosen.map((i) => ({ kind: i.kind, startDay: i.startDay })),
         who,
         note,
-      ).then(refresh),
-    accept: (id) =>
-      void acceptDraft(characterId, id).then(() => {
+      ).then(() => refresh(id)),
+    accept: (storyId) =>
+      void acceptDraft(id, storyId).then(() => {
         // An accepted entry belongs on the website too.
         scheduleRebuild();
-        return refresh();
+        return refresh(id);
       }),
-    discard: (id) => void discardDraft(characterId, id).then(refresh),
-  };
+    discard: (storyId) =>
+      void discardDraft(id, storyId).then(() => refresh(id)),
+  });
 
-  if (items.isPending) return <EmptyState title={t("loading")} />;
-  const list = items.data ?? [];
+  if (groups.isPending) return <EmptyState title={t("loading")} />;
+  const list = (groups.data ?? []).filter((g) => g.items.length > 0);
   if (list.length === 0)
-    return <EmptyState title={t("review.empty")} art="wave" />;
+    return (
+      <EmptyState
+        title={everyone ? t("review.emptyAll") : t("review.empty")}
+        art="wave"
+      />
+    );
 
-  const chosen = list.filter((i) => selected.has(keyOf(i)));
+  const chosen = list
+    .map((g) => ({
+      characterId: g.characterId,
+      items: g.items.filter((i) => selected.has(choiceOf(g.characterId, i))),
+    }))
+    .filter((g) => g.items.length > 0);
+  const count = chosen.reduce((n, g) => n + g.items.length, 0);
+  const anyDraft = chosen.some((g) => g.items.some((i) => i.drafts.length > 0));
   const toggle = (key: Key) =>
     setSelected((s) => {
       const next = new Set(s);
@@ -110,9 +138,16 @@ export function ReviewList({ characterId }: { characterId: number }) {
       else next.add(key);
       return next;
     });
-  const each = (f: (i: ReviewItem) => void) => () => {
-    chosen.forEach(f);
+  const each = (f: (actions: Actions, i: ReviewItem) => void) => () => {
+    for (const g of chosen) {
+      const actions = actionsFor(g.characterId);
+      for (const i of g.items) f(actions, i);
+    }
     setSelected(new Set());
+  };
+  const nameOf = (id: number) => {
+    const summary = characters.data?.find((c) => c.character.id === id);
+    return summary ? displayName(summary.character) : "";
   };
 
   return (
@@ -137,19 +172,20 @@ export function ReviewList({ characterId }: { characterId: number }) {
         <Button
           size="xs"
           variant="light"
-          disabled={chosen.length === 0}
+          disabled={count === 0}
           onClick={() => {
-            actions.write(chosen, narrator, null);
+            for (const g of chosen)
+              actionsFor(g.characterId).write(g.items, narrator, null);
             setSelected(new Set());
           }}
         >
-          {t("review.writeSelected", { count: chosen.length })}
+          {t("review.writeSelected", { count })}
         </Button>
         <Button
           size="xs"
           variant="subtle"
-          disabled={!chosen.some((i) => i.drafts.length > 0)}
-          onClick={each((i) => i.drafts[0] && actions.accept(i.drafts[0].id))}
+          disabled={!anyDraft}
+          onClick={each((a, i) => i.drafts[0] && a.accept(i.drafts[0].id))}
         >
           {t("review.acceptSelected")}
         </Button>
@@ -157,28 +193,83 @@ export function ReviewList({ characterId }: { characterId: number }) {
           size="xs"
           variant="subtle"
           color="red"
-          disabled={!chosen.some((i) => i.drafts.length > 0)}
-          onClick={each((i) => {
-            for (const d of i.drafts) actions.discard(d.id);
+          disabled={!anyDraft}
+          onClick={each((a, i) => {
+            for (const d of i.drafts) a.discard(d.id);
           })}
         >
           {t("review.discardSelected")}
         </Button>
       </Group>
-      {list.map((item) => (
-        <ReviewRow
-          key={keyOf(item)}
-          item={item}
-          journal={journal.data ?? null}
+      {list.map((g) => (
+        <CharacterItems
+          key={g.characterId}
+          group={g}
+          name={everyone ? nameOf(g.characterId) : null}
           narrators={narrators.data ?? []}
           narrator={narrator}
-          live={live[keyOf(item)]}
-          selected={selected.has(keyOf(item))}
-          onToggle={() => toggle(keyOf(item))}
-          actions={actions}
+          selected={selected}
+          onToggle={toggle}
+          actions={actionsFor(g.characterId)}
         />
       ))}
     </Stack>
+  );
+}
+
+interface ItemsProps {
+  group: CharacterGroup;
+  /** The character's name, as a heading over their days; none on a character's own page. */
+  name: string | null;
+  narrators: NarratorInfo[];
+  narrator: string | null;
+  selected: Set<Key>;
+  onToggle: (key: Key) => void;
+  actions: Actions;
+}
+
+/** One character's rows, with that character's journal and what the writer streams for them. */
+function CharacterItems({
+  group,
+  name,
+  narrators,
+  narrator,
+  selected,
+  onToggle,
+  actions,
+}: ItemsProps) {
+  const { characterId, items } = group;
+  const live = useWriting(characterId);
+  const journal = useQuery({
+    queryKey: ["journal", characterId],
+    queryFn: () => characterJournal(characterId),
+  });
+  const rows = items.map((item) => {
+    const key = choiceOf(characterId, item);
+    return (
+      <ReviewRow
+        key={key}
+        item={item}
+        journal={journal.data ?? null}
+        narrators={narrators}
+        narrator={narrator}
+        live={live[keyOf(item)]}
+        selected={selected.has(key)}
+        onToggle={() => onToggle(key)}
+        actions={actions}
+      />
+    );
+  });
+  if (name === null) return <>{rows}</>;
+  return (
+    <section aria-label={name}>
+      <Stack gap="lg">
+        <h3 className="reading">
+          {name} · {items.length}
+        </h3>
+        {rows}
+      </Stack>
+    </section>
   );
 }
 
@@ -217,10 +308,7 @@ function ReviewRow({
       : formatDay(item.startDay, i18n.language, true);
   const narratorName = (id: string) => narratorLabel(t, narrators, id);
   const day = item.kind === "day" ? journal?.days[item.startDay] : undefined;
-  const facts =
-    journal && day
-      ? daySentences(dayFacts(journal, day), t, i18n.language).join(" ")
-      : null;
+  const facts = journal && day ? dayFacts(journal, day) : null;
   const busy = live?.active || item.job?.state === "running";
 
   return (
@@ -284,7 +372,11 @@ function ReviewRow({
           {facts && (
             <details className="facts">
               <summary>{t("review.facts")}</summary>
-              <p className="entry">{facts}</p>
+              {/* As the journal shows the day: item by item, or the sentence saying nothing was. */}
+              <FactList
+                rows={facts.nothingHappened ? [] : dayFactRows(facts, t)}
+                empty={daySentences(facts, t, i18n.language).join(" ")}
+              />
             </details>
           )}
 
