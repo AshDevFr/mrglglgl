@@ -108,6 +108,12 @@ beforeEach(() => {
   ];
 });
 
+/** The journal page's own query: the same list, under the same key, in its own shape. */
+function JournalPageQuery() {
+  useQuery({ queryKey: ["review", 1], queryFn: () => reviewList(1) });
+  return null;
+}
+
 const row = async (name: RegExp) => screen.findByRole("article", { name });
 
 describe("ReviewList", () => {
@@ -207,11 +213,6 @@ describe("ReviewList", () => {
   });
 
   it("shares the character's review cache with the journal page without breaking", async () => {
-    // The journal page caches the same list under the same key, in its own shape.
-    function JournalPageQuery() {
-      useQuery({ queryKey: ["review", 1], queryFn: () => reviewList(1) });
-      return null;
-    }
     renderWithProviders(
       <>
         <JournalPageQuery />
