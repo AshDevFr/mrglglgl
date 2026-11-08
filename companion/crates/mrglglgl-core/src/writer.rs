@@ -107,8 +107,24 @@ fn clean(text: &str) -> String {
         let rest = out.split_once("\n\n").map_or("", |(_, rest)| rest);
         out = rest.to_string();
     }
+    // Asked to rewrite, a small model may copy the request after the entry: nothing from the
+    // first such phrase on is the entry.
+    if let Some(at) = ECHOED_INSTRUCTIONS
+        .iter()
+        .filter_map(|phrase| out.find(phrase))
+        .min()
+    {
+        out.truncate(at);
+    }
     drop_repeated_sentences(out.trim())
 }
+
+/// How the rewrite request begins its parts, as `prompt::rewrite_prompt` words them.
+const ECHOED_INSTRUCTIONS: &[&str] = &[
+    "A first draft was written:",
+    "It mentions things that are not in the notes",
+    "Rewrite the entry so that every event",
+];
 
 /// Sentences shorter than this may repeat: "Mrgl!" said twice is a voice, not a slip.
 const REPEAT_MIN_WORDS: usize = 4;

@@ -282,3 +282,21 @@ async fn line_breaks_inside_a_paragraph_survive() {
         "{result:?}"
     );
 }
+
+#[tokio::test]
+async fn a_rewrite_that_copies_its_instruction_keeps_only_the_entry() {
+    // Qwen3.5 4B, asked to rewrite, wrote the entry and then the instruction it was given.
+    let p = prompt("en");
+    let echoed = format!(
+        "{TRUE_ENTRY}\n\nIt mentions things that are not in the notes: ten. Rewrite the entry so \
+         that every event, name and number comes from the notes above. Keep the voice."
+    );
+    let provider = FakeProvider::new([echoed.as_str()]);
+    let result = write(&provider, &p, &options(), &CancellationToken::new(), None)
+        .await
+        .unwrap();
+    assert!(
+        matches!(&result, WriteResult::Written { text, .. } if text == TRUE_ENTRY),
+        "{result:?}"
+    );
+}
