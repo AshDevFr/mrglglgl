@@ -606,8 +606,17 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         },
     );
     if !hints.is_empty() {
+        // The hints speak of the narrator by name ("the troll laughs"); a small model took that
+        // as leave to write about the narrator from outside.
+        let whose = match r.narrator.point_of_view {
+            PointOfView::Adventurer => {
+                " (where a line names the narrator, that is you, still writing as the adventurer \
+                 and saying \"I\")"
+            }
+            PointOfView::Observer => "",
+        };
         user.push_str(&format!(
-            "How to tell a day like this:\n{}\n",
+            "How to tell a day like this{whose}:\n{}\n",
             bullets(&hints)
         ));
     }
