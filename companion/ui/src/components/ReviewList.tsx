@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import {
   acceptDraft,
   characterJournal,
+  characterScreenshots,
   discardDraft,
   getSettings,
   listCharacters,
@@ -24,6 +25,7 @@ import {
 import type { Journal } from "@/bindings/Journal";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { ReviewItem } from "@/bindings/ReviewItem";
+import type { Screenshot } from "@/bindings/Screenshot";
 import { type Problem, problem } from "@/i18n/problems";
 import { dayFactRows } from "@/lib/factList";
 import { formatDay } from "@/lib/format";
@@ -36,6 +38,7 @@ import { type Live, slot } from "@/lib/writing";
 import { EmptyState } from "./EmptyState";
 import { EntryText } from "./EntryPanel";
 import { FactList } from "./FactList";
+import { PinnedPhotos } from "./JournalPage";
 
 /** The longest rewrite note the writer takes; the backend cuts anything longer. */
 const NOTE_CHARS = 120;
@@ -248,6 +251,10 @@ function CharacterItems({
     queryKey: ["journal", characterId],
     queryFn: () => characterJournal(characterId),
   });
+  const screenshots = useQuery({
+    queryKey: ["screenshots", characterId],
+    queryFn: () => characterScreenshots(characterId),
+  });
   const rows = items.map((item) => {
     const key = choiceOf(characterId, item);
     return (
@@ -255,6 +262,9 @@ function CharacterItems({
         key={key}
         item={item}
         journal={journal.data ?? null}
+        screenshots={
+          item.kind === "day" ? (screenshots.data?.[item.startDay] ?? []) : []
+        }
         narrators={narrators}
         narrator={narrator}
         live={live[keyOf(item)]}
@@ -280,6 +290,8 @@ function CharacterItems({
 interface RowProps {
   item: ReviewItem;
   journal: Journal | null;
+  /** The day's screenshots, pinned as on the journal page. */
+  screenshots: Screenshot[];
   narrators: NarratorInfo[];
   /** The narrator chosen above the list, for a plain write. */
   narrator: string | null;
@@ -292,6 +304,7 @@ interface RowProps {
 function ReviewRow({
   item,
   journal,
+  screenshots,
   narrators,
   narrator,
   live,
@@ -373,6 +386,7 @@ function ReviewRow({
               )}
             </Text>
           )}
+          {screenshots.length > 0 && <PinnedPhotos screenshots={screenshots} />}
           {facts && (
             <details className="facts">
               <summary>{t("review.facts")}</summary>

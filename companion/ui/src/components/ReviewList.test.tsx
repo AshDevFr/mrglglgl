@@ -23,6 +23,13 @@ vi.mock("@/api/commands", () => ({
       settings: { writing: { review: commands.review } },
     }),
   reviewAll: () => Promise.resolve(commands.all),
+  characterScreenshots: () =>
+    Promise.resolve({
+      "2026-11-09": [
+        { path: "/shots/level.png", taken: 1_794_200_000, moment: "levelUp" },
+      ],
+    }),
+  screenshotUrl: (path: string) => `asset://${path}`,
   listCharacters: () =>
     Promise.resolve([
       {
@@ -121,6 +128,18 @@ describe("ReviewList", () => {
     await waitFor(() =>
       expect(drafted.querySelector("dl.fact-list dt")).not.toBeNull(),
     );
+  });
+
+  it("shows the day's screenshots, as the journal pins them", async () => {
+    renderWithProviders(<ReviewList characterId={1} />);
+    const drafted = await row(/November 9, 2026/);
+    await waitFor(() =>
+      expect(
+        drafted.querySelector('img[src="asset:///shots/level.png"]'),
+      ).not.toBeNull(),
+    );
+    // A day without screenshots shows none.
+    expect((await row(/November 8, 2026/)).querySelector("img")).toBeNull();
   });
 
   it("accepts and discards a draft", async () => {
