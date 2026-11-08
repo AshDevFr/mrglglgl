@@ -9,11 +9,11 @@ export function ReviewPage({ characterId }: { characterId?: number }) {
   return (
     <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
       {characterId !== undefined && (
-        <Stack gap="lg" maw="48rem" mb="xl">
+        <Stack gap="lg" mb="xl">
           <CharacterTop characterId={characterId} current="review" />
         </Stack>
       )}
-      <div style={{ maxWidth: "48rem" }}>
+      <div>
         <h2 className="reading">{t("review.title")}</h2>
         <ReviewList characterId={characterId} />
       </div>

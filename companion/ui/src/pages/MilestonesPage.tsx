@@ -81,7 +81,7 @@ export function MilestonesPage({ characterId }: { characterId: number }) {
   });
   return (
     <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
-      <Stack gap="lg" maw="48rem" mb="xl">
+      <Stack gap="lg" mb="xl">
         <CharacterTop characterId={characterId} current="milestones" />
       </Stack>
       <article className="journal-page">

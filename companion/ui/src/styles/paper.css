@@ -64,7 +64,8 @@
 /* The page: the one place the app allows itself some character. */
 .journal-page {
   position: relative;
-  max-width: 44rem;
+  /* The page fills the window; its columns are laid out from its own width. */
+  container-type: inline-size;
   padding: 3.25rem 3.75rem 3rem;
   color: var(--ink);
   background-color: var(--page);
@@ -196,7 +197,6 @@
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.375rem;
-  max-width: 44rem;
 }
 
 .week-day {
@@ -510,4 +510,21 @@ details.facts .fact-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+/* A wide page: the entry keeps a readable line, and the photos and milestones take the room
+   beside it. A narrow one stacks them under the entry, as before. */
+.page-columns {
+  display: grid;
+  gap: 0 3rem;
+}
+
+@container (min-width: 56rem) {
+  .page-columns:has(.page-side) {
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 24rem);
+  }
+  /* Beside the entry, the photos start level with it, below the stamps. */
+  .page-side .photos {
+    margin-top: 4rem;
+  }
 }

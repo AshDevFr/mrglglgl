@@ -59,7 +59,7 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
 
   return (
     <Stack gap="xs" component="nav" aria-label={range}>
-      <Group justify="space-between" maw="44rem" wrap="nowrap">
+      <Group justify="space-between" wrap="nowrap">
         <Button
           variant="subtle"
           color="gray"

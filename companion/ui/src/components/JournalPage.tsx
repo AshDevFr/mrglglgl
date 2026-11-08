@@ -101,28 +101,39 @@ export function JournalPage({
           ))}
         </div>
       )}
-      <h2>{formatDay(day, i18n.language, true)}</h2>
-      {writing ? (
-        <EntryPanel kind="day" day={day} facts={plain} {...writing} />
-      ) : (
-        plain
-      )}
-      {screenshots.length > 0 && <PinnedPhotos screenshots={screenshots} />}
-      {stamps.length > 0 && (
-        <section className="more-milestones">
-          <h3>{t("milestones.ofTheDay")}</h3>
-          <ul>
-            {/* Every milestone of the day, the stamped ones first: the stamps are small. */}
-            {[...stamps, ...more].map((a) => (
-              <li key={a.id}>
-                <strong>{t(`milestones.${a.id}.name`)}</strong>
-                {": "}
-                {t(`milestones.${a.id}.description`)}
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      {/* On a wide window the photos and milestones sit beside the entry, not under it. */}
+      <div className="page-columns">
+        <div className="page-main">
+          <h2>{formatDay(day, i18n.language, true)}</h2>
+          {writing ? (
+            <EntryPanel kind="day" day={day} facts={plain} {...writing} />
+          ) : (
+            plain
+          )}
+        </div>
+        {(screenshots.length > 0 || stamps.length > 0) && (
+          <aside className="page-side">
+            {screenshots.length > 0 && (
+              <PinnedPhotos screenshots={screenshots} />
+            )}
+            {stamps.length > 0 && (
+              <section className="more-milestones">
+                <h3>{t("milestones.ofTheDay")}</h3>
+                <ul>
+                  {/* Every milestone of the day, the stamped ones first: the stamps are small. */}
+                  {[...stamps, ...more].map((a) => (
+                    <li key={a.id}>
+                      <strong>{t(`milestones.${a.id}.name`)}</strong>
+                      {": "}
+                      {t(`milestones.${a.id}.description`)}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </aside>
+        )}
+      </div>
       {facts.compacted && <p className="note">{t("character.compacted")}</p>}
     </article>
   );

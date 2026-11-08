@@ -154,7 +154,7 @@ export function CharacterPage({
 
   return (
     <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
-      <Stack gap="lg" maw="48rem">
+      <Stack gap="lg">
         <CharacterTop characterId={characterId} current="journal" />
         {summary.archived && <Alert>{t("sync.archivedHelp")}</Alert>}
         {status && (
