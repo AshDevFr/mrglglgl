@@ -3,7 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use mrglglgl_core::archive;
-use mrglglgl_core::db::{ProviderChoice, Settings};
+use mrglglgl_core::db::{CharacterWriting, ProviderChoice, Settings};
 use mrglglgl_core::discovery::{self, DiscoveryOverrides};
 use mrglglgl_core::export;
 use mrglglgl_core::narrators::{self, Invalid, Narrator, NarratorError, NarratorInfo};
@@ -49,6 +49,39 @@ pub fn review_list(
     };
     review::items(&db, character_id, &journal, &writing::today()).map_err(|e| e.to_string())
 }
+
+/// How a character's entries are written where it differs from Settings.
+#[tauri::command]
+pub fn character_writing(
+    state: State<'_, AppState>,
+    character_id: i64,
+) -> Result<CharacterWriting, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.character_writing(character_id)
+        .map_err(|e| e.to_string())
+}
+
+/// Saves a character's own narrator, margin notes and added preferences. The next entry uses
+/// them; entries already written stay as they are.
+#[tauri::command]
+pub fn set_character_writing(
+    state: State<'_, AppState>,
+    character_id: i64,
+    choice: CharacterWriting,
+) -> Result<(), String> {
+    let mut choice = choice;
+    choice.preferences = choice
+        .preferences
+        .chars()
+        .take(OWN_PREFERENCES_CHARS)
+        .collect();
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    db.set_character_writing(character_id, &choice)
+        .map_err(|e| e.to_string())
+}
+
+/// A character's own preferences, added to the ones in Settings; the window holds them to this.
+const OWN_PREFERENCES_CHARS: usize = 500;
 
 /// One character's part of the To review list for every character.
 #[derive(Debug, Serialize, TS)]

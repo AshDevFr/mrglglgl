@@ -8,6 +8,7 @@ import {
 import { ErrorPage } from "@/components/ErrorPage";
 import { Layout } from "@/Layout";
 import { CharacterPage } from "@/pages/CharacterPage";
+import { CharacterSettingsPage } from "@/pages/CharacterSettingsPage";
 import { HomePage } from "@/pages/HomePage";
 import { MilestonesPage } from "@/pages/MilestonesPage";
 import { NarratorPage } from "@/pages/NarratorPage";
@@ -73,6 +74,15 @@ const reviewRoute = createRoute({
   },
 });
 
+const characterSettingsRoute = createRoute({
+  getParentRoute: () => appRoute,
+  path: "/characters/$characterId/settings",
+  component: function CharacterSettings() {
+    const { characterId } = characterSettingsRoute.useParams();
+    return <CharacterSettingsPage characterId={Number(characterId)} />;
+  },
+});
+
 const reviewAllRoute = createRoute({
   getParentRoute: () => appRoute,
   path: "/review",
@@ -101,6 +111,7 @@ const routeTree = rootRoute.addChildren([
     milestonesRoute,
     reviewRoute,
     reviewAllRoute,
+    characterSettingsRoute,
     narratorRoute,
     settingsRoute,
   ]),

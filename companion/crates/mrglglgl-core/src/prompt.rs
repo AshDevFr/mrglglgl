@@ -320,8 +320,9 @@ enum Kind {
 /// The system prompt: the tested prompt's rules word for word, with two additions the product
 /// needs (an explicit ban on invented lore, and the footnote asked for exactly when the murloc
 /// meddles rather than always optional) and the narrator's persona, voice and example.
-/// The longest writing preferences sent, in characters.
-pub const PREFERENCES_CHARS: usize = 500;
+/// The longest writing preferences sent, in characters: room for the ones in Settings and a
+/// character's own, 500 each in the window.
+pub const PREFERENCES_CHARS: usize = 1000;
 
 /// The player's writing preferences as the last rule, or nothing. They are in the system part of
 /// the prompt, which the fact check never takes as true: a preference may name anything ("never

@@ -15,7 +15,8 @@
     "review": "À relire",
     "reviewCount": "À relire ({{count}})",
     "characterPages": "Pages du personnage",
-    "more": "Plus d'actions"
+    "more": "Plus d'actions",
+    "characterSettings": "Réglages"
   },
   "loading": "Mrgl… les pages sèchent.",
   "home": {
@@ -1121,5 +1122,19 @@
     "retry": "Réessayer",
     "pause": "Mettre l'écriture en pause",
     "resume": "Reprendre l'écriture"
+  },
+  "characterSettings": {
+    "title": "Écriture pour ce personnage",
+    "intro": "Comment les entrées de ce personnage sont écrites, là où elles doivent différer des Réglages. Ce qui est laissé comme dans les Réglages les suit, même quand ils changent. Les entrées déjà écrites restent telles quelles.",
+    "asSettings": "Comme dans les Réglages ({{what}})",
+    "preferences": "Préférences d'écriture pour ce personnage",
+    "preferencesAdded": "Ajoutées après celles des Réglages, qui s'appliquent toujours : « {{general}} »",
+    "preferencesAlone": "Envoyées avec les entrées de ce personnage seulement, en plus de celles des Réglages.",
+    "preferencesPlaceholder": "Écris comme un journal de jeu de rôle ; parle des loa de temps en temps.",
+    "save": "Enregistrer",
+    "saved": "Enregistré. La prochaine entrée en tient compte.",
+    "dataTitle": "Ce que le narrateur peut utiliser",
+    "dataHelp": "Ce que le narrateur, le site et les exports de ce personnage peuvent utiliser parmi ce qui est enregistré, et ce que la fenêtre affiche.",
+    "dataButton": "Choisir ce qui est utilisé"
   }
 }

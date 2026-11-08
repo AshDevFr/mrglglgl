@@ -7,6 +7,7 @@ import type { AppInfo } from "@/bindings/AppInfo";
 import type { Award } from "@/bindings/Award";
 import type { CharacterReview } from "@/bindings/CharacterReview";
 import type { CharacterSummary } from "@/bindings/CharacterSummary";
+import type { CharacterWriting } from "@/bindings/CharacterWriting";
 import type { DataUse } from "@/bindings/DataUse";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
 import type { ExportFormat } from "@/bindings/ExportFormat";
@@ -135,6 +136,20 @@ export function recentLog(limit: number): Promise<string[]> {
 
 export function showLog(): Promise<void> {
   return invoke("show_log");
+}
+
+/** How a character's entries are written where it differs from Settings. */
+export function characterWriting(
+  characterId: number,
+): Promise<CharacterWriting> {
+  return invoke<CharacterWriting>("character_writing", { characterId });
+}
+
+export function setCharacterWriting(
+  characterId: number,
+  choice: CharacterWriting,
+): Promise<void> {
+  return invoke<void>("set_character_writing", { characterId, choice });
 }
 
 export function getSettings(): Promise<SettingsView> {

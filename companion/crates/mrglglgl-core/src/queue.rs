@@ -567,7 +567,10 @@ fn prepare(
     language_fallback: &str,
     provider_is_endpoint: bool,
 ) -> Result<Result<Prepared, String>, DbError> {
-    let settings = db.settings()?.writing;
+    let settings = db
+        .settings()?
+        .writing
+        .for_character(&db.character_writing(job.character_id)?);
     // The narrator is told only what the player lets the app use for this character.
     let journal = match archive::load_for(db, job.character_id, Audience::Shared) {
         Ok(Some(journal)) => journal,
@@ -878,6 +881,15 @@ pub async fn preview(
     let (prompt, language, allowed) = {
         let db = db.lock().unwrap();
         let settings = db.settings().map_err(|e| e.to_string())?.writing;
+        // A day of a real character is previewed with that character's margin notes and
+        // preferences; the narrator is the one being previewed.
+        let settings = match day {
+            PreviewDay::Character { character_id, .. } => settings.for_character(
+                &db.character_writing(*character_id)
+                    .map_err(|e| e.to_string())?,
+            ),
+            PreviewDay::Sample => settings,
+        };
         let language = settings
             .prose_language
             .clone()

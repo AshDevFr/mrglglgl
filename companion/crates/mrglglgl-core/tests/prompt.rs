@@ -556,7 +556,7 @@ fn writing_preferences_shape_the_style_of_every_entry_and_never_become_facts() {
     assert_eq!(styled.facts, plain.facts);
     assert_ne!(styled.hash, plain.hash);
 
-    let long = "b".repeat(900);
+    let long = "b".repeat(prompt::PREFERENCES_CHARS + 500);
     let capped = day_prompt(&DayRequest {
         preferences: Some(&long),
         ..base()

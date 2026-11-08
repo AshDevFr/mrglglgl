@@ -183,6 +183,9 @@ const MIGRATIONS: &[&str] = &[
     // Recorded categories the player set aside for a character, as JSON (see `DataUse`); none
     // means the app uses everything. On the character's row so it goes with it.
     "ALTER TABLE characters ADD COLUMN unused_data TEXT;",
+    // How a character's entries are written when it differs from Settings, as JSON (see
+    // `CharacterWriting`); none means Settings decide. On the character's row so it goes with it.
+    "ALTER TABLE characters ADD COLUMN writing TEXT;",
 ];
 
 /// The schema version this build creates and understands.
@@ -247,6 +250,41 @@ pub struct WritingSettings {
     /// How the player likes the prose written, sent with every entry and chapter ("no em
     /// dashes", "British spelling"). Style only: never taken as a fact of the day.
     pub preferences: String,
+}
+
+/// What one character's entries are written with where it differs from Settings.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase", default)]
+pub struct CharacterWriting {
+    /// The narrator for this character; `None` uses the one in Settings.
+    pub narrator: Option<String>,
+    /// How often the murloc writes in the margin; `None` follows Settings.
+    pub meddling: Option<Meddling>,
+    /// Added after the writing preferences in Settings, for this character alone.
+    pub preferences: String,
+}
+
+impl WritingSettings {
+    /// The settings one character's entries are written with: its own narrator and margin notes
+    /// where it has them, and its preferences after the ones every character shares.
+    pub fn for_character(&self, own: &CharacterWriting) -> WritingSettings {
+        let mut settings = self.clone();
+        if let Some(narrator) = &own.narrator {
+            settings.narrator = narrator.clone();
+        }
+        if let Some(meddling) = own.meddling {
+            settings.meddling = meddling;
+        }
+        let added = own.preferences.trim();
+        if !added.is_empty() {
+            settings.preferences = match settings.preferences.trim() {
+                "" => added.to_string(),
+                general => format!("{general}\n{added}"),
+            };
+        }
+        settings
+    }
 }
 
 impl Default for WritingSettings {
@@ -667,6 +705,41 @@ impl Database {
             .then(|| serde_json::to_string(choice).expect("sets of strings serialize"));
         self.conn.execute(
             "UPDATE characters SET unused_data = ?2 WHERE id = ?1",
+            params![id, json],
+        )?;
+        Ok(())
+    }
+
+    /// How this character's entries are written where it differs from Settings. A choice that
+    /// cannot be read falls back to Settings, and says so in the log.
+    pub fn character_writing(&self, id: i64) -> Result<CharacterWriting, DbError> {
+        let json: Option<String> = self
+            .conn
+            .query_row(
+                "SELECT writing FROM characters WHERE id = ?1",
+                [id],
+                |row| row.get(0),
+            )
+            .optional()?
+            .flatten();
+        Ok(json
+            .and_then(|json| {
+                serde_json::from_str(&json)
+                    .map_err(|e| {
+                        tracing::warn!(
+                            "character {id}: its writing choices could not be read ({e})"
+                        )
+                    })
+                    .ok()
+            })
+            .unwrap_or_default())
+    }
+
+    pub fn set_character_writing(&self, id: i64, choice: &CharacterWriting) -> Result<(), DbError> {
+        let json = (choice != &CharacterWriting::default())
+            .then(|| serde_json::to_string(choice).expect("plain fields serialize"));
+        self.conn.execute(
+            "UPDATE characters SET writing = ?2 WHERE id = ?1",
             params![id, json],
         )?;
         Ok(())

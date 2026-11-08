@@ -19,7 +19,9 @@ export function useCharacterNav(characterId: number) {
       to:
         tab === "review"
           ? "/characters/$characterId/review"
-          : "/characters/$characterId/milestones",
+          : tab === "settings"
+            ? "/characters/$characterId/settings"
+            : "/characters/$characterId/milestones",
       params,
     });
   };

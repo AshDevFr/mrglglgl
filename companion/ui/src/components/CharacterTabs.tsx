@@ -1,7 +1,7 @@
 import { Badge, Group, UnstyledButton } from "@mantine/core";
 import { useTranslation } from "react-i18next";
 
-export type CharacterTab = "journal" | "review" | "milestones";
+export type CharacterTab = "journal" | "review" | "milestones" | "settings";
 
 interface Props {
   current: CharacterTab;
@@ -34,6 +34,7 @@ export function CharacterTabs({ current, toReview, onSelect }: Props) {
         {tab("journal", t("nav.journal"))}
         {tab("review", t("nav.review"), toReview)}
         {tab("milestones", t("nav.milestones"))}
+        {tab("settings", t("nav.characterSettings"))}
       </Group>
     </nav>
   );

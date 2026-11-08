@@ -934,3 +934,54 @@ fn a_newer_entry_in_the_journal_sets_older_drafts_of_its_day_aside() {
         "other days keep theirs"
     );
 }
+
+#[test]
+fn a_character_writes_with_its_own_narrator_margin_notes_and_added_preferences() {
+    let (db, id) = setup();
+    let db = db.into_inner().unwrap();
+    let mut settings = db.settings().unwrap();
+    settings.writing.preferences = "No em dashes.".into();
+    settings.writing.meddling = mrglglgl_core::prompt::Meddling::Often;
+    db.save_settings(&settings).unwrap();
+
+    // Nothing chosen for the character: Settings decide.
+    assert_eq!(
+        db.character_writing(id).unwrap(),
+        mrglglgl_core::db::CharacterWriting::default()
+    );
+    let library = mrglglgl_core::narrators::Library::default();
+    let prompt = |db: &Database| {
+        queue::next_prompt(db, &library, id, StoryKind::Day, DAYS[0], "en", false)
+            .unwrap()
+            .unwrap()
+    };
+    let usual = prompt(&db);
+    assert!(usual.system.contains("murloc scribe"));
+    assert!(usual.system.contains("No em dashes."));
+
+    db.set_character_writing(
+        id,
+        &mrglglgl_core::db::CharacterWriting {
+            narrator: Some("easygoing_troll".into()),
+            meddling: Some(mrglglgl_core::prompt::Meddling::Off),
+            preferences: "Mention the loa now and then.".into(),
+        },
+    )
+    .unwrap();
+    let own = prompt(&db);
+    assert!(
+        own.system.contains("Darkspear troll"),
+        "the character's narrator"
+    );
+    assert!(!own.meddling, "the character's margin notes: never");
+    // The character's preferences come after the ones in Settings, which still hold.
+    let general = own
+        .system
+        .find("No em dashes.")
+        .expect("Settings' preferences");
+    let added = own
+        .system
+        .find("Mention the loa")
+        .expect("the character's own");
+    assert!(general < added);
+}
