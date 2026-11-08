@@ -301,6 +301,9 @@ mod tests {
     /// Run by hand, since it takes a model and some minutes:
     /// `MRGLGLGL_TEST_MODEL=<gguf> MRGLGLGL_TEST_MODEL_REASONING=1 MRGLGLGL_SAMPLES_DIR=<folder>
     /// cargo test -p mrglglgl-app narrator_samples -- --ignored --nocapture`
+    ///
+    /// Every narrator, language and day takes the better part of an hour on a laptop.
+    /// `MRGLGLGL_SAMPLES_NARRATORS` and `MRGLGLGL_SAMPLES_DAYS`, comma-separated, keep only those.
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     #[ignore = "writes samples with a real model; needs MRGLGLGL_TEST_MODEL and MRGLGLGL_SAMPLES_DIR"]
     async fn narrator_samples() {
@@ -322,10 +325,28 @@ mod tests {
         let journal = schema::journal_from_text(&text).unwrap();
         let awards = milestones::compute(&journal);
         let provider = LocalProvider::new(LocalOptions::new(path, "samples", reasoning));
+        let only = |var: &str| -> Option<Vec<String>> {
+            std::env::var(var)
+                .ok()
+                .map(|v| v.split(',').map(|s| s.trim().to_string()).collect())
+        };
+        let (only_narrators, only_days) = (
+            only("MRGLGLGL_SAMPLES_NARRATORS"),
+            only("MRGLGLGL_SAMPLES_DAYS"),
+        );
         let mut summary = Vec::new();
         for narrator in narrators::list() {
+            if only_narrators
+                .as_ref()
+                .is_some_and(|keep| !keep.contains(&narrator.id))
+            {
+                continue;
+            }
             for language in ["en", "fr"] {
                 for day in journal.days.keys() {
+                    if only_days.as_ref().is_some_and(|keep| !keep.contains(day)) {
+                        continue;
+                    }
                     let prompt = day_prompt(&DayRequest {
                         character_id: 1,
                         journal: &journal,
@@ -346,7 +367,7 @@ mod tests {
                         &prompt,
                         &WriteOptions {
                             language: language.to_string(),
-                            max_tokens: 400,
+                            max_tokens: mrglglgl_core::prompt::tokens_for(prompt.words),
                             temperature: mrglglgl_llm::DEFAULT_TEMPERATURE,
                             timeout: Duration::from_secs(600),
                             allowed: vec!["Horde".into()],
