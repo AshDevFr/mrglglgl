@@ -64,7 +64,8 @@ export function WritingFields({ value, onChange, narrators }: Props) {
         onChange={(e) => set({ preferences: e.currentTarget.value })}
         maxLength={500}
         autosize
-        minRows={2}
+        minRows={5}
+        maxRows={12}
       />
       <Switch
         label={t("settings.review")}
