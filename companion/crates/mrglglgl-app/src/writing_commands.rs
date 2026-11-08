@@ -18,6 +18,7 @@ use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Emitter, State};
 use ts_rs::TS;
 
+use crate::failure::Failure;
 use crate::sync::AppState;
 use crate::writing;
 
@@ -587,7 +588,7 @@ pub async fn download_model(
     app: AppHandle,
     state: State<'_, AppState>,
     model_id: String,
-) -> Result<(), String> {
+) -> Result<(), Failure> {
     let catalogue = writing::catalogue(&state.data_dir);
     let entry = catalogue
         .get(&model_id)
@@ -621,7 +622,7 @@ pub async fn download_model(
     )
     .await;
     *state.download.lock().map_err(|e| e.to_string())? = None;
-    result.map_err(|e| e.to_string())?;
+    result?;
     state.control.wake();
     Ok(())
 }

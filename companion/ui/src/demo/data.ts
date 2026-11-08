@@ -286,4 +286,5 @@ export const releaseCheck: ReleaseCheck = {
   testVersion: null,
   updates: [],
   checked: 1794304800,
+  stale: false,
 };

@@ -21,6 +21,7 @@ import {
 } from "@/api/commands";
 import type { DownloadProgress } from "@/bindings/DownloadProgress";
 import type { ModelView } from "@/bindings/ModelView";
+import { asFailure, failureProblem } from "@/i18n/failure";
 import { problem } from "@/i18n/problems";
 
 /** Gigabytes with two decimals, as model sizes are told. */
@@ -44,7 +45,7 @@ export function ModelsPanel({ onChoose }: Props) {
   const view = useQuery({ queryKey: ["models"], queryFn: models });
   const [confirming, setConfirming] = useState<ModelView | null>(null);
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
 
   useEffect(() => {
     let stop: (() => void) | undefined;
@@ -70,9 +71,8 @@ export function ModelsPanel({ onChoose }: Props) {
     try {
       await downloadModel(model.id);
     } catch (e) {
-      const message = String(e);
       // A stop the player asked for is not an error to show.
-      if (!message.includes("cancelled")) setError(message);
+      if (asFailure(e).kind !== "cancelled") setError(e);
     } finally {
       setProgress(null);
       await queryClient.invalidateQueries({ queryKey: ["models"] });
@@ -132,10 +132,8 @@ export function ModelsPanel({ onChoose }: Props) {
           })}
         </Alert>
       )}
-      {error && (
-        <Alert color="red">
-          {problem(t, "models.failed", { message: error })}
-        </Alert>
+      {error !== null && (
+        <Alert color="red">{failureProblem(t, "models.failed", error)}</Alert>
       )}
 
       {view.data.models.map((m) => {

@@ -24,6 +24,7 @@ import type { AddonProblem } from "@/bindings/AddonProblem";
 import type { AddonState } from "@/bindings/AddonState";
 import type { AddonView } from "@/bindings/AddonView";
 import type { ReleaseCheck } from "@/bindings/ReleaseCheck";
+import { failureProblem } from "@/i18n/failure";
 import { problem } from "@/i18n/problems";
 
 const COLORS: Record<AddonState, string> = {
@@ -74,7 +75,7 @@ function FlavorRow({ view, check, onChanged }: RowProps) {
   const addon = view.status;
   const [busy, setBusy] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<unknown>(null);
   const [done, setDone] = useState<string | null>(null);
 
   const release = check?.release ?? null;
@@ -91,7 +92,7 @@ function FlavorRow({ view, check, onChanged }: RowProps) {
       setConfirming(false);
       await onChanged();
     } catch (e) {
-      setError(String(e));
+      setError(e);
     } finally {
       setBusy(null);
     }
@@ -243,9 +244,9 @@ function FlavorRow({ view, check, onChanged }: RowProps) {
         </Alert>
       )}
       {done && <Alert color="green">{done}</Alert>}
-      {error && (
+      {error !== null && (
         <Alert color="red">
-          {problem(t, "addon.actionFailed", { message: error })}
+          {failureProblem(t, "addon.actionFailed", error)}
         </Alert>
       )}
     </Stack>
@@ -298,10 +299,11 @@ export function AddonPanel() {
       )}
       {release.isError && (
         <Alert color="yellow">
-          {problem(t, "addon.releaseFailed", {
-            message: String(release.error),
-          })}
+          {failureProblem(t, "addon.releaseFailed", release.error)}
         </Alert>
+      )}
+      {release.data?.stale && (
+        <Alert color="yellow">{problem(t, "addon.staleListing")}</Alert>
       )}
       {release.data && (
         <Group gap="xs">

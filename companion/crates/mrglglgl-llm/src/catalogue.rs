@@ -221,7 +221,7 @@ pub enum DownloadError {
 }
 
 /// Bytes as decimal gigabytes, the unit the models list shows sizes in.
-fn gigabytes(bytes: u64) -> String {
+pub fn gigabytes(bytes: u64) -> String {
     format!("{:.2}", bytes as f64 / 1e9)
 }
 

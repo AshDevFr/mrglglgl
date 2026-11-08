@@ -894,9 +894,11 @@
       "removed": "The addon was removed. Your journals are untouched."
     },
     "actionFailed": "The addon was not changed: {{message}}",
-    "actionFailedNext": "The game folder was left as it was. Close the game if it is running, then try again.",
+    "actionFailedNext": "The game folder was left as it was. Try again, and if it happens again, please report it with this message.",
     "releaseFailed": "Could not look up the addon's releases: {{message}}",
-    "releaseFailedNext": "Check the connection, then press Check again; what is installed keeps working."
+    "releaseFailedNext": "Check the connection, then press Check again; what is installed keeps working.",
+    "staleListing": "GitHub could not be reached just now, so this is the list from earlier",
+    "staleListingNext": "Press Check again in a few minutes; what is installed keeps working."
   },
   "log": {
     "title": "Log",
@@ -1045,5 +1047,19 @@
     "later": "Later",
     "failed": "The update could not be installed",
     "failedNext": "Try again at the next start, or download the new version from the releases page."
+  },
+  "failure": {
+    "offline": "the server could not be reached",
+    "offlineNext": "Check the internet connection, then try again.",
+    "serverTrouble": "the server is having trouble right now",
+    "serverTroubleNext": "This usually passes within minutes: try again a little later.",
+    "badPackage": "this version's file failed a check ({{detail}})",
+    "badPackageNext": "Try again later; if it happens again, this version is broken and the next one will fix it. What is installed keeps working.",
+    "gameRunning": "the game is running",
+    "gameRunningNext": "Close the game, then try again.",
+    "noSpace": "{{neededGb}} GB of free disk space is needed, {{freeGb}} GB is free",
+    "noSpaceNext": "Free some disk space, then press Resume download: it continues where it stopped.",
+    "appTooOld": "this version of the addon needs a newer version of the app",
+    "appTooOldNext": "Update the app, then try again."
   }
 }

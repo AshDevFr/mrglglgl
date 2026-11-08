@@ -17,44 +17,104 @@ use serde::Serialize;
 use tauri::State;
 use ts_rs::TS;
 
+use crate::failure::Failure;
 use crate::sync::AppState;
 use crate::writing::game_running;
 
 /// The releases listing is fetched at most once a day unless the player asks.
 const CACHE_FOR: Duration = Duration::from_secs(24 * 60 * 60);
 const TIMEOUT: Duration = Duration::from_secs(30);
+/// GitHub's gateway errors usually pass within seconds, so one more try is worth the wait.
+const RETRY_AFTER: Duration = Duration::from_secs(2);
 
-static LISTING: Mutex<Option<(Instant, i64, String)>> = Mutex::new(None);
+/// When the listing was fetched, as an instant and as Unix time, and its text.
+type Cached = Option<(Instant, i64, String)>;
 
-fn client() -> Result<reqwest::Client, String> {
+static LISTING: Mutex<Cached> = Mutex::new(None);
+
+fn client() -> Result<reqwest::Client, Failure> {
     reqwest::Client::builder()
         .user_agent(concat!("mrglglgl-app/", env!("CARGO_PKG_VERSION")))
         .timeout(TIMEOUT)
         .build()
-        .map_err(|e| e.to_string())
+        .map_err(Failure::from)
 }
 
-/// The GitHub releases listing, from the cache when it is less than a day old.
-async fn listing(force: bool) -> Result<(String, i64), String> {
-    if !force
-        && let Some((at, checked, text)) = LISTING.lock().map_err(|e| e.to_string())?.clone()
-        && at.elapsed() < CACHE_FOR
-    {
-        return Ok((text, checked));
-    }
-    let url = format!("https://api.github.com/repos/{RELEASES_REPOSITORY}/releases?per_page=30");
+fn releases_url() -> String {
+    format!("https://api.github.com/repos/{RELEASES_REPOSITORY}/releases?per_page=30")
+}
+
+/// The releases listing and when it was fetched.
+#[derive(Debug, PartialEq)]
+struct Listing {
+    text: String,
+    checked: i64,
+    /// GitHub could not be reached, and this is the listing fetched earlier.
+    stale: bool,
+}
+
+async fn fetch(url: &str) -> Result<String, Failure> {
     let response = client()?
         .get(url)
         .header("Accept", "application/vnd.github+json")
         .send()
-        .await
-        .map_err(|e| e.to_string())?
-        .error_for_status()
-        .map_err(|e| e.to_string())?;
-    let text = response.text().await.map_err(|e| e.to_string())?;
-    let checked = now_unix();
-    *LISTING.lock().map_err(|e| e.to_string())? = Some((Instant::now(), checked, text.clone()));
-    Ok((text, checked))
+        .await?
+        .error_for_status()?;
+    Ok(response.text().await?)
+}
+
+/// The listing from `url`, from `cache` when it is fresh. A server error or a slow answer is
+/// tried once more after `retry_after`; when that fails too, the listing fetched earlier, if any,
+/// is better than nothing.
+async fn listing_from(
+    url: &str,
+    force: bool,
+    cache: &Mutex<Cached>,
+    retry_after: Duration,
+) -> Result<Listing, Failure> {
+    let cached = cache.lock().map_err(|e| e.to_string())?.clone();
+    if !force
+        && let Some((at, checked, text)) = &cached
+        && at.elapsed() < CACHE_FOR
+    {
+        return Ok(Listing {
+            text: text.clone(),
+            checked: *checked,
+            stale: false,
+        });
+    }
+    let fetched = match fetch(url).await {
+        Err(Failure::ServerTrouble { .. }) => {
+            tokio::time::sleep(retry_after).await;
+            fetch(url).await
+        }
+        other => other,
+    };
+    match (fetched, cached) {
+        (Ok(text), _) => {
+            let checked = now_unix();
+            *cache.lock().map_err(|e| e.to_string())? =
+                Some((Instant::now(), checked, text.clone()));
+            Ok(Listing {
+                text,
+                checked,
+                stale: false,
+            })
+        }
+        (Err(failure), Some((_, checked, text))) => {
+            tracing::warn!(?failure, "showing the addon releases fetched earlier");
+            Ok(Listing {
+                text,
+                checked,
+                stale: true,
+            })
+        }
+        (Err(failure), None) => Err(failure),
+    }
+}
+
+async fn listing(force: bool) -> Result<Listing, Failure> {
+    listing_from(&releases_url(), force, &LISTING, RETRY_AFTER).await
 }
 
 /// The newest release for the player's channel, and the flavors whose installed copy is older.
@@ -71,6 +131,8 @@ pub struct ReleaseCheck {
     pub updates: Vec<PathBuf>,
     /// Unix time of the listing.
     pub checked: i64,
+    /// GitHub could not be reached: this is the listing fetched earlier.
+    pub stale: bool,
 }
 
 /// Every WoW: Forever flavor the app can see with the current settings.
@@ -107,14 +169,18 @@ fn find_flavor(state: &AppState, path: &Path) -> Result<Flavor, String> {
 pub async fn addon_release(
     state: State<'_, AppState>,
     force: bool,
-) -> Result<ReleaseCheck, String> {
+) -> Result<ReleaseCheck, Failure> {
     let prereleases = state
         .db
         .lock()
         .map_err(|e| e.to_string())?
         .addon_prereleases()
         .map_err(|e| e.to_string())?;
-    let (text, checked) = listing(force).await?;
+    let Listing {
+        text,
+        checked,
+        stale,
+    } = listing(force).await?;
     let release = addon_install::latest_release(&text, prereleases);
     let test_version = release
         .is_none()
@@ -142,6 +208,7 @@ pub async fn addon_release(
         test_version,
         updates,
         checked,
+        stale,
     })
 }
 
@@ -191,26 +258,24 @@ fn takeover(take_over: bool) -> Takeover {
     }
 }
 
-async fn download(release: &Release) -> Result<Vec<u8>, String> {
+async fn download(release: &Release) -> Result<Vec<u8>, Failure> {
     let response = client()?
         .get(&release.url)
         .send()
-        .await
-        .map_err(|e| e.to_string())?
-        .error_for_status()
-        .map_err(|e| e.to_string())?;
+        .await?
+        .error_for_status()?;
     if response
         .content_length()
         .is_some_and(|len| len > MAX_PACKAGE_BYTES)
     {
-        return Err("the package is too large".into());
+        return Err(addon_install::InstallError::TooLarge.into());
     }
     let mut bytes = Vec::new();
     let mut stream = response.bytes_stream();
     while let Some(chunk) = stream.next().await {
-        bytes.extend_from_slice(&chunk.map_err(|e| e.to_string())?);
+        bytes.extend_from_slice(&chunk?);
         if bytes.len() as u64 > MAX_PACKAGE_BYTES {
-            return Err("the package is too large".into());
+            return Err(addon_install::InstallError::TooLarge.into());
         }
     }
     Ok(bytes)
@@ -222,10 +287,10 @@ pub async fn install_addon(
     state: State<'_, AppState>,
     flavor: PathBuf,
     take_over: bool,
-) -> Result<Installed, String> {
+) -> Result<Installed, Failure> {
     let flavor = find_flavor(&state, &flavor)?;
     if game_running() {
-        return Err(addon_install::InstallError::GameRunning.to_string());
+        return Err(Failure::GameRunning);
     }
     let prereleases = state
         .db
@@ -233,12 +298,11 @@ pub async fn install_addon(
         .map_err(|e| e.to_string())?
         .addon_prereleases()
         .map_err(|e| e.to_string())?;
-    let (text, _) = listing(false).await?;
+    let Listing { text, .. } = listing(false).await?;
     let release = addon_install::latest_release(&text, prereleases)
         .ok_or("no release of the addon was found")?;
     let bytes = download(&release).await?;
-    let package =
-        addon_install::verify(&bytes, &release.sha256, &release.tag).map_err(|e| e.to_string())?;
+    let package = addon_install::verify(&bytes, &release.sha256, &release.tag)?;
     addon_install::install(
         &flavor,
         &package,
@@ -247,7 +311,7 @@ pub async fn install_addon(
         takeover(take_over),
         now_unix(),
     )
-    .map_err(|e| e.to_string())
+    .map_err(Failure::from)
 }
 
 /// Removes the addon folder from a flavor; recorded journals stay.
@@ -256,7 +320,7 @@ pub fn remove_addon(
     state: State<'_, AppState>,
     flavor: PathBuf,
     take_over: bool,
-) -> Result<(), String> {
+) -> Result<(), Failure> {
     let flavor = find_flavor(&state, &flavor)?;
     addon_install::remove(
         &flavor,
@@ -265,18 +329,18 @@ pub fn remove_addon(
         takeover(take_over),
         now_unix(),
     )
-    .map_err(|e| e.to_string())
+    .map_err(Failure::from)
 }
 
 /// Puts back the newest copy kept from an earlier install.
 #[tauri::command]
-pub fn restore_addon(state: State<'_, AppState>, flavor: PathBuf) -> Result<Installed, String> {
+pub fn restore_addon(state: State<'_, AppState>, flavor: PathBuf) -> Result<Installed, Failure> {
     let flavor = find_flavor(&state, &flavor)?;
     let rollback = addon_install::rollbacks(&state.data_dir, &flavor)
         .into_iter()
         .next()
         .ok_or("no earlier copy is kept")?;
-    let package = addon_install::rollback_package(&rollback.path).map_err(|e| e.to_string())?;
+    let package = addon_install::rollback_package(&rollback.path)?;
     addon_install::install(
         &flavor,
         &package,
@@ -285,5 +349,100 @@ pub fn restore_addon(state: State<'_, AppState>, flavor: PathBuf) -> Result<Inst
         Takeover::Allow,
         now_unix(),
     )
-    .map_err(|e| e.to_string())
+    .map_err(Failure::from)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Arc;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    /// A server answering each request with the next status in `statuses`, the body `[]` on 200.
+    async fn serve(statuses: Vec<u16>) -> (String, Arc<AtomicUsize>) {
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let url = format!("http://{}/releases", listener.local_addr().unwrap());
+        let hits = Arc::new(AtomicUsize::new(0));
+        let counter = hits.clone();
+        tokio::spawn(async move {
+            for status in statuses {
+                let (mut socket, _) = listener.accept().await.unwrap();
+                let mut request = [0u8; 4096];
+                let _ = socket.read(&mut request).await;
+                counter.fetch_add(1, Ordering::SeqCst);
+                let body = if status == 200 { "[]" } else { "" };
+                let response = format!(
+                    "HTTP/1.1 {status} X\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
+                    body.len()
+                );
+                socket.write_all(response.as_bytes()).await.unwrap();
+            }
+        });
+        (url, hits)
+    }
+
+    const NO_PAUSE: Duration = Duration::ZERO;
+
+    #[tokio::test]
+    async fn a_gateway_error_is_tried_once_more() {
+        let (url, hits) = serve(vec![504, 200]).await;
+        let cache = Mutex::new(None);
+        let listing = listing_from(&url, true, &cache, NO_PAUSE).await.unwrap();
+        assert_eq!(listing.text, "[]");
+        assert!(!listing.stale);
+        assert_eq!(hits.load(Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    async fn a_lasting_gateway_error_is_server_trouble() {
+        let (url, hits) = serve(vec![502, 503]).await;
+        let cache = Mutex::new(None);
+        let failure = listing_from(&url, true, &cache, NO_PAUSE)
+            .await
+            .unwrap_err();
+        assert_eq!(failure, Failure::ServerTrouble { status: Some(503) });
+        assert_eq!(hits.load(Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    async fn a_client_error_is_not_tried_again() {
+        let (url, hits) = serve(vec![404]).await;
+        let cache = Mutex::new(None);
+        let failure = listing_from(&url, true, &cache, NO_PAUSE)
+            .await
+            .unwrap_err();
+        assert!(matches!(failure, Failure::Other { .. }), "{failure:?}");
+        assert_eq!(hits.load(Ordering::SeqCst), 1);
+    }
+
+    #[tokio::test]
+    async fn the_listing_fetched_earlier_stands_in_when_github_fails() {
+        let (url, _) = serve(vec![504, 504]).await;
+        let cache = Mutex::new(Some((Instant::now(), 1_700_000_000, "[old]".to_string())));
+        let listing = listing_from(&url, true, &cache, NO_PAUSE).await.unwrap();
+        assert_eq!(
+            listing,
+            Listing {
+                text: "[old]".into(),
+                checked: 1_700_000_000,
+                stale: true,
+            }
+        );
+    }
+
+    #[tokio::test]
+    async fn no_server_at_all_is_offline() {
+        // A port nothing listens on: bound, then released.
+        let port = std::net::TcpListener::bind("127.0.0.1:0")
+            .unwrap()
+            .local_addr()
+            .unwrap()
+            .port();
+        let cache = Mutex::new(None);
+        let failure = listing_from(&format!("http://127.0.0.1:{port}/"), true, &cache, NO_PAUSE)
+            .await
+            .unwrap_err();
+        assert_eq!(failure, Failure::Offline);
+    }
 }

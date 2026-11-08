@@ -65,6 +65,7 @@ function release(updates: string[] = []): ReleaseCheck {
     testVersion: null,
     updates,
     checked: 1794000000,
+    stale: false,
   };
 }
 
@@ -200,12 +201,43 @@ describe("AddonPanel", () => {
         { installed: null, state: "notInstalled" },
       ),
     ];
-    api.installAddon.mockRejectedValueOnce("the game is running");
+    api.installAddon.mockRejectedValueOnce({ kind: "gameRunning" });
     renderWithProviders(<AddonPanel />);
     fireEvent.click(await screen.findByText("Install version 0.3.0"));
     expect(
       await screen.findByText(
-        /The addon was not changed: the game is running\. The game folder was left as it was/,
+        "The addon was not changed: the game is running. Close the game, then try again.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says a broken release will not install by trying again", async () => {
+    api.views = [
+      view(
+        { ownership: "notInstalled" },
+        { installed: null, state: "notInstalled" },
+      ),
+    ];
+    api.installAddon.mockRejectedValueOnce({
+      kind: "badPackage",
+      detail: "the package holds a file type that is not allowed: a.mjs",
+    });
+    renderWithProviders(<AddonPanel />);
+    fireEvent.click(await screen.findByText("Install version 0.3.0"));
+    expect(
+      await screen.findByText(
+        /this version's file failed a check \(the package holds a file type that is not allowed: a\.mjs\)\. Try again later; if it happens again, this version is broken/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says when the releases shown are the ones fetched earlier", async () => {
+    api.views = [view({ ownership: "managed" })];
+    api.check = { ...release(), stale: true };
+    renderWithProviders(<AddonPanel />);
+    expect(
+      await screen.findByText(
+        /GitHub could not be reached just now, so this is the list from earlier\. Press Check again/,
       ),
     ).toBeInTheDocument();
   });
@@ -279,6 +311,7 @@ describe("AddonPanel", () => {
       testVersion: "0.1.0-beta.2",
       updates: [],
       checked: 1794000000,
+      stale: false,
     };
     renderWithProviders(<AddonPanel />);
     expect(

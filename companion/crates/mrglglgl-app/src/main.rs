@@ -3,6 +3,7 @@
 
 mod addon_commands;
 mod commands;
+mod failure;
 mod logging;
 mod power;
 mod site_commands;

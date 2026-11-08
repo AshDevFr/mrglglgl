@@ -45,9 +45,16 @@ export const PROBLEMS = [
   "addon.problem.errors",
   "addon.actionFailed",
   "addon.releaseFailed",
+  "addon.staleListing",
   "log.showFailed",
   "settings.unreadable",
   "writing.editFailed",
+  "failure.offline",
+  "failure.serverTrouble",
+  "failure.badPackage",
+  "failure.gameRunning",
+  "failure.noSpace",
+  "failure.appTooOld",
 ] as const;
 
 export type Problem = (typeof PROBLEMS)[number];

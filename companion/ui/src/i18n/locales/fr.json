@@ -894,9 +894,11 @@
       "removed": "L'addon a été retiré. Tes journaux n'ont pas été touchés."
     },
     "actionFailed": "L'addon n'a pas été modifié : {{message}}",
-    "actionFailedNext": "Le dossier du jeu est resté tel quel. Ferme le jeu s'il tourne, puis réessaie.",
+    "actionFailedNext": "Le dossier du jeu est resté tel quel. Réessaie, et si ça se reproduit, signale-le avec ce message.",
     "releaseFailed": "Impossible de consulter les versions de l'addon : {{message}}",
-    "releaseFailedNext": "Vérifie la connexion, puis appuie sur Vérifier à nouveau ; ce qui est installé continue de fonctionner."
+    "releaseFailedNext": "Vérifie la connexion, puis appuie sur Vérifier à nouveau ; ce qui est installé continue de fonctionner.",
+    "staleListing": "GitHub n'a pas répondu à l'instant, voici donc la liste vue plus tôt",
+    "staleListingNext": "Appuie sur Vérifier à nouveau dans quelques minutes ; ce qui est installé continue de fonctionner."
   },
   "log": {
     "title": "Journal technique",
@@ -1045,5 +1047,19 @@
     "later": "Plus tard",
     "failed": "La mise à jour n'a pas pu s'installer",
     "failedNext": "Réessaie au prochain démarrage, ou télécharge la nouvelle version depuis la page des versions."
+  },
+  "failure": {
+    "offline": "le serveur est injoignable",
+    "offlineNext": "Vérifie la connexion internet, puis réessaie.",
+    "serverTrouble": "le serveur a des soucis en ce moment",
+    "serverTroubleNext": "Ça passe en général en quelques minutes : réessaie un peu plus tard.",
+    "badPackage": "le fichier de cette version n'a pas passé une vérification ({{detail}})",
+    "badPackageNext": "Réessaie plus tard ; si ça se reproduit, cette version est défectueuse et la suivante corrigera le problème. Ce qui est installé continue de fonctionner.",
+    "gameRunning": "le jeu est lancé",
+    "gameRunningNext": "Ferme le jeu, puis réessaie.",
+    "noSpace": "il faut {{neededGb}} Go d'espace disque libre, et {{freeGb}} Go sont libres",
+    "noSpaceNext": "Libère de la place sur le disque, puis appuie sur Reprendre le téléchargement : il continue là où il s'est arrêté.",
+    "appTooOld": "cette version de l'addon demande une version plus récente de l'app",
+    "appTooOldNext": "Mets l'app à jour, puis réessaie."
   }
 }

@@ -20,4 +20,8 @@ updates: Array<string>,
 /**
  * Unix time of the listing.
  */
-checked: number, };
+checked: number, 
+/**
+ * GitHub could not be reached: this is the listing fetched earlier.
+ */
+stale: boolean, };
