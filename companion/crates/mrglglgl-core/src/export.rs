@@ -336,10 +336,22 @@ pub fn write_file(
     extension: &str,
     content: &str,
 ) -> Result<PathBuf, ExportError> {
+    let name = format!("{}.{extension}", file_stem(title));
+    write_named(folder, game_folders, &name, content)
+}
+
+/// Writes `content` as `file_name` into `folder`, which must not be inside any of the game
+/// folders: the app never writes there. Returns the file's path.
+pub fn write_named(
+    folder: &Path,
+    game_folders: &[PathBuf],
+    file_name: &str,
+    content: &str,
+) -> Result<PathBuf, ExportError> {
     if let Some(root) = game_folders.iter().find(|root| inside(folder, root)) {
         return Err(ExportError::InsideGameFolder(root.clone()));
     }
-    let path = folder.join(format!("{}.{extension}", file_stem(title)));
+    let path = folder.join(file_name);
     std::fs::write(&path, content).map_err(|source| ExportError::Write {
         path: path.clone(),
         source,

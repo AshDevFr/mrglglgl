@@ -817,6 +817,48 @@ pub(crate) fn game_folders<'a>(
     folders
 }
 
+/// Writes a day or week's debug file into `folder`, as JSON: what the addon recorded, the facts
+/// the narrator is told, the prompt the next write gets and every version written. Refuses any
+/// folder inside a World of Warcraft install. Returns the file's path.
+#[tauri::command]
+pub fn export_debug(
+    state: State<'_, AppState>,
+    character_id: i64,
+    kind: StoryKind,
+    start_day: String,
+    folder: String,
+) -> Result<String, String> {
+    let folder = std::path::PathBuf::from(folder.trim());
+    if !folder.is_dir() {
+        return Err(format!("{} is not a folder", folder.display()));
+    }
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let settings = db.settings().map_err(|e| e.to_string())?;
+    let character = db
+        .character(character_id)
+        .map_err(|e| e.to_string())?
+        .ok_or("that character is not in the app any more")?;
+    let file = mrglglgl_core::debug::day(
+        &db,
+        &state.control.narrators(),
+        character_id,
+        kind,
+        &start_day,
+        &writing::prose_language(&settings),
+    )
+    .map_err(|e| e.to_string())?;
+    let json = serde_json::to_string_pretty(&file).map_err(|e| e.to_string())?;
+    let who = character
+        .name
+        .clone()
+        .unwrap_or_else(|| character.character_folder.clone());
+    let name = format!("{who}-{start_day}-{}-debug.json", kind.key());
+    let game_folders = game_folders(&settings, [character.journal_path.as_path()]);
+    export::write_named(&folder, &game_folders, &name, &json)
+        .map(|path| path.to_string_lossy().into_owned())
+        .map_err(|e| e.to_string())
+}
+
 /// What a journal is exported as.
 #[derive(Debug, Clone, Copy, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]

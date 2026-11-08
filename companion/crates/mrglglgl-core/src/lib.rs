@@ -10,6 +10,7 @@ pub mod beats;
 mod beats_fr;
 pub mod continuity;
 pub mod db;
+pub mod debug;
 pub mod discovery;
 pub mod export;
 pub mod factcheck;

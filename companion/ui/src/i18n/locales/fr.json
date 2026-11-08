@@ -675,7 +675,11 @@
       "pdf": "Ouvre le journal mis en page pour le papier dans la boîte de dialogue d'impression. Choisis-y Enregistrer au format PDF (Microsoft Print to PDF sous Windows).",
       "markdown": "Du texte brut avec des titres, pour les applications de notes et les wikis. Sans tampons ni images."
     },
-    "print": "Ouvrir la boîte de dialogue d'impression"
+    "print": "Ouvrir la boîte de dialogue d'impression",
+    "debug": "Fichier de débogage",
+    "debugSaved": "Fichier de débogage enregistré : {{path}}",
+    "debugFailed": "Le fichier de débogage n'a pas pu être écrit : {{message}}",
+    "debugFailedNext": "Choisis un dossier hors du dossier du jeu, où tu peux écrire, puis réessaie."
   },
   "errors": {
     "load": "L'application n'a pas pu lire ses données : {{message}}",

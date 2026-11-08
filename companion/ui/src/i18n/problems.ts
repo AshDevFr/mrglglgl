@@ -19,6 +19,7 @@ export const PROBLEMS = [
   "models.notEnoughDisk",
   "share.copyFailed",
   "share.exportFailed",
+  "share.debugFailed",
   "sync.status.older",
   "sync.status.newer",
   "sync.status.unreadable",

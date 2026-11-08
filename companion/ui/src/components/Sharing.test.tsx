@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Story } from "@/bindings/Story";
 import { renderWithProviders } from "@/test/render";
-import { CopyEntryButton, ExportDialog } from "./Sharing";
+import { CopyEntryButton, DebugExportButton, ExportDialog } from "./Sharing";
 
 const commands = vi.hoisted(() => ({
   copyEntryText: vi.fn(
@@ -11,8 +11,16 @@ const commands = vi.hoisted(() => ({
   ),
   defaultExportFolder: vi.fn(async () => "/Users/wren/Documents"),
   exportCharacter: vi.fn(),
+  exportDebug: vi.fn(
+    async () => "/Users/wren/Documents/Wren-2026-11-08-day-debug.json",
+  ),
 }));
 vi.mock("@/api/commands", () => commands);
+
+const dialog = vi.hoisted(() => ({
+  open: vi.fn(async () => "/Users/wren/Documents"),
+}));
+vi.mock("@tauri-apps/plugin-dialog", () => dialog);
 
 const pages = vi.hoisted(() => ({
   loadExportData: vi.fn(async () => ({ title: "Wren Hollowbrook" })),
@@ -23,9 +31,36 @@ vi.mock("@/lib/exportPage", () => pages);
 // A folder remembered by one test must not open the next one's dialog.
 beforeEach(() => localStorage.clear());
 
-const story = { id: 7, characterId: 1 } as Story;
+const story = {
+  id: 7,
+  characterId: 1,
+  kind: "day",
+  startDay: "2026-11-08",
+} as Story;
 
 describe("sharing", () => {
+  it("writes a day's debug file into the folder chosen", async () => {
+    renderWithProviders(<DebugExportButton story={story} />);
+    fireEvent.click(screen.getByRole("button", { name: "Debug file" }));
+    expect(
+      await screen.findByText(/Wren-2026-11-08-day-debug\.json/),
+    ).toBeInTheDocument();
+    expect(commands.exportDebug).toHaveBeenCalledWith(
+      1,
+      "day",
+      "2026-11-08",
+      "/Users/wren/Documents",
+    );
+  });
+
+  it("does nothing when no folder is chosen", async () => {
+    dialog.open.mockResolvedValueOnce(null as unknown as string);
+    renderWithProviders(<DebugExportButton story={story} />);
+    fireEvent.click(screen.getByRole("button", { name: "Debug file" }));
+    await waitFor(() => expect(dialog.open).toHaveBeenCalled());
+    expect(commands.exportDebug).not.toHaveBeenCalled();
+  });
+
   it("copies the entry with its day and footer", async () => {
     const writeText = vi.fn(async () => {});
     Object.defineProperty(navigator, "clipboard", {

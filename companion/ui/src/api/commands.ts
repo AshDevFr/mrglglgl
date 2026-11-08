@@ -294,6 +294,21 @@ export function importNarratorFile(path: string): Promise<NarratorSaved> {
 }
 
 /** Writes the narrator as one file into a folder; answers the file's path. */
+/** Writes a day or week's debug file into `folder`; returns the file's path. */
+export function exportDebug(
+  characterId: number,
+  kind: StoryKind,
+  startDay: string,
+  folder: string,
+): Promise<string> {
+  return invoke<string>("export_debug", {
+    characterId,
+    kind,
+    startDay,
+    folder,
+  });
+}
+
 export function exportNarrator(id: string, folder: string): Promise<string> {
   return invoke<string>("export_narrator", { id, folder });
 }

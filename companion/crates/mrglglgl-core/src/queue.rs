@@ -523,6 +523,33 @@ impl Control {
     }
 }
 
+/// The prompt the next write of this day or week would get, built as the writer builds it: with
+/// the narrator, language and preferences in the settings now.
+pub fn next_prompt(
+    db: &Database,
+    library: &narrators::Library,
+    character_id: i64,
+    kind: StoryKind,
+    start_day: &str,
+    language_fallback: &str,
+    provider_is_endpoint: bool,
+) -> Result<Result<prompt::Prompt, String>, DbError> {
+    let job = Job {
+        character_id,
+        kind,
+        start_day: start_day.to_string(),
+        state: JobState::Pending,
+        attempts: 0,
+        last_error: None,
+        narrator: None,
+        draft: false,
+        note: None,
+        partial: false,
+        position: None,
+    };
+    Ok(prepare(db, library, &job, language_fallback, provider_is_endpoint)?.map(|p| p.prompt))
+}
+
 /// Everything a job needs, gathered under one short lock.
 struct Prepared {
     prompt: prompt::Prompt,

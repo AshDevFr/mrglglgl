@@ -111,6 +111,7 @@ fn main() {
             writing_commands::copy_entry_text,
             writing_commands::default_export_folder,
             writing_commands::export_character,
+            writing_commands::export_debug,
             writing_commands::screenshot_data,
             writing_commands::print_page,
             site_commands::save_site_settings,

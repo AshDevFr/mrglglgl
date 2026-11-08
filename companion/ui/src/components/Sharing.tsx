@@ -1,7 +1,8 @@
 import { Alert, Button, Group, Modal, Radio, Stack, Text } from "@mantine/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { copyEntryText, exportCharacter } from "@/api/commands";
+import { copyEntryText, exportCharacter, exportDebug } from "@/api/commands";
 import type { Story } from "@/bindings/Story";
 import { problem } from "@/i18n/problems";
 import { exportFolder, rememberExportFolder } from "@/lib/exportFolder";
@@ -34,6 +35,58 @@ export function CopyEntryButton({ story }: { story: Story }) {
       {state === "failed" && (
         <Text size="xs" c="red" role="status">
           {problem(t, "share.copyFailed")}
+        </Text>
+      )}
+    </>
+  );
+}
+
+/** Writes the day or week's debug file, as JSON, into a folder the player picks: what was
+ * recorded, the facts and the prompt the narrator is given, and every version written. */
+export function DebugExportButton({ story }: { story: Story }) {
+  const { t } = useTranslation();
+  const [saved, setSaved] = useState<string | null>(null);
+  const [failed, setFailed] = useState<string | null>(null);
+  async function save() {
+    setSaved(null);
+    setFailed(null);
+    const folder = await open({
+      directory: true,
+      defaultPath: await exportFolder(),
+    });
+    if (typeof folder !== "string") return;
+    try {
+      setSaved(
+        await exportDebug(
+          story.characterId,
+          story.kind,
+          story.startDay,
+          folder,
+        ),
+      );
+      rememberExportFolder(folder);
+    } catch (e) {
+      setFailed(String(e));
+    }
+  }
+  return (
+    <>
+      <Button
+        size="xs"
+        variant="subtle"
+        color="gray"
+        onClick={() => void save()}
+      >
+        {t("share.debug")}
+      </Button>
+      {saved && (
+        <Text size="xs" c="dimmed" role="status">
+          {t("share.debugSaved", { path: saved })}
+        </Text>
+      )}
+      {failed && (
+        <Text size="xs" c="red" role="status">
+          {problem(t, "share.debugFailed", { message: failed })}
         </Text>
       )}
     </>

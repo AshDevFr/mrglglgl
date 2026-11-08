@@ -49,6 +49,14 @@ against the notes.
 
 ![Editing a day's entry by hand.](../../../assets/screenshots/edit.png)
 
+## When an entry looks wrong
+
+**Debug file**, next to **Copy entry**, writes the day into a folder you choose as a JSON file:
+what the addon recorded, the facts the narrator is told, the exact prompt the next write gets, and
+every version written so far with its narrator, model and fact check. Attach it to a report on the
+project page to show why an entry came out as it did. It holds the day's notes, so look through it
+before sharing it.
+
 ## Milestones
 
 Milestones are stamps for moments worth remembering: your first boot, your first murloc slain, a

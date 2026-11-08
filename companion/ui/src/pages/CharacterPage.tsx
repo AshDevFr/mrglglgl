@@ -21,7 +21,7 @@ import type { StoryKind } from "@/bindings/StoryKind";
 import { CharacterTop } from "@/components/CharacterTop";
 import { EmptyState } from "@/components/EmptyState";
 import { type DayWriting, JournalPage } from "@/components/JournalPage";
-import { CopyEntryButton } from "@/components/Sharing";
+import { CopyEntryButton, DebugExportButton } from "@/components/Sharing";
 import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
 import { WritingBanner } from "@/components/WritingBanner";
@@ -103,7 +103,12 @@ export function CharacterPage({
       onCancel: () => void cancelWriting(characterId, kind, start),
       onRetry: () =>
         void retryWriting(characterId, kind, start).then(refreshStatus),
-      actions: (story) => <CopyEntryButton story={story} />,
+      actions: (story) => (
+        <>
+          <CopyEntryButton story={story} />
+          <DebugExportButton story={story} />
+        </>
+      ),
       onEdit: async (story, text) => {
         const saved = await editStory(characterId, story.id, text);
         if (saved === null) throw new Error(t("writing.editRefused"));

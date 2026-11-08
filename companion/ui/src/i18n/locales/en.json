@@ -675,7 +675,11 @@
       "pdf": "Opens the journal laid out for paper in the print dialog. Choose Save as PDF there (Microsoft Print to PDF on Windows).",
       "markdown": "Plain text with headings, for notes apps and wikis. No stamps or pictures."
     },
-    "print": "Open the print dialog"
+    "print": "Open the print dialog",
+    "debug": "Debug file",
+    "debugSaved": "Debug file saved: {{path}}",
+    "debugFailed": "The debug file could not be written: {{message}}",
+    "debugFailedNext": "Choose a folder outside the game's folder that you can write to, then try again."
   },
   "errors": {
     "load": "The app could not read its data: {{message}}",
