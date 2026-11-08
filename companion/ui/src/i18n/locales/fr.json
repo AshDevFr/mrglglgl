@@ -648,7 +648,9 @@
     "notEnoughDiskNext": "Libère de la place et reviens, ou utilise un point d'accès sous Qui écrit, plus bas.",
     "firstRun": "Pour écrire ton journal, l'application a besoin d'un modèle d'écriture. {{name}} convient à cet ordinateur.",
     "firstRunAction": "Télécharger {{name}} ({{size}} Go)",
-    "big": "Un gros modèle : il lui faut un ordinateur d'au moins {{gb}} Go de mémoire, il écrit plus lentement et peut faire saccader le jeu s'il écrit pendant que tu joues."
+    "big": "Un gros modèle : il lui faut un ordinateur d'au moins {{gb}} Go de mémoire, il écrit plus lentement et peut faire saccader le jeu s'il écrit pendant que tu joues.",
+    "showAll": "Voir tous les modèles ({{count}})",
+    "showInUse": "Voir seulement le modèle utilisé"
   },
   "share": {
     "copy": "Copier l'entrée",

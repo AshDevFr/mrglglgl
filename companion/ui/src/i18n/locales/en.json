@@ -648,7 +648,9 @@
     "notEnoughDiskNext": "Free some space and come back, or use an endpoint under Who writes, below.",
     "firstRun": "To write your journal, the app needs a writing model. {{name}} suits this computer.",
     "firstRunAction": "Download {{name}} ({{size}} GB)",
-    "big": "A big model: it needs a computer with at least {{gb}} GB of memory, writes more slowly, and can make the game stutter if it writes while you play."
+    "big": "A big model: it needs a computer with at least {{gb}} GB of memory, writes more slowly, and can make the game stutter if it writes while you play.",
+    "showAll": "Show every model ({{count}})",
+    "showInUse": "Show only the model in use"
   },
   "share": {
     "copy": "Copy entry",

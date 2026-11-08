@@ -43,6 +43,7 @@ export function ModelsPanel({ onChoose }: Props) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const view = useQuery({ queryKey: ["models"], queryFn: models });
+  const [showAll, setShowAll] = useState(false);
   const [confirming, setConfirming] = useState<ModelView | null>(null);
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [error, setError] = useState<unknown>(null);
@@ -87,6 +88,11 @@ export function ModelsPanel({ onChoose }: Props) {
 
   if (!view.data) return null;
   const { advice, chosenId } = view.data;
+  // Once a model is downloaded and in use, the others are folded away until asked for; a
+  // download in progress keeps every row in sight.
+  const inUse = view.data.models.find((m) => m.installed && m.id === chosenId);
+  const folded = inUse !== undefined && !showAll && progress === null;
+  const shown = folded ? [inUse] : view.data.models;
   const anyInstalled = view.data.models.some((m) => m.installed);
   const suggested =
     advice.kind === "recommend"
@@ -136,7 +142,7 @@ export function ModelsPanel({ onChoose }: Props) {
         <Alert color="red">{failureProblem(t, "models.failed", error)}</Alert>
       )}
 
-      {view.data.models.map((m) => {
+      {shown.map((m) => {
         const downloading = progress?.modelId === m.id;
         return (
           <Stack key={m.id} gap={4} className="model-row">
@@ -226,6 +232,18 @@ export function ModelsPanel({ onChoose }: Props) {
           </Stack>
         );
       })}
+      {inUse !== undefined && progress === null && (
+        <Button
+          variant="subtle"
+          size="xs"
+          w="fit-content"
+          onClick={() => setShowAll((v) => !v)}
+        >
+          {showAll
+            ? t("models.showInUse")
+            : t("models.showAll", { count: view.data.models.length })}
+        </Button>
+      )}
 
       <Modal
         opened={confirming !== null}
