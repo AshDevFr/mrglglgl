@@ -713,3 +713,78 @@ fn a_narrator_writes_as_the_adventurer_or_about_them_as_it_is_set() {
     );
     assert!(!about_them.system.contains("in the first person"));
 }
+
+/// The fixture with `count` more quests accepted on `day`, each with a long description: a day
+/// of heavy questing, as a player levelling fast records.
+fn busy_questing(day: &str, count: i64) -> Journal {
+    let mut j = journal();
+    let events = j
+        .days
+        .get_mut(day)
+        .unwrap()
+        .events
+        .get_or_insert_with(Vec::new);
+    let template = events[0].clone();
+    for id in 0..count {
+        let quest_id = 900_000 + id;
+        j.quests.insert(
+            quest_id,
+            mrglglgl_core::schema::Quest {
+                title: Some(format!("Busy Quest {id}")),
+                text: Some(format!(
+                    "Description {id}: {}",
+                    "the plains need you. ".repeat(18)
+                )),
+                ..Default::default()
+            },
+        );
+        events.push(mrglglgl_core::schema::Event {
+            kind: mrglglgl_core::schema::EventKind::QuestAccept {
+                quest_id: Some(quest_id),
+            },
+            ..template.clone()
+        });
+    }
+    j
+}
+
+/// The "Quests touched" block of a prompt, up to the next blank line.
+fn quest_block<'a>(user: &'a str, heading: &str) -> &'a str {
+    let start = user.find(heading).expect("quest heading");
+    let rest = &user[start..];
+    &rest[..rest.find("\n\n").unwrap_or(rest.len())]
+}
+
+#[test]
+fn a_heavy_questing_day_keeps_quest_text_within_a_budget_then_lists_titles() {
+    let j = busy_questing("2026-11-08", 60);
+    let awards = milestones::compute(&j);
+    let p = day(&j, &awards, "en", DEFAULT_NARRATOR, false);
+    let block = quest_block(&p.user, "Quests touched today:");
+    // The first quests keep their text; the budget stops it well before all sixty.
+    assert!(block.contains("Busy Quest 0: Description 0:"), "{block}");
+    assert!(!block.contains("Description 59:"), "{block}");
+    // A short list of titles, then how many more there were.
+    assert!(block.contains("more quests"), "{block}");
+    assert!(
+        block.chars().count() < 5_000,
+        "the quest block stays small: {} chars",
+        block.chars().count()
+    );
+}
+
+#[test]
+fn a_week_lists_quests_by_title_only_since_its_days_tell_the_story() {
+    let j = busy_questing("2026-11-09", 60);
+    let awards = milestones::compute(&j);
+    let p = week(&j, &awards, "en", Meddling::Off);
+    let block = quest_block(&p.user, "Quests touched this week:");
+    assert!(block.contains("- Busy Quest 0\n"), "{block}");
+    assert!(!block.contains("Description"), "{block}");
+    assert!(block.contains("more quests"), "{block}");
+    assert!(
+        block.chars().count() < 1_500,
+        "{} chars",
+        block.chars().count()
+    );
+}

@@ -33,6 +33,12 @@ const MEMORY_DAYS: usize = 2;
 const MEMORY_BEATS: usize = 3;
 /// Quest text beyond this is cut, to keep small models' context for the day itself.
 const QUEST_TEXT_CHARS: usize = 500;
+/// The quest text a day prompt carries in all: quests keep their text, in order, while it fits,
+/// and the rest are named by title. A fast-levelling day touches dozens of quests, whose text
+/// alone would fill a local model's context and drown the day's own events.
+const QUEST_TEXT_BUDGET: usize = 3_000;
+/// The most quests a prompt names; the others are counted.
+const QUEST_TITLES_MAX: usize = 30;
 
 /// The words a day entry aims for, from the words in its notes: a long session leaves long notes
 /// and earns a longer entry, half a word of entry for each word of notes past a light day's, to
@@ -470,19 +476,42 @@ fn bullets(lines: &[String]) -> String {
     }
 }
 
-fn quest_lines(journal: &Journal, record: &DayRecord) -> Vec<String> {
-    let mut lines = Vec::new();
+/// The quests a day accepted or turned in, in that order, once each.
+fn quest_ids(record: &DayRecord) -> Vec<i64> {
     let mut ids: Vec<i64> = Vec::new();
     for id in record.accepted.iter().chain(&record.turned_in) {
         if !ids.contains(id) {
             ids.push(*id);
         }
     }
-    for id in &ids {
+    ids
+}
+
+fn quest_title(journal: &Journal, id: i64) -> String {
+    journal
+        .quests
+        .get(&id)
+        .and_then(|q| q.title.clone())
+        .unwrap_or_else(|| format!("Quest {id}"))
+}
+
+/// At most [`QUEST_TITLES_MAX`] lines, then one saying how many more there were.
+fn capped(mut lines: Vec<String>) -> Vec<String> {
+    if lines.len() > QUEST_TITLES_MAX {
+        let more = lines.len() - QUEST_TITLES_MAX;
+        lines.truncate(QUEST_TITLES_MAX);
+        lines.push(format!("and {more} more quests"));
+    }
+    lines
+}
+
+/// A day's quests with their text, within [`QUEST_TEXT_BUDGET`].
+fn quest_lines(journal: &Journal, record: &DayRecord) -> Vec<String> {
+    let mut lines = Vec::new();
+    let mut budget = QUEST_TEXT_BUDGET;
+    for id in &quest_ids(record) {
         let quest = journal.quests.get(id);
-        let title = quest
-            .and_then(|q| q.title.clone())
-            .unwrap_or_else(|| format!("Quest {id}"));
+        let title = quest_title(journal, *id);
         let text = quest.and_then(|q| q.text.as_deref()).map(|t| {
             let t = t.trim();
             match t.char_indices().nth(QUEST_TEXT_CHARS) {
@@ -491,11 +520,14 @@ fn quest_lines(journal: &Journal, record: &DayRecord) -> Vec<String> {
             }
         });
         lines.push(match text {
-            Some(t) if !t.is_empty() => format!("{title}: {t}"),
+            Some(t) if !t.is_empty() && t.chars().count() <= budget => {
+                budget -= t.chars().count();
+                format!("{title}: {t}")
+            }
             _ => title,
         });
     }
-    lines
+    capped(lines)
 }
 
 /// Memory lines as a list, "- nothing yet" when empty, as in the tested prompt.
@@ -691,9 +723,12 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
             continue;
         };
         let record = DayRecord::of(day);
-        for q in quest_lines(r.journal, &record) {
-            if !quests.contains(&q) {
-                quests.push(q);
+        // Titles only: the days' entries already tell the quests, and a week's worth of quest
+        // text would not fit a local model.
+        for id in quest_ids(&record) {
+            let title = quest_title(r.journal, id);
+            if !quests.contains(&title) {
+                quests.push(title);
             }
         }
         let day_beats = beats::extract(r.journal, d, r.awards, r.thresholds);
@@ -755,7 +790,7 @@ pub fn week_prompt(r: &WeekRequest) -> Prompt {
         } else {
             milestones_week.join(", ")
         },
-        quests = bullets(&quests),
+        quests = bullets(&capped(quests)),
         memory = memory_block(&sheet.memory_lines()),
         note = note_line(r.note),
         language = language_name(r.language),
