@@ -17,7 +17,7 @@ forever). Your journal's full history stays in the app whatever you choose: back
 safety net.
 
 To keep a kind of data out of what narrators, the website and exports see (or out of the app's
-view), without deleting it, use **Data used…** on the character's **⋯** menu: see
+view), without deleting it, use **Choose what is used** on the character's **This character** tab: see
 [What gets recorded](/guide/recorded/#choosing-which-data-the-app-uses). Other players' chat lines
 are never sent to a narrator, never go on the website and are never exported.
 

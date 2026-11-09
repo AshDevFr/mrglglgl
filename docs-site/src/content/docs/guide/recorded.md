@@ -62,8 +62,8 @@ you complete, with its name and category, and the app shows them in **What happe
 
 ## Choosing which data the app uses
 
-Every kind of recorded data can be kept out of the story. On a character's **⋯** menu, choose
-**Data used…**. Each kind (sessions, levels, quests, zones and discoveries, kills and bosses,
+Every kind of recorded data can be kept out of the story. On a character's **This character** tab,
+press **Choose what is used**. Each kind (sessions, levels, quests, zones and discoveries, kills and bosses,
 deaths, fishing, professions, notable loot, money and the auction house, group members, chat and
 Legacy Challenges) has two switches:
 

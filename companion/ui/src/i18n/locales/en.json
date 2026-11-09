@@ -16,7 +16,7 @@
     "reviewCount": "To review ({{count}})",
     "characterPages": "Character pages",
     "more": "More actions",
-    "characterSettings": "Settings"
+    "characterSettings": "This character"
   },
   "loading": "Mrgl… drying the pages.",
   "home": {
@@ -1135,11 +1135,11 @@
   },
   "characterSettings": {
     "title": "Writing for this character",
-    "intro": "How this character's entries are written, where it should differ from Settings. Anything left as in Settings follows them, even when they change. Entries already written stay as they are.",
+    "intro": "How this character's entries are written, where it should differ from the app's Settings. Anything left as in Settings follows them, even when they change. Entries already written stay as they are.",
     "asSettings": "As in Settings ({{what}})",
     "preferences": "Writing preferences for this character",
-    "preferencesAdded": "Added after the ones in Settings, which still hold: \"{{general}}\"",
-    "preferencesAlone": "Sent with this character's entries only, alongside any you set in Settings.",
+    "preferencesAdded": "Added after the ones in the app's Settings, which still hold: \"{{general}}\"",
+    "preferencesAlone": "Sent with this character's entries only, alongside any you set in the app's Settings.",
     "preferencesPlaceholder": "Write as a role-play diary; mention the loa now and then.",
     "save": "Save",
     "saved": "Saved. The next entry uses it.",

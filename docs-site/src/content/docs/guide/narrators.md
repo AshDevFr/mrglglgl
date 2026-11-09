@@ -18,7 +18,7 @@ language.
 
 ## A character's own narrator and preferences
 
-Each character's **Settings** tab, beside **Milestones**, sets how that character's entries are
+Each character's **This character** tab, beside **Milestones**, sets how that character's entries are
 written where it should differ from **Settings**: its own narrator (a troll written by the troll),
 how often the murloc writes in its margins, and writing preferences added after the ones in
 **Settings**, which still hold ("write as a role-play diary"). Anything left as in Settings follows

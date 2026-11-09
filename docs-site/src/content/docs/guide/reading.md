@@ -71,10 +71,11 @@ day spent only fishing. They appear on the day they happened and together on the
 ![The Milestones tab: every stamp a character has earned.](../../../assets/screenshots/milestones.png)
 
 There are 58, each with a rarity from one star to five. A day that earns several presses its three
-rarest on its page and lists the rest under **More milestones**; the narrator is told about those
-three only, so a big day is not a list. Every stamp, with what earns it, is in
+rarest on its page and lists every one of them under **The day's milestones**, below the entry;
+hovering a stamp shows it large with what earned it. The narrator is told about the three rarest
+only, so a big day is not a list. Every stamp, with what earns it, is in
 [Every milestone](/reference/milestones/). If you turn a kind of data off for a character
-(**Data used…**, see [What gets recorded](/guide/recorded/#choosing-which-data-the-app-uses)), the
+(**Choose what is used**, on the character's **This character** tab, see [What gets recorded](/guide/recorded/#choosing-which-data-the-app-uses)), the
 milestones it earned go with it.
 
 ## A day with nothing written

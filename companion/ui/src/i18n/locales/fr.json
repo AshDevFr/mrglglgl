@@ -16,7 +16,7 @@
     "reviewCount": "À relire ({{count}})",
     "characterPages": "Pages du personnage",
     "more": "Plus d'actions",
-    "characterSettings": "Réglages"
+    "characterSettings": "Ce personnage"
   },
   "loading": "Mrgl… les pages sèchent.",
   "home": {
@@ -1135,11 +1135,11 @@
   },
   "characterSettings": {
     "title": "Écriture pour ce personnage",
-    "intro": "Comment les entrées de ce personnage sont écrites, là où elles doivent différer des Réglages. Ce qui est laissé comme dans les Réglages les suit, même quand ils changent. Les entrées déjà écrites restent telles quelles.",
+    "intro": "Comment les entrées de ce personnage sont écrites, là où elles doivent différer des Réglages de l'application. Ce qui est laissé comme dans les Réglages les suit, même quand ils changent. Les entrées déjà écrites restent telles quelles.",
     "asSettings": "Comme dans les Réglages ({{what}})",
     "preferences": "Préférences d'écriture pour ce personnage",
-    "preferencesAdded": "Ajoutées après celles des Réglages, qui s'appliquent toujours : « {{general}} »",
-    "preferencesAlone": "Envoyées avec les entrées de ce personnage seulement, en plus de celles des Réglages.",
+    "preferencesAdded": "Ajoutées après celles des Réglages de l'application, qui s'appliquent toujours : « {{general}} »",
+    "preferencesAlone": "Envoyées avec les entrées de ce personnage seulement, en plus de celles des Réglages de l'application.",
     "preferencesPlaceholder": "Écris comme un journal de jeu de rôle ; parle des loa de temps en temps.",
     "save": "Enregistrer",
     "saved": "Enregistré. La prochaine entrée en tient compte.",
