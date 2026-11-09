@@ -80,8 +80,15 @@ fn import_one(
     source: &CharacterSource,
     retention: BackupRetention,
 ) -> Option<i64> {
+    let started = std::time::Instant::now();
     match archive::import(db, data_dir, source, retention) {
         Ok(ImportOutcome::Imported { character_id }) => {
+            tracing::debug!(
+                "imported {} (character {character_id}) from {} in {:?}",
+                source.character_folder,
+                source.journal_path.display(),
+                started.elapsed()
+            );
             if let Ok(Some(journal)) = archive::load(db, character_id)
                 && let Err(e) = milestones::award(db, character_id, &journal)
             {
@@ -90,11 +97,14 @@ fn import_one(
             Some(character_id)
         }
         Ok(ImportOutcome::Unreadable { error, .. }) => {
-            tracing::warn!("{}: {error}", source.journal_path.display());
+            tracing::warn!(
+                "{}: unreadable journal: {error}",
+                source.journal_path.display()
+            );
             None
         }
         Err(e) => {
-            tracing::warn!("{}: {e}", source.journal_path.display());
+            tracing::warn!("{}: import failed: {e}", source.journal_path.display());
             None
         }
     }
@@ -107,6 +117,17 @@ pub fn sync_all(state: &AppState) -> Result<SyncReport, String> {
     let roots = discovery::discover(&DiscoveryOverrides {
         wow_root: settings.wow_root_override.clone(),
     });
+    let started = std::time::Instant::now();
+    match &settings.wow_root_override {
+        Some(root) => tracing::debug!("sync: looking in the chosen game folder {}", root.display()),
+        None => tracing::debug!("sync: looking for game folders"),
+    }
+    if roots.is_empty() {
+        tracing::warn!("sync: no World of Warcraft: Forever folder found");
+    }
+    for root in &roots {
+        tracing::debug!("sync: game folder {root:?}");
+    }
     let mut report = SyncReport {
         roots: roots.clone(),
         ..SyncReport::default()
@@ -121,6 +142,13 @@ pub fn sync_all(state: &AppState) -> Result<SyncReport, String> {
             None => report.unreadable += 1,
         }
     }
+    tracing::info!(
+        "sync: {} characters, {} imported, {} unreadable, in {:?}",
+        report.characters,
+        report.imported,
+        report.unreadable,
+        started.elapsed()
+    );
     Ok(report)
 }
 
@@ -156,6 +184,12 @@ pub fn start_watching(app: &AppHandle) -> Result<(), String> {
         .filter(|path| path.is_dir())
         .collect();
 
+    for folder in folders.iter().chain(&screenshot_folders) {
+        tracing::debug!("watching {}", folder.display());
+    }
+    if folders.is_empty() {
+        tracing::warn!("no account folder to watch: journals are read only when syncing by hand");
+    }
     let mut watchers = Vec::new();
     if !screenshot_folders.is_empty() {
         let handle = app.clone();
@@ -164,7 +198,8 @@ pub fn start_watching(app: &AppHandle) -> Result<(), String> {
                 &screenshot_folders,
                 watch::DEFAULT_DEBOUNCE,
                 screenshots::is_screenshot_file,
-                move |_| {
+                move |changed| {
+                    tracing::debug!("new screenshots: {changed:?}");
                     let _ = handle.emit(SCREENSHOTS_UPDATED, ());
                 },
             )
@@ -178,6 +213,7 @@ pub fn start_watching(app: &AppHandle) -> Result<(), String> {
         watch::DEFAULT_DEBOUNCE,
         watch::is_journal_file,
         move |changed| {
+            tracing::debug!("journals changed: {changed:?}");
             let state = handle.state::<AppState>();
             let Ok(db) = state.db.lock() else {
                 return;
@@ -192,6 +228,7 @@ pub fn start_watching(app: &AppHandle) -> Result<(), String> {
                     .any(|path| same_file(path, &source.journal_path))
                     && let Some(id) = import_one(&db, &state.data_dir, &source, retention)
                 {
+                    tracing::info!("{} updated by the game", source.character_folder);
                     crate::writing::enqueue(&state, &db, id);
                     let _ = handle.emit(JOURNAL_UPDATED, id);
                 }

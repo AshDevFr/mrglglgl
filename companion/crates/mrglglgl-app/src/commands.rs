@@ -118,6 +118,7 @@ pub fn set_character_data_use(
         shared: known(choice.shared),
         view: known(choice.view),
     };
+    tracing::info!("character {character_id}: data use set to {choice:?}");
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.set_data_use(character_id, &choice)
         .map_err(|e| e.to_string())
@@ -256,6 +257,8 @@ pub fn save_settings(
         let db = state.db.lock().map_err(|e| e.to_string())?;
         db.save_settings(&settings).map_err(|e| e.to_string())?;
     }
+    tracing::info!("settings saved");
+    tracing::debug!("settings: {settings:?}");
     // The writer reads the settings each time round; a pause or a new provider applies now.
     state.control.set_paused(settings.writing.paused);
     let report = sync::sync_all(&state)?;
@@ -265,11 +268,13 @@ pub fn save_settings(
 
 #[tauri::command]
 pub fn sync_now(state: State<'_, AppState>) -> Result<SyncReport, String> {
+    tracing::info!("sync asked for");
     sync::sync_all(&state)
 }
 
 #[tauri::command]
 pub fn delete_character(state: State<'_, AppState>, character_id: i64) -> Result<(), String> {
+    tracing::info!("character {character_id}: deleting");
     let db = state.db.lock().map_err(|e| e.to_string())?;
     archive::delete_character(&db, &state.data_dir, character_id).map_err(|e| e.to_string())
 }

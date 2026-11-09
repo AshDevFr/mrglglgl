@@ -1,8 +1,10 @@
 import { Alert, Button, Code, Group, Stack } from "@mantine/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { problem } from "@/i18n/problems";
+import { log } from "@/lib/log";
 
 interface Props {
   error: unknown;
@@ -20,6 +22,9 @@ export function ErrorPage({ error, reset }: Props) {
   const queryClient = useQueryClient();
   const message = error instanceof Error ? error.message : String(error);
   const details = error instanceof Error && error.stack ? error.stack : message;
+  useEffect(() => {
+    log("error", `page crashed at ${window.location.pathname}: ${details}`);
+  }, [details]);
 
   async function again() {
     // A page often breaks on data it read: read everything again before drawing it.

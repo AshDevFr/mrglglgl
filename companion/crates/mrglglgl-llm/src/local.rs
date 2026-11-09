@@ -144,9 +144,18 @@ fn worker(options: LocalOptions, inbox: std_mpsc::Receiver<Job>) {
         let result = (|| {
             let backend = backend()?;
             if model.is_none() {
-                model = Some(load(backend, &options.model_path)?);
+                let started = std::time::Instant::now();
+                tracing::info!("loading the local model {}", options.model_path.display());
+                model = Some(load(backend, &options.model_path).inspect_err(|e| {
+                    tracing::warn!("the local model did not load: {e}");
+                })?);
+                tracing::info!("local model loaded in {:?}", started.elapsed());
             }
             let model = model.as_ref().expect("loaded above");
+            tracing::debug!(
+                "local model generating up to {} tokens",
+                job.request.max_tokens
+            );
             run(
                 backend,
                 model,

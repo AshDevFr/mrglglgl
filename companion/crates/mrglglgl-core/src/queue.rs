@@ -188,6 +188,9 @@ pub fn enqueue_finished(
             added += 1;
         }
     }
+    if added > 0 {
+        tracing::info!("character {character_id}: {added} finished days or weeks queued");
+    }
     Ok(added)
 }
 
@@ -214,6 +217,20 @@ pub fn request(
     start_day: &str,
     ask: &Ask,
 ) -> Result<(), DbError> {
+    tracing::info!(
+        "character {character_id}: {} of {start_day} asked for{}{}{}{}",
+        kind.key(),
+        if ask.draft { ", as a draft" } else { "" },
+        if ask.partial { ", so far" } else { "" },
+        ask.narrator
+            .map(|n| format!(", narrator {n}"))
+            .unwrap_or_default(),
+        if ask.note.is_some() {
+            ", with a note"
+        } else {
+            ""
+        },
+    );
     db.conn().execute(
         "INSERT INTO write_queue
              (character_id, kind, start_day, state, priority, narrator, draft, note, partial)
@@ -243,6 +260,10 @@ pub fn retry(
     kind: StoryKind,
     start_day: &str,
 ) -> Result<(), DbError> {
+    tracing::info!(
+        "character {character_id}: {} of {start_day} retried",
+        kind.key()
+    );
     db.conn().execute(
         "UPDATE write_queue SET state = 'pending', attempts = 0, last_error = NULL, not_before = 0
          WHERE character_id = ?1 AND kind = ?2 AND start_day = ?3 AND state = 'failed'",
@@ -317,6 +338,7 @@ fn retell_week(db: &Database, character_id: i64, day: &str) -> Result<(), DbErro
         .iter()
         .any(|s| s.status != StoryStatus::Discarded);
     if told {
+        tracing::info!("character {character_id}: week of {monday} told again with {day}'s entry");
         let draft = db.settings()?.writing.review;
         add(db, character_id, StoryKind::Week, &monday, draft)?;
     }
@@ -342,6 +364,22 @@ pub fn fail(db: &Database, job: &Job, reason: &str, now: i64) -> Result<(), DbEr
             now + FIRST_BACKOFF_SECS * 4_i64.pow(attempts as u32 - 1),
         )
     };
+    if state == JobState::Failed {
+        tracing::warn!(
+            "character {}: {} of {} failed for good after {attempts} attempts: {reason}",
+            job.character_id,
+            job.kind.key(),
+            job.start_day
+        );
+    } else {
+        tracing::warn!(
+            "character {}: {} of {} failed (attempt {attempts} of {MAX_ATTEMPTS}), tried again in {}s: {reason}",
+            job.character_id,
+            job.kind.key(),
+            job.start_day,
+            not_before - now
+        );
+    }
     db.conn().execute(
         "UPDATE write_queue SET state = ?4, attempts = ?5, last_error = ?6, not_before = ?7,
              priority = 0
@@ -713,6 +751,12 @@ pub async fn run_next(
     let prepared = match prepared {
         Ok(p) => p,
         Err(reason) => {
+            tracing::warn!(
+                "character {}: {} of {} could not be prepared: {reason}",
+                job.character_id,
+                job.kind.key(),
+                job.start_day
+            );
             fail(&db.lock().unwrap(), &job, &reason, now())?;
             return Ok(Some(job));
         }
@@ -765,8 +809,33 @@ pub async fn run_next(
         drop(tx);
         result
     };
+    tracing::info!(
+        "character {character_id}: writing {} of {start_day} with {} ({}), narrator {}, in {}, \
+         aiming for {} words in at most {} tokens{}",
+        kind.key(),
+        provider.id(),
+        provider.model(),
+        prepared.narrator,
+        prepared.language,
+        prepared.prompt.words,
+        options.max_tokens,
+        if job.draft { ", as a draft" } else { "" },
+    );
+    tracing::debug!(
+        "prompt {}: {} system and {} user characters",
+        prepared.prompt.hash,
+        prepared.prompt.system.len(),
+        prepared.prompt.user.len()
+    );
+    tracing::trace!(
+        "system prompt:\n{}\nuser prompt:\n{}",
+        prepared.prompt.system,
+        prepared.prompt.user
+    );
+    let started = std::time::Instant::now();
     let (result, ()) = tokio::join!(write, forward);
     *control.current.lock().unwrap() = None;
+    let took = started.elapsed();
 
     let db = db.lock().unwrap();
     let (outcome, message) = match result {
@@ -820,15 +889,40 @@ pub async fn run_next(
                 retell_week(&db, character_id, &start_day)?;
             }
             match reason {
-                Some(r) => ("setAside", Some(r)),
-                None => ("written", None),
+                Some(r) => {
+                    tracing::warn!(
+                        "character {character_id}: {} of {start_day} set aside after {took:?}: {r}",
+                        kind.key()
+                    );
+                    ("setAside", Some(r))
+                }
+                None => {
+                    tracing::info!(
+                        "character {character_id}: {} of {start_day} written in {took:?}{}",
+                        kind.key(),
+                        if first_entry {
+                            "; its week is told again"
+                        } else {
+                            ""
+                        }
+                    );
+                    ("written", None)
+                }
             }
         }
         Ok(WriteResult::Cancelled) => {
+            tracing::info!(
+                "character {character_id}: {} of {start_day} cancelled after {took:?}",
+                kind.key()
+            );
             set_aside(&db, &job, CANCELLED)?;
             ("cancelled", None)
         }
         Ok(WriteResult::TimedOut) => {
+            tracing::debug!(
+                "character {character_id}: {} of {start_day} timed out after {took:?}",
+                kind.key()
+            );
             fail(&db, &job, TIMED_OUT, now())?;
             ("timedOut", None)
         }

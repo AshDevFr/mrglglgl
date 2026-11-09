@@ -28,7 +28,15 @@ fn main() {
             let data_dir = app.path().app_data_dir()?;
             // Kept for the app's lifetime: dropping it would stop the log file being written.
             app.manage(logging::init(&data_dir));
-            tracing::info!("mrglglgl {} starting", env!("CARGO_PKG_VERSION"));
+            tracing::info!(
+                "mrglglgl {} starting on {} {} ({}), locale {}",
+                env!("CARGO_PKG_VERSION"),
+                std::env::consts::OS,
+                sysinfo::System::os_version().unwrap_or_default(),
+                std::env::consts::ARCH,
+                sys_locale::get_locale().unwrap_or_else(|| "unknown".into()),
+            );
+            tracing::debug!("data folder: {}", data_dir.display());
             let db = Database::open(&data_dir)?;
             // The archive is the only copy of days the game has compacted: keep a weekly copy.
             match db.snapshot_if_due(&data_dir, chrono::Utc::now().timestamp()) {
@@ -42,11 +50,13 @@ fn main() {
             let handle = app.handle().clone();
             std::thread::spawn(move || {
                 let state = handle.state::<sync::AppState>();
-                if let Err(e) = sync::sync_all(&state) {
-                    tracing::warn!("first sync: {e}");
+                match sync::sync_all(&state) {
+                    Ok(_) => {}
+                    Err(e) => tracing::warn!("first sync: {e}"),
                 }
-                if let Err(e) = sync::start_watching(&handle) {
-                    tracing::warn!("watching journals: {e}");
+                match sync::start_watching(&handle) {
+                    Ok(()) => tracing::debug!("watching the journals for changes"),
+                    Err(e) => tracing::warn!("watching journals: {e}"),
                 }
                 let _ = tauri::Emitter::emit(&handle, sync::JOURNAL_UPDATED, ());
             });
@@ -65,6 +75,7 @@ fn main() {
             commands::character_screenshots,
             commands::get_settings,
             logging::show_log,
+            logging::log_from_window,
             logging::recent_log,
             logging::open_link,
             addon_commands::addon_views,

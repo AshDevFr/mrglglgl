@@ -180,7 +180,9 @@ pub async fn addon_release(
         text,
         checked,
         stale,
-    } = listing(force).await?;
+    } = listing(force).await.inspect_err(|e| {
+        tracing::warn!(?e, "the addon releases could not be fetched");
+    })?;
     let release = addon_install::latest_release(&text, prereleases);
     let test_version = release
         .is_none()
@@ -202,6 +204,13 @@ pub async fn addon_release(
             .collect(),
         None => Vec::new(),
     };
+    tracing::debug!(
+        "addon release: {:?} (test versions {}), {} flavors to update{}",
+        release.as_ref().map(|r| &r.version),
+        if prereleases { "on" } else { "off" },
+        updates.len(),
+        if stale { ", from an earlier fetch" } else { "" }
+    );
     Ok(ReleaseCheck {
         release,
         prereleases,
@@ -214,6 +223,10 @@ pub async fn addon_release(
 
 #[tauri::command]
 pub fn set_addon_prereleases(state: State<'_, AppState>, on: bool) -> Result<(), String> {
+    tracing::info!(
+        "addon test versions {}",
+        if on { "offered" } else { "not offered" }
+    );
     state
         .db
         .lock()
@@ -290,6 +303,7 @@ pub async fn install_addon(
 ) -> Result<Installed, Failure> {
     let flavor = find_flavor(&state, &flavor)?;
     if game_running() {
+        tracing::warn!("addon install refused: the game is running");
         return Err(Failure::GameRunning);
     }
     let prereleases = state
@@ -301,8 +315,17 @@ pub async fn install_addon(
     let Listing { text, .. } = listing(false).await?;
     let release = addon_install::latest_release(&text, prereleases)
         .ok_or("no release of the addon was found")?;
-    let bytes = download(&release).await?;
-    let package = addon_install::verify(&bytes, &release.sha256, &release.tag)?;
+    tracing::info!(
+        "installing addon {} into {}",
+        release.version,
+        flavor.path.display()
+    );
+    let bytes = download(&release)
+        .await
+        .inspect_err(|e| tracing::warn!(?e, "addon download from {} failed", release.url))?;
+    tracing::debug!("addon package downloaded: {} bytes", bytes.len());
+    let package = addon_install::verify(&bytes, &release.sha256, &release.tag)
+        .inspect_err(|e| tracing::warn!("addon package refused: {e}"))?;
     addon_install::install(
         &flavor,
         &package,
@@ -311,7 +334,11 @@ pub async fn install_addon(
         takeover(take_over),
         now_unix(),
     )
-    .map_err(Failure::from)
+    .inspect(|_| tracing::info!("addon {} installed", release.version))
+    .map_err(|e| {
+        tracing::warn!("addon install failed: {e}");
+        Failure::from(e)
+    })
 }
 
 /// Removes the addon folder from a flavor; recorded journals stay.
@@ -322,6 +349,7 @@ pub fn remove_addon(
     take_over: bool,
 ) -> Result<(), Failure> {
     let flavor = find_flavor(&state, &flavor)?;
+    tracing::info!("removing the addon from {}", flavor.path.display());
     addon_install::remove(
         &flavor,
         &state.data_dir,
@@ -329,7 +357,10 @@ pub fn remove_addon(
         takeover(take_over),
         now_unix(),
     )
-    .map_err(Failure::from)
+    .map_err(|e| {
+        tracing::warn!("addon removal failed: {e}");
+        Failure::from(e)
+    })
 }
 
 /// Puts back the newest copy kept from an earlier install.
@@ -340,6 +371,11 @@ pub fn restore_addon(state: State<'_, AppState>, flavor: PathBuf) -> Result<Inst
         .into_iter()
         .next()
         .ok_or("no earlier copy is kept")?;
+    tracing::info!(
+        "putting back the addon kept at {} into {}",
+        rollback.path.display(),
+        flavor.path.display()
+    );
     let package = addon_install::rollback_package(&rollback.path)?;
     addon_install::install(
         &flavor,
@@ -349,7 +385,10 @@ pub fn restore_addon(state: State<'_, AppState>, flavor: PathBuf) -> Result<Inst
         Takeover::Allow,
         now_unix(),
     )
-    .map_err(Failure::from)
+    .map_err(|e| {
+        tracing::warn!("addon restore failed: {e}");
+        Failure::from(e)
+    })
 }
 
 #[cfg(test)]

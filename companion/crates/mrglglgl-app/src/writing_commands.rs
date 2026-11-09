@@ -75,6 +75,8 @@ pub fn set_character_writing(
         .chars()
         .take(OWN_PREFERENCES_CHARS)
         .collect();
+    tracing::info!("character {character_id}: own writing settings saved");
+    tracing::debug!("character {character_id}: own writing settings {choice:?}");
     let db = state.db.lock().map_err(|e| e.to_string())?;
     db.set_character_writing(character_id, &choice)
         .map_err(|e| e.to_string())
@@ -124,6 +126,7 @@ pub fn accept_draft(
     character_id: i64,
     story_id: i64,
 ) -> Result<bool, String> {
+    tracing::info!("character {character_id}: draft {story_id} accepted");
     let db = state.db.lock().map_err(|e| e.to_string())?;
     stories::accept(&db, character_id, story_id).map_err(|e| e.to_string())
 }
@@ -136,6 +139,10 @@ pub fn edit_story(
     story_id: i64,
     text: String,
 ) -> Result<Option<i64>, String> {
+    tracing::info!(
+        "character {character_id}: entry {story_id} edited by hand ({} words)",
+        text.split_whitespace().count()
+    );
     let db = state.db.lock().map_err(|e| e.to_string())?;
     stories::edit(&db, character_id, story_id, &text).map_err(|e| e.to_string())
 }
@@ -147,6 +154,7 @@ pub fn discard_draft(
     character_id: i64,
     story_id: i64,
 ) -> Result<bool, String> {
+    tracing::info!("character {character_id}: draft {story_id} discarded");
     let db = state.db.lock().map_err(|e| e.to_string())?;
     stories::discard(&db, character_id, story_id).map_err(|e| e.to_string())
 }
@@ -335,9 +343,19 @@ pub fn cancel_writing(
     kind: StoryKind,
     start_day: String,
 ) -> bool {
-    state
+    let cancelled = state
         .control
-        .cancel(Some((character_id, kind, start_day.as_str())))
+        .cancel(Some((character_id, kind, start_day.as_str())));
+    tracing::info!(
+        "character {character_id}: cancel {} of {start_day} asked for ({})",
+        kind.key(),
+        if cancelled {
+            "stopped"
+        } else {
+            "it was not running"
+        }
+    );
+    cancelled
 }
 
 #[tauri::command]
@@ -358,6 +376,7 @@ pub fn set_writing_paused(state: State<'_, AppState>, paused: bool) -> Result<()
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let mut settings = db.settings().map_err(|e| e.to_string())?;
     settings.writing.paused = paused;
+    tracing::info!("writing {}", if paused { "paused" } else { "resumed" });
     db.save_settings(&settings).map_err(|e| e.to_string())?;
     state.control.set_paused(paused);
     Ok(())
@@ -440,6 +459,7 @@ pub fn save_narrator(
     state: State<'_, AppState>,
     narrator: Narrator,
 ) -> Result<NarratorSaved, String> {
+    tracing::info!("saving narrator {} ({})", narrator.id, narrator.name);
     saved(narrators::save(
         &writing::narrators_dir(&state.data_dir),
         narrator,
@@ -460,6 +480,7 @@ pub fn import_narrator_file(
         return Err(format!("{} is too large to be a narrator", path.display()));
     }
     let text = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    tracing::info!("importing a narrator from {}", path.display());
     saved(narrators::import(
         &writing::narrators_dir(&state.data_dir),
         &text,
@@ -483,11 +504,13 @@ pub fn export_narrator(
         .ok_or("that narrator no longer exists")?;
     let path = folder.join(format!("{id}.toml"));
     std::fs::write(&path, narrators::to_toml(narrator)).map_err(|e| e.to_string())?;
+    tracing::info!("narrator {id} exported to {}", path.display());
     Ok(path.to_string_lossy().into_owned())
 }
 
 #[tauri::command]
 pub fn delete_narrator(state: State<'_, AppState>, id: String) -> Result<(), String> {
+    tracing::info!("deleting narrator {id}");
     narrators::delete(&writing::narrators_dir(&state.data_dir), &id).map_err(|e| e.to_string())
 }
 
@@ -531,6 +554,13 @@ pub async fn preview_narrator(
     };
     let provider = writing::provider(&state, &settings)
         .ok_or("nothing can write yet: download a model or set up an endpoint in Settings")?;
+    tracing::info!(
+        "previewing narrator {} on {day:?} with {} ({})",
+        narrator.id,
+        provider.id(),
+        provider.model()
+    );
+    let started = std::time::Instant::now();
     let emit = move |event: StreamEvent| {
         let _ = app.emit(
             NARRATOR_PREVIEW,
@@ -549,7 +579,18 @@ pub async fn preview_narrator(
         &day,
         &emit,
     )
-    .await?;
+    .await
+    .inspect_err(|e| tracing::warn!("narrator preview failed: {e}"))?;
+    tracing::info!(
+        "narrator preview ended after {:?}: {}",
+        started.elapsed(),
+        match &result {
+            WriteResult::Written { reason: None, .. } => "written",
+            WriteResult::Written { .. } => "written, set aside by the fact check",
+            WriteResult::Cancelled => "cancelled",
+            WriteResult::TimedOut => "timed out",
+        }
+    );
     Ok(match result {
         WriteResult::Written {
             text,
@@ -723,8 +764,15 @@ pub async fn download_model(
         downloaded: entry.partial_bytes(&writing::models_dir(&state.data_dir)),
         total: entry.size_bytes,
     };
+    tracing::info!(
+        "downloading model {model_id} ({} bytes, {} already here)",
+        entry.size_bytes,
+        started.downloaded
+    );
     *state.download.lock().map_err(|e| e.to_string())? = Some((started, cancel.clone()));
     let (_, free) = machine(&state.data_dir);
+    tracing::debug!("free disk space: {free:?}");
+    let begun = std::time::Instant::now();
     let mut last_percent = u64::MAX;
     let result = catalogue::download(
         &entry,
@@ -753,6 +801,14 @@ pub async fn download_model(
     )
     .await;
     *state.download.lock().map_err(|e| e.to_string())? = None;
+    match &result {
+        Ok(path) => tracing::info!(
+            "model {model_id} downloaded to {} in {:?}",
+            path.display(),
+            begun.elapsed()
+        ),
+        Err(e) => tracing::warn!("model {model_id} download stopped: {e}"),
+    }
     result?;
     state.control.wake();
     Ok(())
@@ -761,6 +817,7 @@ pub async fn download_model(
 #[tauri::command]
 pub fn cancel_download(state: State<'_, AppState>) {
     if let Ok(Some((_, token))) = state.download.lock().map(|d| d.clone()) {
+        tracing::info!("model download cancelled");
         token.cancel();
     }
 }
@@ -771,6 +828,7 @@ pub fn delete_model(state: State<'_, AppState>, model_id: String) -> Result<(), 
     let entry = catalogue
         .get(&model_id)
         .ok_or_else(|| format!("no model called {model_id}"))?;
+    tracing::info!("deleting model {model_id}");
     // A loaded model is dropped first so its file is not held open.
     *state.provider.lock().map_err(|e| e.to_string())? = None;
     catalogue::delete(entry, &writing::models_dir(&state.data_dir)).map_err(|e| e.to_string())
@@ -778,6 +836,11 @@ pub fn delete_model(state: State<'_, AppState>, model_id: String) -> Result<(), 
 
 #[tauri::command]
 pub fn save_api_key(key: Option<String>) -> Result<(), String> {
+    // Never the key itself.
+    tracing::info!(
+        "API key {}",
+        if key.is_some() { "saved" } else { "removed" }
+    );
     writing::set_api_key(key.as_deref())
 }
 
@@ -790,6 +853,7 @@ pub fn has_api_key() -> bool {
 /// sentence.
 #[tauri::command]
 pub async fn test_endpoint(url: String, model: String) -> Result<(), String> {
+    tracing::info!("testing endpoint {url} with model {model}");
     EndpointProvider::new(EndpointConfig {
         base_url: url,
         model,
@@ -797,7 +861,11 @@ pub async fn test_endpoint(url: String, model: String) -> Result<(), String> {
     })
     .test_connection()
     .await
-    .map_err(|e| e.to_string())
+    .inspect(|()| tracing::info!("endpoint test passed"))
+    .map_err(|e| {
+        tracing::warn!("endpoint test failed: {e}");
+        e.to_string()
+    })
 }
 
 /// One entry as plain text for the clipboard: the day, the entry, and the footer unless the
@@ -897,8 +965,12 @@ pub fn export_debug(
     let name = format!("{who}-{start_day}-{}-debug.json", kind.key());
     let game_folders = game_folders(&settings, [character.journal_path.as_path()]);
     export::write_named(&folder, &game_folders, &name, &json)
+        .inspect(|path| tracing::info!("debug file written: {}", path.display()))
         .map(|path| path.to_string_lossy().into_owned())
-        .map_err(|e| e.to_string())
+        .map_err(|e| {
+            tracing::warn!("debug file not written: {e}");
+            e.to_string()
+        })
 }
 
 /// What a journal is exported as.
@@ -982,8 +1054,15 @@ pub fn export_character(
             )
         }
     };
-    let path = export::write_file(&folder, &game_folders, &title, extension, &content)
-        .map_err(|e| e.to_string())?;
+    let path =
+        export::write_file(&folder, &game_folders, &title, extension, &content).map_err(|e| {
+            tracing::warn!("character {character_id}: export not written: {e}");
+            e.to_string()
+        })?;
+    tracing::info!(
+        "character {character_id}: exported as {extension} to {}",
+        path.display()
+    );
     Ok(path.to_string_lossy().into_owned())
 }
 

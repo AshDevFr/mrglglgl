@@ -10,6 +10,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { getSettings } from "./api/commands";
 import { applyLanguage, initI18n } from "./i18n";
+import { log, logUncaught } from "./lib/log";
 import { applyPaper, savedPaper } from "./lib/paper";
 import { applyZoom, savedZoom } from "./lib/zoom";
 import { router } from "./router";
@@ -26,6 +27,12 @@ const theme = createTheme({
   primaryColor: "teal",
 });
 
+logUncaught();
+log(
+  "info",
+  `window opened at ${window.innerWidth}x${window.innerHeight}, ${navigator.language}`,
+);
+
 applyPaper(savedPaper());
 void applyZoom(savedZoom());
 
@@ -40,8 +47,9 @@ demo
   .then(() => initI18n())
   .then(() => getSettings())
   .then((view) => applyLanguage(view.settings.uiLanguage))
-  .catch(() => {
+  .catch((e) => {
     // The interface still works in the system language if settings cannot be read.
+    log("warn", `starting with the system language: ${String(e)}`);
   })
   .finally(() => {
     const rootEl = document.getElementById("root");

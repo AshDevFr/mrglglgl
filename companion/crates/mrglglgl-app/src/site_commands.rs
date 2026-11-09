@@ -17,6 +17,8 @@ use crate::sync::AppState;
 pub fn save_site_settings(state: State<'_, AppState>, site: SiteSettings) -> Result<(), String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;
     let mut settings = db.settings().map_err(|e| e.to_string())?;
+    tracing::info!("website settings saved");
+    tracing::debug!("website settings: {site:?}");
     settings.site = site;
     db.save_settings(&settings).map_err(|e| e.to_string())
 }
@@ -91,12 +93,26 @@ pub async fn build_site(
     let game_folders =
         crate::writing_commands::game_folders(&settings, journals.iter().map(PathBuf::as_path));
     let theme = settings.site.theme_folder.clone();
-    tauri::async_runtime::spawn_blocking(move || {
+    tracing::info!(
+        "building the website into {} ({} characters, theme {})",
+        folder.display(),
+        data.characters.len(),
+        theme
+            .as_ref()
+            .map_or("built in".to_string(), |t| t.display().to_string())
+    );
+    let started = std::time::Instant::now();
+    let result = tauri::async_runtime::spawn_blocking(move || {
         let files = site::render(&data, theme.as_deref()).map_err(|e| e.to_string())?;
         site::write(&folder, &game_folders, &files).map_err(|e| e.to_string())
     })
     .await
-    .map_err(|e| e.to_string())?
+    .map_err(|e| e.to_string())?;
+    match &result {
+        Ok(report) => tracing::info!("website built in {:?}: {report:?}", started.elapsed()),
+        Err(e) => tracing::warn!("website build failed: {e}"),
+    }
+    result
 }
 
 /// Writes the default theme into `folder` as a starting point; files already there are kept.
@@ -106,6 +122,7 @@ pub fn copy_site_theme(folder: String) -> Result<Vec<String>, String> {
     if !folder.is_dir() {
         return Err(format!("{} is not a folder", folder.display()));
     }
+    tracing::info!("copying the default theme into {}", folder.display());
     site::copy_default_theme(&folder).map_err(|e| e.to_string())
 }
 

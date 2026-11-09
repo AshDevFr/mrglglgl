@@ -1,6 +1,12 @@
 //! The app's log: to the terminal, and to a file in the data folder so a player on a release
 //! build (no console on Windows) has something to send when asking for help. The file rotates
 //! daily and a week of files is kept.
+//!
+//! Levels: `error` for what the player sees fail, `warn` for what went wrong and was worked
+//! around, `info` for what the app did (a sync, an entry written, an install), `debug` for the
+//! detail behind it (timings, sizes, decisions), `trace` for what repeats every few seconds. The
+//! app's own code logs from `debug` up by default and everything else from `warn`; `RUST_LOG`
+//! replaces that, as in `RUST_LOG=mrglglgl=trace`.
 
 use std::path::{Path, PathBuf};
 
@@ -16,6 +22,9 @@ use tracing_subscriber::{EnvFilter, fmt};
 const KEEP_FILES: usize = 7;
 const PREFIX: &str = "mrglglgl";
 const SUFFIX: &str = "log";
+/// What is logged when `RUST_LOG` is not set: the app's own crates (whose targets all start with
+/// `mrglglgl`) in detail, libraries only when something goes wrong.
+const DEFAULT_FILTER: &str = "warn,mrglglgl=debug";
 
 pub fn log_dir(data_dir: &Path) -> PathBuf {
     data_dir.join("logs")
@@ -46,11 +55,27 @@ pub fn init(data_dir: &Path) -> LogGuard {
         }
     };
     let _ = tracing_subscriber::registry()
-        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("mrglglgl=info")))
+        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(DEFAULT_FILTER)))
         .with(fmt::layer())
         .with(file)
         .try_init();
     LogGuard(guard)
+}
+
+/// A line from the window: what failed in the interface, or what it did that the Rust side
+/// cannot see (an update check, a page crash). Logged under `mrglglgl::window`.
+#[tauri::command]
+pub fn log_from_window(level: String, message: String) {
+    // A runaway message (a huge stack, a whole response) would drown the file.
+    const MOST_CHARS: usize = 4000;
+    let message: String = message.chars().take(MOST_CHARS).collect();
+    match level.as_str() {
+        "error" => tracing::error!(target: "mrglglgl::window", "{message}"),
+        "warn" => tracing::warn!(target: "mrglglgl::window", "{message}"),
+        "info" => tracing::info!(target: "mrglglgl::window", "{message}"),
+        "debug" => tracing::debug!(target: "mrglglgl::window", "{message}"),
+        _ => tracing::trace!(target: "mrglglgl::window", "{message}"),
+    }
 }
 
 /// The newest log file, or the log folder when there is none yet.
@@ -144,6 +169,15 @@ pub fn show_log(app: AppHandle) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_default_filter_logs_the_app_in_detail_and_libraries_when_they_fail() {
+        let filter = EnvFilter::try_new(DEFAULT_FILTER).unwrap();
+        assert_eq!(
+            filter.max_level_hint(),
+            Some(tracing::level_filters::LevelFilter::DEBUG)
+        );
+    }
 
     #[test]
     fn recent_lines_read_back_across_daily_files_oldest_first() {

@@ -144,6 +144,7 @@ pub fn provider(state: &AppState, settings: &Settings) -> Option<Arc<dyn Provide
         }
     };
     let (key, provider) = wanted;
+    tracing::info!("writing with {key}");
     *cached = provider.clone().map(|p| (key, p));
     provider
 }
@@ -197,33 +198,50 @@ pub async fn run(app: AppHandle) {
             let _ = app.emit(WRITING, event);
         }
     };
+    // Why the writer last stood still, so a change is logged once rather than every few seconds.
+    let mut waiting: Option<&str> = None;
+    let mut note = |reason: Option<&'static str>| {
+        if reason != waiting {
+            match reason {
+                Some(r) => tracing::info!("writer waiting: {r}"),
+                None => tracing::debug!("writer free to write"),
+            }
+            waiting = reason;
+        }
+    };
     loop {
         // Read in its own statement so the lock is released before any await.
         let settings = state.db.lock().ok().and_then(|db| db.settings().ok());
         let settings = match settings {
             Some(s) => s,
             None => {
+                note(Some("the settings could not be read"));
                 queue::idle(&control, IDLE_CHECK).await;
                 continue;
             }
         };
         control.set_paused_quietly(settings.writing.paused);
         if control.paused() {
+            note(Some("paused"));
             queue::idle(&control, IDLE_CHECK).await;
             continue;
         }
         if !settings.writing.write_while_playing && game_running() {
+            note(Some("the game is running"));
             queue::idle(&control, GAME_CHECK).await;
             continue;
         }
         if !settings.writing.write_on_battery && crate::power::on_battery() {
+            note(Some("on battery"));
             queue::idle(&control, GAME_CHECK).await;
             continue;
         }
         let Some(provider) = provider(&state, &settings) else {
+            note(Some("no model downloaded or endpoint set up"));
             queue::idle(&control, IDLE_CHECK).await;
             continue;
         };
+        note(None);
         let language = prose_language(&settings);
         match queue::run_next(&state.db, provider.as_ref(), &control, &language, &emit).await {
             // Look at the settings and the game again before the next entry.

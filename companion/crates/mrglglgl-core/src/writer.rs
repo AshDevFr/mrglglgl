@@ -218,7 +218,16 @@ async fn attempt(
     );
     let (outcome, text) = result?;
     Ok(match outcome {
-        GenerateOutcome::Completed => Ok(clean(&text)),
+        GenerateOutcome::Completed => {
+            let cleaned = clean(&text);
+            tracing::debug!(
+                "model answered {} words, {} after cleaning",
+                text.split_whitespace().count(),
+                cleaned.split_whitespace().count()
+            );
+            tracing::trace!("model answer:\n{text}");
+            Ok(cleaned)
+        }
         GenerateOutcome::Cancelled => Err(WriteResult::Cancelled),
         GenerateOutcome::TimedOut => Err(WriteResult::TimedOut),
     })
@@ -247,7 +256,10 @@ pub async fn write(
             reason: None,
         });
     }
-    tracing::info!("entry rewritten: {}", factcheck::reason(&claims));
+    tracing::info!(
+        "entry asked again, it got facts wrong: {}",
+        factcheck::reason(&claims)
+    );
 
     if let Some(sink) = sink {
         let _ = sink.send(StreamEvent::Restart).await;

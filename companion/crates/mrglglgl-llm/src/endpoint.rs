@@ -97,6 +97,7 @@ impl EndpointProvider {
 
     /// Checks the endpoint answers, accepts the key and has the model.
     pub async fn test_connection(&self) -> Result<(), ProviderError> {
+        tracing::debug!("testing the endpoint at {}", self.url("models"));
         let response = self
             .authorised(self.client.get(self.url("models")))
             .send()
@@ -155,6 +156,12 @@ impl Provider for EndpointProvider {
                 {"role": "user", "content": request.user},
             ],
         });
+        tracing::debug!(
+            "asking {} for {} tokens of {}",
+            self.url("chat/completions"),
+            request.max_tokens,
+            self.config.model
+        );
         let send = self
             .authorised(self.client.post(self.url("chat/completions")))
             .json(&body)
@@ -164,8 +171,11 @@ impl Provider for EndpointProvider {
             () = cancel.cancelled() => return Ok(GenerateOutcome::Cancelled),
         };
         if !response.status().is_success() {
-            return Err(self.status_error(response).await);
+            let error = self.status_error(response).await;
+            tracing::warn!("the endpoint refused: {error}");
+            return Err(error);
         }
+        tracing::debug!("the endpoint answered {}, streaming", response.status());
 
         let mut stream = response.bytes_stream();
         let mut pending: Vec<u8> = Vec::new();

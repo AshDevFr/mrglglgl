@@ -45,5 +45,8 @@ If macOS says the app "is damaged and can't be opened", see the tip in
 
 The app keeps a log of what it does, a file a day for the last week, in the `logs` folder of its
 data folder. Settings, Logs, **Show the log file** opens it in your file manager: attach it
-when you ask for help. If some settings could not be read, Settings says which ones are back to their
+when you ask for help. It records each sync, every entry written or failed (with the model and how
+long it took), downloads, addon installs, exports, website builds, update checks and anything that
+fails in the window, at the levels `ERROR`, `WARN`, `INFO` and `DEBUG`. It never records your API
+key, and the text of prompts and entries only when started with `RUST_LOG=mrglglgl=trace`. If some settings could not be read, Settings says which ones are back to their
 defaults; the values it could not read are kept aside rather than overwritten.
