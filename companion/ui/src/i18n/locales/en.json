@@ -490,7 +490,7 @@
     "writeWhilePlayingHelp": "Off by default: writing uses the processor, and the game may stutter. When off, writing waits until you close the game.",
     "copyFooter": "Add \"via Mrglglgl\" when copying an entry",
     "weekly": "Write a weekly chapter",
-    "weeklyHelp": "Once a week is over, its days' entries are also told as one chapter. When off, no chapter is written or listed To review; chapters already written stay.",
+    "weeklyHelp": "Off by default. Once a week is over, its days' entries are also told as one chapter. When off, no chapter is written or listed To review; chapters already written stay.",
     "paused": "Pause background writing",
     "pausedHelp": "For every character, applied at once. Activity, in the sidebar, has the same switch.",
     "providerTitle": "Who writes",

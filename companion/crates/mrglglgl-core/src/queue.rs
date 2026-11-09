@@ -287,12 +287,16 @@ pub fn retry(
     Ok(())
 }
 
-/// After a restart nothing is running: interrupted jobs go back in line.
+/// After a restart nothing is running: interrupted jobs go back in line. Chapters queued before
+/// weekly chapters were turned off (or before they were off by default) are dropped.
 pub fn recover(db: &Database) -> Result<(), DbError> {
     db.conn().execute(
         "UPDATE write_queue SET state = 'pending' WHERE state = 'running'",
         [],
     )?;
+    if !db.settings()?.writing.weekly {
+        drop_weeks(db)?;
+    }
     Ok(())
 }
 

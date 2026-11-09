@@ -78,6 +78,10 @@ fn setup() -> (Mutex<Database>, i64) {
         )
         .unwrap();
     archive::merge_snapshot(&db, id, &journal(), 1).unwrap();
+    // Most of these tests follow a week's chapter too; they are off by default.
+    let mut settings = db.settings().unwrap();
+    settings.writing.weekly = true;
+    db.save_settings(&settings).unwrap();
     (Mutex::new(db), id)
 }
 
@@ -1101,4 +1105,23 @@ fn with_weekly_chapters_off_no_week_is_queued_or_listed_and_waiting_ones_are_dro
     );
     let review = mrglglgl_core::review::items(&db, id, &journal(), "2026-11-10").unwrap();
     assert!(review.iter().all(|i| i.kind == StoryKind::Day));
+}
+
+#[test]
+fn weekly_chapters_are_off_by_default_and_ones_queued_before_are_dropped_at_start_up() {
+    let db = Database::open_in_memory().unwrap();
+    assert!(!db.settings().unwrap().writing.weekly);
+    let (db, id) = setup();
+    let db = db.lock().unwrap();
+    queue::enqueue_finished(&db, id, &journal(), "2026-11-09").unwrap();
+    let mut settings = db.settings().unwrap();
+    settings.writing.weekly = false;
+    db.save_settings(&settings).unwrap();
+    queue::recover(&db).unwrap();
+    assert!(
+        queue::jobs(&db, id)
+            .unwrap()
+            .iter()
+            .all(|j| j.kind == StoryKind::Day)
+    );
 }

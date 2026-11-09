@@ -28,7 +28,7 @@ describe("WritingFields", () => {
     expect(onChange).toHaveBeenCalledWith({ ...defaultWriting, paused: true });
   });
 
-  it("turns weekly chapters off, kept for Save like the other choices", () => {
+  it("turns weekly chapters on, off by default and kept for Save like the other choices", () => {
     const onChange = vi.fn();
     renderWithProviders(
       <WritingFields
@@ -40,8 +40,8 @@ describe("WritingFields", () => {
     const weekly = screen.getByRole("switch", {
       name: /^Write a weekly chapter/,
     });
-    expect(weekly).toBeChecked();
+    expect(weekly).not.toBeChecked();
     fireEvent.click(weekly);
-    expect(onChange).toHaveBeenCalledWith({ ...defaultWriting, weekly: false });
+    expect(onChange).toHaveBeenCalledWith({ ...defaultWriting, weekly: true });
   });
 });

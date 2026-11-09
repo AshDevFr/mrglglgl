@@ -247,8 +247,9 @@ pub struct WritingSettings {
     pub review: bool,
     /// "Copy entry" adds a one-line "via Mrglglgl" footer.
     pub copy_footer: bool,
-    /// Each finished week is also told as one chapter, from its days' entries. On by default;
-    /// off, no chapter is queued or listed, and chapters already written stay.
+    /// Each finished week is also told as one chapter, from its days' entries. Off by default:
+    /// the days are the journal, and the chapter is a recap the player asks for. Off, no chapter
+    /// is queued or listed, and chapters already written stay.
     pub weekly: bool,
     /// How the player likes the prose written, sent with every entry and chapter ("no em
     /// dashes", "British spelling"). Style only: never taken as a fact of the day.
@@ -306,7 +307,7 @@ impl Default for WritingSettings {
             paused: false,
             review: false,
             copy_footer: true,
-            weekly: true,
+            weekly: false,
             preferences: String::new(),
         }
     }

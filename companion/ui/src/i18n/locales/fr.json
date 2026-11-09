@@ -490,7 +490,7 @@
     "writeWhilePlayingHelp": "Désactivé par défaut : l'écriture utilise le processeur, et le jeu peut saccader. Désactivé, l'écriture attend que tu fermes le jeu.",
     "copyFooter": "Ajouter « via Mrglglgl » en copiant une entrée",
     "weekly": "Écrire un chapitre par semaine",
-    "weeklyHelp": "Une fois la semaine finie, les entrées de ses jours sont aussi racontées en un chapitre. Désactivé, aucun chapitre n'est écrit ni proposé à valider ; ceux déjà écrits restent.",
+    "weeklyHelp": "Désactivé par défaut. Une fois la semaine finie, les entrées de ses jours sont aussi racontées en un chapitre. Désactivé, aucun chapitre n'est écrit ni proposé à valider ; ceux déjà écrits restent.",
     "paused": "Suspendre l'écriture en arrière-plan",
     "pausedHelp": "Pour tous les personnages, appliqué tout de suite. Activité, dans la barre latérale, a le même interrupteur.",
     "providerTitle": "Qui écrit",

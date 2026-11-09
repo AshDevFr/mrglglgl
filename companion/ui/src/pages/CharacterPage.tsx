@@ -83,7 +83,7 @@ export function CharacterPage({
   });
   const settings = useQuery({ queryKey: ["settings"], queryFn: getSettings });
   // Weekly chapters off: a week shows its chapter only if one was written before.
-  const weekly = settings.data?.settings.writing.weekly ?? true;
+  const weekly = settings.data?.settings.writing.weekly ?? false;
   const live = useWriting(characterId);
   const refreshStatus = () =>
     queryClient.invalidateQueries({ queryKey: ["writing", characterId] });

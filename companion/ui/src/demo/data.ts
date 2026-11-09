@@ -197,7 +197,7 @@ export const settings: SettingsView = {
       paused: false,
       review: false,
       copyFooter: true,
-      weekly: true,
+      weekly: false,
       preferences: "No em dashes. Short paragraphs.",
     },
   },

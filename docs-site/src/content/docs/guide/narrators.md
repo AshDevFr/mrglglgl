@@ -32,8 +32,9 @@ long one with much more in it gets up to about 400 words in a few paragraphs. A 
 about 250 words, told from the entries of its days (a day with no entry yet is told from its
 notes). To change one entry's length, rewrite it with a note such as "shorter".
 
-To skip weekly chapters, turn off **Write a weekly chapter** in **Settings**, **Writing**. No
-chapter is written or listed To review after that; chapters already written stay in the journal.
+Weekly chapters are off by default: turn on **Write a weekly chapter** in **Settings**,
+**Writing** to have each finished week told as one. Turned off again, no chapter is written or
+listed To review; chapters already written stay in the journal.
 
 ## Writing preferences
 

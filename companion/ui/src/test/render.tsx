@@ -28,7 +28,7 @@ export const defaultWriting: WritingSettings = {
   paused: false,
   review: false,
   copyFooter: true,
-  weekly: true,
+  weekly: false,
   preferences: "",
 };
 

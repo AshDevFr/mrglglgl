@@ -42,8 +42,9 @@ review: boolean,
  */
 copyFooter: boolean, 
 /**
- * Each finished week is also told as one chapter, from its days' entries. On by default;
- * off, no chapter is queued or listed, and chapters already written stay.
+ * Each finished week is also told as one chapter, from its days' entries. Off by default:
+ * the days are the journal, and the chapter is a recap the player asks for. Off, no chapter
+ * is queued or listed, and chapters already written stay.
  */
 weekly: boolean, 
 /**

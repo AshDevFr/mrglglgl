@@ -40,6 +40,10 @@ fn setup() -> (Database, i64, Journal) {
         journal.days.insert(day.into(), Day::default());
     }
     archive::merge_snapshot(&db, id, &journal, 1).unwrap();
+    // The list's weeks are followed too; weekly chapters are off by default.
+    let mut settings = db.settings().unwrap();
+    settings.writing.weekly = true;
+    db.save_settings(&settings).unwrap();
     (db, id, journal)
 }
 
