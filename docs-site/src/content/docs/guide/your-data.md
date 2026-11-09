@@ -44,6 +44,6 @@ If macOS says the app "is damaged and can't be opened", see the tip in
 [Getting started](/getting-started/#1-install-the-app).
 
 The app keeps a log of what it does, a file a day for the last week, in the `logs` folder of its
-data folder. Settings, General, **Show the log file** opens it in your file manager: attach it
+data folder. Settings, Logs, **Show the log file** opens it in your file manager: attach it
 when you ask for help. If some settings could not be read, Settings says which ones are back to their
 defaults; the values it could not read are kept aside rather than overwritten.

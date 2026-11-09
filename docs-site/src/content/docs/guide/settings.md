@@ -5,11 +5,12 @@ description: Every tab of the app's Settings.
 
 | Tab | What it holds |
 |---|---|
-| **General** | The paper and size of the interface, the World of Warcraft folder, how long backups are kept, the app's language, and the log file |
+| **General** | The paper and size of the interface, the World of Warcraft folder, how long backups are kept, and the app's language |
 | **Writing** | The writing model or endpoint, the narrator, margin notes, the journal's language, writing preferences, and when entries are written |
 | **Narrators** | Every narrator, and your own: [Narrators and style](/guide/narrators/) |
 | **Website** | [The journal website](/guide/website/) |
 | **Addon** | [The addon](/guide/addon/), installed and recording |
+| **Logs** | The app's recent log, to read or copy, and its file |
 
 ![The General tab of Settings.](../../../assets/screenshots/settings-general.png)
 

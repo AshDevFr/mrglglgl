@@ -22,7 +22,6 @@
   "home": {
     "empty": "Pas encore de journal. Le murloc attend au bord de l'eau.",
     "emptyHelp": "Joue avec l'addon Mrglglgl installé, puis déconnecte-toi ou tape /reload : le jeu enregistre le journal à ces moments-là, et il apparaît ici.",
-    "noInstall": "Aucun dossier de World of Warcraft n'a été trouvé. Choisis-le dans les réglages.",
     "pick": "Choisis un personnage à gauche pour lire son journal.",
     "addonMissingTitle": "L'addon n'est pas installé",
     "addonMissing": "Sans lui dans le jeu, rien n'est enregistré et il n'y a rien à raconter. L'application peut l'installer pour toi.",
@@ -62,7 +61,6 @@
     "removeBody": "Cela supprime la copie de ce journal dans l'application : son archive, ses sauvegardes et ses jalons. Les fichiers du jeu ne sont pas touchés, donc si le personnage existe toujours, son journal sera relu la prochaine fois.",
     "removeConfirm": "Retirer",
     "cancel": "Annuler",
-    "noDays": "Aucune journée enregistrée pour le moment.",
     "compacted": "Résumé seulement : le jeu n'a gardé les détails que quelques jours et l'application n'a vu que ce résumé.",
     "line": "{{who}}, niveau {{level}}",
     "lineNoLevel": "{{who}}",
