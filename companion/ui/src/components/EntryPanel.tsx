@@ -132,6 +132,7 @@ export function EntryPanel({
     );
   }
 
+  const retrying = job?.state === "pending";
   return (
     <div className="entry-panel">
       {live?.outcome === "cancelled" && (
@@ -139,16 +140,27 @@ export function EntryPanel({
           {problem(t, "writing.outcome.cancelled")}
         </Alert>
       )}
+      {/* A failure waits for its next try while attempts are left; after the last, the
+          player decides. */}
       {live?.outcome === "timedOut" && (
         <Alert color="yellow" role="status">
-          {problem(t, "writing.outcome.timedOut")}
+          {problem(
+            t,
+            retrying
+              ? "writing.outcome.timedOutRetrying"
+              : "writing.outcome.timedOut",
+          )}
         </Alert>
       )}
       {live?.outcome === "failed" && (
         <Alert color="red" role="status">
-          {problem(t, "writing.outcome.failed", {
-            message: live.message ?? "",
-          })}
+          {problem(
+            t,
+            retrying
+              ? "writing.outcome.failedRetrying"
+              : "writing.outcome.failed",
+            { message: live.message ?? "" },
+          )}
         </Alert>
       )}
 

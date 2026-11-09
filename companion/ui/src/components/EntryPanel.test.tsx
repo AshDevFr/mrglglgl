@@ -144,13 +144,31 @@ describe("EntryPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("says when writing took too long", () => {
+  it("says a failure is tried again on its own while attempts are left", () => {
     panel({
       live: { text: "", active: false, outcome: "timedOut", message: null },
+      job: job({ state: "pending", attempts: 1 }),
     });
     expect(
       screen.getByText(
-        /^Stopped: writing took too long\. Nothing was saved\. Press Write again/,
+        /^Stopped: writing took too long\. Nothing was saved\. It is tried again on its own in a moment/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("says to press Try again once a failure gave up for good", () => {
+    panel({
+      live: {
+        text: "",
+        active: false,
+        outcome: "failed",
+        message: "the model stopped",
+      },
+      job: job({ state: "failed", attempts: 3, position: null }),
+    });
+    expect(
+      screen.getByText(
+        /^The murloc could not write this: the model stopped\. Press Try again/,
       ),
     ).toBeInTheDocument();
   });

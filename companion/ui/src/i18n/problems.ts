@@ -31,6 +31,8 @@ export const PROBLEMS = [
   "writing.outcome.cancelled",
   "writing.outcome.timedOut",
   "writing.outcome.failed",
+  "writing.outcome.timedOutRetrying",
+  "writing.outcome.failedRetrying",
   "writing.reason.cancelled",
   "writing.reason.timedOut",
   "writing.reason.other",

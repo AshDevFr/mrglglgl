@@ -564,8 +564,12 @@
       "timedOut": "Stopped: writing took too long. Nothing was saved.",
       "failed": "The murloc could not write this: {{message}}",
       "cancelledNext": "Press Write now when you want this one written.",
-      "timedOutNext": "Press Write again to retry, or pick a smaller model in Settings.",
-      "failedNext": "It is tried again on its own in a moment; you can also press Write now."
+      "timedOutNext": "Press Try again, or pick a smaller model in Settings.",
+      "failedNext": "Press Try again; if it fails again, check who writes in Settings.",
+      "timedOutRetrying": "Stopped: writing took too long. Nothing was saved.",
+      "timedOutRetryingNext": "It is tried again on its own in a moment; if it keeps happening, pick a smaller model in Settings.",
+      "failedRetrying": "The murloc could not write this: {{message}}",
+      "failedRetryingNext": "It is tried again on its own in a moment."
     },
     "facts": "What happened",
     "setAside": "The murloc's entry was set aside because it {{reason}}.",

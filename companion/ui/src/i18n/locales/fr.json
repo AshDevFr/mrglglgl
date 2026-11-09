@@ -564,8 +564,12 @@
       "timedOut": "Arrêté : l'écriture a pris trop de temps. Rien n'a été enregistré.",
       "failed": "Le murloc n'a pas pu écrire ceci : {{message}}",
       "cancelledNext": "Appuie sur Écrire maintenant quand tu veux qu'elle soit écrite.",
-      "timedOutNext": "Appuie sur Réécrire pour réessayer, ou choisis un modèle plus petit dans les réglages.",
-      "failedNext": "Un nouvel essai se fait tout seul dans un instant ; tu peux aussi appuyer sur Écrire maintenant."
+      "timedOutNext": "Appuie sur Réessayer, ou choisis un modèle plus petit dans les Réglages.",
+      "failedNext": "Appuie sur Réessayer ; si ça échoue encore, vérifie qui écrit dans les Réglages.",
+      "timedOutRetrying": "Arrêté : l'écriture a pris trop de temps. Rien n'a été enregistré.",
+      "timedOutRetryingNext": "Un nouvel essai se fait tout seul dans un instant ; si ça se reproduit, choisis un modèle plus petit dans les Réglages.",
+      "failedRetrying": "Le murloc n'a pas pu écrire ceci : {{message}}",
+      "failedRetryingNext": "Un nouvel essai se fait tout seul dans un instant."
     },
     "facts": "Ce qui s'est passé",
     "setAside": "L'entrée du murloc a été mise de côté parce qu'elle {{reason}}.",
