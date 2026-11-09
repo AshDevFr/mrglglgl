@@ -7,7 +7,7 @@ import { formatDay } from "@/lib/format";
 import { dayFacts } from "@/lib/journal";
 import type { Paper } from "@/lib/paper";
 import { daySentences } from "@/lib/sentences";
-import { weekStart } from "@/lib/weeks";
+import { dayKey, weekStart } from "@/lib/weeks";
 import { versionsOf } from "@/lib/writing";
 import { EntryText } from "./EntryPanel";
 import { InkStamp } from "./InkStamp";
@@ -33,6 +33,8 @@ export interface ExportData {
   photos: Record<string, ExportPhoto[]>;
   /** The paper chosen in Settings: what an exported page starts on, and what prints. */
   paper: Paper;
+  /** Today, which is not over: it and later days are left out, as on the website. */
+  today?: string;
 }
 
 /** The whole journal as a book, oldest day first, with the pages, stamps and photos the app
@@ -44,12 +46,18 @@ export function ExportDocument({
   stories,
   awards,
   photos,
+  today = dayKey(new Date()),
 }: ExportData) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const told = (kind: Story["kind"], day: string) =>
-    versionsOf(stories, kind, day).find((s) => s.check !== "failed");
-  const days = Object.keys(journal.days).sort();
+    versionsOf(stories, kind, day).find(
+      // A day told so far is not its entry.
+      (s) => s.check !== "failed" && !s.partial,
+    );
+  const days = Object.keys(journal.days)
+    .filter((d) => d < today)
+    .sort();
   const weeks: [string, string[]][] = [];
   for (const day of days) {
     const monday = weekStart(day);

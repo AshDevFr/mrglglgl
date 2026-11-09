@@ -146,6 +146,8 @@ pub struct ExportInput<'a> {
     pub awards: &'a [Award],
     /// The language of the headings.
     pub language: &'a str,
+    /// Today, which is not over: it and later days are left out, as on the website.
+    pub today: &'a str,
 }
 
 enum Body {
@@ -175,7 +177,8 @@ fn parts(input: &ExportInput) -> Vec<WeekPart> {
     for s in input
         .stories
         .iter()
-        .filter(|s| s.status == StoryStatus::Accepted)
+        // A day told so far is not its entry.
+        .filter(|s| s.status == StoryStatus::Accepted && !s.partial)
     {
         let slot = (s.kind, s.start_day.as_str());
         if latest.get(&slot).is_none_or(|old| old.id < s.id) {
@@ -184,7 +187,12 @@ fn parts(input: &ExportInput) -> Vec<WeekPart> {
     }
     let thresholds = Thresholds::default();
     let mut weeks: BTreeMap<String, WeekPart> = BTreeMap::new();
-    for day in input.journal.days.keys() {
+    for day in input
+        .journal
+        .days
+        .keys()
+        .filter(|d| d.as_str() < input.today)
+    {
         let Some(monday) = prompt::week_start(day) else {
             continue;
         };
@@ -199,7 +207,7 @@ fn parts(input: &ExportInput) -> Vec<WeekPart> {
             .awards
             .iter()
             .filter(|a| a.day == *day)
-            .map(|a| milestones::name(&a.id).to_string())
+            .map(|a| milestones::name_in(&a.id, input.language).to_string())
             .collect();
         let week = weeks.entry(monday.clone()).or_insert_with(|| WeekPart {
             chapter: latest

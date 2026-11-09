@@ -56,9 +56,34 @@ const data = {
     ],
   },
   paper: "parchment" as const,
+  // After every fixture day.
+  today: "2026-12-01",
 };
 
 describe("ExportDocument", () => {
+  it("leaves out today and days told only so far, as the website does", () => {
+    render(
+      <ExportDocument
+        {...data}
+        stories={[
+          ...data.stories,
+          story(5, "day", "2026-11-08", "Told so far.", { partial: true }),
+        ]}
+        today="2026-11-09"
+      />,
+    );
+    expect(
+      screen.getByText("The wolves of Mulgore kept me busy."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Told so far.")).toBeNull();
+    expect(
+      screen.queryByRole("article", { name: /November 9, 2026/ }),
+    ).toBeNull();
+    expect(
+      screen.queryByRole("article", { name: /November 10, 2026/ }),
+    ).toBeNull();
+  });
+
   it("lays the journal out as the app does: pages, stamps, photos, chapters", () => {
     render(<ExportDocument {...data} />);
     expect(

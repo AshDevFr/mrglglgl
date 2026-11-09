@@ -18,6 +18,8 @@ description: Copy an entry, or export a character's whole journal.
 - **Markdown:** plain text, for notes apps and wikis.
 
 Only accepted entries are exported, never drafts. A day without an entry exports what happened.
+Today is left out until it is over, and a day told only so far exports its full entry once there
+is one, as on the website.
 
 ## A website of your journals
 

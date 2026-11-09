@@ -66,6 +66,8 @@ fn input<'a>(
         stories,
         awards,
         language: "en",
+        // After every fixture day.
+        today: "2026-12-01",
     }
 }
 
@@ -149,6 +151,45 @@ fn drafts_and_discarded_drafts_are_never_exported() {
     assert!(md.contains(ENTRY), "the accepted entry is exported");
     assert!(!md.contains("A draft."));
     assert!(!md.contains("Thrown away."));
+}
+
+#[test]
+fn today_and_days_told_only_so_far_are_left_out_as_on_the_website() {
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let mut so_far = story(
+        2,
+        StoryKind::Day,
+        "2026-11-08",
+        "Told so far.",
+        CheckStatus::Passed,
+    );
+    so_far.partial = true;
+    let stories = vec![
+        story(1, StoryKind::Day, "2026-11-08", ENTRY, CheckStatus::Passed),
+        so_far,
+    ];
+    let md = export::markdown(&input(&j, &stories, &awards));
+    assert!(md.contains(ENTRY), "the full entry, not the newer one told so far");
+    assert!(!md.contains("Told so far."));
+
+    // Today is not over: it is not part of the journal yet.
+    let mut early = input(&j, &stories, &awards);
+    early.today = "2026-11-08";
+    let md = export::markdown(&early);
+    assert!(!md.contains("November 8, 2026"), "{md}");
+    assert!(md.contains("November 1, 2026"));
+}
+
+#[test]
+fn stamps_are_named_in_the_export_language() {
+    let j = journal();
+    let awards = milestones::compute(&j);
+    let mut french = input(&j, &[], &awards);
+    french.language = "fr";
+    let md = export::markdown(&french);
+    assert!(md.contains("J'ai gardé la botte"), "{md}");
+    assert!(!md.contains("Kept the Boot"));
 }
 
 #[test]

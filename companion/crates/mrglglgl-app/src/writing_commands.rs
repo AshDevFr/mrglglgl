@@ -961,6 +961,7 @@ pub fn export_character(
                 stories: &stories,
                 awards: &awards,
                 language: &language,
+                today: &writing::today(),
             };
             ("md", export::markdown(&input))
         }
