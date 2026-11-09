@@ -700,7 +700,9 @@
     "debug": "Fichier de débogage",
     "debugSaved": "Fichier de débogage enregistré : {{path}}",
     "debugFailed": "Le fichier de débogage n'a pas pu être écrit : {{message}}",
-    "debugFailedNext": "Choisis un dossier hors du dossier du jeu, où tu peux écrire, puis réessaie."
+    "debugFailedNext": "Choisis un dossier hors du dossier du jeu, où tu peux écrire, puis réessaie.",
+    "showInFolder": "Afficher dans le dossier",
+    "noJournal": "ce personnage n'a pas encore de journal"
   },
   "errors": {
     "load": "L'application n'a pas pu lire ses données : {{message}}",
@@ -896,7 +898,10 @@
     "buildNow": "Construire maintenant",
     "built": "Construit le {{when}} : {{written}} fichiers écrits, {{unchanged}} inchangés, {{removed}} supprimés.",
     "buildFailed": "Le site web n'a pas été construit : {{message}}",
-    "buildFailedNext": "Vérifie le dossier du site et le dossier de thème, puis construis à nouveau. Une erreur de modèle nomme son fichier et sa ligne."
+    "buildFailedNext": "Vérifie le dossier du site et le dossier de thème, puis construis à nouveau. Une erreur de modèle nomme son fichier et sa ligne.",
+    "cannotBuild": "Choisis un dossier et au moins un personnage : d'ici là, rien n'est construit.",
+    "open": "Ouvrir dans le navigateur",
+    "showFolder": "Afficher le dossier"
   },
   "addon": {
     "title": "L'addon",

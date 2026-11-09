@@ -11,6 +11,7 @@ const commands = vi.hoisted(() => ({
   ),
   defaultExportFolder: vi.fn(async () => "/Users/wren/Documents"),
   exportCharacter: vi.fn(),
+  showInFolder: vi.fn(async () => {}),
   exportDebug: vi.fn(
     async () => "/Users/wren/Documents/Wren-2026-11-08-day-debug.json",
   ),
@@ -117,6 +118,10 @@ describe("sharing", () => {
       "/Users/wren/Documents",
       "markdown",
       null,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Show in folder" }));
+    expect(commands.showInFolder).toHaveBeenCalledWith(
+      "/Users/wren/Documents/Wren-Hollowbrook-journal.md",
     );
   });
 

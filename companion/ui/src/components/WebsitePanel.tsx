@@ -15,7 +15,9 @@ import { useTranslation } from "react-i18next";
 import {
   copySiteTheme,
   listCharacters,
+  openSite,
   saveSiteSettings,
+  showSiteFolder,
 } from "@/api/commands";
 import type { SiteSettings } from "@/bindings/SiteSettings";
 import { problem } from "@/i18n/problems";
@@ -100,6 +102,9 @@ export function WebsitePanel({ site }: { site: SiteSettings }) {
         checked={draft.enabled}
         onChange={(e) => set({ enabled: e.currentTarget.checked })}
       />
+      {draft.enabled && !canBuild(draft) && (
+        <Alert color="yellow">{t("site.cannotBuild")}</Alert>
+      )}
       <FolderField
         label={t("site.folder")}
         description={t("site.folderHelp")}
@@ -179,14 +184,28 @@ export function WebsitePanel({ site }: { site: SiteSettings }) {
         {saved && <Text size="sm">{t("site.saved")}</Text>}
       </Group>
       {last?.report && (
-        <Text size="sm" role="status">
-          {t("site.built", {
-            when: formatTime(Math.floor(last.at / 1000), i18n.language),
-            written: last.report.written,
-            unchanged: last.report.unchanged,
-            removed: last.report.removed,
-          })}
-        </Text>
+        <Stack gap="xs">
+          <Text size="sm" role="status">
+            {t("site.built", {
+              when: formatTime(Math.floor(last.at / 1000), i18n.language),
+              written: last.report.written,
+              unchanged: last.report.unchanged,
+              removed: last.report.removed,
+            })}
+          </Text>
+          <Group gap="xs">
+            <Button size="xs" variant="light" onClick={() => void openSite()}>
+              {t("site.open")}
+            </Button>
+            <Button
+              size="xs"
+              variant="default"
+              onClick={() => void showSiteFolder()}
+            >
+              {t("site.showFolder")}
+            </Button>
+          </Group>
+        </Stack>
       )}
       {last?.error && (
         <Alert color="red">

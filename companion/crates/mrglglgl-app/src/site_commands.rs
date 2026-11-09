@@ -108,3 +108,53 @@ pub fn copy_site_theme(folder: String) -> Result<Vec<String>, String> {
     }
     site::copy_default_theme(&folder).map_err(|e| e.to_string())
 }
+
+/// The built website's front page, from the folder in Settings, once a build wrote it.
+fn site_index(state: &AppState) -> Result<PathBuf, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let folder = db
+        .settings()
+        .map_err(|e| e.to_string())?
+        .site
+        .folder
+        .ok_or("no folder is chosen for the website")?;
+    let index = folder.join("index.html");
+    if index.is_file() {
+        Ok(index)
+    } else {
+        Err("the website has not been built yet".to_string())
+    }
+}
+
+/// Shows the built website in the system's file manager.
+#[tauri::command]
+pub fn show_site_folder(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener()
+        .reveal_item_in_dir(site_index(&state)?)
+        .map_err(|e| e.to_string())
+}
+
+/// Opens the built website's front page in the browser.
+#[tauri::command]
+pub fn open_site(app: AppHandle, state: State<'_, AppState>) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    let index = site_index(&state)?;
+    app.opener()
+        .open_path(index.to_string_lossy(), None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
+/// Shows a file the app wrote, an export or a debug file, in the system's file manager. It is
+/// only shown, never opened.
+#[tauri::command]
+pub fn show_in_folder(app: AppHandle, path: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    let path = PathBuf::from(path);
+    if !path.is_file() {
+        return Err(format!("{} is not there any more", path.display()));
+    }
+    app.opener()
+        .reveal_item_in_dir(path)
+        .map_err(|e| e.to_string())
+}

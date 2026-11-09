@@ -33,7 +33,15 @@ const api = vi.hoisted(() => ({
     },
   ]),
 }));
-vi.mock("@/api/commands", () => api);
+vi.mock("@/api/commands", () => ({
+  ...api,
+  openSite: site.openSite,
+  showSiteFolder: site.showSiteFolder,
+}));
+const site = vi.hoisted(() => ({
+  openSite: vi.fn(async () => {}),
+  showSiteFolder: vi.fn(async () => {}),
+}));
 const build = vi.hoisted(() => ({
   rebuildSite: vi.fn(async () => ({
     at: 0,
@@ -84,6 +92,32 @@ describe("WebsitePanel", () => {
       await screen.findByText(/3 files written, 2 unchanged, 1 removed/),
     ).toBeInTheDocument();
     expect(api.saveSiteSettings).toHaveBeenCalled();
+  });
+
+  it("says why an enabled site is not built yet", () => {
+    renderWithProviders(
+      <WebsitePanel site={{ ...defaultSite, enabled: true }} />,
+    );
+    expect(
+      screen.getByText(
+        /Choose a folder and at least one character: until then nothing is built/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the built site in the browser, or shows its folder", async () => {
+    renderWithProviders(
+      <WebsitePanel
+        site={{ ...defaultSite, folder: "/sites/wren", characters: [1] }}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Build now" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Open in the browser" }),
+    );
+    expect(site.openSite).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Show the folder" }));
+    expect(site.showSiteFolder).toHaveBeenCalled();
   });
 
   it("copies the default theme into the theme folder", async () => {

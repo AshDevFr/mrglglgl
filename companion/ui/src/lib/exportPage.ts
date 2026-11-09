@@ -84,7 +84,7 @@ export async function loadExportData(
     characterMilestonesShared(characterId),
     characterScreenshots(characterId),
   ]);
-  if (!journal) throw new Error("this character has no journal yet");
+  if (!journal) throw new Error(i18n.t("share.noJournal"));
   const summary = characters.find((c) => c.character.id === characterId);
   const photos: Record<string, ExportPhoto[]> = {};
   for (const [day, list] of Object.entries(shots)) {

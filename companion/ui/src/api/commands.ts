@@ -309,6 +309,21 @@ export function importNarratorFile(path: string): Promise<NarratorSaved> {
 }
 
 /** Writes the narrator as one file into a folder; answers the file's path. */
+/** Shows a file the app wrote in the system's file manager. */
+export function showInFolder(path: string): Promise<void> {
+  return invoke<void>("show_in_folder", { path });
+}
+
+/** Opens the built website's front page in the browser. */
+export function openSite(): Promise<void> {
+  return invoke<void>("open_site");
+}
+
+/** Shows the built website in the system's file manager. */
+export function showSiteFolder(): Promise<void> {
+  return invoke<void>("show_site_folder");
+}
+
 /** Writes a day or week's debug file into `folder`; returns the file's path. */
 export function exportDebug(
   characterId: number,

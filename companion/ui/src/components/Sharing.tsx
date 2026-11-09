@@ -2,7 +2,12 @@ import { Alert, Button, Group, Modal, Radio, Stack, Text } from "@mantine/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { copyEntryText, exportCharacter, exportDebug } from "@/api/commands";
+import {
+  copyEntryText,
+  exportCharacter,
+  exportDebug,
+  showInFolder,
+} from "@/api/commands";
 import type { Story } from "@/bindings/Story";
 import { problem } from "@/i18n/problems";
 import { exportFolder, rememberExportFolder } from "@/lib/exportFolder";
@@ -80,9 +85,19 @@ export function DebugExportButton({ story }: { story: Story }) {
         {t("share.debug")}
       </Button>
       {saved && (
-        <Text size="xs" c="dimmed" role="status">
-          {t("share.debugSaved", { path: saved })}
-        </Text>
+        <Group gap={4}>
+          <Text size="xs" c="dimmed" role="status">
+            {t("share.debugSaved", { path: saved })}
+          </Text>
+          <Button
+            size="compact-xs"
+            variant="subtle"
+            color="gray"
+            onClick={() => void showInFolder(saved)}
+          >
+            {t("share.showInFolder")}
+          </Button>
+        </Group>
       )}
       {failed && (
         <Text size="xs" c="red" role="status">
@@ -184,7 +199,20 @@ export function ExportDialog({
           </Alert>
         )}
         {done && (
-          <Alert color="green">{t("share.exported", { path: done })}</Alert>
+          <Alert color="green">
+            <Stack gap="xs">
+              <Text size="sm">{t("share.exported", { path: done })}</Text>
+              <Button
+                size="xs"
+                variant="light"
+                color="green"
+                w="fit-content"
+                onClick={() => void showInFolder(done)}
+              >
+                {t("share.showInFolder")}
+              </Button>
+            </Stack>
+          </Alert>
         )}
         <Group justify="flex-end">
           <Button variant="default" onClick={onClose}>

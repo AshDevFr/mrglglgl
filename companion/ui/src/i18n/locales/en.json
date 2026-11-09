@@ -700,7 +700,9 @@
     "debug": "Debug file",
     "debugSaved": "Debug file saved: {{path}}",
     "debugFailed": "The debug file could not be written: {{message}}",
-    "debugFailedNext": "Choose a folder outside the game's folder that you can write to, then try again."
+    "debugFailedNext": "Choose a folder outside the game's folder that you can write to, then try again.",
+    "showInFolder": "Show in folder",
+    "noJournal": "this character has no journal yet"
   },
   "errors": {
     "load": "The app could not read its data: {{message}}",
@@ -896,7 +898,10 @@
     "buildNow": "Build now",
     "built": "Built {{when}}: {{written}} files written, {{unchanged}} unchanged, {{removed}} removed.",
     "buildFailed": "The website was not built: {{message}}",
-    "buildFailedNext": "Check the site folder and the theme folder, then build again. A template error names its file and line."
+    "buildFailedNext": "Check the site folder and the theme folder, then build again. A template error names its file and line.",
+    "cannotBuild": "Choose a folder and at least one character: until then nothing is built.",
+    "open": "Open in the browser",
+    "showFolder": "Show the folder"
   },
   "addon": {
     "title": "The addon",
