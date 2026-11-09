@@ -9,6 +9,7 @@ import {
   characterScreenshots,
   characterStories,
   editStory,
+  getSettings,
   listCharacters,
   listNarrators,
   retryWriting,
@@ -80,6 +81,9 @@ export function CharacterPage({
     queryKey: ["review", characterId],
     queryFn: () => reviewList(characterId),
   });
+  const settings = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  // Weekly chapters off: a week shows its chapter only if one was written before.
+  const weekly = settings.data?.settings.writing.weekly ?? true;
   const live = useWriting(characterId);
   const refreshStatus = () =>
     queryClient.invalidateQueries({ queryKey: ["writing", characterId] });
@@ -171,12 +175,14 @@ export function CharacterPage({
           today={today}
           onSelect={show}
         />
-        {journal.data && (
-          <WeekChapter
-            monday={monday}
-            {...writingFor("week", monday, sunday)}
-          />
-        )}
+        {journal.data &&
+          (weekly ||
+            versionsOf(stories.data ?? [], "week", monday).length > 0) && (
+            <WeekChapter
+              monday={monday}
+              {...writingFor("week", monday, sunday)}
+            />
+          )}
         {review.data?.some(
           (i) =>
             i.kind === "day" && i.startDay === selected && i.drafts.length > 0,

@@ -1069,3 +1069,36 @@ fn story_of(id: i64, kind: StoryKind, start: &str) -> NewStory {
         ..story(id, start, StoryStatus::Accepted, false)
     }
 }
+
+#[test]
+fn with_weekly_chapters_off_no_week_is_queued_or_listed_and_waiting_ones_are_dropped() {
+    let (db, id) = setup();
+    let db = db.lock().unwrap();
+    // A week queued while chapters were on.
+    queue::enqueue_finished(&db, id, &journal(), "2026-11-09").unwrap();
+    assert!(
+        queue::jobs(&db, id)
+            .unwrap()
+            .iter()
+            .any(|j| j.kind == StoryKind::Week)
+    );
+
+    let mut settings = db.settings().unwrap();
+    settings.writing.weekly = false;
+    db.save_settings(&settings).unwrap();
+    assert_eq!(queue::drop_weeks(&db).unwrap(), 1);
+    assert!(
+        queue::jobs(&db, id)
+            .unwrap()
+            .iter()
+            .all(|j| j.kind == StoryKind::Day),
+        "the waiting chapter is dropped, its days stay"
+    );
+    assert_eq!(
+        queue::enqueue_finished(&db, id, &journal(), "2026-11-10").unwrap(),
+        0,
+        "no chapter is queued again"
+    );
+    let review = mrglglgl_core::review::items(&db, id, &journal(), "2026-11-10").unwrap();
+    assert!(review.iter().all(|i| i.kind == StoryKind::Day));
+}

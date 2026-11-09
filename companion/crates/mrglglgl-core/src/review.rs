@@ -39,7 +39,9 @@ pub fn items(
     let all = stories::all(db, character_id)?;
     let jobs = queue::jobs(db, character_id)?;
     let mut items = Vec::new();
-    for (kind, start_day) in queue::finished_slots(journal, today) {
+    // Weeks off: a chapter is listed only for a draft still waiting from before.
+    let weekly = db.settings()?.writing.weekly;
+    for (kind, start_day) in queue::finished_slots(journal, today, true) {
         let here: Vec<&Story> = all
             .iter()
             .filter(|s| s.kind == kind && s.start_day == start_day)
@@ -55,6 +57,9 @@ pub fn items(
             .iter()
             .any(|s| s.status == StoryStatus::Accepted && !s.partial);
         if has_entry && drafts.is_empty() {
+            continue;
+        }
+        if kind == StoryKind::Week && !weekly && drafts.is_empty() {
             continue;
         }
         let end_day = match kind {

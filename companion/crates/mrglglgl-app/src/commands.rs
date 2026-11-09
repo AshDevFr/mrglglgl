@@ -256,6 +256,9 @@ pub fn save_settings(
     {
         let db = state.db.lock().map_err(|e| e.to_string())?;
         db.save_settings(&settings).map_err(|e| e.to_string())?;
+        if !settings.writing.weekly {
+            mrglglgl_core::queue::drop_weeks(&db).map_err(|e| e.to_string())?;
+        }
     }
     tracing::info!("settings saved");
     tracing::debug!("settings: {settings:?}");

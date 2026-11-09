@@ -42,6 +42,11 @@ review: boolean,
  */
 copyFooter: boolean, 
 /**
+ * Each finished week is also told as one chapter, from its days' entries. On by default;
+ * off, no chapter is queued or listed, and chapters already written stay.
+ */
+weekly: boolean, 
+/**
  * How the player likes the prose written, sent with every entry and chapter ("no em
  * dashes", "British spelling"). Style only: never taken as a fact of the day.
  */

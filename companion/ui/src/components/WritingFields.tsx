@@ -71,6 +71,12 @@ export function WritingFields({ value, onChange, narrators }: Props) {
         maxRows={12}
       />
       <Switch
+        label={t("settings.weekly")}
+        description={t("settings.weeklyHelp")}
+        checked={value.weekly}
+        onChange={(e) => set({ weekly: e.currentTarget.checked })}
+      />
+      <Switch
         label={t("settings.review")}
         description={t("settings.reviewHelp")}
         checked={value.review}

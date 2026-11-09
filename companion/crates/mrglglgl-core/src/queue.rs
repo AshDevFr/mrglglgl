@@ -151,7 +151,8 @@ fn add(
 
 /// Every finished day of the journal and every finished week with days in it, oldest first,
 /// each week after its own days. `today` is never finished, nor is its week.
-pub fn finished_slots(journal: &Journal, today: &str) -> Vec<(StoryKind, String)> {
+/// The finished days, and the finished weeks when `weekly` chapters are on.
+pub fn finished_slots(journal: &Journal, today: &str, weekly: bool) -> Vec<(StoryKind, String)> {
     let mut slots = Vec::new();
     let mut weeks = BTreeMap::new();
     for day in journal.days.keys().filter(|d| d.as_str() < today) {
@@ -160,7 +161,7 @@ pub fn finished_slots(journal: &Journal, today: &str) -> Vec<(StoryKind, String)
             weeks.insert(monday, ());
         }
     }
-    for monday in weeks.into_keys() {
+    for monday in weeks.into_keys().filter(|_| weekly) {
         let sunday = prompt::week_days(&monday).pop().unwrap_or_default();
         if sunday.as_str() < today {
             slots.push((StoryKind::Week, monday));
@@ -179,9 +180,10 @@ pub fn enqueue_finished(
     today: &str,
 ) -> Result<usize, DbError> {
     let written = stories::slots(db, character_id)?;
-    let draft = db.settings()?.writing.review;
+    let writing = db.settings()?.writing;
+    let draft = writing.review;
     let mut added = 0;
-    for (kind, start_day) in finished_slots(journal, today) {
+    for (kind, start_day) in finished_slots(journal, today, writing.weekly) {
         if !written.contains(&(kind, start_day.clone()))
             && add(db, character_id, kind, &start_day, draft)?
         {
@@ -251,6 +253,19 @@ pub fn request(
         ],
     )?;
     Ok(())
+}
+
+/// Drops every week waiting or failed in the queue, for every character, once weekly chapters
+/// are turned off; one being written finishes. Returns how many were dropped.
+pub fn drop_weeks(db: &Database) -> Result<usize, DbError> {
+    let dropped = db.conn().execute(
+        "DELETE FROM write_queue WHERE kind = 'week' AND state != 'running'",
+        [],
+    )?;
+    if dropped > 0 {
+        tracing::info!("weekly chapters off: {dropped} waiting chapters dropped");
+    }
+    Ok(dropped)
 }
 
 /// Puts a failed job back in line, for a retry by hand.
@@ -337,7 +352,7 @@ fn retell_week(db: &Database, character_id: i64, day: &str) -> Result<(), DbErro
     let told = stories::versions(db, character_id, StoryKind::Week, &monday)?
         .iter()
         .any(|s| s.status != StoryStatus::Discarded);
-    if told {
+    if told && db.settings()?.writing.weekly {
         tracing::info!("character {character_id}: week of {monday} told again with {day}'s entry");
         let draft = db.settings()?.writing.review;
         add(db, character_id, StoryKind::Week, &monday, draft)?;
