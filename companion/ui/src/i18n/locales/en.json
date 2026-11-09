@@ -485,6 +485,7 @@
     "writeWhilePlayingHelp": "Off by default: writing uses the processor, and the game may stutter. When off, writing waits until you close the game.",
     "copyFooter": "Add \"via Mrglglgl\" when copying an entry",
     "paused": "Pause background writing",
+    "pausedHelp": "For every character, applied at once. Activity, in the sidebar, has the same switch.",
     "providerTitle": "Who writes",
     "provider": {
       "local": "This computer (a writing model downloaded once)",
@@ -579,7 +580,7 @@
       "noModel": "No writing model is downloaded yet.",
       "noEndpoint": "The endpoint is not set up yet.",
       "gameRunning": "Writing waits while the game is running, so the game keeps running smoothly.",
-      "pausedNext": "Press Resume writing at the top of this page.",
+      "pausedNext": "Press Resume writing in Activity, in the sidebar.",
       "noModelNext": "Download one in Settings, under Writing models.",
       "noEndpointNext": "Enter its address and model in Settings, under Who writes.",
       "gameRunningNext": "Close the game, or allow writing while playing in Settings.",

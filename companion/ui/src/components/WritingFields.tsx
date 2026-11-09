@@ -1,5 +1,7 @@
 import { Select, Stack, Switch, Textarea, Title } from "@mantine/core";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { setWritingPaused } from "@/api/commands";
 import type { Meddling } from "@/bindings/Meddling";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { WritingSettings } from "@/bindings/WritingSettings";
@@ -16,6 +18,7 @@ interface Props {
 /** How entries are written: narrator, margin notes, language, and when. */
 export function WritingFields({ value, onChange, narrators }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const set = (patch: Partial<WritingSettings>) =>
     onChange({ ...value, ...patch });
   return (
@@ -87,8 +90,20 @@ export function WritingFields({ value, onChange, narrators }: Props) {
       />
       <Switch
         label={t("settings.paused")}
+        description={t("settings.pausedHelp")}
         checked={value.paused}
-        onChange={(e) => set({ paused: e.currentTarget.checked })}
+        onChange={(e) => {
+          // Applied at once, as Pause in Activity is; the form follows so Save keeps it.
+          const paused = e.currentTarget.checked;
+          set({ paused });
+          void setWritingPaused(paused).then(() =>
+            Promise.all(
+              [["activity"], ["writing"]].map((queryKey) =>
+                queryClient.invalidateQueries({ queryKey }),
+              ),
+            ),
+          );
+        }}
       />
       <Switch
         label={t("settings.copyFooter")}

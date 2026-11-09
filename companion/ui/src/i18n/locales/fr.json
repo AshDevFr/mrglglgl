@@ -485,6 +485,7 @@
     "writeWhilePlayingHelp": "Désactivé par défaut : l'écriture utilise le processeur, et le jeu peut saccader. Désactivé, l'écriture attend que tu fermes le jeu.",
     "copyFooter": "Ajouter « via Mrglglgl » en copiant une entrée",
     "paused": "Mettre l'écriture en arrière-plan en pause",
+    "pausedHelp": "Pour tous les personnages, appliqué tout de suite. Activité, dans la barre latérale, a le même interrupteur.",
     "providerTitle": "Qui écrit",
     "provider": {
       "local": "Cet ordinateur (un modèle d'écriture téléchargé une seule fois)",
@@ -579,7 +580,7 @@
       "noModel": "Aucun modèle d'écriture n'est encore téléchargé.",
       "noEndpoint": "Le point d'accès n'est pas encore configuré.",
       "gameRunning": "L'écriture attend pendant que le jeu tourne, pour que le jeu reste fluide.",
-      "pausedNext": "Appuie sur Reprendre l'écriture en haut de cette page.",
+      "pausedNext": "Appuie sur Reprendre l'écriture dans Activité, dans la barre latérale.",
       "noModelNext": "Télécharges-en un dans les réglages, sous Modèles d'écriture.",
       "noEndpointNext": "Entre son adresse et son modèle dans les réglages, sous Qui écrit.",
       "gameRunningNext": "Ferme le jeu, ou autorise l'écriture pendant que tu joues dans les réglages.",
