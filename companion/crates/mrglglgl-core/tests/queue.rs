@@ -985,3 +985,87 @@ fn a_character_writes_with_its_own_narrator_margin_notes_and_added_preferences()
         .expect("the character's own");
     assert!(general < added);
 }
+
+#[test]
+fn a_week_waits_for_its_days_still_in_line() {
+    let (db, id) = setup();
+    let db = db.into_inner().unwrap();
+    // DAYS[0] is the week's Monday.
+    queue::request(&db, id, StoryKind::Week, DAYS[0], &Ask::default()).unwrap();
+    queue::request(&db, id, StoryKind::Day, DAYS[1], &Ask::default()).unwrap();
+    let now = 1_800_000_000;
+
+    // The day fails once and waits for its retry: the week does not go ahead of it.
+    let day = queue::take_next(&db, now).unwrap().unwrap();
+    assert_eq!(day.kind, StoryKind::Day);
+    queue::fail(&db, &day, "the model stopped", now).unwrap();
+    assert!(
+        queue::take_next(&db, now).unwrap().is_none(),
+        "the week waits"
+    );
+    // And the writer sleeps until the day is due, not in a loop on the waiting week.
+    assert_eq!(
+        queue::next_due_in(&db, now).unwrap(),
+        Some(queue::FIRST_BACKOFF_SECS)
+    );
+
+    // A day that gave up for good no longer holds the week back.
+    let mut later = now;
+    for _ in 1..MAX_ATTEMPTS {
+        later += 10_000;
+        let again = queue::take_next(&db, later).unwrap().unwrap();
+        assert_eq!(again.kind, StoryKind::Day);
+        queue::fail(&db, &again, "the model stopped", later).unwrap();
+    }
+    let week = queue::take_next(&db, later).unwrap().unwrap();
+    assert_eq!(week.kind, StoryKind::Week);
+}
+
+#[tokio::test]
+async fn a_week_written_before_a_day_is_written_again_once_the_day_is() {
+    let (db, id) = setup();
+    {
+        let db = db.lock().unwrap();
+        // The week's chapter was written while this day had no entry.
+        stories::save(&db, &story_of(id, StoryKind::Week, DAYS[0])).unwrap();
+        queue::request(&db, id, StoryKind::Day, DAYS[1], &Ask::default()).unwrap();
+    }
+    let provider = FakeProvider::new([ENTRY]);
+    let control = Control::new(false);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &control, "en", &on_event)
+        .await
+        .unwrap();
+    let db = db.lock().unwrap();
+    let jobs = queue::jobs(&db, id).unwrap();
+    assert!(
+        jobs.iter()
+            .any(|j| j.kind == StoryKind::Week && j.start_day == DAYS[0]),
+        "the chapter is written again, now with the day's entry: {jobs:?}"
+    );
+}
+
+#[tokio::test]
+async fn a_new_version_of_a_day_the_chapter_already_told_leaves_the_week_alone() {
+    let (db, id) = setup();
+    {
+        let db = db.lock().unwrap();
+        stories::save(&db, &story_of(id, StoryKind::Day, DAYS[1])).unwrap();
+        stories::save(&db, &story_of(id, StoryKind::Week, DAYS[0])).unwrap();
+        queue::request(&db, id, StoryKind::Day, DAYS[1], &Ask::default()).unwrap();
+    }
+    let provider = FakeProvider::new([ENTRY]);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &Control::new(false), "en", &on_event)
+        .await
+        .unwrap();
+    let db = db.lock().unwrap();
+    assert!(queue::jobs(&db, id).unwrap().is_empty());
+}
+
+fn story_of(id: i64, kind: StoryKind, start: &str) -> NewStory {
+    NewStory {
+        kind,
+        ..story(id, start, StoryStatus::Accepted, false)
+    }
+}

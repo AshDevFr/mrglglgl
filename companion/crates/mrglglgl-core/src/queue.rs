@@ -103,6 +103,14 @@ fn now() -> i64 {
 }
 
 /// The order jobs run in: asked-for first, then oldest first, a week after its own Sunday.
+/// A pending week whose own days are still in line, waiting for a retry included: its chapter is
+/// told from their entries, so it waits for them. A day that gave up for good holds it no longer.
+const WEEK_WAITS: &str = "(kind = 'week' AND EXISTS (
+    SELECT 1 FROM write_queue AS day
+    WHERE day.character_id = write_queue.character_id AND day.kind = 'day'
+      AND day.state IN ('pending', 'running')
+      AND day.start_day BETWEEN write_queue.start_day AND date(write_queue.start_day, '+6 days')))";
+
 const ORDER: &str = "priority DESC,
     CASE kind WHEN 'week' THEN date(start_day, '+6 days') ELSE start_day END,
     kind";
@@ -259,7 +267,7 @@ pub fn take_next(db: &Database, now: i64) -> Result<Option<Job>, DbError> {
         .query_row(
             &format!(
                 "SELECT {JOB_COLUMNS} FROM write_queue
-                 WHERE state = 'pending' AND not_before <= ?1
+                 WHERE state = 'pending' AND not_before <= ?1 AND NOT {WEEK_WAITS}
                  ORDER BY {ORDER} LIMIT 1"
             ),
             [now],
@@ -280,7 +288,10 @@ pub fn next_due_in(db: &Database, now: i64) -> Result<Option<i64>, DbError> {
     Ok(db
         .conn()
         .query_row(
-            "SELECT min(not_before) FROM write_queue WHERE state = 'pending'",
+            &format!(
+                "SELECT min(not_before) FROM write_queue
+                 WHERE state = 'pending' AND NOT {WEEK_WAITS}"
+            ),
             [],
             |row| row.get::<_, Option<i64>>(0),
         )?
@@ -293,6 +304,22 @@ fn set_state(db: &Database, job: &Job, state: JobState) -> Result<(), DbError> {
          WHERE character_id = ?1 AND kind = ?2 AND start_day = ?3",
         params![job.character_id, job.kind.key(), job.start_day, state.key()],
     )?;
+    Ok(())
+}
+
+/// Puts back in line the chapter of the week holding `day`, when one was told: it was written
+/// without that day's entry, from its notes alone, and is told again with it.
+fn retell_week(db: &Database, character_id: i64, day: &str) -> Result<(), DbError> {
+    let Some(monday) = prompt::week_start(day) else {
+        return Ok(());
+    };
+    let told = stories::versions(db, character_id, StoryKind::Week, &monday)?
+        .iter()
+        .any(|s| s.status != StoryStatus::Discarded);
+    if told {
+        let draft = db.settings()?.writing.review;
+        add(db, character_id, StoryKind::Week, &monday, draft)?;
+    }
     Ok(())
 }
 
@@ -748,6 +775,18 @@ pub async fn run_next(
             check,
             reason,
         }) => {
+            let status = if job.draft && !job.partial {
+                StoryStatus::Draft
+            } else {
+                StoryStatus::Accepted
+            };
+            // The day's first entry in the journal, after its week's chapter was told without it.
+            let first_entry = kind == StoryKind::Day
+                && !job.partial
+                && status == StoryStatus::Accepted
+                && !stories::versions(&db, character_id, kind, &start_day)?
+                    .iter()
+                    .any(|s| s.status == StoryStatus::Accepted && !s.partial);
             stories::save(
                 &db,
                 &NewStory {
@@ -764,11 +803,7 @@ pub async fn run_next(
                     check,
                     check_reason: reason.clone(),
                     // A day told so far is asked for to be read now, so it is never a draft.
-                    status: if job.draft && !job.partial {
-                        StoryStatus::Draft
-                    } else {
-                        StoryStatus::Accepted
-                    },
+                    status,
                     note: job.note.clone(),
                     partial: job.partial,
                 },
@@ -781,6 +816,9 @@ pub async fn run_next(
             );
             continuity::refresh(&db, character_id, &prepared.journal, &awards, None)?;
             complete(&db, &job)?;
+            if first_entry {
+                retell_week(&db, character_id, &start_day)?;
+            }
             match reason {
                 Some(r) => ("setAside", Some(r)),
                 None => ("written", None),

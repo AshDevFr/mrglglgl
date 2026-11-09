@@ -18,6 +18,11 @@ running, because writing uses the processor and the game may stutter. In **Setti
 **Writing**, turn on **Write while the game is running** to change that, or
 **Pause background writing** to stop it.
 
+A week's chapter is told from its days' entries, so it waits until each of its days is written,
+or has given up after three tries. A day whose first entry arrives after its week's chapter was
+told puts the chapter back in line, to be told again with that day in it; the earlier version stays
+among the chapter's versions.
+
 On a day still going, **Write what happened so far** writes it up to now; the full entry is written
 once the day is over.
 
