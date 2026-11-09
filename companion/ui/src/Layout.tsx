@@ -14,6 +14,7 @@ import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  appInfo,
   listCharacters,
   onJournalUpdated,
   onScreenshotsUpdated,
@@ -37,6 +38,7 @@ export function Layout() {
     queryKey: ["characters"],
     queryFn: listCharacters,
   });
+  const info = useQuery({ queryKey: ["appInfo"], queryFn: appInfo });
 
   // ⌘/Ctrl with +, − and 0 size the interface, as in a browser.
   useEffect(() => {
@@ -141,6 +143,11 @@ export function Layout() {
             label={t("nav.settings")}
             onClick={() => navigate({ to: "/settings" })}
           />
+          {info.data && (
+            <Text size="xs" c="dimmed" px="sm" pb={4}>
+              {t("app.version", { version: info.data.version })}
+            </Text>
+          )}
         </AppShell.Section>
       </AppShell.Navbar>
       <AppShell.Main h="100vh" id="journal" tabIndex={-1}>
