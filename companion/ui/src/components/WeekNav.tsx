@@ -30,6 +30,10 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
   const weekday = new Intl.DateTimeFormat(i18n.language, { weekday: "short" });
   // Nothing is written ahead of today: the week holding it is as far as there is to go.
   const inThisWeek = weekStart(selected) >= weekStart(today);
+  // Before the first written day there is nothing to read.
+  const first = [...written].sort()[0];
+  const atFirstWeek =
+    first !== undefined && weekStart(selected) <= weekStart(first);
 
   // Arrow keys step through the days that can be opened; Home and End jump to the ends.
   function onDayKey(e: KeyboardEvent<HTMLButtonElement>) {
@@ -63,6 +67,7 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
         <Button
           variant="subtle"
           color="gray"
+          disabled={atFirstWeek}
           onClick={() => onSelect(shiftWeek(selected, -1, written))}
         >
           {t("week.previous")}
@@ -77,7 +82,11 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
           >
             {t("week.next")}
           </Button>
-          <Button variant="light" onClick={() => onSelect(today)}>
+          <Button
+            variant="light"
+            disabled={selected === today}
+            onClick={() => onSelect(today)}
+          >
             {t("week.today")}
           </Button>
         </Group>

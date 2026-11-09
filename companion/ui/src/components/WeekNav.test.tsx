@@ -89,6 +89,18 @@ describe("WeekNav", () => {
     ).not.toBeDisabled();
   });
 
+  it("goes no further back than the first written week, and not to today from today", () => {
+    // The fixture's first day is Sunday November 1.
+    renderNav("2026-11-01", "2026-11-12");
+    expect(
+      screen.getByRole("button", { name: "Previous week" }),
+    ).toBeDisabled();
+    renderNav("2026-11-12", "2026-11-12");
+    expect(
+      screen.getAllByRole("button", { name: "Today" }).at(-1),
+    ).toBeDisabled();
+  });
+
   it("jumps to today and marks it", () => {
     const onSelect = renderNav("2026-11-10", "2026-11-12");
     const today = screen.getByRole("button", {
