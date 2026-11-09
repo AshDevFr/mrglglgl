@@ -1,4 +1,4 @@
-import { Stack, Text, Tooltip } from "@mantine/core";
+import { Stack, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import type { Award } from "@/bindings/Award";
@@ -47,10 +47,8 @@ export function InkStamp({ award, size = 72, tilt = -6, zoom = true }: Props) {
       }
     >
       {/* The tooltip needs an element that takes a ref; the stamp is an SVG. */}
-      {/* Focusable, so the tooltip opens from the keyboard as well as on hover. */}
-      <span style={{ display: "inline-flex" }} tabIndex={0}>
-        {mark}
-      </span>
+      {/* A button, so the tooltip opens from the keyboard as well as on hover. */}
+      <UnstyledButton style={{ display: "inline-flex" }}>{mark}</UnstyledButton>
     </Tooltip>
   );
 }

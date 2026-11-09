@@ -34,7 +34,7 @@ describe("InkStamp", () => {
     renderWithProviders(<InkStamp award={boot} />);
     const stamp = screen.getByRole("img", { name: /^Kept the Boot:/ });
     const target = stamp.parentElement as HTMLElement;
-    expect(target).toHaveAttribute("tabindex", "0");
+    expect(target.tagName).toBe("BUTTON");
     fireEvent.focus(target);
     expect(await screen.findByRole("tooltip")).toBeInTheDocument();
   });
