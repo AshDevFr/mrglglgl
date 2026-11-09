@@ -25,8 +25,10 @@ use crate::{GenerateOutcome, GenerateRequest, Provider, ProviderError};
 
 /// The model is dropped after this long without a request.
 pub const IDLE_UNLOAD: Duration = Duration::from_secs(120);
-/// The largest context the provider opens; prompts are well under it.
-const MAX_CONTEXT: u32 = 8192;
+/// The largest context the provider opens, or the model's own if smaller. Each request opens
+/// only what its prompt and answer need, so the memory of a long context is spent only on a
+/// journal heavy enough to need it; ordinary prompts take a few thousand tokens.
+const MAX_CONTEXT: u32 = 32_768;
 /// Prompt tokens evaluated between cancellation checks.
 const PROMPT_CHUNK: usize = 64;
 
@@ -183,6 +185,16 @@ fn load(backend: &LlamaBackend, path: &Path) -> Result<LlamaModel, ProviderError
         .map_err(|e| ProviderError::Unavailable(format!("could not load the model: {e}")))
 }
 
+/// The most context a request may open: [`MAX_CONTEXT`], or less when the model was trained on
+/// less. A model that does not say (0) gets the ceiling.
+fn context_limit(trained: u32) -> u32 {
+    if trained == 0 {
+        MAX_CONTEXT
+    } else {
+        trained.min(MAX_CONTEXT)
+    }
+}
+
 fn failed(e: impl std::fmt::Display) -> ProviderError {
     ProviderError::Failed(e.to_string())
 }
@@ -238,12 +250,17 @@ fn run(
         return Err(failed("the prompt is empty"));
     }
     let needed = tokens.len() as u32 + request.max_tokens + 16;
-    if needed > MAX_CONTEXT {
+    let most = context_limit(model.n_ctx_train());
+    if needed > most {
         return Err(failed(format!(
-            "the prompt ({} tokens) is too long for the model's context",
+            "the prompt ({} tokens) is too long for the model's context ({most} tokens)",
             tokens.len()
         )));
     }
+    tracing::debug!(
+        "prompt of {} tokens, opening a context of {needed}",
+        tokens.len()
+    );
     let threads = threads(options);
     let ctx_params = LlamaContextParams::default()
         .with_n_ctx(NonZeroU32::new(needed))
@@ -314,4 +331,16 @@ fn run(
         let _ = sink.blocking_send(String::from_utf8_lossy(&pending).into_owned());
     }
     Ok(GenerateOutcome::Completed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_context_is_the_ceiling_or_the_models_own_when_smaller() {
+        assert_eq!(context_limit(262_144), MAX_CONTEXT);
+        assert_eq!(context_limit(4_096), 4_096);
+        assert_eq!(context_limit(0), MAX_CONTEXT);
+    }
 }
