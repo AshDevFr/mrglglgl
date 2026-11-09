@@ -1,3 +1,4 @@
+import i18n from "i18next";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SiteSettings } from "@/bindings/SiteSettings";
 import type { Story } from "@/bindings/Story";
@@ -89,6 +90,16 @@ beforeEach(() => {
 const all = (value: unknown) => JSON.stringify(value);
 
 describe("site data", () => {
+  it("says who each character is in the site's language", async () => {
+    await i18n.changeLanguage("fr");
+    try {
+      const data = await buildSiteData(site, { today: "2026-11-10" });
+      expect(data.characters[0].summary).toBe("Tauren chasseur, niveau 5");
+    } finally {
+      await i18n.changeLanguage("en");
+    }
+  });
+
   it("tells finished weeks as posts, with entries, facts, stamps and captioned photos", async () => {
     const data = await buildSiteData(site, { today: "2026-11-10" });
     expect(data.title).toBe("Wren's travels");

@@ -13,6 +13,17 @@ export function displayName(character: StoredCharacter): string {
   return parts.length > 0 ? parts.join(" ") : character.characterFolder;
 }
 
+/** "Tauren Hunter": the race as the game names it and the class from its token ("HUNTER"),
+ * translated, or the token made readable when the app does not know it. */
+export function characterWho(t: TFunction, character: StoredCharacter): string {
+  const token = character.class?.toLowerCase().replace(/[^a-z]/g, "") ?? "";
+  const readable = token ? token[0].toUpperCase() + token.slice(1) : "";
+  const playedClass = token
+    ? t(`character.classes.${token}`, { defaultValue: readable })
+    : "";
+  return [character.race, playedClass].filter(Boolean).join(" ");
+}
+
 /** "Level 12 Tauren Hunter": the level when known, the race as the game names it, and the class
  * from its token ("HUNTER"), translated, or the token made readable when the app does not know
  * it. Empty when the journal has not said who the character is yet. */
@@ -21,12 +32,7 @@ export function characterLine(
   character: StoredCharacter,
   level: number | null,
 ): string {
-  const token = character.class?.toLowerCase().replace(/[^a-z]/g, "") ?? "";
-  const readable = token ? token[0].toUpperCase() + token.slice(1) : "";
-  const playedClass = token
-    ? t(`character.classes.${token}`, { defaultValue: readable })
-    : "";
-  const who = [character.race, playedClass].filter(Boolean).join(" ");
+  const who = characterWho(t, character);
   if (!who) return level === null ? "" : t("character.level", { level });
   return level === null
     ? t("character.lineNoLevel", { who })

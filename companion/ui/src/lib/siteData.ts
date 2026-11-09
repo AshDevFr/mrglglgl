@@ -21,7 +21,12 @@ import { EntryText } from "@/components/EntryPanel";
 import { InkStamp } from "@/components/InkStamp";
 import { photoCaption } from "@/lib/captions";
 import { formatDay } from "@/lib/format";
-import { dayFacts, displayName, latestSnapshot } from "@/lib/journal";
+import {
+  characterWho,
+  dayFacts,
+  displayName,
+  latestSnapshot,
+} from "@/lib/journal";
 import { savedPaper } from "@/lib/paper";
 import { daySentences } from "@/lib/sentences";
 import { dayKey, weekStart } from "@/lib/weeks";
@@ -73,11 +78,6 @@ function slugify(text: string): string {
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "") || "character"
   );
-}
-
-function titleCase(word: string | null): string {
-  if (!word) return "";
-  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
 /** Other players as the journal recorded them: "Tamsin-Reedwater" is Tamsin, of Reedwater. */
@@ -223,7 +223,7 @@ export async function buildSiteData(
     slugs.add(slug);
     const c = summary.character;
     const level = latestSnapshot(journal).level;
-    const who = [c.race, titleCase(c.class)].filter(Boolean).join(" ");
+    const who = characterWho(t, c);
     characters.push({
       slug,
       name: displayName(c),
