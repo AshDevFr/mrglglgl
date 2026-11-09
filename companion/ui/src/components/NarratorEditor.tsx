@@ -217,7 +217,7 @@ export function NarratorEditor({ initial, onSaved }: Props) {
 }
 
 /** Writes one day with the narrator as it stands in the form; nothing is stored. */
-function NarratorPreview({ narrator }: { narrator: Narrator }) {
+export function NarratorPreview({ narrator }: { narrator: Narrator }) {
   const { t, i18n } = useTranslation();
   const [characterId, setCharacterId] = useState<string | null>(null);
   const [day, setDay] = useState<string | null>(null);

@@ -11,6 +11,15 @@ const commands = vi.hoisted(() => ({
   exportNarrator: vi.fn(() =>
     Promise.resolve("/Users/me/Documents/custom_heron.toml"),
   ),
+  narratorProfile: vi.fn(async (id: string) => ({
+    id,
+    name: "The grumpy dwarf",
+  })),
+  listCharacters: vi.fn(async () => []),
+  characterJournal: vi.fn(async () => null),
+  onNarratorPreview: vi.fn(async () => () => {}),
+  previewNarrator: vi.fn(),
+  cancelPreview: vi.fn(),
 }));
 
 vi.mock("@/api/commands", () => ({
@@ -64,6 +73,18 @@ describe("NarratorsPanel", () => {
       expect(onEdit).toHaveBeenCalledWith("custom_the_grumpy_dwarf_mine"),
     );
     expect(commands.copyNarrator).toHaveBeenCalledWith("grumpy_dwarf");
+  });
+
+  it("previews a built-in narrator without copying it", async () => {
+    renderWithProviders(<NarratorsPanel onEdit={vi.fn()} />);
+    const dwarf = await row("The grumpy dwarf");
+    fireEvent.click(within(dwarf).getByRole("button", { name: "Preview" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(
+      await within(dialog).findByRole("button", { name: "Preview" }),
+    ).toBeInTheDocument();
+    expect(commands.narratorProfile).toHaveBeenCalledWith("grumpy_dwarf");
+    expect(commands.copyNarrator).not.toHaveBeenCalled();
   });
 
   it("edits, exports and removes the player's own", async () => {

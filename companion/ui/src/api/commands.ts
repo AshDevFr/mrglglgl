@@ -295,6 +295,11 @@ export function blankNarrator(): Promise<Narrator> {
 }
 
 /** Every field of a narrator, as the start of a new one; not saved yet. */
+/** A narrator as it writes, built-in or the player's own, for a preview. */
+export function narratorProfile(id: string): Promise<Narrator> {
+  return invoke<Narrator>("narrator_profile", { id });
+}
+
 export function copyNarrator(id: string): Promise<Narrator> {
   return invoke<Narrator>("copy_narrator", { id });
 }

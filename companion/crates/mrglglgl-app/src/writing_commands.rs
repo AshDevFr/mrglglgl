@@ -386,6 +386,15 @@ pub fn blank_narrator(state: State<'_, AppState>) -> Result<Narrator, String> {
     Ok(narrators::blank(&language))
 }
 
+/// A narrator as it writes, built-in or the player's own, in the journal's language: what a
+/// preview from the narrators list writes with.
+#[tauri::command]
+pub fn narrator_profile(state: State<'_, AppState>, id: String) -> Result<Narrator, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    let language = writing::prose_language(&db.settings().map_err(|e| e.to_string())?);
+    Ok(state.control.narrators().get(&id, &language).clone())
+}
+
 #[tauri::command]
 pub fn copy_narrator(state: State<'_, AppState>, id: String) -> Result<Narrator, String> {
     let db = state.db.lock().map_err(|e| e.to_string())?;

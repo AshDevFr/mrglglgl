@@ -9,6 +9,7 @@ import {
   exportNarrator,
   importNarratorFile,
   listNarrators,
+  narratorProfile,
   saveNarrator,
 } from "@/api/commands";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
@@ -17,6 +18,7 @@ import { problem } from "@/i18n/problems";
 import { exportFolder, rememberExportFolder } from "@/lib/exportFolder";
 import { NEW_NARRATOR } from "@/lib/narrators";
 import { FolderField } from "./FolderField";
+import { NarratorPreview } from "./NarratorEditor";
 
 /** Every narrator: built-ins to copy, the player's own to edit, share or remove. */
 export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
@@ -25,6 +27,13 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
   const narrators = useQuery({
     queryKey: ["narrators"],
     queryFn: listNarrators,
+  });
+  // A built-in narrator is heard before it is copied: a sample written with it, as it stands.
+  const [previewing, setPreviewing] = useState<string | null>(null);
+  const profile = useQuery({
+    queryKey: ["narratorProfile", previewing],
+    queryFn: () => narratorProfile(previewing ?? ""),
+    enabled: previewing !== null,
   });
   const [exporting, setExporting] = useState<NarratorInfo | null>(null);
   const [removing, setRemoving] = useState<NarratorInfo | null>(null);
@@ -74,6 +83,7 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
     });
 
   const all = narrators.data ?? [];
+  const previewed = all.find((n) => n.id === previewing);
   const row = (n: NarratorInfo) => (
     <li key={n.id} aria-label={n.name} style={{ listStyle: "none" }}>
       <Group justify="space-between" wrap="nowrap" py={4}>
@@ -101,9 +111,22 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
               </Button>
             </>
           ) : (
-            <Button size="xs" variant="subtle" onClick={() => void copy(n.id)}>
-              {t("narrators.editCopy")}
-            </Button>
+            <>
+              <Button
+                size="xs"
+                variant="light"
+                onClick={() => setPreviewing(n.id)}
+              >
+                {t("narrators.preview")}
+              </Button>
+              <Button
+                size="xs"
+                variant="subtle"
+                onClick={() => void copy(n.id)}
+              >
+                {t("narrators.editCopy")}
+              </Button>
+            </>
           )}
         </Group>
       </Group>
@@ -181,6 +204,14 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
             </Button>
           </Group>
         </Stack>
+      </Modal>
+      <Modal
+        opened={previewing !== null}
+        onClose={() => setPreviewing(null)}
+        title={previewed?.name ?? ""}
+        size="lg"
+      >
+        {profile.data && <NarratorPreview narrator={profile.data} />}
       </Modal>
     </Stack>
   );
