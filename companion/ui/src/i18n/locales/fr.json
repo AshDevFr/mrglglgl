@@ -12,8 +12,8 @@
     "theme": "Passer du mode clair au mode sombre",
     "skip": "Aller au journal",
     "back": "Retour",
-    "review": "À relire",
-    "reviewCount": "À relire ({{count}})",
+    "review": "À valider",
+    "reviewCount": "À valider ({{count}})",
     "characterPages": "Pages du personnage",
     "more": "Plus d'actions",
     "characterSettings": "Ce personnage"
@@ -209,7 +209,7 @@
   },
   "milestones": {
     "title": "Jalons",
-    "earned": "Obtenu {{day}}",
+    "earned": "Obtenu le {{day}}",
     "none": "Pas encore de tampon. Le murloc suggère de pêcher une botte.",
     "kept_the_boot": {
       "name": "J'ai gardé la botte",
@@ -489,7 +489,7 @@
     "writeWhilePlaying": "Écrire pendant que le jeu tourne",
     "writeWhilePlayingHelp": "Désactivé par défaut : l'écriture utilise le processeur, et le jeu peut saccader. Désactivé, l'écriture attend que tu fermes le jeu.",
     "copyFooter": "Ajouter « via Mrglglgl » en copiant une entrée",
-    "paused": "Mettre l'écriture en arrière-plan en pause",
+    "paused": "Suspendre l'écriture en arrière-plan",
     "pausedHelp": "Pour tous les personnages, appliqué tout de suite. Activité, dans la barre latérale, a le même interrupteur.",
     "providerTitle": "Qui écrit",
     "provider": {
@@ -516,8 +516,8 @@
     "connectionFailedNext": "Vérifie l'adresse (elle se termine généralement par /v1), que le serveur tourne et le nom du modèle, puis teste à nouveau.",
     "writeOnBattery": "Écrire sur batterie",
     "writeOnBatteryHelp": "Désactivé par défaut : l'écriture sollicite fortement le processeur et vide la batterie d'un portable. Désactivé, l'écriture attend que le chargeur soit branché. Vérifié sur les portables macOS et Windows.",
-    "review": "Me laisser relire les entrées d'abord",
-    "reviewHelp": "Les nouvelles entrées attendent dans À relire jusqu'à ce que tu les acceptes. Désactivé : elles vont directement dans le journal.",
+    "review": "Me laisser valider les entrées d'abord",
+    "reviewHelp": "Les nouvelles entrées attendent dans À valider jusqu'à ce que tu les acceptes. Désactivé : elles vont directement dans le journal.",
     "zoom": "Taille de l'interface",
     "zoomHelp": "Texte et mise en page ensemble, sur cet ordinateur. ⌘ ou Ctrl avec + et − la changent aussi ; avec 0, elle revient à 100 %.",
     "paper": "Papier",
@@ -527,7 +527,7 @@
       "parchment": "Parchemin"
     },
     "unreadable": "Certains réglages n'ont pas pu être lus et sont revenus à leurs valeurs par défaut : {{list}}",
-    "unreadableNext": "Vérifie-les ci-dessous et enregistre. Les valeurs illisibles ont été mises de côté dans les données de l'application, et le journal d'activité dit ce qui s'est passé.",
+    "unreadableNext": "Vérifie-les ci-dessous et enregistre. Les valeurs illisibles ont été mises de côté dans les données de l'application, et le journal technique dit ce qui s'est passé.",
     "group": {
       "writing": "écriture",
       "site": "site web",
@@ -722,11 +722,11 @@
     "chooseModel": "Choisir un modèle d'écriture"
   },
   "review": {
-    "title": "À relire",
+    "title": "À valider",
     "intro": "Les journées et semaines terminées sans entrée dans le journal, et les brouillons qui t'attendent. Un brouillon n'entre dans le journal que si tu l'acceptes.",
-    "introDirect": "Les journées et semaines terminées sans entrée dans le journal, et les brouillons qui t'attendent. Le mode relecture est désactivé : ce que tu écris ici entre directement dans le journal, sauf la réécriture d'un brouillon en attente, qui attend comme nouveau brouillon ; active Me laisser relire les entrées d'abord, dans Réglages, pour accepter chaque entrée toi-même.",
-    "empty": "Rien à relire. Chaque journée terminée a son entrée.",
-    "emptyAll": "Rien à relire, pour aucun personnage. Chaque journée terminée a son entrée.",
+    "introDirect": "Les journées et semaines terminées sans entrée dans le journal, et les brouillons qui t'attendent. Le mode validation est désactivé : ce que tu écris ici entre directement dans le journal, sauf la réécriture d'un brouillon en attente, qui attend comme nouveau brouillon ; active Me laisser valider les entrées d'abord, dans Réglages, pour accepter chaque entrée toi-même.",
+    "empty": "Rien à valider. Chaque journée terminée a son entrée.",
+    "emptyAll": "Rien à valider, pour aucun personnage. Chaque journée terminée a son entrée.",
     "notWritten": "Pas encore écrite.",
     "discarded": "Tu as jeté le dernier brouillon.",
     "replaces": "Le journal a déjà une entrée ici ; accepter ce brouillon la remplace.",
@@ -736,7 +736,7 @@
     "running": "En cours d'écriture.",
     "accept": "Accepter",
     "discard": "Jeter",
-    "rewrite": "Réécrire",
+    "rewrite": "Réécrire avec une consigne",
     "write": "Écrire un brouillon",
     "note": "Qu'est-ce qui devrait changer ? (facultatif)",
     "noteHelp": "Ton, longueur ou angle, jusqu'à 120 caractères. Les événements restent ceux de la journée.",
@@ -746,13 +746,13 @@
     "select": "Sélectionner {{day}}",
     "narrator": "Narrateur des nouveaux brouillons",
     "usualNarrator": "Ton narrateur habituel",
-    "writeSelected": "Écrire {{count}} sélectionnés",
+    "writeSelected": "Écrire la sélection ({{count}})",
     "acceptSelected": "Accepter la sélection",
     "discardSelected": "Jeter la sélection",
     "facts": "Ce qui s'est passé",
-    "draftsWaiting_one": "{{count}} brouillon attend dans À relire.",
-    "draftsWaiting_other": "{{count}} brouillons attendent dans À relire.",
-    "draftWaitingHere": "Un brouillon pour cette journée attend dans À relire.",
+    "draftsWaiting_one": "{{count}} brouillon attend dans À valider.",
+    "draftsWaiting_other": "{{count}} brouillons attendent dans À valider.",
+    "draftWaitingHere": "Un brouillon pour cette journée attend dans À valider.",
     "writeNow": "Écrire",
     "writeEntry": "Écrire l'entrée",
     "narratorEntries": "Narrateur des nouvelles entrées"
@@ -891,7 +891,7 @@
     "save": "Enregistrer",
     "saved": "Enregistré.",
     "buildNow": "Construire maintenant",
-    "built": "Construit {{when}} : {{written}} fichiers écrits, {{unchanged}} inchangés, {{removed}} supprimés.",
+    "built": "Construit le {{when}} : {{written}} fichiers écrits, {{unchanged}} inchangés, {{removed}} supprimés.",
     "buildFailed": "Le site web n'a pas été construit : {{message}}",
     "buildFailedNext": "Vérifie le dossier du site et le dossier de thème, puis construis à nouveau. Une erreur de modèle nomme son fichier et sa ligne."
   },
@@ -904,7 +904,7 @@
     "state": {
       "notInstalled": "Non installé",
       "waiting": "Installé",
-      "recording": "Enregistre",
+      "recording": "Actif",
       "quiet": "Silencieux"
     },
     "next": {
@@ -923,7 +923,7 @@
       "errors": "L'addon a rencontré une erreur le {{when}} : {{message}}",
       "errorsNext": "L'enregistrement a continué. Si cela se reproduit, signale-le avec ce message."
     },
-    "latest": "Dernière version : {{version}} (vérifiée {{when}}).",
+    "latest": "Dernière version : {{version}} (vérifiée le {{when}}).",
     "noRelease": "Aucune version de l'addon n'a été trouvée pour ce canal.",
     "onlyTestVersion": "Pas encore de version, seulement la version de test {{version}}. Active Proposer les versions de test pour l'installer.",
     "checkAgain": "Vérifier à nouveau",
@@ -958,9 +958,9 @@
   "log": {
     "title": "Journal technique",
     "help": "L'application garde une trace de ce qu'elle fait pendant une semaine. Si quelque chose ne va pas, copie les dernières lignes et envoie-les à qui t'aide.",
-    "show": "Afficher le fichier du journal d'activité",
-    "showFailed": "Impossible d'afficher le journal d'activité : {{message}}",
-    "showFailedNext": "Les fichiers du journal d'activité sont dans le dossier logs du dossier de données de l'application.",
+    "show": "Afficher le fichier du journal technique",
+    "showFailed": "Impossible d'afficher le journal technique : {{message}}",
+    "showFailedNext": "Les fichiers du journal technique sont dans le dossier logs du dossier de données de l'application.",
     "refresh": "Actualiser",
     "copy": "Copier les lignes",
     "copied": "Copié",
@@ -1106,7 +1106,7 @@
     "checking": "Recherche d'une version plus récente…",
     "latest": "À jour : version {{version}}.",
     "checkFailed": "Impossible de rechercher les mises à jour",
-    "checkFailedNext": "Vérifie la connexion, puis réessaie ; l'app continue de fonctionner telle quelle."
+    "checkFailedNext": "Vérifie la connexion, puis réessaie ; l'application continue de fonctionner telle quelle."
   },
   "failure": {
     "offline": "le serveur est injoignable",
@@ -1119,8 +1119,8 @@
     "gameRunningNext": "Ferme le jeu, puis réessaie.",
     "noSpace": "il faut {{neededGb}} Go d'espace disque libre, et {{freeGb}} Go sont libres",
     "noSpaceNext": "Libère de la place sur le disque, puis appuie sur Reprendre le téléchargement : il continue là où il s'est arrêté.",
-    "appTooOld": "cette version de l'addon demande une version plus récente de l'app",
-    "appTooOldNext": "Mets l'app à jour, puis réessaie."
+    "appTooOld": "cette version de l'addon demande une version plus récente de l'application",
+    "appTooOldNext": "Mets l'application à jour, puis réessaie."
   },
   "activity": {
     "title": "Activité",
@@ -1128,7 +1128,7 @@
     "idle": "Rien en cours. Les entrées s'écrivent ici, une à la fois, à mesure que les journées se terminent.",
     "running": "En cours",
     "waiting": "En attente ({{count}})",
-    "couldNotWrite": "Pas pu être écrites ({{count}})",
+    "couldNotWrite": "Non écrites ({{count}})",
     "writing": "Écriture…",
     "words_one": "Écriture… {{count}} mot pour l'instant",
     "words_other": "Écriture… {{count}} mots pour l'instant",
