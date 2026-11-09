@@ -23,6 +23,7 @@ tauri-plugin-opener = { workspace = true }
 tauri-plugin-process = { workspace = true }
 tauri-plugin-updater = { workspace = true }
 tauri-plugin-window-state = { workspace = true }
+sys-locale = { workspace = true }
 tracing-appender = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

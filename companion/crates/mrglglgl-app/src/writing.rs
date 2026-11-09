@@ -41,14 +41,32 @@ pub fn catalogue(data_dir: &Path) -> Catalogue {
     Catalogue::load(Some(&data_dir.join("catalogue.json")))
 }
 
-/// The language entries are written in: the chosen prose language, else the UI language.
+/// The language entries are written in: the chosen prose language, else the app's language,
+/// else the system's, as the window picks its own.
 pub fn prose_language(settings: &Settings) -> String {
     settings
         .writing
         .prose_language
         .clone()
         .or_else(|| settings.ui_language.clone())
-        .unwrap_or_else(|| "en".to_string())
+        .unwrap_or_else(|| written_language(sys_locale::get_locale().as_deref()))
+}
+
+/// Languages the narrators write in.
+const PROSE_LANGUAGES: &[&str] = &["en", "fr"];
+
+/// A system locale ("fr-FR", "fr_CA") as a language narrators write in: its language part when
+/// they write it, else English, as the window falls back to English.
+fn written_language(locale: Option<&str>) -> String {
+    let language = locale
+        .and_then(|l| l.split(['-', '_']).next())
+        .map(str::to_lowercase)
+        .unwrap_or_default();
+    if PROSE_LANGUAGES.contains(&language.as_str()) {
+        language
+    } else {
+        "en".to_string()
+    }
 }
 
 /// The catalogue model the settings point at, or the recommended one.
@@ -225,6 +243,22 @@ pub async fn run(app: AppHandle) {
                 queue::idle(&control, IDLE_CHECK).await;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod language_tests {
+    use super::written_language;
+
+    #[test]
+    fn a_french_system_writes_in_french_and_anything_unknown_in_english() {
+        assert_eq!(written_language(Some("fr-FR")), "fr");
+        assert_eq!(written_language(Some("fr_CA")), "fr");
+        assert_eq!(written_language(Some("FR")), "fr");
+        assert_eq!(written_language(Some("en-GB")), "en");
+        // As the window does: a language with no catalogue falls back to English.
+        assert_eq!(written_language(Some("de-DE")), "en");
+        assert_eq!(written_language(None), "en");
     }
 }
 
