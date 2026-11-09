@@ -296,6 +296,7 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
                 root,
                 context! {
                     character => character,
+                    section => "posts",
                     posts => pages.get(number - 1).copied().unwrap_or(&[]),
                     page => context! {
                         number => number,
@@ -314,6 +315,7 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
                 "../../",
                 context! {
                     character => character,
+                    section => "post",
                     post => post,
                     newer_post => i.checked_sub(1).and_then(|j| posts.get(j)),
                     older_post => posts.get(i + 1),
@@ -346,13 +348,13 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
             "archive.html",
             format!("{slug}/archive/index.html"),
             "../../",
-            context! { character => character, months => months },
+            context! { character => character, section => "archive", months => months },
         )?;
         page(
             "milestones.html",
             format!("{slug}/milestones/index.html"),
             "../../",
-            context! { character => character },
+            context! { character => character, section => "milestones" },
         )?;
         page(
             "feed.xml",

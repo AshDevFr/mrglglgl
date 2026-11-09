@@ -1,6 +1,8 @@
 {#- The frame every page extends. Override a block in your own template, or copy this file
     into your theme folder to change the frame for every page.
-    Blocks: title, head, menu, content, footer. -#}
+    Blocks: title, head, menu, content, footer. Every page receives site, root, labels and
+    has_custom_css; character pages also character and section ("posts", "post", "archive" or
+    "milestones"), and a post page post. -#}
 <!doctype html>
 <html lang="{{ site.language }}" data-paper="{{ site.paper }}">
 <head>
@@ -15,6 +17,21 @@
 {%- if character %}
 <link rel="alternate" type="application/rss+xml" title="{{ character.name }}" href="{{ root }}{{ character.slug }}/feed.xml">
 {%- endif %}
+{#- What a shared link shows: a post's excerpt, a character's summary, else the site's title. -#}
+{%- if post %}
+<meta name="description" content="{{ post.excerpt }}">
+<meta property="og:title" content="{{ post.title }} · {{ character.name }}">
+<meta property="og:description" content="{{ post.excerpt }}">
+<meta property="og:type" content="article">
+{%- elif character %}
+<meta name="description" content="{{ character.summary }}">
+<meta property="og:title" content="{{ character.name }}">
+<meta property="og:description" content="{{ character.summary }}">
+<meta property="og:type" content="website">
+{%- else %}
+<meta property="og:title" content="{{ site.title }}">
+<meta property="og:type" content="website">
+{%- endif %}
 {% block head %}{% endblock %}
 </head>
 <body>
@@ -28,10 +45,10 @@
   </nav>
   {%- if character %}
   <nav class="character-menu" aria-label="{{ character.name }}">
-    <a href="{{ root }}{{ character.slug }}/">{{ labels.posts | default('Posts') }}</a>
-    <a href="{{ root }}{{ character.slug }}/archive/">{{ labels.archive | default('Archive') }}</a>
-    <a href="{{ root }}{{ character.slug }}/milestones/">{{ labels.milestones | default('Milestones') }}</a>
-    <a href="{{ root }}{{ character.slug }}/feed.xml">{{ labels.feed | default('Feed') }}</a>
+    <a href="{{ root }}{{ character.slug }}/"{% if section == "posts" %} aria-current="page"{% endif %}>{{ labels.posts | default('Posts') }}</a>
+    <a href="{{ root }}{{ character.slug }}/archive/"{% if section == "archive" %} aria-current="page"{% endif %}>{{ labels.archive | default('Archive') }}</a>
+    <a href="{{ root }}{{ character.slug }}/milestones/"{% if section == "milestones" %} aria-current="page"{% endif %}>{{ labels.milestones | default('Milestones') }}</a>
+    <a href="{{ root }}{{ character.slug }}/feed.xml" title="{{ labels.feed_help | default('For a feed reader app') }}">{{ labels.feed | default('Feed') }}</a>
   </nav>
   {%- endif %}
   {% endblock %}

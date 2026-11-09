@@ -874,7 +874,9 @@
       "no_milestones": "No stamps yet.",
       "light_dark": "Light / dark",
       "change_paper": "Change paper",
-      "written_with": "Written with Mrglglgl, a journal for World of Warcraft adventurers."
+      "written_with": "Written with Mrglglgl, a journal for World of Warcraft adventurers.",
+      "notes": "Notes from the day",
+      "feed_help": "For a feed reader app"
     },
     "title": "Website",
     "help": "Publish your journals as a blog you can host for free (Cloudflare Pages, Netlify, GitHub Pages): the app writes a finished site into a folder, and you put that folder online.",

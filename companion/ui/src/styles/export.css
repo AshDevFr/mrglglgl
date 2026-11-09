@@ -162,6 +162,16 @@
   .export-chapter {
     break-inside: avoid;
   }
+  /* A day's title stays with its first lines, and each week starts a new sheet, as a book's
+     chapters do. */
+  .export .journal-page h2,
+  .export .notes-label,
+  .export-week-label {
+    break-after: avoid;
+  }
+  .export-week + .export-week {
+    break-before: page;
+  }
   .print-sheet .no-print,
   .export-controls {
     display: none;

@@ -46,6 +46,8 @@ const LABELS = [
   "next_week",
   "no_posts",
   "no_milestones",
+  "notes",
+  "feed_help",
   "light_dark",
   "change_paper",
   "written_with",

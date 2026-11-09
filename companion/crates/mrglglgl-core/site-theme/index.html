@@ -1,5 +1,11 @@
 {#- The home page: one card per character. Receives: site, root, labels. -#}
 {% extends "base.html" %}
+{#- With one character there is nothing to choose: the home page opens their journal. -#}
+{% block head %}
+{%- if site.characters | length == 1 %}
+<meta http-equiv="refresh" content="0; url={{ root }}{{ site.characters[0].slug }}/">
+{%- endif %}
+{% endblock %}
 {% block content %}
 <h1 class="page-title">{{ site.title }}</h1>
 <div class="cards">

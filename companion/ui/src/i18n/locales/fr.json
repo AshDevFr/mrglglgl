@@ -874,7 +874,9 @@
       "no_milestones": "Pas encore de tampon.",
       "light_dark": "Clair / sombre",
       "change_paper": "Changer le papier",
-      "written_with": "Écrit avec Mrglglgl, un journal pour les aventuriers de World of Warcraft."
+      "written_with": "Écrit avec Mrglglgl, un journal pour les aventuriers de World of Warcraft.",
+      "notes": "Notes du jour",
+      "feed_help": "Pour une application de lecture de flux"
     },
     "title": "Site web",
     "help": "Publie tes journaux sous forme de blog que tu peux héberger gratuitement (Cloudflare Pages, Netlify, GitHub Pages) : l'application écrit un site terminé dans un dossier, et tu mets ce dossier en ligne.",

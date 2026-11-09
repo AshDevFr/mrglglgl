@@ -14,6 +14,9 @@
     <div class="stamps">{% for stamp in day.stamps %}{{ stamp.svg | safe }}{% endfor %}</div>
     {%- endif %}
     <h2>{{ day.title }}</h2>
+    {%- if not day.written %}
+    <p class="notes-label">{{ labels.notes | default('Notes from the day') }}</p>
+    {%- endif %}
     {{ day.html | safe }}
     {%- if day.photos %}
     <div class="photos">

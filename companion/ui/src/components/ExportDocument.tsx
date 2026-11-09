@@ -115,13 +115,17 @@ export function ExportDocument({
                   {entry ? (
                     <EntryText text={entry.text} />
                   ) : (
-                    <p className="entry">
-                      {daySentences(
-                        dayFacts(journal, journal.days[day]),
-                        t,
-                        lang,
-                      ).join(" ")}
-                    </p>
+                    <>
+                      {/* Not written: its notes, labelled as notes, as on the website. */}
+                      <p className="notes-label">{t("site.labels.notes")}</p>
+                      <p className="entry">
+                        {daySentences(
+                          dayFacts(journal, journal.days[day]),
+                          t,
+                          lang,
+                        ).join(" ")}
+                      </p>
+                    </>
                   )}
                   {pictures.length > 0 && (
                     <div className="photos">

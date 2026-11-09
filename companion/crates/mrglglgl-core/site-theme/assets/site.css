@@ -111,7 +111,8 @@ a {
 
 .site-menu a:hover,
 .character-menu a:hover,
-.site-menu a[aria-current="page"] {
+.site-menu a[aria-current="page"],
+.character-menu a[aria-current="page"] {
   color: var(--ink);
   border-bottom-color: var(--stamp);
 }
@@ -403,4 +404,14 @@ a {
   .photo {
     break-inside: avoid;
   }
+}
+
+/* A day the narrator has not written: its notes, labelled as notes, not dressed as an entry. */
+.notes-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--ink-faded);
 }

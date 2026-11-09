@@ -61,6 +61,19 @@ const data = {
 };
 
 describe("ExportDocument", () => {
+  it("labels a day the narrator has not written as its notes", () => {
+    render(<ExportDocument {...data} />);
+    // November 10 has no entry in the data: its facts are told, labelled as notes.
+    const unwritten = screen.getByRole("article", {
+      name: /November 10, 2026/,
+    });
+    expect(
+      within(unwritten).getByText("Notes from the day"),
+    ).toBeInTheDocument();
+    const written = screen.getByRole("article", { name: /November 8, 2026/ });
+    expect(within(written).queryByText("Notes from the day")).toBeNull();
+  });
+
   it("leaves out today and days told only so far, as the website does", () => {
     render(
       <ExportDocument

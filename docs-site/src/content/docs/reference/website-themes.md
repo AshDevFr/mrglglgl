@@ -53,11 +53,11 @@ at any address or sub-path.
 
 | Template | Page | Also receives |
 |---|---|---|
-| `index.html` | `index.html` | |
-| `character.html` | `<character>/` and `<character>/page/N/` | `character`, `posts` (this page's, newest first), `page` (`number`, `total`, `newer_url`, `older_url`) |
-| `post.html` | `<character>/<year>-w<week>/` | `character`, `post`, `newer_post`, `older_post` |
-| `archive.html` | `<character>/archive/` | `character`, `months` (each `month`, `label`, `posts`) |
-| `milestones.html` | `<character>/milestones/` | `character` |
+| `index.html` | `index.html` | (with one character, the default theme sends the reader straight to their journal) |
+| `character.html` | `<character>/` and `<character>/page/N/` | `character`, `section` (`posts`), `posts` (this page's, newest first), `page` (`number`, `total`, `newer_url`, `older_url`) |
+| `post.html` | `<character>/<year>-w<week>/` | `character`, `section` (`post`), `post`, `newer_post`, `older_post` |
+| `archive.html` | `<character>/archive/` | `character`, `section` (`archive`), `months` (each `month`, `label`, `posts`) |
+| `milestones.html` | `<character>/milestones/` | `character`, `section` (`milestones`) |
 | `feed.xml` | `<character>/feed.xml` | `character`, `posts` (the newest twenty), `base` (the site address) |
 | `assets/site.css` | the stylesheet | |
 | `assets/site.js` | the light/dark and paper switches | |
@@ -75,11 +75,16 @@ at any address or sub-path.
 - `stamp` (a milestone): `name`, `description`, `day`, `svg` (the ink stamp).
 - `photo`: `file` (in `images/<character>/`), `caption`.
 - `labels`: the theme's words in the app's language (`posts`, `archive`, `milestones`, `feed`,
-  `newer`, `older`, `previous_week`, `next_week`, ...). The default theme falls back to English
+  `feed_help`, `newer`, `older`, `previous_week`, `next_week`, `notes`, ...). The default theme falls back to English
   with `{{ labels.posts | default('Posts') }}`.
 
 `html`, `chapter_html` and `svg` are markup the app made: print them with `| safe`. Everything
 else is escaped for you.
+
+The default `base.html` marks the open page of the character menu with `aria-current` from
+`section`, and gives every page a description and Open Graph tags (a post's `excerpt`, else the
+character's `summary`), so a link shared in a chat shows a preview. A day the narrator has not
+written is labelled with `labels.notes` above its notes.
 
 Filters beyond MiniJinja's built-ins: `rfc822` turns a `YYYY-MM-DD` date into a feed date.
 

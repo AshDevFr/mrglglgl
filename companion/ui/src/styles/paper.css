@@ -546,3 +546,13 @@ details.facts .fact-list {
   mix-blend-mode: normal;
   opacity: 1;
 }
+
+/* A day the narrator has not written, in an export: its notes, labelled as notes. */
+.journal-page .notes-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  font-style: italic;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--ink-faded);
+}
