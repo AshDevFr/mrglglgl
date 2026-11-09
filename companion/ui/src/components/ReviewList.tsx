@@ -175,7 +175,9 @@ export function ReviewList({ characterId }: { characterId?: number }) {
       </Text>
       <Group gap="xs" wrap="wrap">
         <Select
-          aria-label={t("review.narrator")}
+          aria-label={
+            direct ? t("review.narratorEntries") : t("review.narrator")
+          }
           placeholder={t("review.usualNarrator")}
           data={(narrators.data ?? []).map((n) => ({
             value: n.id,
@@ -229,6 +231,7 @@ export function ReviewList({ characterId }: { characterId?: number }) {
           selected={selected}
           onToggle={toggle}
           actions={actionsFor(g.characterId)}
+          direct={direct}
         />
       ))}
     </Stack>
@@ -244,6 +247,8 @@ interface ItemsProps {
   selected: Set<Key>;
   onToggle: (key: Key) => void;
   actions: Actions;
+  /** Review mode is off: what is written goes straight into the journal. */
+  direct: boolean;
 }
 
 /** One character's rows, with that character's journal and what the writer streams for them. */
@@ -255,6 +260,7 @@ function CharacterItems({
   selected,
   onToggle,
   actions,
+  direct,
 }: ItemsProps) {
   const { characterId, items } = group;
   const live = useWriting(characterId);
@@ -282,6 +288,7 @@ function CharacterItems({
         selected={selected.has(key)}
         onToggle={() => onToggle(key)}
         actions={actions}
+        direct={direct}
       />
     );
   });
@@ -310,6 +317,8 @@ interface RowProps {
   selected: boolean;
   onToggle: () => void;
   actions: Actions;
+  /** Review mode is off: a write goes straight into the journal, unless it rewrites a draft. */
+  direct: boolean;
 }
 
 function ReviewRow({
@@ -322,6 +331,7 @@ function ReviewRow({
   selected,
   onToggle,
   actions,
+  direct,
 }: RowProps) {
   const { t, i18n } = useTranslation();
   const [rewriting, setRewriting] = useState(false);
@@ -440,7 +450,10 @@ function ReviewRow({
                     setNote("");
                   }}
                 >
-                  {t("review.writeDraft")}
+                  {/* A draft that waits is rewritten as a draft; anything else follows review mode. */}
+                  {direct && !draft
+                    ? t("review.writeEntry")
+                    : t("review.writeDraft")}
                 </Button>
                 <Button
                   size="xs"
@@ -475,7 +488,7 @@ function ReviewRow({
                   disabled={busy || item.job?.state === "pending"}
                   onClick={() => actions.write([item], narrator, null)}
                 >
-                  {t("review.write")}
+                  {direct ? t("review.writeNow") : t("review.write")}
                 </Button>
               )}
               {draft && (
@@ -483,7 +496,10 @@ function ReviewRow({
                   size="xs"
                   variant="subtle"
                   color="red"
-                  onClick={() => actions.discard(draft.id)}
+                  onClick={() => {
+                    // Every waiting draft of the day, as the bulk action does.
+                    for (const d of item.drafts) actions.discard(d.id);
+                  }}
                 >
                   {t("review.discard")}
                 </Button>

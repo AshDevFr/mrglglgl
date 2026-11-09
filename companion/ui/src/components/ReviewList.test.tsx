@@ -222,6 +222,40 @@ describe("ReviewList", () => {
     expect(await row(/November 9, 2026/)).toHaveTextContent("The wolves won.");
   });
 
+  it("asks for entries, not drafts, when review mode is off", async () => {
+    commands.review = false;
+    renderWithProviders(<ReviewList characterId={1} />);
+    const unwritten = await row(/November 8, 2026/);
+    await waitFor(() =>
+      expect(
+        within(unwritten).getByRole("button", { name: "Write" }),
+      ).toBeInTheDocument(),
+    );
+    // Rewriting a draft that waits still makes a draft.
+    const drafted = await row(/November 9, 2026/);
+    fireEvent.click(within(drafted).getByRole("button", { name: "Rewrite" }));
+    expect(
+      within(drafted).getByRole("button", { name: "Write the draft" }),
+    ).toBeInTheDocument();
+  });
+
+  it("throws away every waiting draft of a day, as the bulk action does", async () => {
+    commands.items = [
+      item("2026-11-09", {
+        drafts: [
+          draft(8, "2026-11-09", "Newer."),
+          draft(7, "2026-11-09", "Older."),
+        ],
+      }),
+    ];
+    renderWithProviders(<ReviewList characterId={1} />);
+    const drafted = await row(/November 9, 2026/);
+    fireEvent.click(within(drafted).getByRole("button", { name: "Discard" }));
+    await waitFor(() => expect(commands.discardDraft).toHaveBeenCalledTimes(2));
+    expect(commands.discardDraft).toHaveBeenCalledWith(1, 8);
+    expect(commands.discardDraft).toHaveBeenCalledWith(1, 7);
+  });
+
   it("says when there is nothing to review", async () => {
     commands.items = [];
     renderWithProviders(<ReviewList characterId={1} />);

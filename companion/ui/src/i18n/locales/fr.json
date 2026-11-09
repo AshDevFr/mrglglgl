@@ -737,7 +737,10 @@
     "facts": "Ce qui s'est passé",
     "draftsWaiting_one": "{{count}} brouillon attend dans À relire.",
     "draftsWaiting_other": "{{count}} brouillons attendent dans À relire.",
-    "draftWaitingHere": "Un brouillon pour cette journée attend dans À relire."
+    "draftWaitingHere": "Un brouillon pour cette journée attend dans À relire.",
+    "writeNow": "Écrire",
+    "writeEntry": "Écrire l'entrée",
+    "narratorEntries": "Narrateur des nouvelles entrées"
   },
   "narrators": {
     "title": "Narrateurs",

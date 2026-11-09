@@ -737,7 +737,10 @@
     "facts": "What happened",
     "draftsWaiting_one": "{{count}} draft is waiting in To review.",
     "draftsWaiting_other": "{{count}} drafts are waiting in To review.",
-    "draftWaitingHere": "A draft for this day is waiting in To review."
+    "draftWaitingHere": "A draft for this day is waiting in To review.",
+    "writeNow": "Write",
+    "writeEntry": "Write the entry",
+    "narratorEntries": "Narrator for new entries"
   },
   "narrators": {
     "title": "Narrators",
