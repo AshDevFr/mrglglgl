@@ -45,7 +45,12 @@
       "olderNext": "Log in once with the current addon to update it.",
       "newerNext": "Update the app to read it.",
       "unreadableNext": "Log in and out once in the game so it saves the file again."
-    }
+    },
+    "read_one": "Read {{count}} character journal.",
+    "read_other": "Read {{count}} character journals.",
+    "unreadableCount_one": "{{count}} could not be read: its character page says why.",
+    "unreadableCount_other": "{{count}} could not be read: their character pages say why.",
+    "noGame": "No World of Warcraft folder was found. Choose it in Settings, under General."
   },
   "character": {
     "unnamed": "Unnamed character",

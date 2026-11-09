@@ -45,7 +45,12 @@
       "olderNext": "Connecte-toi une fois avec l'addon actuel pour le mettre à jour.",
       "newerNext": "Mets l'application à jour pour le lire.",
       "unreadableNext": "Connecte-toi puis déconnecte-toi une fois dans le jeu pour qu'il enregistre à nouveau le fichier."
-    }
+    },
+    "read_one": "{{count}} journal de personnage lu.",
+    "read_other": "{{count}} journaux de personnage lus.",
+    "unreadableCount_one": "{{count}} n'a pas pu être lu : sa page de personnage dit pourquoi.",
+    "unreadableCount_other": "{{count}} n'ont pas pu être lus : leurs pages de personnage disent pourquoi.",
+    "noGame": "Aucun dossier World of Warcraft trouvé. Choisis-le dans les Réglages, sous Général."
   },
   "character": {
     "unnamed": "Personnage sans nom",
