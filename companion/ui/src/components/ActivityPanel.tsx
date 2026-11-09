@@ -231,7 +231,18 @@ function ActivityList({
             <Text size="sm">
               {problem(t, `writing.blocked.${now.blocked}` as Problem)}
             </Text>
-            {(now.blocked === "noModel" || now.blocked === "noEndpoint") && (
+            {/* Each reason with its fix: Settings, where every other one is set. */}
+            {now.blocked === "paused" ? (
+              <Button
+                size="xs"
+                variant="light"
+                color="yellow"
+                w="fit-content"
+                onClick={() => void setWritingPaused(false).then(refresh)}
+              >
+                {t("activity.resume")}
+              </Button>
+            ) : (
               <Button
                 size="xs"
                 variant="light"
@@ -410,13 +421,16 @@ function ActivityList({
         </Section>
       )}
 
-      <Button
-        variant="default"
-        size="xs"
-        onClick={() => void setWritingPaused(!now.paused).then(refresh)}
-      >
-        {now.paused ? t("activity.resume") : t("activity.pause")}
-      </Button>
+      {/* Paused, the warning above offers Resume; otherwise Pause is here. */}
+      {!now.paused && (
+        <Button
+          variant="default"
+          size="xs"
+          onClick={() => void setWritingPaused(true).then(refresh)}
+        >
+          {t("activity.pause")}
+        </Button>
+      )}
     </Stack>
   );
 }

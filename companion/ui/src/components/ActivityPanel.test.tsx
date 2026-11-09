@@ -259,4 +259,34 @@ describe("ActivityPanel", () => {
     );
     expect(navigate).toHaveBeenLastCalledWith({ to: "/settings" });
   });
+
+  it("offers the fix with every reason writing is held back", async () => {
+    api.now = {
+      ...idle(),
+      blocked: "gameRunning",
+      jobs: [job({ position: 1 })],
+    };
+    renderWithProviders(<ActivityPanel />);
+    const warning = within(await open(/Activity \(1\)/)).getByRole("alert");
+    expect(
+      within(warning).getByRole("button", { name: "Open Settings" }),
+    ).toBeInTheDocument();
+  });
+
+  it("resumes writing from the warning that says it is paused", async () => {
+    api.now = {
+      ...idle(),
+      paused: true,
+      blocked: "paused",
+      jobs: [job({ position: 1 })],
+    };
+    renderWithProviders(<ActivityPanel />);
+    const warning = within(await open(/Activity \(1\)/)).getByRole("alert");
+    fireEvent.click(
+      within(warning).getByRole("button", { name: "Resume writing" }),
+    );
+    await waitFor(() =>
+      expect(api.setWritingPaused).toHaveBeenCalledWith(false),
+    );
+  });
 });
