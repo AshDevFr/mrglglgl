@@ -29,4 +29,13 @@ describe("InkStamp", () => {
     fireEvent.mouseEnter(stamp.parentElement as HTMLElement);
     expect(screen.queryByRole("tooltip")).toBeNull();
   });
+
+  it("opens from the keyboard too", async () => {
+    renderWithProviders(<InkStamp award={boot} />);
+    const stamp = screen.getByRole("img", { name: /^Kept the Boot:/ });
+    const target = stamp.parentElement as HTMLElement;
+    expect(target).toHaveAttribute("tabindex", "0");
+    fireEvent.focus(target);
+    expect(await screen.findByRole("tooltip")).toBeInTheDocument();
+  });
 });

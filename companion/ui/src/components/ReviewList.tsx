@@ -361,9 +361,13 @@ function ReviewRow({
         <Stack gap="xs" style={{ flex: 1 }}>
           <h3>{title}</h3>
           {live?.active ? (
-            <p className="entry streaming" aria-live="polite">
-              {live.text}
-            </p>
+            <>
+              {/* Announced once; the words themselves are not read out as they arrive. */}
+              <Text size="sm" className="note" role="status">
+                {t("review.running")}
+              </Text>
+              <p className="entry streaming">{live.text}</p>
+            </>
           ) : draft ? (
             <>
               <EntryText text={draft.text} />

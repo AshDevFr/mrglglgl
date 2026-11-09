@@ -345,11 +345,7 @@ function NarratorPreview({ narrator }: { narrator: Narrator }) {
           <Text className="writing-status" role="status">
             {t("narrators.previewing")}
           </Text>
-          {streamed && (
-            <p className="entry streaming" aria-live="polite">
-              {streamed}
-            </p>
-          )}
+          {streamed && <p className="entry streaming">{streamed}</p>}
         </div>
       )}
       {result?.outcome === "written" && (

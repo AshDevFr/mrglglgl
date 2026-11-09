@@ -28,6 +28,7 @@ export function InkStamp({ award, size = 72, tilt = -6, zoom = true }: Props) {
   if (!zoom) return mark;
   return (
     <Tooltip
+      events={{ hover: true, focus: true, touch: false }}
       withArrow
       multiline
       w={220}
@@ -46,7 +47,10 @@ export function InkStamp({ award, size = 72, tilt = -6, zoom = true }: Props) {
       }
     >
       {/* The tooltip needs an element that takes a ref; the stamp is an SVG. */}
-      <span style={{ display: "inline-flex" }}>{mark}</span>
+      {/* Focusable, so the tooltip opens from the keyboard as well as on hover. */}
+      <span style={{ display: "inline-flex" }} tabIndex={0}>
+        {mark}
+      </span>
     </Tooltip>
   );
 }

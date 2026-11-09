@@ -120,11 +120,7 @@ export function EntryPanel({
         <Text className="writing-status" role="status">
           {t(loadingKey(day))}
         </Text>
-        {live.text && (
-          <p className="entry streaming" aria-live="polite">
-            {live.text}
-          </p>
-        )}
+        {live.text && <p className="entry streaming">{live.text}</p>}
         <Button variant="subtle" color="gray" onClick={onCancel}>
           {t("writing.cancel")}
         </Button>
