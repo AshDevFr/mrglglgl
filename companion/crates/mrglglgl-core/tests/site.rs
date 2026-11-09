@@ -417,8 +417,15 @@ fn a_shared_link_previews_with_its_title_and_excerpt() {
     let dir = tempfile::tempdir().unwrap();
     let files = site::render(&sample(&photo(dir.path())), None).unwrap();
     let post = text(&files, "wren/2026-w45/index.html");
-    assert!(post.contains(r#"<meta name="description" content="A week of wolves.">"#), "{post}");
-    assert!(post.contains(r#"<meta property="og:title" content="Week of 2026-11-02 · Wren Hollowbrook">"#));
+    assert!(
+        post.contains(r#"<meta name="description" content="A week of wolves.">"#),
+        "{post}"
+    );
+    assert!(
+        post.contains(
+            r#"<meta property="og:title" content="Week of 2026-11-02 · Wren Hollowbrook">"#
+        )
+    );
     assert!(post.contains(r#"<meta property="og:type" content="article">"#));
     let character = text(&files, "wren/index.html");
     assert!(character.contains(r#"<meta name="description" content="Tauren Hunter, level 10">"#));
@@ -429,7 +436,10 @@ fn the_character_menu_marks_the_page_open() {
     let dir = tempfile::tempdir().unwrap();
     let files = site::render(&sample(&photo(dir.path())), None).unwrap();
     let archive = text(&files, "wren/archive/index.html");
-    assert!(archive.contains(r#"href="../../wren/archive/" aria-current="page""#), "{archive}");
+    assert!(
+        archive.contains(r#"href="../../wren/archive/" aria-current="page""#),
+        "{archive}"
+    );
     assert!(!archive.contains(r#"href="../../wren/milestones/" aria-current"#));
 }
 
@@ -440,7 +450,10 @@ fn a_day_not_written_says_its_notes_are_notes() {
     data.characters[0].posts[0].days[0].written = false;
     let files = site::render(&data, None).unwrap();
     let post = text(&files, "wren/2026-w45/index.html");
-    assert!(post.contains(r#"<p class="notes-label">Notes from the day</p>"#), "{post}");
+    assert!(
+        post.contains(r#"<p class="notes-label">Notes from the day</p>"#),
+        "{post}"
+    );
 }
 
 #[test]
@@ -448,5 +461,8 @@ fn a_site_of_one_character_opens_on_their_journal() {
     let dir = tempfile::tempdir().unwrap();
     let files = site::render(&sample(&photo(dir.path())), None).unwrap();
     let home = text(&files, "index.html");
-    assert!(home.contains(r#"<meta http-equiv="refresh" content="0; url=wren/">"#), "{home}");
+    assert!(
+        home.contains(r#"<meta http-equiv="refresh" content="0; url=wren/">"#),
+        "{home}"
+    );
 }
