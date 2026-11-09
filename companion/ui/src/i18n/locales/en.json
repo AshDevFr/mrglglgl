@@ -656,7 +656,11 @@
     "firstRunAction": "Download {{name}} ({{size}} GB)",
     "big": "A big model: it needs a computer with at least {{gb}} GB of memory, writes more slowly, and can make the game stutter if it writes while you play.",
     "showAll": "Show every model ({{count}})",
-    "showInUse": "Show only the model in use"
+    "showInUse": "Show only the model in use",
+    "deleteTitle": "Delete {{name}}?",
+    "deleteBody": "Its {{size}} GB file is removed from this computer. You can download it again later.",
+    "deleteInUse": "This model writes your journal now: until another one is downloaded or chosen, nothing is written.",
+    "deleteConfirm": "Delete {{name}}"
   },
   "share": {
     "copy": "Copy entry",

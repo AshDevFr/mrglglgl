@@ -44,6 +44,8 @@ export function ModelsPanel({ onChoose }: Props) {
   const queryClient = useQueryClient();
   const view = useQuery({ queryKey: ["models"], queryFn: models });
   const [showAll, setShowAll] = useState(false);
+  // A download of gigabytes is not thrown away on one click.
+  const [deleting, setDeleting] = useState<ModelView | null>(null);
   const [confirming, setConfirming] = useState<ModelView | null>(null);
   const [progress, setProgress] = useState<DownloadProgress | null>(null);
   const [error, setError] = useState<unknown>(null);
@@ -82,8 +84,10 @@ export function ModelsPanel({ onChoose }: Props) {
   }
 
   async function remove(model: ModelView) {
+    setDeleting(null);
     await deleteModel(model.id);
     await queryClient.invalidateQueries({ queryKey: ["models"] });
+    await queryClient.invalidateQueries({ queryKey: ["activity"] });
   }
 
   if (!view.data) return null;
@@ -211,7 +215,7 @@ export function ModelsPanel({ onChoose }: Props) {
                     size="xs"
                     variant="subtle"
                     color="red"
-                    onClick={() => void remove(m)}
+                    onClick={() => setDeleting(m)}
                   >
                     {t("models.delete")}
                   </Button>
@@ -245,6 +249,30 @@ export function ModelsPanel({ onChoose }: Props) {
         </Button>
       )}
 
+      <Modal
+        opened={deleting !== null}
+        onClose={() => setDeleting(null)}
+        title={deleting ? t("models.deleteTitle", { name: deleting.name }) : ""}
+      >
+        {deleting && (
+          <Stack>
+            <Text size="sm">
+              {t("models.deleteBody", { size: gigabytes(deleting.sizeBytes) })}
+            </Text>
+            {deleting.id === chosenId && (
+              <Alert color="yellow">{t("models.deleteInUse")}</Alert>
+            )}
+            <Group justify="flex-end">
+              <Button variant="default" onClick={() => setDeleting(null)}>
+                {t("models.cancel")}
+              </Button>
+              <Button color="red" onClick={() => void remove(deleting)}>
+                {t("models.deleteConfirm", { name: deleting.name })}
+              </Button>
+            </Group>
+          </Stack>
+        )}
+      </Modal>
       <Modal
         opened={confirming !== null}
         onClose={() => setConfirming(null)}

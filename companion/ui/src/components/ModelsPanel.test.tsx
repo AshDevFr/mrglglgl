@@ -69,4 +69,21 @@ describe("ModelsPanel", () => {
       screen.queryByRole("button", { name: /Show every model/ }),
     ).toBeNull();
   });
+
+  it("asks before deleting a model, and warns when it is the one writing", async () => {
+    commands.view = {
+      models: three,
+      chosenId: "qwen4",
+      advice: { kind: "recommend", id: "qwen4" },
+    };
+    renderWithProviders(<ModelsPanel onChoose={() => {}} />);
+    fireEvent.click(await screen.findByRole("button", { name: "Delete" }));
+    expect(commands.deleteModel).not.toHaveBeenCalled();
+    const dialog = await screen.findByRole("dialog");
+    expect(dialog).toHaveTextContent(/writes your journal now/);
+    fireEvent.click(screen.getByRole("button", { name: "Delete Qwen3.5 4B" }));
+    await vi.waitFor(() =>
+      expect(commands.deleteModel).toHaveBeenCalledWith("qwen4"),
+    );
+  });
 });

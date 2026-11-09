@@ -656,7 +656,11 @@
     "firstRunAction": "Télécharger {{name}} ({{size}} Go)",
     "big": "Un gros modèle : il lui faut un ordinateur d'au moins {{gb}} Go de mémoire, il écrit plus lentement et peut faire saccader le jeu s'il écrit pendant que tu joues.",
     "showAll": "Voir tous les modèles ({{count}})",
-    "showInUse": "Voir seulement le modèle utilisé"
+    "showInUse": "Voir seulement le modèle utilisé",
+    "deleteTitle": "Supprimer {{name}} ?",
+    "deleteBody": "Son fichier de {{size}} Go est retiré de cet ordinateur. Tu pourras le télécharger de nouveau plus tard.",
+    "deleteInUse": "Ce modèle écrit ton journal en ce moment : tant qu'aucun autre n'est téléchargé ou choisi, rien n'est écrit.",
+    "deleteConfirm": "Supprimer {{name}}"
   },
   "share": {
     "copy": "Copier l'entrée",
