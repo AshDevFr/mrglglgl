@@ -137,6 +137,26 @@ describe("first run", () => {
       screen.queryByRole("button", { name: "Choose a writing model" }),
     ).toBeNull();
   });
+
+  it("says an endpoint is not set up yet, with the way to set it up", async () => {
+    const onOpenSettings = vi.fn();
+    const view = settings([]);
+    view.settings.writing = {
+      ...defaultWriting,
+      provider: "endpoint",
+      endpointUrl: null,
+    };
+    commands.getSettings.mockResolvedValue(view);
+    commands.models.mockResolvedValue(catalogue());
+    renderWithProviders(<FirstRun onOpenSettings={onOpenSettings} />);
+    expect(
+      await screen.findByText(/The endpoint is not set up yet/),
+    ).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Set up the endpoint" }),
+    );
+    expect(onOpenSettings).toHaveBeenCalled();
+  });
 });
 
 describe("keyboard", () => {

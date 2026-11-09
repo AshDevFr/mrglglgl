@@ -724,7 +724,8 @@
     "modelTitle": "Writing your journal",
     "modelReady": "Writing is set up.",
     "modelOffer": "When you are ready, the app can download {{name}} ({{size}} GB) to write your journal on this computer. Nothing is downloaded until you choose to.",
-    "chooseModel": "Choose a writing model"
+    "chooseModel": "Choose a writing model",
+    "setUpEndpoint": "Set up the endpoint"
   },
   "review": {
     "title": "To review",

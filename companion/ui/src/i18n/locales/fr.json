@@ -724,7 +724,8 @@
     "modelTitle": "Écrire ton journal",
     "modelReady": "L'écriture est configurée.",
     "modelOffer": "Quand tu es prêt, l'application peut télécharger {{name}} ({{size}} Go) pour écrire ton journal sur cet ordinateur. Rien n'est téléchargé tant que tu ne le décides pas.",
-    "chooseModel": "Choisir un modèle d'écriture"
+    "chooseModel": "Choisir un modèle d'écriture",
+    "setUpEndpoint": "Configurer le point d'accès"
   },
   "review": {
     "title": "À valider",

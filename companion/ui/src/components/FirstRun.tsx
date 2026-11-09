@@ -121,6 +121,23 @@ export function FirstRun({ onOpenSettings }: { onOpenSettings: () => void }) {
           )}
         </Stack>
       )}
+
+      {/* Writing through an endpoint: ready once its address is set. */}
+      {!local && view.data && (
+        <Stack gap="xs">
+          <Text fw={600}>{t("firstRun.modelTitle")}</Text>
+          {view.data.settings.writing.endpointUrl ? (
+            <Text>{t("firstRun.modelReady")}</Text>
+          ) : (
+            <>
+              <Text>{problem(t, "writing.blocked.noEndpoint")}</Text>
+              <Button variant="light" w="fit-content" onClick={onOpenSettings}>
+                {t("firstRun.setUpEndpoint")}
+              </Button>
+            </>
+          )}
+        </Stack>
+      )}
     </Stack>
   );
 }
