@@ -170,7 +170,10 @@ fn today_and_days_told_only_so_far_are_left_out_as_on_the_website() {
         so_far,
     ];
     let md = export::markdown(&input(&j, &stories, &awards));
-    assert!(md.contains(ENTRY), "the full entry, not the newer one told so far");
+    assert!(
+        md.contains(ENTRY),
+        "the full entry, not the newer one told so far"
+    );
     assert!(!md.contains("Told so far."));
 
     // Today is not over: it is not part of the journal yet.
