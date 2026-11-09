@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Outlet, useNavigate, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   listCharacters,
@@ -23,7 +23,6 @@ import { ActivityPanel } from "@/components/ActivityPanel";
 import { CharacterTree } from "@/components/CharacterTree";
 import { SyncNow } from "@/components/SyncNow";
 import { UpdateBanner } from "@/components/UpdateBanner";
-import { UpdateCheck } from "@/components/UpdateCheck";
 import { scheduleRebuild } from "@/lib/siteBuild";
 import { applyZoom, savedZoom, stepZoom } from "@/lib/zoom";
 
@@ -83,7 +82,6 @@ export function Layout() {
     };
   }, [queryClient]);
 
-  const [bannerKey, setBannerKey] = useState(0);
   // Drafts waiting across every character, as each one's badge in the list counts them.
   const toReview = (characters.data ?? []).reduce((n, c) => n + c.toReview, 0);
 
@@ -138,13 +136,6 @@ export function Layout() {
           />
           <ActivityPanel />
           <SyncNow />
-          <UpdateCheck
-            onFound={(update) => {
-              queryClient.setQueryData(["update"], update);
-              // A fresh banner, so one put away with "Later" offers it again.
-              setBannerKey((k) => k + 1);
-            }}
-          />
           <NavLink
             component="button"
             label={t("nav.settings")}
@@ -153,7 +144,7 @@ export function Layout() {
         </AppShell.Section>
       </AppShell.Navbar>
       <AppShell.Main h="100vh" id="journal" tabIndex={-1}>
-        <UpdateBanner key={bannerKey} />
+        <UpdateBanner />
         <Outlet />
       </AppShell.Main>
     </AppShell>

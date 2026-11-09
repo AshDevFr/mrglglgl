@@ -548,7 +548,12 @@
     "chosenMissing": "The folder you chose has no World of Warcraft in it",
     "chosenMissingNext": "Choose the game folder (the one containing _forever_), or find it automatically again, then save.",
     "wowhead": "Link names to Wowhead",
-    "wowheadHelp": "In What happened, quests, places, creatures, items and skills open Wowhead's search in your browser."
+    "wowheadHelp": "In What happened, quests, places, creatures, items and skills open Wowhead's search in your browser.",
+    "thisComputer": "On this computer",
+    "thisComputerHelp": "Applied at once, and kept on this computer only.",
+    "thisApp": "This app",
+    "savedSection": "Game, backups and language",
+    "savedSectionHelp": "Kept when you press Save."
   },
   "writing": {
     "loading": {

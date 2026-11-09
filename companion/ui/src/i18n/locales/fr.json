@@ -548,7 +548,12 @@
     "chosenMissing": "Le dossier que tu as choisi ne contient pas World of Warcraft",
     "chosenMissingNext": "Choisis le dossier du jeu (celui qui contient _forever_), ou retrouve-le automatiquement, puis enregistre.",
     "wowhead": "Lier les noms à Wowhead",
-    "wowheadHelp": "Dans Ce qui s'est passé, les quêtes, lieux, créatures, objets et compétences ouvrent la recherche de Wowhead dans ton navigateur."
+    "wowheadHelp": "Dans Ce qui s'est passé, les quêtes, lieux, créatures, objets et compétences ouvrent la recherche de Wowhead dans ton navigateur.",
+    "thisComputer": "Sur cet ordinateur",
+    "thisComputerHelp": "Appliqué tout de suite, et gardé sur cet ordinateur seulement.",
+    "thisApp": "Cette application",
+    "savedSection": "Jeu, sauvegardes et langue",
+    "savedSectionHelp": "Gardé quand tu appuies sur Enregistrer."
   },
   "writing": {
     "loading": {

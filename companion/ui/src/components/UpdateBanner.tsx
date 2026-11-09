@@ -9,7 +9,8 @@ import { availableUpdate, installAndRestart } from "@/lib/updates";
  * next start. */
 export function UpdateBanner() {
   const { t } = useTranslation();
-  const [later, setLater] = useState(false);
+  // When Later was pressed: a check the player asks for afterwards offers the update again.
+  const [laterAt, setLaterAt] = useState<number | null>(null);
   const update = useQuery({
     queryKey: ["update"],
     queryFn: availableUpdate,
@@ -20,6 +21,7 @@ export function UpdateBanner() {
     mutationFn: () =>
       installAndRestart(update.data as NonNullable<typeof update.data>),
   });
+  const later = laterAt !== null && update.dataUpdatedAt <= laterAt;
   if (later || !update.data) return null;
   return (
     <Alert
@@ -46,7 +48,7 @@ export function UpdateBanner() {
           size="xs"
           variant="default"
           disabled={install.isPending}
-          onClick={() => setLater(true)}
+          onClick={() => setLaterAt(Date.now())}
         >
           {t("update.later")}
         </Button>

@@ -5,7 +5,7 @@ description: Every tab of the app's Settings.
 
 | Tab | What it holds |
 |---|---|
-| **General** | The paper and size of the interface, the World of Warcraft folder, how long backups are kept, and the app's language |
+| **General** | On this computer, applied at once: the paper, the size of the interface and Wowhead links. Saved: the World of Warcraft folder, how long backups are kept, and the app's language. The app's version, and **Check for updates** |
 | **Writing** | The writing model or endpoint, the narrator, margin notes, the journal's language, writing preferences, and when entries are written |
 | **Narrators** | Every narrator, and your own: [Narrators and style](/guide/narrators/) |
 | **Website** | [The journal website](/guide/website/) |

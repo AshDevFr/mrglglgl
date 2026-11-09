@@ -16,6 +16,7 @@ const api = vi.hoisted(() => ({
 }));
 
 vi.mock("@/api/commands", () => ({
+  appInfo: async () => ({ version: "0.1.9" }),
   getSettings: async () => ({
     settings: {
       wowRootOverride: "/Games/World of Warcraft",

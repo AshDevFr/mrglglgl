@@ -1,4 +1,5 @@
-import { NavLink } from "@mantine/core";
+import { Button, Group, Text } from "@mantine/core";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Update } from "@tauri-apps/plugin-updater";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,9 +18,10 @@ type Outcome =
 export function UpdateCheck({
   onFound,
 }: {
-  onFound: (update: Update) => void;
+  onFound?: (update: Update) => void;
 }) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [outcome, setOutcome] = useState<Outcome>({ kind: "idle" });
 
   async function look() {
@@ -27,7 +29,9 @@ export function UpdateCheck({
     const { update, failed } = await checkForUpdate();
     if (update) {
       setOutcome({ kind: "idle" });
-      onFound(update);
+      // The banner reads this, and shows it again even after Later.
+      queryClient.setQueryData(["update"], update);
+      onFound?.(update);
     } else if (failed) {
       setOutcome({ kind: "failed" });
     } else {
@@ -44,12 +48,24 @@ export function UpdateCheck({
           ? problem(t, "update.checkFailed")
           : undefined;
   return (
-    <NavLink
-      component="button"
-      label={t("update.check")}
-      description={description}
-      disabled={outcome.kind === "checking"}
-      onClick={() => void look()}
-    />
+    <Group gap="sm" align="center">
+      <Button
+        variant="default"
+        size="xs"
+        loading={outcome.kind === "checking"}
+        onClick={() => void look()}
+      >
+        {t("update.check")}
+      </Button>
+      {description && (
+        <Text
+          size="sm"
+          c={outcome.kind === "failed" ? "red" : "dimmed"}
+          role="status"
+        >
+          {description}
+        </Text>
+      )}
+    </Group>
   );
 }

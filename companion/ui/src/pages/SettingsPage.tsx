@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getSettings, saveSettings } from "@/api/commands";
+import { appInfo, getSettings, saveSettings } from "@/api/commands";
 import type { Settings } from "@/bindings/Settings";
 import { AddonPanel } from "@/components/AddonPanel";
 import { LogPanel } from "@/components/LogPanel";
@@ -11,6 +11,7 @@ import { ModelsPanel } from "@/components/ModelsPanel";
 import { NarratorsPanel } from "@/components/NarratorsPanel";
 import { PaperField } from "@/components/PaperField";
 import { SettingsForm } from "@/components/SettingsForm";
+import { UpdateCheck } from "@/components/UpdateCheck";
 import { WebsitePanel } from "@/components/WebsitePanel";
 import { WowheadField } from "@/components/WowheadField";
 import { ZoomField } from "@/components/ZoomField";
@@ -31,6 +32,7 @@ export function SettingsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const view = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  const info = useQuery({ queryKey: ["appInfo"], queryFn: appInfo });
   const [tab, setTab] = useState<Tab>(rememberedSettingsTab);
 
   function openTab(value: string | null) {
@@ -81,10 +83,42 @@ export function SettingsPage() {
           </Tabs.List>
           <Tabs.Panel value="general">
             <Stack gap="xl" maw={640}>
-              <PaperField />
-              <ZoomField />
-              <WowheadField />
-              <SettingsForm view={view.data} onSave={save} section="general" />
+              {/* What applies at once on this computer, apart from what Save keeps. */}
+              <Stack gap="md">
+                <Title order={2} size="h3">
+                  {t("settings.thisComputer")}
+                </Title>
+                <Text size="sm" c="dimmed">
+                  {t("settings.thisComputerHelp")}
+                </Text>
+                <PaperField />
+                <ZoomField />
+                <WowheadField />
+              </Stack>
+              <Stack gap="md">
+                <Title order={2} size="h3">
+                  {t("settings.savedSection")}
+                </Title>
+                <Text size="sm" c="dimmed">
+                  {t("settings.savedSectionHelp")}
+                </Text>
+                <SettingsForm
+                  view={view.data}
+                  onSave={save}
+                  section="general"
+                />
+              </Stack>
+              <Stack gap="xs">
+                <Title order={2} size="h3">
+                  {t("settings.thisApp")}
+                </Title>
+                {info.data && (
+                  <Text size="sm">
+                    {t("app.version", { version: info.data.version })}
+                  </Text>
+                )}
+                <UpdateCheck />
+              </Stack>
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value="writing">
