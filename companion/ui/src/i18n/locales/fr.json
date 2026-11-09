@@ -87,7 +87,9 @@
     "range": "{{from}} au {{to}}",
     "noEntry": "Pas d'entrée",
     "empty": "Rien d'écrit sur cette page. Le murloc a vérifié deux fois.",
-    "emptyHelp": "Les journées apparaissent ici une fois que tu les as jouées avec l'addon installé."
+    "emptyHelp": "Les journées apparaissent ici une fois que tu les as jouées avec l'addon installé.",
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant"
   },
   "page": {
     "nothing": "Rien à signaler.",

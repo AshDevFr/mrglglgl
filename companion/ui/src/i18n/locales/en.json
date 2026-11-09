@@ -87,7 +87,9 @@
     "range": "{{from}} to {{to}}",
     "noEntry": "No entry",
     "empty": "Nothing written on this page. The murloc checked twice.",
-    "emptyHelp": "Days appear here once you have played them with the addon installed."
+    "emptyHelp": "Days appear here once you have played them with the addon installed.",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month"
   },
   "page": {
     "nothing": "Nothing to report.",

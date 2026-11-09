@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { shiftWeek, weekDays, weekStart } from "@/lib/weeks";
 import { renderWithProviders } from "@/test/render";
@@ -118,5 +118,48 @@ describe("WeekNav", () => {
       screen.getByRole("button", { name: /Monday, November 9, 2026$/ }),
     );
     expect(onSelect).toHaveBeenCalledWith("2026-11-09");
+  });
+
+  it("jumps to any written day from a month calendar", async () => {
+    const onSelect = renderNav("2026-11-10", "2026-11-12");
+    fireEvent.click(
+      screen.getByRole("button", { name: /November 9 to November 15, 2026/ }),
+    );
+    const calendar = await screen.findByRole("dialog", { hidden: true });
+    expect(within(calendar).getByText("November 2026")).toBeInTheDocument();
+    // Written days can be opened; a day with nothing written cannot.
+    expect(
+      within(calendar).getByRole("button", {
+        name: /November 3, 2026/,
+        hidden: true,
+      }),
+    ).toBeDisabled();
+    fireEvent.click(
+      within(calendar).getByRole("button", {
+        name: /November 1, 2026/,
+        hidden: true,
+      }),
+    );
+    expect(onSelect).toHaveBeenLastCalledWith("2026-11-01");
+  });
+
+  it("moves the calendar between the first written month and this one", async () => {
+    renderNav("2026-11-10", "2026-11-12");
+    fireEvent.click(
+      screen.getByRole("button", { name: /November 9 to November 15, 2026/ }),
+    );
+    const calendar = await screen.findByRole("dialog", { hidden: true });
+    expect(
+      within(calendar).getByRole("button", {
+        name: "Previous month",
+        hidden: true,
+      }),
+    ).toBeDisabled();
+    expect(
+      within(calendar).getByRole("button", {
+        name: "Next month",
+        hidden: true,
+      }),
+    ).toBeDisabled();
   });
 });

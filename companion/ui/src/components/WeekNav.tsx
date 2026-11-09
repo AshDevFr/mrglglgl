@@ -1,8 +1,16 @@
-import { Button, Group, Stack, Text } from "@mantine/core";
-import type { KeyboardEvent } from "react";
+import {
+  Button,
+  Group,
+  Popover,
+  Stack,
+  Text,
+  UnstyledButton,
+} from "@mantine/core";
+import { type KeyboardEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { parseDay } from "@/lib/format";
 import { shiftWeek, weekDays, weekStart } from "@/lib/weeks";
+import { MonthGrid } from "./MonthGrid";
 
 interface Props {
   /** The day on screen, "YYYY-MM-DD". */
@@ -17,6 +25,8 @@ interface Props {
 /** Previous and next week, a jump to today, and the seven days of the shown week. */
 export function WeekNav({ selected, written, today, onSelect }: Props) {
   const { t, i18n } = useTranslation();
+  const [picking, setPicking] = useState(false);
+  const [month, setMonth] = useState(selected.slice(0, 7));
   const days = weekDays(selected);
   const range = t("week.range", {
     from: new Intl.DateTimeFormat(i18n.language, {
@@ -72,7 +82,44 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
         >
           {t("week.previous")}
         </Button>
-        <Text fw={500}>{range}</Text>
+        {/* The range opens a month calendar, to reach any day without stepping week by week. */}
+        <Popover
+          opened={picking}
+          onChange={setPicking}
+          position="bottom"
+          withArrow
+          shadow="md"
+          trapFocus
+        >
+          <Popover.Target>
+            <UnstyledButton
+              className="week-range"
+              aria-haspopup="dialog"
+              aria-expanded={picking}
+              onClick={() => {
+                setMonth(selected.slice(0, 7));
+                setPicking((open) => !open);
+              }}
+            >
+              <Text fw={500}>{range} ▾</Text>
+            </UnstyledButton>
+          </Popover.Target>
+          <Popover.Dropdown role="dialog">
+            <MonthGrid
+              month={month}
+              selected={selected}
+              written={written}
+              today={today}
+              first={(first ?? today).slice(0, 7)}
+              last={today.slice(0, 7)}
+              onMonth={setMonth}
+              onSelect={(day) => {
+                setPicking(false);
+                onSelect(day);
+              }}
+            />
+          </Popover.Dropdown>
+        </Popover>
         <Group gap="xs" wrap="nowrap">
           <Button
             variant="subtle"
