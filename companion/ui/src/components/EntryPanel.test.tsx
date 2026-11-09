@@ -390,4 +390,19 @@ describe("EntryPanel, edited by hand", () => {
     );
     expect(screen.queryByText("Edit")).toBeNull();
   });
+
+  it("says a new version waits in line, and why", () => {
+    panel({
+      versions: [story(1, "The plains were quiet.")],
+      job: job({ state: "pending", position: 2 }),
+      blocked: "gameRunning",
+    });
+    expect(
+      screen.getByText(
+        /^A new version is in line, number 2\. .*game is running/,
+      ),
+    ).toBeInTheDocument();
+    // Pressing it again moves it ahead of the line, as Write now does.
+    expect(screen.getByRole("button", { name: "Write again" })).toBeEnabled();
+  });
 });

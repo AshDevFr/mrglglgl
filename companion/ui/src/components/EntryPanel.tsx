@@ -239,6 +239,12 @@ export function EntryPanel({
         </>
       )}
 
+      {shown && job?.state === "pending" && (
+        <Text className="note" role="status">
+          {t("writing.againQueued", { position: job.position ?? 1 })}
+          {blocked && ` ${problem(t, `writing.blocked.${blocked}` as Problem)}`}
+        </Text>
+      )}
       {job?.state === "failed" && (
         <Group gap="xs" className="note">
           <Text size="sm">{failure(t, job.lastError)}</Text>

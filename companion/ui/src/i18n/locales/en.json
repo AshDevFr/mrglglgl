@@ -580,6 +580,7 @@
     "facts": "What happened",
     "setAside": "The murloc's entry was set aside because it {{reason}}.",
     "notYet": "The murloc hasn't written this one yet. It is number {{position}} in line.",
+    "againQueued": "A new version is in line, number {{position}}.",
     "blocked": {
       "paused": "Writing is paused.",
       "noModel": "No writing model is downloaded yet.",

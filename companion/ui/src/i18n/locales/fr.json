@@ -580,6 +580,7 @@
     "facts": "Ce qui s'est passé",
     "setAside": "L'entrée du murloc a été mise de côté parce qu'elle {{reason}}.",
     "notYet": "Le murloc n'a pas encore écrit celle-ci. Elle est numéro {{position}} dans la file.",
+    "againQueued": "Une nouvelle version attend son tour, numéro {{position}}.",
     "blocked": {
       "paused": "L'écriture est en pause.",
       "noModel": "Aucun modèle d'écriture n'est encore téléchargé.",
