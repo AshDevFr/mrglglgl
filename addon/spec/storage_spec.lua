@@ -18,7 +18,7 @@ describe("Storage", function()
 		ns = Addon.load(Mock)
 	end)
 
-	it("creates both databases with defaults on a fresh character, silently", function()
+	it("creates both databases with defaults on a fresh character", function()
 		start()
 		assert.equals(2, _G.MrglglglDB.schema)
 		assert.equals(30, _G.MrglglglDB.settings.retentionDays)
@@ -28,6 +28,17 @@ describe("Storage", function()
 		local today = _G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)]
 		assert.same({ "session_start" }, { today.ev[1].k, today.ev[2] and today.ev[2].k })
 		assert.same({ boots = 0, murlocsSlain = 0, deathsByMurloc = 0, drownings = 0 }, _G.MrglglglCharDB.stats)
+	end)
+
+	it("says once, the first time it records on the account, that it is working", function()
+		start()
+		assert.equals(1, #Mock.printed)
+		assert.truthy(Mock.printed[1]:find("/mrgl", 1, true))
+		assert.is_true(_G.MrglglglDB.welcomed)
+		-- Every later login, on any character of the account, is silent again.
+		Mock.printed = {}
+		Mock.fire("PLAYER_LOGOUT")
+		Mock.fire("PLAYER_LOGIN")
 		assert.same({}, Mock.printed)
 	end)
 

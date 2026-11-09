@@ -627,6 +627,9 @@ pub struct AccountSettings {
     /// `sayOthers` for other players'.
     #[serde(default)]
     pub chat: BTreeMap<String, bool>,
+    /// The addon has said once, at a first login, that it records.
+    #[serde(default)]
+    pub welcomed: bool,
 }
 
 // ── Reading ──────────────────────────────────────────────────────────────────
@@ -1176,5 +1179,6 @@ pub fn account_settings_from(file: &SavedVariables) -> Option<AccountSettings> {
         retention_days: settings.and_then(|s| int(s, "retentionDays")),
         screenshots: flags(settings.and_then(|s| table(s, "screenshots"))),
         chat: flags(settings.and_then(|s| table(s, "chat"))),
+        welcomed: boolean(db, "welcomed").unwrap_or(false),
     })
 }

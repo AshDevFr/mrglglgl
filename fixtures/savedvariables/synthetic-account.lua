@@ -56,4 +56,5 @@ MrglglglDB = {
 ["levelUp"] = true,
 },
 },
+["welcomed"] = true,
 }

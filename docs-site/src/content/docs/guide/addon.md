@@ -7,7 +7,8 @@ The addon quietly records your character's day: sessions, levels, quests, zones 
 discovered, kills, deaths and what killed you, fishing (boots included), notable loot, the people
 you grouped with, professions, money and the auction house, and the Legacy Challenges you
 complete. Chat, for role play, can be recorded too but is off by default. It shows nothing unless
-you ask. The newer kinds are described in [What gets recorded](/guide/recorded/).
+you ask, except one line the first time it records on your account, to say it is working and that
+`/mrgl` shows what it noted. The newer kinds are described in [What gets recorded](/guide/recorded/).
 
 ## In game
 

@@ -2,6 +2,7 @@ local _, ns = ...
 
 -- French, for a French game client. The player is addressed as "tu", as the game itself does.
 ns.RegisterLocale("frFR", {
+	WELCOME = "Les journées de ce personnage sont notées. Tape /mrgl pour voir ce qui a été noté aujourd'hui ; l'application compagnon en fait un journal.",
 	CATEGORY_SESSIONS = "Sessions",
 	CATEGORY_LEVELS = "Niveaux",
 	CATEGORY_QUESTS = "Quêtes",
@@ -82,11 +83,11 @@ ns.RegisterLocale("frFR", {
 	TIP_CHAT = "Ce qui se dit dans les canaux choisis ci-dessous, pour le jeu de rôle. Désactivé par défaut.",
 	SETTINGS_LOOT_QUALITY = "Qualité du butin notable",
 	TIP_LOOT_QUALITY = "La qualité d'objet la plus basse notée comme butin notable.",
-	QUALITY_UNCOMMON = "Inhabituel et mieux",
-	QUALITY_RARE = "Rare et mieux",
-	QUALITY_EPIC = "Épique et mieux",
+	QUALITY_UNCOMMON = "Inhabituel ou mieux",
+	QUALITY_RARE = "Rare ou mieux",
+	QUALITY_EPIC = "Épique ou mieux",
 
-	SETTINGS_CHAT_HEADER = "Canaux de discussion",
+	SETTINGS_CHAT_HEADER = "Canaux de discussion (notés quand Discussion est activé, sur la page principale)",
 	CHAT_OWN = "%s : tes répliques",
 	CHAT_OTHERS = "%s : celles des autres",
 	TIP_CHAT_OWN = "Note ce que tu dis dans ce canal, quand la discussion est activée.",
@@ -121,7 +122,7 @@ ns.RegisterLocale("frFR", {
 	SHOT_FIRST_MURLOC_KILL = "À ton premier murloc tué",
 	SHOT_FIRST_DEATH_BY_MURLOC = "À ta première mort par un murloc",
 
-	SETTINGS_FORGET_HEADER = "Oublier ce qui a été noté",
+	SETTINGS_FORGET_HEADER = "Oublier ce qui a été noté (appuie deux fois sur un bouton en 10 secondes)",
 	FORGET_BUTTON = "Oublier",
 	TIP_FORGET = "Efface ce que ce personnage a noté dans cette catégorie. Appuie deux fois pour confirmer.",
 	FORGET_CONFIRM = "Appuie encore sur Oublier dans les %d secondes pour effacer tout ce qui a été noté pour : %s.",

@@ -205,6 +205,10 @@ fn reads_the_account_settings() {
     assert_eq!(settings.loot_quality, Some(3));
     assert_eq!(settings.record.get("kills"), Some(&true));
     assert_eq!(settings.screenshots.get("levelUp"), Some(&true));
+    assert!(
+        settings.welcomed,
+        "the fixture's first login said it records"
+    );
 }
 
 #[test]
@@ -325,6 +329,7 @@ fn reads_every_documented_field() {
     let handled: BTreeSet<&str> = [
         // MrglglglDB
         "schema",
+        "welcomed",
         "settings.record.sessions",
         "settings.record.levels",
         "settings.record.quests",

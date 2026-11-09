@@ -16,4 +16,8 @@ screenshots: { [key in string]: boolean },
  * Chat channels and whether each is recorded: `say` for the player's own lines,
  * `sayOthers` for other players'.
  */
-chat: { [key in string]: boolean }, };
+chat: { [key in string]: boolean }, 
+/**
+ * The addon has said once, at a first login, that it records.
+ */
+welcomed: boolean, };

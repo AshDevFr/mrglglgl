@@ -3,6 +3,7 @@ local _, ns = ...
 ns.RegisterLocale("enUS", {
 	ADDON_TITLE = "Mrglglgl",
 	PREFIX = "|cff3fbfbfMrglglgl:|r ",
+	WELCOME = "Recording this character's days. Type /mrgl to see what was noted today; the companion app turns them into a journal.",
 
 	CATEGORY_SESSIONS = "Sessions",
 	CATEGORY_LEVELS = "Levels",
@@ -86,7 +87,7 @@ ns.RegisterLocale("enUS", {
 	QUALITY_RARE = "Rare and better",
 	QUALITY_EPIC = "Epic and better",
 
-	SETTINGS_CHAT_HEADER = "Chat channels",
+	SETTINGS_CHAT_HEADER = "Chat channels (recorded while Chat is on, on the main page)",
 	CHAT_OWN = "%s: your lines",
 	CHAT_OTHERS = "%s: others' lines",
 	TIP_CHAT_OWN = "Records what you say in this channel, while Chat is on.",
@@ -119,7 +120,7 @@ ns.RegisterLocale("enUS", {
 	SHOT_FIRST_MURLOC_KILL = "On your first murloc slain",
 	SHOT_FIRST_DEATH_BY_MURLOC = "On your first death by murloc",
 
-	SETTINGS_FORGET_HEADER = "Forget recorded data",
+	SETTINGS_FORGET_HEADER = "Forget recorded data (press a button twice within 10 seconds)",
 	FORGET_BUTTON = "Forget",
 	TIP_FORGET = "Deletes what this character has recorded in this category. Press twice to confirm.",
 	FORGET_CONFIRM = "Press Forget again within %d seconds to delete everything recorded for: %s.",

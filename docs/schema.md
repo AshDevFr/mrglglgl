@@ -32,6 +32,7 @@ Keys are short because SavedVariables size counts. Types: `int` and `number` are
 | Field | Type | Meaning |
 |---|---|---|
 | `schema` | int | Settings schema version |
+| `welcomed` | bool? | The addon said once, at the first login it recorded on this account, that it is recording; it stays quiet after |
 | `settings.record.sessions` | bool | Record logins and logouts |
 | `settings.record.levels` | bool | Record level-ups |
 | `settings.record.quests` | bool | Record quests accepted and turned in |

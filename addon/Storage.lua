@@ -144,6 +144,12 @@ ns.On("PLAYER_LOGIN", function()
 			interface = interface,
 			login = time(),
 		}
+		-- The addon says nothing unless asked, but once, the first time it records on this
+		-- account, so a player who just installed it knows it is working and where to look.
+		if not MrglglglDB.welcomed then
+			MrglglglDB.welcomed = true
+			print(ns.L.PREFIX .. ns.L.WELCOME)
+		end
 	else
 		-- A journal saved by a newer addon is left untouched; without this line the player would
 		-- not know nothing is being recorded.
