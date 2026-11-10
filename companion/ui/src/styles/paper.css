@@ -422,6 +422,13 @@ details.facts .fact-list {
   margin-bottom: 0.75rem;
 }
 
+/* Editing keeps the page's reading type, so the entry looks like itself while it changes. */
+.entry-editor textarea {
+  font-family: var(--reading-font);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
 .week-chapter .entry-panel .entry {
   font-family: var(--reading-font);
   font-size: 1.05rem;
@@ -561,6 +568,30 @@ details.facts .fact-list {
 .week-range {
   border-radius: 4px;
   padding: 0.125rem 0.375rem;
+  white-space: nowrap;
+}
+
+/* Previous week, the range, then next week and today; when the column is too narrow for one
+   row, the range moves above the buttons rather than squeezing them. */
+.week-nav {
+  container-type: inline-size;
+}
+.week-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+@container (max-width: 40rem) {
+  .week-bar {
+    flex-wrap: wrap;
+  }
+  .week-bar-range {
+    order: -1;
+    flex-basis: 100%;
+    display: flex;
+    justify-content: center;
+  }
 }
 .week-range:hover {
   background: color-mix(in srgb, var(--stamp) 12%, transparent);
@@ -585,4 +616,29 @@ details.facts .fact-list {
 }
 .month-day[aria-current="date"] {
   outline: 1px solid var(--stamp);
+}
+
+/* Every page's own title, in the reading type the character pages use. */
+.page-title {
+  margin: 0 0 1rem;
+  font-family: var(--reading-font);
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.page-title-small {
+  margin: 0.75rem 0 0;
+  font-size: 1.25rem;
+}
+
+.latest-entry {
+  background: var(--page);
+  border-color: var(--page-edge);
+  max-width: 40rem;
+}
+.latest-entry-name,
+.latest-entry-text {
+  font-family: var(--reading-font);
+  color: var(--ink);
 }

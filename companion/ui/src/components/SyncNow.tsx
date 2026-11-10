@@ -1,4 +1,4 @@
-import { Loader, NavLink } from "@mantine/core";
+import { Button, Loader } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -37,12 +37,15 @@ export function SyncNow() {
   }
 
   return (
-    <NavLink
-      component="button"
-      label={t("nav.syncNow")}
-      leftSection={reading ? <Loader size={12} /> : undefined}
+    <Button
+      size="compact-xs"
+      variant="subtle"
+      color="gray"
+      leftSection={reading ? <Loader size={10} /> : undefined}
       disabled={reading}
       onClick={() => void read()}
-    />
+    >
+      {t("nav.syncNow")}
+    </Button>
   );
 }

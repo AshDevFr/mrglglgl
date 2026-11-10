@@ -5,7 +5,7 @@ description: Every tab of the app's Settings.
 
 | Tab | What it holds |
 |---|---|
-| **General** | On this computer, applied at once: the paper, the size of the interface and Wowhead links. Saved: the World of Warcraft folder, how long backups are kept, and the app's language. The app's version, and **Check for updates** |
+| **General** | On this computer: the paper, the size of the interface and Wowhead links. For the app: the World of Warcraft folder, how long backups are kept, and the app's language. The app's version, and **Check for updates** |
 | **Writing** | The writing model or endpoint, the narrator, margin notes, the journal's language, writing preferences, and when entries are written |
 | **Narrators** | Every narrator, and your own: [Narrators and style](/guide/narrators/) |
 | **Website** | [The journal website](/guide/website/) |
@@ -14,12 +14,16 @@ description: Every tab of the app's Settings.
 
 ![The General tab of Settings.](../../../assets/screenshots/settings-general.png)
 
+Settings are saved as you change them, with nothing to press, except two: who writes (this
+computer or an endpoint), which waits for **Save who writes** so a half-typed address never
+reaches the writer, and the [website](/guide/website/), which has its own **Save**.
+
 ## Updates
 
 The app looks for a new version each time it starts and offers it in a banner. To look now, use
 **Check for updates** in the sidebar, in **Settings**, **General**, or on macOS in the app menu
-(**Mrglglgl**, **Check for Updates…**). The version running is shown under **Settings** in the
-sidebar.
+(**Mrglglgl**, **Check for Updates…**). The version running is shown at the foot of the sidebar,
+beside **Check for updates**.
 
 ## The World of Warcraft folder
 

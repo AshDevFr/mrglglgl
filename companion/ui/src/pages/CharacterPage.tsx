@@ -22,7 +22,7 @@ import type { StoryKind } from "@/bindings/StoryKind";
 import { CharacterTop } from "@/components/CharacterTop";
 import { EmptyState } from "@/components/EmptyState";
 import { type DayWriting, JournalPage } from "@/components/JournalPage";
-import { CopyEntryButton, DebugExportButton } from "@/components/Sharing";
+import { CopyEntryButton, DebugExportItem } from "@/components/Sharing";
 import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
 import { WritingBanner } from "@/components/WritingBanner";
@@ -107,12 +107,8 @@ export function CharacterPage({
       onCancel: () => void cancelWriting(characterId, kind, start),
       onRetry: () =>
         void retryWriting(characterId, kind, start).then(refreshStatus),
-      actions: (story) => (
-        <>
-          <CopyEntryButton story={story} />
-          <DebugExportButton story={story} />
-        </>
-      ),
+      actions: (story) => <CopyEntryButton story={story} />,
+      menuItems: (story) => <DebugExportItem story={story} />,
       onEdit: async (story, text) => {
         const saved = await editStory(characterId, story.id, text);
         if (saved === null) throw new Error(t("writing.editRefused"));
@@ -175,14 +171,6 @@ export function CharacterPage({
           today={today}
           onSelect={show}
         />
-        {journal.data &&
-          (weekly ||
-            versionsOf(stories.data ?? [], "week", monday).length > 0) && (
-            <WeekChapter
-              monday={monday}
-              {...writingFor("week", monday, sunday)}
-            />
-          )}
         {review.data?.some(
           (i) =>
             i.kind === "day" && i.startDay === selected && i.drafts.length > 0,
@@ -200,6 +188,16 @@ export function CharacterPage({
             {t("week.emptyHelp")}
           </EmptyState>
         )}
+        {/* The day comes first: it is what was picked. The week's chapter follows, for the
+            same week whichever of its days is open. */}
+        {journal.data &&
+          (weekly ||
+            versionsOf(stories.data ?? [], "week", monday).length > 0) && (
+            <WeekChapter
+              monday={monday}
+              {...writingFor("week", monday, sunday)}
+            />
+          )}
       </Stack>
     </div>
   );

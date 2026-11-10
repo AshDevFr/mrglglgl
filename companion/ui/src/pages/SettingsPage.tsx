@@ -1,4 +1,4 @@
-import { Alert, Container, Stack, Tabs, Text, Title } from "@mantine/core";
+import { Alert, Stack, Tabs, Text, Title } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -54,10 +54,8 @@ export function SettingsPage() {
   }
 
   return (
-    <Container py="xl">
-      <Title order={1} mb="md">
-        {t("settings.title")}
-      </Title>
+    <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
+      <h1 className="page-title">{t("settings.title")}</h1>
       {view.isError && (
         <Alert color="red">
           {problem(t, "errors.load", { message: String(view.error) })}
@@ -158,6 +156,6 @@ export function SettingsPage() {
       ) : (
         <Text>{t("loading")}</Text>
       )}
-    </Container>
+    </div>
   );
 }

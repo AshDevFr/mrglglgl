@@ -52,7 +52,8 @@ export function PrintPage({ characterId }: { characterId: number }) {
       data-paper={data.data?.paper ?? savedPaper()}
     >
       <Group className="no-print" justify="space-between" p="md">
-        <Button variant="subtle" color="gray" onClick={back}>
+        {/* The sheet stays light paper in the dark theme: its ink, not the theme's text. */}
+        <Button variant="subtle" color="gray" c="var(--ink)" onClick={back}>
           ← {t("nav.back")}
         </Button>
         <Button onClick={() => void printPage()} disabled={!data.data}>

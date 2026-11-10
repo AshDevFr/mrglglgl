@@ -75,6 +75,14 @@ function panel(props: Partial<Parameters<typeof EntryPanel>[0]> = {}) {
   return handlers;
 }
 
+/** Opens the entry's More menu and picks how to write it again. */
+async function rewrite(item: string) {
+  fireEvent.click(
+    screen.getAllByRole("button", { name: "More" }).at(-1) as HTMLElement,
+  );
+  fireEvent.click(await screen.findByRole("menuitem", { name: item }));
+}
+
 describe("the writer's events", () => {
   it("streams, restarts and finishes per day, ignoring other characters", () => {
     let map = {};
@@ -199,10 +207,14 @@ describe("EntryPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("writes again with the narrator picked for this day", async () => {
+  it("keeps writing again behind More, then asks for the narrator", async () => {
     const { onWrite } = panel({
       versions: [story(1, "The plains were quiet.")],
     });
+    // A written entry offers to copy and edit it; writing it over waits behind More.
+    expect(screen.queryByRole("button", { name: "Write again" })).toBeNull();
+    expect(screen.queryByLabelText("Narrator for this day")).toBeNull();
+    await rewrite("Write again…");
     const input = screen
       .getAllByLabelText("Narrator for this day")
       .find((el) => el.tagName === "INPUT");
@@ -284,7 +296,7 @@ describe("EntryPanel", () => {
     expect(onWriteSoFar).toHaveBeenCalledWith(null);
   });
 
-  it("marks an entry told so far as such", () => {
+  it("marks an entry told so far as such", async () => {
     panel({
       finished: false,
       onWriteSoFar: vi.fn(),
@@ -297,6 +309,7 @@ describe("EntryPanel", () => {
     expect(
       screen.getByText(/The full entry is written once the day is over/),
     ).toBeInTheDocument();
+    await rewrite("Tell it again so far…");
     expect(
       screen.getByRole("button", { name: "Tell it again so far" }),
     ).toBeInTheDocument();
@@ -391,7 +404,7 @@ describe("EntryPanel, edited by hand", () => {
     expect(screen.queryByText("Edit")).toBeNull();
   });
 
-  it("says a new version waits in line, and why", () => {
+  it("says a new version waits in line, and why", async () => {
     panel({
       versions: [story(1, "The plains were quiet.")],
       job: job({ state: "pending", position: 2 }),
@@ -403,6 +416,7 @@ describe("EntryPanel, edited by hand", () => {
       ),
     ).toBeInTheDocument();
     // Pressing it again moves it ahead of the line, as Write now does.
+    await rewrite("Write again…");
     expect(screen.getByRole("button", { name: "Write again" })).toBeEnabled();
   });
 });

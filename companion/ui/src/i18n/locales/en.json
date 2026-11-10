@@ -22,7 +22,10 @@
   "home": {
     "empty": "No journals yet. The murloc is waiting by the water.",
     "emptyHelp": "Play with the Mrglglgl addon installed, then log out or type /reload: the game saves the journal at those moments, and it appears here.",
-    "pick": "Choose a character on the left to read their journal.",
+    "latest": "Pick up where you left off",
+    "continue": "Continue reading",
+    "continueFor": "Continue reading {{name}}'s journal",
+    "nothingWritten": "Nothing written yet. The days are in the journal.",
     "addonMissingTitle": "The addon is not installed",
     "addonMissing": "Without it in the game, nothing is recorded and there is nothing to write about. The app can install it for you.",
     "addonInstall": "Install the addon",
@@ -363,7 +366,7 @@
       "name": "Night Owl",
       "description": "Played between three and six in the morning."
     },
-    "ofTheDay": "The day's milestones",
+    "alsoEarned": "Also earned this day",
     "level_30": {
       "name": "Thirty Something",
       "description": "Reached level 30."
@@ -465,8 +468,6 @@
     "languageSystem": "Same as the system",
     "languageEnglish": "English",
     "forgetting": "Forgetting data in the game (with the addon's \"Forget recorded\" buttons) changes only the game's files. The app keeps its own copy until you remove the character here.",
-    "save": "Save",
-    "saved": "Settings saved.",
     "error": "The settings could not be saved: {{message}}",
     "writingTitle": "Writing",
     "narrator": "Narrator",
@@ -557,7 +558,13 @@
     "thisComputerHelp": "Applied at once, and kept on this computer only.",
     "thisApp": "This app",
     "savedSection": "Game, backups and language",
-    "savedSectionHelp": "Kept when you press Save."
+    "savedSectionHelp": "Saved as you change them.",
+    "saving": "Saving…",
+    "savedAuto": "Saved.",
+    "autosave": "Changes are saved as you make them.",
+    "saveEndpoint": "Save who writes",
+    "discardEndpoint": "Undo",
+    "endpointUnsaved": "Not saved yet."
   },
   "writing": {
     "loading": {
@@ -633,8 +640,12 @@
     "soFarByline": "Told so far by {{narrator}}, {{when}}",
     "soFarNote": "The day goes on. The full entry is written once the day is over.",
     "edit": "Edit",
+    "more": "More",
+    "againMenu": "Write again…",
+    "soFarAgainMenu": "Tell it again so far…",
     "editLabel": "Your version of the entry",
     "editHelp": "Saved as a new version in the journal; the earlier ones are kept. The app does not check your words against the day's notes.",
+    "editMarginHelp": "A paragraph starting with * is the murloc's margin note.",
     "editSave": "Save my version",
     "editCancel": "Cancel",
     "editedByline": "Edited by you from {{narrator}}'s entry, {{when}}. Not checked against the notes",
@@ -702,6 +713,7 @@
     },
     "print": "Open the print dialog",
     "debug": "Debug file",
+    "debugMenu": "Save a debug file…",
     "debugSaved": "Debug file saved: {{path}}",
     "debugFailed": "The debug file could not be written: {{message}}",
     "debugFailedNext": "Choose a folder outside the game's folder that you can write to, then try again.",
@@ -774,6 +786,7 @@
     "mine": "Yours",
     "editCopy": "Edit a copy",
     "edit": "Edit",
+    "inUse": "In use",
     "export": "Export",
     "delete": "Delete",
     "deleteTitle": "Remove {{name}}?",
@@ -868,7 +881,7 @@
       "posts": "Posts",
       "archive": "Archive",
       "milestones": "Milestones",
-      "feed": "Feed",
+      "feed": "RSS feed",
       "latest": "Latest",
       "newer": "Newer",
       "older": "Older",
@@ -898,6 +911,7 @@
     "themeFolder": "Theme folder (optional)",
     "themeFolderHelp": "Your own templates and a custom.css; anything missing comes from the default theme. See the theme guide in the project's docs.",
     "copyTheme": "Copy the default theme here",
+    "copyThemeNeedsFolder": "Choose a theme folder first.",
     "themeCopied_one": "{{count}} theme file copied. Edit them, and keep only the ones you change.",
     "themeCopied_other": "{{count}} theme files copied. Edit them, and keep only the ones you change.",
     "save": "Save",
@@ -1085,6 +1099,7 @@
     "title": "Data the app uses for this character",
     "body": "Everything the addon records is used. Each kind has two switches: one for narrators, the website and exports, and one for \"What happened\" here in the app. Turned off, it is left out there, along with the milestones it earned. The app keeps it all, so turning it back on brings it back.",
     "save": "Save",
+    "all": "Turn every kind on or off: {{column}}",
     "category": {
       "sessions": "Sessions",
       "levels": "Levels",
@@ -1169,7 +1184,7 @@
     "save": "Save",
     "saved": "Saved. The next entry uses it.",
     "dataTitle": "What the narrator may use",
-    "dataHelp": "Which recorded things this character's narrator, website and exports may use, and which the window shows.",
+    "dataHelp": "Which recorded things this character's narrator, website and exports may use, and which the app shows.",
     "dataButton": "Choose what is used"
   }
 }

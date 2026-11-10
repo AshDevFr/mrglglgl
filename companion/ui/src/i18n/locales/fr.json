@@ -22,7 +22,10 @@
   "home": {
     "empty": "Pas encore de journal. Le murloc attend au bord de l'eau.",
     "emptyHelp": "Joue avec l'addon Mrglglgl installé, puis déconnecte-toi ou tape /reload : le jeu enregistre le journal à ces moments-là, et il apparaît ici.",
-    "pick": "Choisis un personnage à gauche pour lire son journal.",
+    "latest": "Reprendre là où tu t'étais arrêté",
+    "continue": "Continuer la lecture",
+    "continueFor": "Continuer le journal de {{name}}",
+    "nothingWritten": "Rien d'écrit pour l'instant. Les jours sont dans le journal.",
     "addonMissingTitle": "L'addon n'est pas installé",
     "addonMissing": "Sans lui dans le jeu, rien n'est enregistré et il n'y a rien à raconter. L'application peut l'installer pour toi.",
     "addonInstall": "Installer l'addon",
@@ -363,7 +366,7 @@
       "name": "Oiseau de nuit",
       "description": "A joué entre trois et six heures du matin."
     },
-    "ofTheDay": "Les jalons du jour",
+    "alsoEarned": "Aussi obtenus ce jour-là",
     "level_30": {
       "name": "La trentaine",
       "description": "A atteint le niveau 30."
@@ -465,8 +468,6 @@
     "languageSystem": "Comme le système",
     "languageEnglish": "Anglais",
     "forgetting": "Oublier des données dans le jeu (avec les boutons « Oublier ce qui a été noté » de l'addon) ne change que les fichiers du jeu. L'application garde sa propre copie jusqu'à ce que tu retires le personnage ici.",
-    "save": "Enregistrer",
-    "saved": "Réglages enregistrés.",
     "error": "Les réglages n'ont pas pu être enregistrés : {{message}}",
     "writingTitle": "Écriture",
     "narrator": "Narrateur",
@@ -557,7 +558,13 @@
     "thisComputerHelp": "Appliqué tout de suite, et gardé sur cet ordinateur seulement.",
     "thisApp": "Cette application",
     "savedSection": "Jeu, sauvegardes et langue",
-    "savedSectionHelp": "Gardé quand tu appuies sur Enregistrer."
+    "savedSectionHelp": "Enregistrés dès que tu les changes.",
+    "saving": "Enregistrement…",
+    "savedAuto": "Enregistré.",
+    "autosave": "Les changements sont enregistrés au fur et à mesure.",
+    "saveEndpoint": "Enregistrer qui écrit",
+    "discardEndpoint": "Annuler",
+    "endpointUnsaved": "Pas encore enregistré."
   },
   "writing": {
     "loading": {
@@ -633,8 +640,12 @@
     "soFarByline": "Raconté jusqu'ici par {{narrator}}, {{when}}",
     "soFarNote": "La journée continue. L'entrée complète est écrite une fois la journée finie.",
     "edit": "Modifier",
+    "more": "Plus",
+    "againMenu": "Réécrire…",
+    "soFarAgainMenu": "Le raconter à nouveau jusqu'ici…",
     "editLabel": "Ta version de l'entrée",
     "editHelp": "Enregistrée comme une nouvelle version dans le journal ; les précédentes sont conservées. L'application ne vérifie pas tes mots par rapport aux notes de la journée.",
+    "editMarginHelp": "Un paragraphe qui commence par * est la note du murloc dans la marge.",
     "editSave": "Enregistrer ma version",
     "editCancel": "Annuler",
     "editedByline": "Modifié par toi à partir de l'entrée de {{narrator}}, {{when}}. Non vérifié par rapport aux notes",
@@ -702,6 +713,7 @@
     },
     "print": "Ouvrir la boîte de dialogue d'impression",
     "debug": "Fichier de débogage",
+    "debugMenu": "Enregistrer un fichier de débogage…",
     "debugSaved": "Fichier de débogage enregistré : {{path}}",
     "debugFailed": "Le fichier de débogage n'a pas pu être écrit : {{message}}",
     "debugFailedNext": "Choisis un dossier hors du dossier du jeu, où tu peux écrire, puis réessaie.",
@@ -774,6 +786,7 @@
     "mine": "À toi",
     "editCopy": "Modifier une copie",
     "edit": "Modifier",
+    "inUse": "Utilisé",
     "export": "Exporter",
     "delete": "Supprimer",
     "deleteTitle": "Retirer {{name}} ?",
@@ -868,7 +881,7 @@
       "posts": "Articles",
       "archive": "Archives",
       "milestones": "Jalons",
-      "feed": "Flux",
+      "feed": "Flux RSS",
       "latest": "Dernier",
       "newer": "Plus récent",
       "older": "Plus ancien",
@@ -898,6 +911,7 @@
     "themeFolder": "Dossier de thème (facultatif)",
     "themeFolderHelp": "Tes propres modèles et un custom.css ; tout ce qui manque vient du thème par défaut. Consulte le guide des thèmes dans la documentation du projet.",
     "copyTheme": "Copier ici le thème par défaut",
+    "copyThemeNeedsFolder": "Choisis d'abord un dossier de thème.",
     "themeCopied_one": "{{count}} fichier de thème copié. Modifie-les, et ne garde que ceux que tu changes.",
     "themeCopied_other": "{{count}} fichiers de thème copiés. Modifie-les, et ne garde que ceux que tu changes.",
     "save": "Enregistrer",
@@ -1085,6 +1099,7 @@
     "title": "Données que l'application utilise pour ce personnage",
     "body": "Tout ce que l'addon enregistre est utilisé. Chaque type a deux interrupteurs : un pour les narrateurs, le site web et les exports, et un pour « Ce qui s'est passé » ici dans l'application. Désactivé, il est laissé de côté à cet endroit, ainsi que les jalons qu'il a rapportés. L'application garde tout, donc le réactiver le ramène.",
     "save": "Enregistrer",
+    "all": "Tout activer ou désactiver : {{column}}",
     "category": {
       "sessions": "Sessions",
       "levels": "Niveaux",
@@ -1169,7 +1184,7 @@
     "save": "Enregistrer",
     "saved": "Enregistré. La prochaine entrée en tient compte.",
     "dataTitle": "Ce que le narrateur peut utiliser",
-    "dataHelp": "Ce que le narrateur, le site et les exports de ce personnage peuvent utiliser parmi ce qui est enregistré, et ce que la fenêtre affiche.",
+    "dataHelp": "Ce que le narrateur, le site et les exports de ce personnage peuvent utiliser parmi ce qui est enregistré, et ce que l'app affiche.",
     "dataButton": "Choisir ce qui est utilisé"
   }
 }

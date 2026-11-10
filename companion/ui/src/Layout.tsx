@@ -1,9 +1,11 @@
 import {
   ActionIcon,
   AppShell,
+  Divider,
   Group,
   NavLink,
   ScrollArea,
+  Stack,
   Text,
   Title,
   UnstyledButton,
@@ -138,18 +140,24 @@ export function Layout() {
             onClick={() => navigate({ to: "/review" })}
           />
           <ActivityPanel />
-          <SyncNow />
-          <SidebarUpdateCheck />
           <NavLink
             component="button"
             label={t("nav.settings")}
             onClick={() => navigate({ to: "/settings" })}
           />
-          {info.data && (
-            <Text size="xs" c="dimmed" px="sm" pb={4}>
-              {t("app.version", { version: info.data.version })}
-            </Text>
-          )}
+          {/* One-off actions sit apart from the places to go, small and with the version. */}
+          <Divider my={6} />
+          <Stack gap={2} align="flex-start" px={4} pb={4}>
+            <SyncNow />
+            <Group gap={2} wrap="nowrap">
+              {info.data && (
+                <Text size="xs" c="dimmed" px={6}>
+                  {t("app.version", { version: info.data.version })}
+                </Text>
+              )}
+              <SidebarUpdateCheck />
+            </Group>
+          </Stack>
         </AppShell.Section>
       </AppShell.Navbar>
       <AppShell.Main h="100vh" id="journal" tabIndex={-1}>

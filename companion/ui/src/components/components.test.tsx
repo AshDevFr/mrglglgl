@@ -122,24 +122,28 @@ describe("MilestoneList", () => {
 });
 
 describe("SettingsForm", () => {
-  it("saves the folder, backup period and language in plain words", async () => {
+  const settings = (patch: Partial<Settings> = {}): Settings => ({
+    wowRootOverride: null,
+    backupRetention: "days90",
+    uiLanguage: null,
+    site: defaultSite,
+    writing: defaultWriting,
+    ...patch,
+  });
+
+  it("saves the folder as soon as it is chosen, with nothing to press", async () => {
     const onSave = vi.fn((_: Settings) => Promise.resolve());
     renderWithProviders(
       <SettingsForm
         view={{
-          settings: {
-            wowRootOverride: null,
-            backupRetention: "days90",
-            uiLanguage: null,
-            site: defaultSite,
-            writing: defaultWriting,
-          },
+          settings: settings(),
           roots: [
             { path: "/Applications/World of Warcraft", source: "defaultPath" },
           ],
           unreadable: [],
         }}
         onSave={onSave}
+        readStored={async () => settings()}
       />,
     );
     expect(screen.getByText("Found automatically:")).toBeInTheDocument();
@@ -152,40 +156,25 @@ describe("SettingsForm", () => {
     expect(
       screen.getByText(/changes only the game's files/),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
 
     dialog.open.mockResolvedValueOnce("/Games/World of Warcraft");
     fireEvent.click(screen.getByText("Choose another folder…"));
     expect(await screen.findByText("Chosen by you:")).toBeInTheDocument();
-    expect(screen.getByText("Save to use this.")).toBeInTheDocument();
-    fireEvent.click(screen.getByText("Save"));
-    await waitFor(() =>
-      expect(screen.getByText("Settings saved.")).toBeInTheDocument(),
+    await waitFor(() => expect(screen.getByText("Saved.")).toBeInTheDocument());
+    expect(onSave).toHaveBeenCalledWith(
+      settings({ wowRootOverride: "/Games/World of Warcraft" }),
     );
-    expect(onSave).toHaveBeenCalledWith({
-      wowRootOverride: "/Games/World of Warcraft",
-      backupRetention: "days90",
-      uiLanguage: null,
-      site: defaultSite,
-      writing: defaultWriting,
-    });
+    expect(screen.queryByText("Save to use this.")).toBeNull();
   });
 
   it("keeps backups by age, explaining that the archive keeps full history anyway", async () => {
     const onSave = vi.fn((_: Settings) => Promise.resolve());
     renderWithProviders(
       <SettingsForm
-        view={{
-          settings: {
-            wowRootOverride: null,
-            backupRetention: "days90",
-            uiLanguage: null,
-            site: defaultSite,
-            writing: defaultWriting,
-          },
-          roots: [],
-          unreadable: [],
-        }}
+        view={{ settings: settings(), roots: [], unreadable: [] }}
         onSave={onSave}
+        readStored={async () => settings()}
       />,
     );
     expect(
@@ -199,51 +188,80 @@ describe("SettingsForm", () => {
     if (!select) throw new Error("no backup period input");
     fireEvent.click(select);
     fireEvent.click(await screen.findByRole("option", { name: "Forever" }));
-    fireEvent.click(screen.getByText("Save"));
     await waitFor(() => expect(onSave).toHaveBeenCalled());
     expect(onSave.mock.calls[0][0].backupRetention).toBe("forever");
   });
 
-  it("saves writing preferences from the Writing section only", async () => {
+  it("saves writing preferences once typing pauses, keeping the other settings as stored", async () => {
     const onSave = vi.fn((_: Settings) => Promise.resolve());
+    const stored = settings({ wowRootOverride: "/Games/World of Warcraft" });
     renderWithProviders(
       <SettingsForm
         section="writing"
-        view={{
-          settings: {
-            wowRootOverride: "/Games/World of Warcraft",
-            backupRetention: "days90",
-            uiLanguage: null,
-            site: defaultSite,
-            writing: defaultWriting,
-          },
-          roots: [],
-          unreadable: [],
-        }}
+        view={{ settings: settings(), roots: [], unreadable: [] }}
         onSave={onSave}
+        readStored={async () => stored}
       />,
     );
     expect(screen.queryByLabelText(/World of Warcraft folder/)).toBeNull();
     fireEvent.change(screen.getByLabelText(/Writing preferences/), {
       target: { value: "No em dashes." },
     });
-    fireEvent.click(screen.getByText("Save"));
+    expect(onSave).not.toHaveBeenCalled();
     await waitFor(() => expect(onSave).toHaveBeenCalled());
     const saved = onSave.mock.calls[0][0];
     expect(saved.writing.preferences).toBe("No em dashes.");
     expect(saved.wowRootOverride).toBe("/Games/World of Warcraft");
   });
 
+  it("saves a switch at once without undoing a model chosen meanwhile", async () => {
+    const onSave = vi.fn((_: Settings) => Promise.resolve());
+    // The form was drawn before a model was picked above it.
+    const stored = settings({
+      writing: { ...defaultWriting, modelId: "qwen" },
+    });
+    renderWithProviders(
+      <SettingsForm
+        section="writing"
+        view={{ settings: settings(), roots: [], unreadable: [] }}
+        onSave={onSave}
+        readStored={async () => stored}
+      />,
+    );
+    fireEvent.click(screen.getByLabelText(/Write a weekly chapter/));
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    const saved = onSave.mock.calls[0][0];
+    expect(saved.writing.weekly).toBe(true);
+    expect(saved.writing.modelId).toBe("qwen");
+  });
+
+  it("waits for its own Save before writing with an endpoint", async () => {
+    const onSave = vi.fn((_: Settings) => Promise.resolve());
+    renderWithProviders(
+      <SettingsForm
+        section="writing"
+        view={{ settings: settings(), roots: [], unreadable: [] }}
+        onSave={onSave}
+        readStored={async () => settings()}
+      />,
+    );
+    fireEvent.click(screen.getByLabelText(/An endpoint you run or pay for/));
+    expect(screen.getByText("Not saved yet.")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Endpoint address/), {
+      target: { value: "http://localhost:11434/v1" },
+    });
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Save who writes" }));
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    const saved = onSave.mock.calls[0][0];
+    expect(saved.writing.provider).toBe("endpoint");
+    expect(saved.writing.endpointUrl).toBe("http://localhost:11434/v1");
+  });
+
   it("never pins the folder it found, and finds it again on request", async () => {
     const onSave = vi.fn((_: Settings) => Promise.resolve());
     const view = (override: string | null, found: boolean) => ({
-      settings: {
-        wowRootOverride: override,
-        backupRetention: "days90" as const,
-        uiLanguage: null,
-        site: defaultSite,
-        writing: defaultWriting,
-      },
+      settings: settings({ wowRootOverride: override }),
       roots: found
         ? [
             {
@@ -255,24 +273,36 @@ describe("SettingsForm", () => {
       unreadable: [],
     });
     const { unmount } = renderWithProviders(
-      <SettingsForm view={view("/Games/Gone", false)} onSave={onSave} />,
+      <SettingsForm
+        view={view("/Games/Gone", false)}
+        onSave={onSave}
+        readStored={async () => settings({ wowRootOverride: "/Games/Gone" })}
+      />,
     );
     expect(screen.getByText("/Games/Gone")).toBeInTheDocument();
     expect(
       screen.getByText(/The folder you chose has no World of Warcraft in it/),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByText("Find it automatically again"));
-    fireEvent.click(screen.getByText("Save"));
     await waitFor(() => expect(onSave).toHaveBeenCalled());
     expect(onSave.mock.calls[0][0].wowRootOverride).toBeNull();
     unmount();
 
-    // Saving anything else while the folder is found keeps it automatic.
+    // Changing anything else while the folder is found keeps it automatic.
     const again = vi.fn((_: Settings) => Promise.resolve());
     renderWithProviders(
-      <SettingsForm view={{ ...view(null, true) }} onSave={again} />,
+      <SettingsForm
+        view={view(null, true)}
+        onSave={again}
+        readStored={async () => settings()}
+      />,
     );
-    fireEvent.click(screen.getByText("Save"));
+    const language = screen
+      .getAllByLabelText("Language")
+      .find((el) => el.tagName === "INPUT");
+    if (!language) throw new Error("no language input");
+    fireEvent.click(language);
+    fireEvent.click(await screen.findByRole("option", { name: "French" }));
     await waitFor(() => expect(again).toHaveBeenCalled());
     expect(again.mock.calls[0][0].wowRootOverride).toBeNull();
   });

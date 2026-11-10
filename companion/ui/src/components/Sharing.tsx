@@ -1,4 +1,14 @@
-import { Alert, Button, Group, Modal, Radio, Stack, Text } from "@mantine/core";
+import {
+  Alert,
+  Button,
+  Group,
+  Menu,
+  Modal,
+  Radio,
+  Stack,
+  Text,
+} from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -47,64 +57,48 @@ export function CopyEntryButton({ story }: { story: Story }) {
 }
 
 /** Writes the day or week's debug file, as JSON, into a folder the player picks: what was
- * recorded, the facts and the prompt the narrator is given, and every version written. */
-export function DebugExportButton({ story }: { story: Story }) {
+ * recorded, the facts and the prompt the narrator is given, and every version written. A menu
+ * item closes as soon as it is chosen, so what happened is told in a notification. */
+export function DebugExportItem({ story }: { story: Story }) {
   const { t } = useTranslation();
-  const [saved, setSaved] = useState<string | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
   async function save() {
-    setSaved(null);
-    setFailed(null);
     const folder = await open({
       directory: true,
       defaultPath: await exportFolder(),
     });
     if (typeof folder !== "string") return;
     try {
-      setSaved(
-        await exportDebug(
-          story.characterId,
-          story.kind,
-          story.startDay,
-          folder,
-        ),
+      const saved = await exportDebug(
+        story.characterId,
+        story.kind,
+        story.startDay,
+        folder,
       );
       rememberExportFolder(folder);
+      notifications.show({
+        message: (
+          <Group gap={4}>
+            <Text size="sm">{t("share.debugSaved", { path: saved })}</Text>
+            <Button
+              size="compact-xs"
+              variant="subtle"
+              color="gray"
+              onClick={() => void showInFolder(saved)}
+            >
+              {t("share.showInFolder")}
+            </Button>
+          </Group>
+        ),
+      });
     } catch (e) {
-      setFailed(String(e));
+      notifications.show({
+        color: "red",
+        message: problem(t, "share.debugFailed", { message: String(e) }),
+      });
     }
   }
   return (
-    <>
-      <Button
-        size="xs"
-        variant="subtle"
-        color="gray"
-        onClick={() => void save()}
-      >
-        {t("share.debug")}
-      </Button>
-      {saved && (
-        <Group gap={4}>
-          <Text size="xs" c="dimmed" role="status">
-            {t("share.debugSaved", { path: saved })}
-          </Text>
-          <Button
-            size="compact-xs"
-            variant="subtle"
-            color="gray"
-            onClick={() => void showInFolder(saved)}
-          >
-            {t("share.showInFolder")}
-          </Button>
-        </Group>
-      )}
-      {failed && (
-        <Text size="xs" c="red" role="status">
-          {problem(t, "share.debugFailed", { message: failed })}
-        </Text>
-      )}
-    </>
+    <Menu.Item onClick={() => void save()}>{t("share.debugMenu")}</Menu.Item>
   );
 }
 

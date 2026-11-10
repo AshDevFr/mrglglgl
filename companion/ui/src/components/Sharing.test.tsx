@@ -1,8 +1,9 @@
+import { Menu } from "@mantine/core";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Story } from "@/bindings/Story";
 import { renderWithProviders } from "@/test/render";
-import { CopyEntryButton, DebugExportButton, ExportDialog } from "./Sharing";
+import { CopyEntryButton, DebugExportItem, ExportDialog } from "./Sharing";
 
 const commands = vi.hoisted(() => ({
   copyEntryText: vi.fn(
@@ -29,8 +30,32 @@ const pages = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/exportPage", () => pages);
 
+const notices = vi.hoisted(() => ({
+  notifications: { show: vi.fn() },
+}));
+vi.mock("@mantine/notifications", () => notices);
+
+/** The debug item where it lives: in an open More menu. */
+function debugItem() {
+  renderWithProviders(
+    <Menu opened>
+      <Menu.Target>
+        <button type="button">More</button>
+      </Menu.Target>
+      <Menu.Dropdown>
+        <DebugExportItem story={story} />
+      </Menu.Dropdown>
+    </Menu>,
+  );
+  fireEvent.click(screen.getByRole("menuitem", { name: "Save a debug file…" }));
+}
+
 // A folder remembered by one test must not open the next one's dialog.
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  notices.notifications.show.mockClear();
+  commands.exportDebug.mockClear();
+});
 
 const story = {
   id: 7,
@@ -40,26 +65,32 @@ const story = {
 } as Story;
 
 describe("sharing", () => {
-  it("writes a day's debug file into the folder chosen", async () => {
-    renderWithProviders(<DebugExportButton story={story} />);
-    fireEvent.click(screen.getByRole("button", { name: "Debug file" }));
-    expect(
-      await screen.findByText(/Wren-2026-11-08-day-debug\.json/),
-    ).toBeInTheDocument();
+  it("writes a day's debug file into the folder chosen, and says where", async () => {
+    debugItem();
+    await waitFor(() => expect(notices.notifications.show).toHaveBeenCalled());
     expect(commands.exportDebug).toHaveBeenCalledWith(
       1,
       "day",
       "2026-11-08",
       "/Users/wren/Documents",
     );
+    // The notification names the file, and offers to show it.
+    const { message } = notices.notifications.show.mock.calls[0][0];
+    renderWithProviders(message);
+    expect(
+      screen.getByText(/Wren-2026-11-08-day-debug\.json/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Show in folder" }),
+    ).toBeInTheDocument();
   });
 
   it("does nothing when no folder is chosen", async () => {
     dialog.open.mockResolvedValueOnce(null as unknown as string);
-    renderWithProviders(<DebugExportButton story={story} />);
-    fireEvent.click(screen.getByRole("button", { name: "Debug file" }));
+    debugItem();
     await waitFor(() => expect(dialog.open).toHaveBeenCalled());
     expect(commands.exportDebug).not.toHaveBeenCalled();
+    expect(notices.notifications.show).not.toHaveBeenCalled();
   });
 
   it("copies the entry with its day and footer", async () => {

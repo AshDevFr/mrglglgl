@@ -85,15 +85,18 @@ describe("SettingsPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("saves only the open tab's settings, keeping the rest as stored", async () => {
+  it("saves a change at once, with no Save to press", async () => {
     renderWithProviders(<SettingsPage />);
     fireEvent.click(await screen.findByText("Find it automatically again"));
-    fireEvent.click(screen.getByRole("tab", { name: "Writing" }));
-    fireEvent.click(await screen.findByText("Save"));
     await waitFor(() => expect(api.saveSettings).toHaveBeenCalled());
     const saved = api.saveSettings.mock.calls[0][0];
-    expect(saved.wowRootOverride).toBe("/Games/World of Warcraft");
+    expect(saved.wowRootOverride).toBeNull();
     expect(saved.writing).toEqual(defaultWriting);
+    fireEvent.click(screen.getByRole("tab", { name: "Writing" }));
+    expect(
+      await screen.findByText(/Write a weekly chapter/),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
   });
 
   it("names the settings that could not be read", async () => {

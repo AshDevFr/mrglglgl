@@ -68,7 +68,8 @@ arrive and what to set up:
 ![The app's first run: no journals yet, and the steps to get started.](../../assets/screenshots/first-run.png)
 
 Once you have played, your characters appear in the sidebar, grouped by account and realm. The
-main page shows the addon's state; if the addon is missing, it says so and offers to install it.
+main page shows the addon's state (if the addon is missing, it says so and offers to install it)
+and each character's latest entry, with **Continue reading** to open their journal on that day.
 
 ![The app's main page with a character in the sidebar and the addon recording.](../../assets/screenshots/home.png)
 

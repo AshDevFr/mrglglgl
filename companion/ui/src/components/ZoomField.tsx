@@ -20,7 +20,6 @@ export function ZoomField() {
       value={String(zoom)}
       onChange={(v) => v && void applyZoom(Number(v))}
       allowDeselect={false}
-      w={200}
     />
   );
 }

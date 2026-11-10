@@ -1,4 +1,13 @@
-import { Alert, Button, Group, Select, Text, Textarea } from "@mantine/core";
+import {
+  ActionIcon,
+  Alert,
+  Button,
+  Group,
+  Menu,
+  Select,
+  Text,
+  Textarea,
+} from "@mantine/core";
 import type { TFunction } from "i18next";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -53,8 +62,10 @@ interface Props {
   onWriteSoFar?: (narrator: string | null) => void;
   onCancel: () => void;
   onRetry: () => void;
-  /** Extra actions for the entry shown, such as copying it. */
+  /** Extra actions for the entry shown, such as copying it, beside Edit. */
   actions?: (story: Story) => ReactNode;
+  /** Rarer actions for the entry shown, as menu items under "More", after Write again. */
+  menuItems?: (story: Story) => ReactNode;
   /** Saves the player's own text as a new version, made from the version shown. */
   onEdit?: (story: Story, text: string) => Promise<void>;
 }
@@ -80,6 +91,7 @@ export function EntryPanel({
   onCancel,
   onRetry,
   actions,
+  menuItems,
   onEdit,
 }: Props) {
   const { t, i18n } = useTranslation();
@@ -99,6 +111,11 @@ export function EntryPanel({
   // biome-ignore lint/correctness/useExhaustiveDependencies: reset on these changes only
   useEffect(() => setEditing(null), [versions.length, day]);
   const editable = Boolean(onEdit && shown && !shown.partial && finished);
+  // Writing again replaces what is on the page, so it waits behind More until asked for; a day
+  // with nothing written yet offers it up front, as its main action.
+  const [rewriting, setRewriting] = useState(false);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset on these changes only
+  useEffect(() => setRewriting(false), [versions.length, day]);
 
   async function saveEdit() {
     if (!onEdit || !shown || editing === null) return;
@@ -164,13 +181,14 @@ export function EntryPanel({
         <>
           <Textarea
             aria-label={t("writing.editLabel")}
+            className="entry-editor"
             value={editing}
             onChange={(e) => setEditing(e.currentTarget.value)}
             autosize
             minRows={6}
           />
           <Text size="xs" c="dimmed">
-            {t("writing.editHelp")}
+            {t("writing.editHelp")} {t("writing.editMarginHelp")}
           </Text>
           {editError && (
             <Alert color="red">
@@ -294,7 +312,7 @@ export function EntryPanel({
         </Text>
       )}
 
-      {(finished || onWriteSoFar) && (
+      {(finished || onWriteSoFar) && (!shown || rewriting) && (
         <Group gap="xs" mt="sm" wrap="wrap">
           <Select
             aria-label={t(`writing.narratorFor.${kind}`)}
@@ -308,11 +326,13 @@ export function EntryPanel({
           />
           <Button
             size="xs"
-            variant="light"
+            variant={shown ? "light" : "filled"}
             disabled={job?.state === "running"}
-            onClick={() =>
-              finished ? onWrite(narrator) : onWriteSoFar?.(narrator)
-            }
+            onClick={() => {
+              setRewriting(false);
+              if (finished) onWrite(narrator);
+              else onWriteSoFar?.(narrator);
+            }}
           >
             {finished
               ? shown
@@ -322,15 +342,56 @@ export function EntryPanel({
                 ? t("writing.soFarAgain")
                 : t("writing.soFar")}
           </Button>
-          {readable && actions?.(shown)}
-          {editable && editing === null && (
+          {rewriting && (
             <Button
               size="xs"
               variant="subtle"
+              color="gray"
+              onClick={() => setRewriting(false)}
+            >
+              {t("writing.editCancel")}
+            </Button>
+          )}
+        </Group>
+      )}
+      {shown && editing === null && !rewriting && (
+        <Group gap="xs" mt="sm" wrap="wrap">
+          {readable && actions?.(shown)}
+          {editable && (
+            <Button
+              size="xs"
+              variant="subtle"
+              color="gray"
               onClick={() => setEditing(shown.text)}
             >
               {t("writing.edit")}
             </Button>
+          )}
+          {(finished || onWriteSoFar || (readable && menuItems)) && (
+            <Menu position="bottom-start" withinPortal>
+              <Menu.Target>
+                <ActionIcon
+                  variant="subtle"
+                  color="gray"
+                  aria-label={t("writing.more")}
+                >
+                  ⋯
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                {(finished || onWriteSoFar) && (
+                  <Menu.Item
+                    disabled={job?.state === "running"}
+                    onClick={() => setRewriting(true)}
+                  >
+                    {finished
+                      ? t("writing.againMenu")
+                      : t("writing.soFarAgainMenu")}
+                  </Menu.Item>
+                )}
+                {readable && menuItems?.(shown)}
+              </Menu.Dropdown>
+            </Menu>
           )}
         </Group>
       )}

@@ -40,7 +40,7 @@ type Audience = "shared" | "view";
 const AUDIENCES: Audience[] = ["shared", "view"];
 
 /** Which recorded data the app uses for one character, twice over: for narrators, the website
- * and exports, and for the window's "What happened". Everything is on until the player turns
+ * and exports, and for the app's "What happened". Everything is on until the player turns
  * something off; the archive keeps it all, so turning it back on brings it back. */
 export function DataUseDialog({
   characterId,
@@ -88,6 +88,12 @@ export function DataUseDialog({
     setOff({ ...off, [audience]: next });
   };
 
+  const setAll = (audience: Audience, on: boolean) =>
+    setOff({
+      ...off,
+      [audience]: new Set<string>(on ? [] : DATA_CATEGORIES),
+    });
+
   return (
     <Modal
       opened={opened}
@@ -101,9 +107,28 @@ export function DataUseDialog({
           <Table.Thead>
             <Table.Tr>
               <Table.Th />
-              {AUDIENCES.map((audience) => (
-                <Table.Th key={audience}>{t(`dataUse.${audience}`)}</Table.Th>
-              ))}
+              {/* Each column's own box turns all of it on or off; it is mixed while some are off. */}
+              {AUDIENCES.map((audience) => {
+                const label = t(`dataUse.${audience}`);
+                const count = off[audience].size;
+                return (
+                  <Table.Th key={audience}>
+                    <Group gap={8} wrap="nowrap" align="flex-start">
+                      <Checkbox
+                        aria-label={t("dataUse.all", { column: label })}
+                        checked={count === 0}
+                        indeterminate={
+                          count > 0 && count < DATA_CATEGORIES.length
+                        }
+                        onChange={(e) =>
+                          setAll(audience, e.currentTarget.checked)
+                        }
+                      />
+                      <span>{label}</span>
+                    </Group>
+                  </Table.Th>
+                );
+              })}
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>

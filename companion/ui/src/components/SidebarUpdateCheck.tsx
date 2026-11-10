@@ -1,4 +1,4 @@
-import { Loader, NavLink } from "@mantine/core";
+import { Button, Loader } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useQueryClient } from "@tanstack/react-query";
 import { listen } from "@tauri-apps/api/event";
@@ -56,12 +56,15 @@ export function SidebarUpdateCheck() {
   }, []);
 
   return (
-    <NavLink
-      component="button"
-      label={t("update.check")}
-      leftSection={checking ? <Loader size={12} /> : undefined}
+    <Button
+      size="compact-xs"
+      variant="subtle"
+      color="gray"
+      leftSection={checking ? <Loader size={10} /> : undefined}
       disabled={checking}
       onClick={() => void look()}
-    />
+    >
+      {t("update.check")}
+    </Button>
   );
 }

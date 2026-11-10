@@ -1,4 +1,13 @@
-import { Alert, Button, Group, Modal, Stack, Text, Title } from "@mantine/core";
+import {
+  Alert,
+  Badge,
+  Button,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useEffect, useState } from "react";
@@ -7,6 +16,7 @@ import {
   copyNarrator,
   deleteNarrator,
   exportNarrator,
+  getSettings,
   importNarratorFile,
   listNarrators,
   narratorProfile,
@@ -28,6 +38,8 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
     queryKey: ["narrators"],
     queryFn: listNarrators,
   });
+  const settings = useQuery({ queryKey: ["settings"], queryFn: getSettings });
+  const inUse = settings.data?.settings.writing.narrator;
   // A built-in narrator is heard before it is copied: a sample written with it, as it stands.
   const [previewing, setPreviewing] = useState<string | null>(null);
   const profile = useQuery({
@@ -87,11 +99,18 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
   const row = (n: NarratorInfo) => (
     <li key={n.id} aria-label={n.name} style={{ listStyle: "none" }}>
       <Group justify="space-between" wrap="nowrap" py={4}>
-        <Text>{n.name}</Text>
+        <Group gap="xs" wrap="nowrap">
+          <Text>{n.name}</Text>
+          {n.id === inUse && (
+            <Badge size="sm" variant="outline">
+              {t("narrators.inUse")}
+            </Badge>
+          )}
+        </Group>
         <Group gap="xs" wrap="nowrap">
           {n.custom ? (
             <>
-              <Button size="xs" variant="light" onClick={() => onEdit(n.id)}>
+              <Button size="xs" variant="subtle" onClick={() => onEdit(n.id)}>
                 {t("narrators.edit")}
               </Button>
               <Button
@@ -114,7 +133,7 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
             <>
               <Button
                 size="xs"
-                variant="light"
+                variant="subtle"
                 onClick={() => setPreviewing(n.id)}
               >
                 {t("narrators.preview")}

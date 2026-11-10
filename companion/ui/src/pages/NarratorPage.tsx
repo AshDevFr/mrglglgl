@@ -19,7 +19,7 @@ export function NarratorPage({ narratorId }: { narratorId: string }) {
     <div className="desk" style={{ padding: "2rem 2.5rem 4rem" }}>
       <BackButton />
       <div style={{ maxWidth: "48rem" }}>
-        <h2 className="reading">{t("narrators.editorTitle")}</h2>
+        <h1 className="page-title">{t("narrators.editorTitle")}</h1>
         {profile.isPending ? (
           <EmptyState title={t("loading")} />
         ) : profile.data ? (

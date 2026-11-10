@@ -34,6 +34,12 @@ vi.mock("@/api/commands", () => ({
       { id: "custom_heron", name: "The heron", optIn: false, custom: true },
     ]),
   defaultExportFolder: () => Promise.resolve("/Users/me/Documents"),
+  getSettings: () =>
+    Promise.resolve({
+      settings: { writing: { narrator: "grumpy_dwarf" } },
+      roots: [],
+      unreadable: [],
+    }),
   ...commands,
 }));
 
@@ -45,6 +51,14 @@ beforeEach(() => vi.clearAllMocks());
 const row = (name: string) => screen.findByRole("listitem", { name });
 
 describe("NarratorsPanel", () => {
+  it("marks the narrator in use", async () => {
+    renderWithProviders(<NarratorsPanel onEdit={vi.fn()} />);
+    expect(
+      await within(await row("The grumpy dwarf")).findByText("In use"),
+    ).toBeInTheDocument();
+    expect(within(await row("The heron")).queryByText("In use")).toBeNull();
+  });
+
   it("starts a new narrator from scratch without saving anything yet", async () => {
     const onEdit = vi.fn();
     renderWithProviders(<NarratorsPanel onEdit={onEdit} />);

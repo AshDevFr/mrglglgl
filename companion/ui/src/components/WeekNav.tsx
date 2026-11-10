@@ -72,8 +72,9 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
   }
 
   return (
-    <Stack gap="xs" component="nav" aria-label={range}>
-      <Group justify="space-between" wrap="nowrap">
+    <Stack gap="xs" component="nav" aria-label={range} className="week-nav">
+      {/* In a narrow window the range takes a row of its own, above the buttons. */}
+      <div className="week-bar">
         <Button
           variant="subtle"
           color="gray"
@@ -83,43 +84,45 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
           {t("week.previous")}
         </Button>
         {/* The range opens a month calendar, to reach any day without stepping week by week. */}
-        <Popover
-          opened={picking}
-          onChange={setPicking}
-          position="bottom"
-          withArrow
-          shadow="md"
-          trapFocus
-        >
-          <Popover.Target>
-            <UnstyledButton
-              className="week-range"
-              aria-haspopup="dialog"
-              aria-expanded={picking}
-              onClick={() => {
-                setMonth(selected.slice(0, 7));
-                setPicking((open) => !open);
-              }}
-            >
-              <Text fw={500}>{range} ▾</Text>
-            </UnstyledButton>
-          </Popover.Target>
-          <Popover.Dropdown role="dialog">
-            <MonthGrid
-              month={month}
-              selected={selected}
-              written={written}
-              today={today}
-              first={(first ?? today).slice(0, 7)}
-              last={today.slice(0, 7)}
-              onMonth={setMonth}
-              onSelect={(day) => {
-                setPicking(false);
-                onSelect(day);
-              }}
-            />
-          </Popover.Dropdown>
-        </Popover>
+        <div className="week-bar-range">
+          <Popover
+            opened={picking}
+            onChange={setPicking}
+            position="bottom"
+            withArrow
+            shadow="md"
+            trapFocus
+          >
+            <Popover.Target>
+              <UnstyledButton
+                className="week-range"
+                aria-haspopup="dialog"
+                aria-expanded={picking}
+                onClick={() => {
+                  setMonth(selected.slice(0, 7));
+                  setPicking((open) => !open);
+                }}
+              >
+                <Text fw={500}>{range} ▾</Text>
+              </UnstyledButton>
+            </Popover.Target>
+            <Popover.Dropdown role="dialog">
+              <MonthGrid
+                month={month}
+                selected={selected}
+                written={written}
+                today={today}
+                first={(first ?? today).slice(0, 7)}
+                last={today.slice(0, 7)}
+                onMonth={setMonth}
+                onSelect={(day) => {
+                  setPicking(false);
+                  onSelect(day);
+                }}
+              />
+            </Popover.Dropdown>
+          </Popover>
+        </div>
         <Group gap="xs" wrap="nowrap">
           <Button
             variant="subtle"
@@ -137,7 +140,7 @@ export function WeekNav({ selected, written, today, onSelect }: Props) {
             {t("week.today")}
           </Button>
         </Group>
-      </Group>
+      </div>
       <div className="week-strip">
         {days.map((day) => {
           const date = parseDay(day);

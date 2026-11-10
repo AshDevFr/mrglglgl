@@ -99,7 +99,7 @@ export function WritingFields({ value, onChange, narrators }: Props) {
         description={t("settings.pausedHelp")}
         checked={value.paused}
         onChange={(e) => {
-          // Applied at once, as Pause in Activity is; the form follows so Save keeps it.
+          // Applied at once, as Pause in Activity is, and kept with the other settings.
           const paused = e.currentTarget.checked;
           set({ paused });
           void setWritingPaused(paused).then(() =>

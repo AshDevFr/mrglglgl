@@ -10,11 +10,13 @@ import { HomePage } from "./HomePage";
 const commands = vi.hoisted(() => ({
   characters: [] as unknown[],
   addons: [] as unknown[],
+  stories: [] as unknown[],
 }));
 
 vi.mock("@/api/commands", () => ({
   appInfo: () => Promise.resolve({ version: "9.9.9" }),
   listCharacters: () => Promise.resolve(commands.characters),
+  characterStories: () => Promise.resolve(commands.stories),
   getSettings: () =>
     Promise.resolve({
       settings: {
@@ -84,7 +86,8 @@ describe("HomePage", () => {
     expect(
       screen.getAllByText(/log out or type \/reload/).length,
     ).toBeGreaterThan(0);
-    expect(await screen.findByText("Version 9.9.9")).toBeInTheDocument();
+    // The version is in the sidebar; the home page does not say it again.
+    expect(screen.queryByText("Version 9.9.9")).toBeNull();
   });
 
   it("warns when the addon is not installed, and opens its settings", async () => {
@@ -112,9 +115,48 @@ describe("HomePage", () => {
     expect(screen.queryByText("The addon is not installed")).toBeNull();
   });
 
-  it("asks the reader to pick a character once there are some", async () => {
-    commands.characters = [{ character: { id: 1 } }];
-    renderWithProviders(<HomePage />);
-    expect(await screen.findByText(/Choose a character/)).toBeInTheDocument();
+  it("offers each character's latest entry to read on from", async () => {
+    commands.characters = [
+      {
+        character: {
+          id: 1,
+          name: "Wren",
+          surname: "Hollowbrook",
+          characterFolder: "Wren",
+          lastSynced: 1,
+        },
+      },
+    ];
+    commands.stories = [
+      {
+        id: 3,
+        kind: "day",
+        startDay: "2026-11-08",
+        status: "accepted",
+        check: "passed",
+        partial: false,
+        text: "Hogger fell.\n\n* Mrgl. Fair trade.",
+      },
+      {
+        id: 2,
+        kind: "day",
+        startDay: "2026-11-07",
+        status: "accepted",
+        check: "passed",
+        partial: false,
+        text: "The plains were quiet.",
+      },
+    ];
+    const onOpenCharacter = vi.fn();
+    renderWithProviders(<HomePage onOpenCharacter={onOpenCharacter} />);
+    expect(await screen.findByText("Hogger fell.")).toBeInTheDocument();
+    expect(screen.queryByText(/Fair trade/)).toBeNull();
+    expect(screen.getByText("Sunday, November 8, 2026")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Continue reading Wren Hollowbrook's journal",
+      }),
+    );
+    expect(onOpenCharacter).toHaveBeenCalledWith(1, "2026-11-08");
   });
 });

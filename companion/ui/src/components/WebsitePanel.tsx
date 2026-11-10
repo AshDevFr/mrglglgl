@@ -102,9 +102,6 @@ export function WebsitePanel({ site }: { site: SiteSettings }) {
         checked={draft.enabled}
         onChange={(e) => set({ enabled: e.currentTarget.checked })}
       />
-      {draft.enabled && !canBuild(draft) && (
-        <Alert color="yellow">{t("site.cannotBuild")}</Alert>
-      )}
       <FolderField
         label={t("site.folder")}
         description={t("site.folderHelp")}
@@ -154,7 +151,7 @@ export function WebsitePanel({ site }: { site: SiteSettings }) {
         value={draft.themeFolder ?? ""}
         onChange={(v) => set({ themeFolder: path(v) })}
       />
-      <Group>
+      <Group gap="xs">
         <Button
           variant="default"
           disabled={!draft.themeFolder}
@@ -162,6 +159,12 @@ export function WebsitePanel({ site }: { site: SiteSettings }) {
         >
           {t("site.copyTheme")}
         </Button>
+        {/* A disabled button says what it is waiting for. */}
+        {!draft.themeFolder && (
+          <Text size="xs" c="dimmed">
+            {t("site.copyThemeNeedsFolder")}
+          </Text>
+        )}
       </Group>
       {copied !== null && (
         <Alert color="green">{t("site.themeCopied", { count: copied })}</Alert>
@@ -183,6 +186,16 @@ export function WebsitePanel({ site }: { site: SiteSettings }) {
         </Button>
         {saved && <Text size="sm">{t("site.saved")}</Text>}
       </Group>
+      {/* With the website kept up to date, nothing being built is a warning; otherwise it only
+          says what Build now waits for. */}
+      {!canBuild(draft) &&
+        (draft.enabled ? (
+          <Alert color="yellow">{t("site.cannotBuild")}</Alert>
+        ) : (
+          <Text size="xs" c="dimmed">
+            {t("site.cannotBuild")}
+          </Text>
+        ))}
       {last?.report && (
         <Stack gap="xs">
           <Text size="sm" role="status">

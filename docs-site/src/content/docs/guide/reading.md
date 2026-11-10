@@ -6,7 +6,8 @@ description: Days, weeks, milestones, rewriting an entry and editing it by hand.
 Each day is a page: the narrator's entry once it is written, the milestones stamped that day, any
 screenshots the addon took, and **What happened**, the plain record the entry was written from (including money, the auction house, chat you chose to
 record, and Legacy Challenges: see [What gets recorded](/guide/recorded/)).
-Days are grouped by week; the week's chapter is written once the week is over.
+Days are grouped by week; the week's chapter is written once the week is over, and follows the day
+you are reading, below its page.
 
 ![A character's journal: the week's chapter and a written day with its milestone stamps.](../../../assets/screenshots/journal.png)
 
@@ -35,8 +36,10 @@ then goes first, and the list says so.
 
 ## Writing again
 
-On a day you can write the entry again, pick another narrator for that day, or cancel a write in
-progress. Earlier versions are kept: **Older** and **Newer** move between them.
+Under a written entry, **Copy entry** and **Edit** are at hand; the rest is under **⋯**. Its
+**Write again…** asks which narrator to use for that day, then writes the entry again; a write in
+progress can be cancelled. A day with nothing written yet offers **Write now** straight away.
+Earlier versions are kept: **Older** and **Newer** move between them.
 
 ## The narrator checks its own work
 
@@ -50,13 +53,15 @@ again once. If it is still wrong, the day keeps its plain notes and says why.
 **Edit** on a finished day or week lets you write your own version, starting from the one shown
 (a day set aside by the check included). It goes straight into the journal as a new version, the
 earlier ones are kept, and its byline says you edited it: the app does not check your words
-against the notes.
+against the notes. The editor keeps the page's type, and a paragraph starting with `*` is the
+murloc's margin note.
 
 ![Editing a day's entry by hand.](../../../assets/screenshots/edit.png)
 
 ## When an entry looks wrong
 
-**Debug file**, next to **Copy entry**, writes the day into a folder you choose as a JSON file:
+**Save a debug file…**, under **⋯** below the entry, writes the day into a folder you choose as a
+JSON file:
 what the addon recorded, the facts the narrator is told, the exact prompt the next write gets, and
 every version written so far with its narrator, model and fact check. Attach it to a report on the
 project page to show why an entry came out as it did. It holds the day's notes, so look through it
@@ -71,7 +76,7 @@ day spent only fishing. They appear on the day they happened and together on the
 ![The Milestones tab: every stamp a character has earned.](../../../assets/screenshots/milestones.png)
 
 There are 58, each with a rarity from one star to five. A day that earns several presses its three
-rarest on its page and lists every one of them under **The day's milestones**, below the entry;
+rarest on its page and lists the others under **Also earned this day**, beside the entry;
 hovering a stamp shows it large with what earned it. The narrator is told about the three rarest
 only, so a big day is not a list. Every stamp, with what earns it, is in
 [Every milestone](/reference/milestones/). If you turn a kind of data off for a character

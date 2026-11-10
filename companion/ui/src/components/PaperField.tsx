@@ -20,7 +20,6 @@ export function PaperField() {
         setPaper(next);
       }}
       allowDeselect={false}
-      w={260}
     />
   );
 }

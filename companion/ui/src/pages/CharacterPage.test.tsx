@@ -76,7 +76,7 @@ describe("JournalPage", () => {
     );
   });
 
-  it("presses the rarest stamps of a busy day and lists the rest at the end", () => {
+  it("presses the rarest stamps of a busy day and lists only the rest beside it", () => {
     renderWithProviders(
       <JournalPage
         journal={syntheticJournal}
@@ -90,13 +90,13 @@ describe("JournalPage", () => {
     expect(
       screen.getByRole("img", { name: /^Mrglglgl'd:/ }),
     ).toBeInTheDocument();
-    // The list at the end holds every milestone of the day, the stamped ones first.
-    const all = screen.getByRole("heading", { name: "The day's milestones" })
+    // The list beside the page holds only the milestones without a stamp: a stamp opens to
+    // its own name and description.
+    const rest = screen.getByRole("heading", { name: "Also earned this day" })
       .parentElement as HTMLElement;
-    const items = within(all).getAllByRole("listitem");
-    expect(items).toHaveLength(day.length);
-    expect(items[0]).toHaveTextContent("Mrglglgl'd");
-    expect(all).toHaveTextContent("First Blood (Fishy)");
+    const items = within(rest).getAllByRole("listitem");
+    expect(items).toHaveLength(day.length - 3);
+    expect(rest).not.toHaveTextContent("Mrglglgl'd");
   });
 
   it("presses the day's milestones onto the page as stamps", () => {

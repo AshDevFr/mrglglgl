@@ -14,7 +14,11 @@ export function ReviewPage({ characterId }: { characterId?: number }) {
         </Stack>
       )}
       <div>
-        <h2 className="reading">{t("review.title")}</h2>
+        {characterId === undefined ? (
+          <h1 className="page-title">{t("review.title")}</h1>
+        ) : (
+          <h2 className="page-title page-title-small">{t("review.title")}</h2>
+        )}
         <ReviewList characterId={characterId} />
       </div>
     </div>

@@ -111,17 +111,18 @@ export function JournalPage({
             plain
           )}
         </div>
-        {(screenshots.length > 0 || stamps.length > 0) && (
+        {(screenshots.length > 0 || more.length > 0) && (
           <aside className="page-side">
             {screenshots.length > 0 && (
               <PinnedPhotos screenshots={screenshots} />
             )}
-            {stamps.length > 0 && (
+            {more.length > 0 && (
               <section className="more-milestones">
-                <h3>{t("milestones.ofTheDay")}</h3>
+                <h3>{t("milestones.alsoEarned")}</h3>
                 <ul>
-                  {/* Every milestone of the day, the stamped ones first: the stamps are small. */}
-                  {[...stamps, ...more].map((a) => (
+                  {/* Only the milestones without a stamp: a stamp opens to its name and
+                      description, so listing it again only repeats it. */}
+                  {more.map((a) => (
                     <li key={a.id}>
                       <strong>{t(`milestones.${a.id}.name`)}</strong>
                       {": "}

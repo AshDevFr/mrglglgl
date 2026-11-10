@@ -39,7 +39,18 @@ const indexRoute = createRoute({
   path: "/",
   component: function Home() {
     const navigate = useNavigate();
-    return <HomePage onOpenSettings={() => navigate({ to: "/settings" })} />;
+    return (
+      <HomePage
+        onOpenSettings={() => navigate({ to: "/settings" })}
+        onOpenCharacter={(id, day) =>
+          navigate({
+            to: "/characters/$characterId",
+            params: { characterId: String(id) },
+            search: { day },
+          })
+        }
+      />
+    );
   },
 });
 
