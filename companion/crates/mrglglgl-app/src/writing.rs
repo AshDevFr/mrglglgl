@@ -23,7 +23,6 @@ const IDLE_CHECK: Duration = Duration::from_secs(60);
 /// How often the writer checks whether the game has closed.
 const GAME_CHECK: Duration = Duration::from_secs(30);
 
-const KEYCHAIN_SERVICE: &str = "Mrglglgl";
 const KEYCHAIN_ENTRY: &str = "endpoint-api-key";
 
 /// The folder downloaded models live in.
@@ -93,7 +92,7 @@ pub fn api_key() -> Option<String> {
     if let Some(known) = cached.as_ref() {
         return known.clone();
     }
-    let read = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY)
+    let read = keyring::Entry::new(crate::profile::keychain_service(), KEYCHAIN_ENTRY)
         .and_then(|entry| entry.get_password());
     match read {
         Ok(key) => {
@@ -114,7 +113,8 @@ pub fn api_key() -> Option<String> {
 }
 
 pub fn set_api_key(key: Option<&str>) -> Result<(), String> {
-    let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY).map_err(|e| e.to_string())?;
+    let entry = keyring::Entry::new(crate::profile::keychain_service(), KEYCHAIN_ENTRY)
+        .map_err(|e| e.to_string())?;
     let key = key.filter(|k| !k.is_empty());
     match key {
         Some(k) => entry.set_password(k).map_err(|e| e.to_string())?,

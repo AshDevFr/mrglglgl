@@ -10,7 +10,7 @@
 
 use std::path::{Path, PathBuf};
 
-use tauri::{AppHandle, Manager};
+use tauri::AppHandle;
 use tauri_plugin_opener::OpenerExt;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_appender::rolling::{Builder, Rotation};
@@ -136,7 +136,7 @@ pub fn recent_lines(dir: &Path, limit: usize) -> Vec<String> {
 /// The log's last lines, for the window's Logs tab.
 #[tauri::command]
 pub fn recent_log(app: AppHandle, limit: usize) -> Result<Vec<String>, String> {
-    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let data_dir = crate::profile::data_dir(&app).map_err(|e| e.to_string())?;
     Ok(recent_lines(&log_dir(&data_dir), limit.min(MOST_LINES)))
 }
 
@@ -158,7 +158,7 @@ pub fn open_link(app: AppHandle, url: String) -> Result<(), String> {
 /// Shows the newest log file in the system's file manager.
 #[tauri::command]
 pub fn show_log(app: AppHandle) -> Result<(), String> {
-    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let data_dir = crate::profile::data_dir(&app).map_err(|e| e.to_string())?;
     let dir = log_dir(&data_dir);
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     app.opener()

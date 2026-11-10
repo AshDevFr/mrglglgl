@@ -6,6 +6,7 @@ mod commands;
 mod failure;
 mod logging;
 mod power;
+mod profile;
 mod site_commands;
 mod sync;
 #[cfg(test)]
@@ -56,9 +57,19 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         // The window opens at the size and place it was closed at.
-        .plugin(tauri_plugin_window_state::Builder::default().build())
+        .plugin(
+            tauri_plugin_window_state::Builder::default()
+                .with_filename(profile::window_state_file())
+                .build(),
+        )
         .setup(|app| {
-            let data_dir = app.path().app_data_dir()?;
+            let data_dir = profile::data_dir(app.handle())?;
+            if profile::SEPARATE
+                && let Some(window) = app.get_webview_window("main")
+            {
+                // Told apart from the installed app at a glance.
+                let _ = window.set_title("Mrglglgl (dev)");
+            }
             // Kept for the app's lifetime: dropping it would stop the log file being written.
             app.manage(logging::init(&data_dir));
             tracing::info!(
@@ -69,7 +80,15 @@ fn main() {
                 std::env::consts::ARCH,
                 sys_locale::get_locale().unwrap_or_else(|| "unknown".into()),
             );
-            tracing::debug!("data folder: {}", data_dir.display());
+            tracing::info!(
+                "data folder: {}{}",
+                data_dir.display(),
+                if profile::SEPARATE {
+                    " (kept apart from the installed app's)"
+                } else {
+                    ""
+                }
+            );
             let db = Database::open(&data_dir)?;
             // The archive is the only copy of days the game has compacted: keep a weekly copy.
             match db.snapshot_if_due(&data_dir, chrono::Utc::now().timestamp()) {

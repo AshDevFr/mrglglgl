@@ -91,8 +91,10 @@ dev: ui-install ## Run the app with hot reload (Vite + Tauri)
 		CARGO_TARGET_$(HOST_TRIPLE)_RUNNER="$(CURDIR)/scripts/dev-run.sh" \
 		$(NICE) ../../ui/node_modules/.bin/tauri dev
 
-build: ui-install ## Build the app and its installers
-	cd crates/mrglglgl-app && $(NICE) ../../ui/node_modules/.bin/tauri build
+# A local build keeps its data apart from the installed app's, as `make dev` does; releases are
+# built by the release workflow, which does not set it.
+build: ui-install ## Build the app and its installers, keeping their data apart from the installed app
+	cd crates/mrglglgl-app && MRGLGLGL_SEPARATE_DATA=1 $(NICE) ../../ui/node_modules/.bin/tauri build
 
 # ── Changelog (git-cliff) ────────────────────────────────────────────────────
 
