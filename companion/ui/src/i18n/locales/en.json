@@ -94,6 +94,21 @@
     "previousMonth": "Previous month",
     "nextMonth": "Next month"
   },
+  "search": {
+    "label": "Search this journal",
+    "placeholder": "Search entries and what happened",
+    "clear": "Clear the search",
+    "short": "Type at least two letters.",
+    "none": "Nothing found for “{{query}}”.",
+    "found_one": "{{count}} match.",
+    "found_other": "{{count}} matches.",
+    "limited": "Showing the first {{count}}.",
+    "source": {
+      "entry": "Entry",
+      "facts": "What happened",
+      "chapter": "Week's chapter"
+    }
+  },
   "page": {
     "nothing": "Nothing to report.",
     "stayedIn": "Spent the day in {{place}}.",

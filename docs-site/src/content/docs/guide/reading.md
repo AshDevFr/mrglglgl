@@ -11,6 +11,13 @@ you are reading, below its page.
 
 ![A character's journal: the week's chapter and a written day with its milestone stamps.](../../../assets/screenshots/journal.png)
 
+## Searching a journal
+
+The field above the week finds words in a character's journal: the entries, the weeks'
+chapters, and **What happened** on days the narrator has not written. Case and accents do not
+matter. The days found replace the week, newest first, with the words marked; choosing one opens
+that day. **⌘F** (or **Ctrl+F**) puts the cursor in the field and **Escape** empties it.
+
 ## When entries are written
 
 A day the narrator has not written yet says so, with its place in line. The app writes finished

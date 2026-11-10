@@ -642,3 +642,26 @@ details.facts .fact-list {
   font-family: var(--reading-font);
   color: var(--ink);
 }
+
+/* Search results: each a day to open, with the words found marked in the text around them. */
+.search-hit {
+  display: block;
+  max-width: 44rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: 6px;
+  color: var(--ink);
+}
+.search-hit:hover,
+.search-hit:focus-visible {
+  background: color-mix(in srgb, var(--stamp) 10%, transparent);
+}
+.search-snippet {
+  font-family: var(--reading-font);
+  line-height: 1.6;
+}
+.search-snippet mark {
+  background: color-mix(in srgb, var(--stamp) 28%, transparent);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 0.1em;
+}

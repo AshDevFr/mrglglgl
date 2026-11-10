@@ -1,6 +1,7 @@
 import { Alert, Stack } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   cancelWriting,
@@ -22,6 +23,7 @@ import type { StoryKind } from "@/bindings/StoryKind";
 import { CharacterTop } from "@/components/CharacterTop";
 import { EmptyState } from "@/components/EmptyState";
 import { type DayWriting, JournalPage } from "@/components/JournalPage";
+import { SearchField, SearchResults } from "@/components/JournalSearch";
 import { CopyEntryButton, DebugExportItem } from "@/components/Sharing";
 import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
@@ -48,6 +50,7 @@ export function CharacterPage({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [query, setQuery] = useState("");
 
   const characters = useQuery({
     queryKey: ["characters"],
@@ -165,39 +168,57 @@ export function CharacterPage({
         {writingState.data && (
           <WritingBanner status={writingState.data} drafts={summary.toReview} />
         )}
-        <WeekNav
-          selected={selected}
-          written={written}
-          today={today}
-          onSelect={show}
-        />
-        {review.data?.some(
-          (i) =>
-            i.kind === "day" && i.startDay === selected && i.drafts.length > 0,
-        ) && <Alert color="teal">{t("review.draftWaitingHere")}</Alert>}
-        {journal.data && written.has(selected) ? (
-          <JournalPage
+        <SearchField value={query} onChange={setQuery} />
+        {/* While searching, the results take the week's place; choosing one opens its day. */}
+        {query !== "" && journal.data ? (
+          <SearchResults
             journal={journal.data}
-            day={selected}
-            awards={awards.data ?? []}
-            screenshots={screenshots.data?.[selected] ?? []}
-            writing={writingFor("day", selected, selected)}
+            stories={stories.data ?? []}
+            query={query}
+            onOpen={(target) => {
+              setQuery("");
+              show(target);
+            }}
           />
         ) : (
-          <EmptyState title={t("week.empty")} art="sleep">
-            {t("week.emptyHelp")}
-          </EmptyState>
-        )}
-        {/* The day comes first: it is what was picked. The week's chapter follows, for the
-            same week whichever of its days is open. */}
-        {journal.data &&
-          (weekly ||
-            versionsOf(stories.data ?? [], "week", monday).length > 0) && (
-            <WeekChapter
-              monday={monday}
-              {...writingFor("week", monday, sunday)}
+          <>
+            <WeekNav
+              selected={selected}
+              written={written}
+              today={today}
+              onSelect={show}
             />
-          )}
+            {review.data?.some(
+              (i) =>
+                i.kind === "day" &&
+                i.startDay === selected &&
+                i.drafts.length > 0,
+            ) && <Alert color="teal">{t("review.draftWaitingHere")}</Alert>}
+            {journal.data && written.has(selected) ? (
+              <JournalPage
+                journal={journal.data}
+                day={selected}
+                awards={awards.data ?? []}
+                screenshots={screenshots.data?.[selected] ?? []}
+                writing={writingFor("day", selected, selected)}
+              />
+            ) : (
+              <EmptyState title={t("week.empty")} art="sleep">
+                {t("week.emptyHelp")}
+              </EmptyState>
+            )}
+            {/* The day comes first: it is what was picked. The week's chapter follows, for the
+              same week whichever of its days is open. */}
+            {journal.data &&
+              (weekly ||
+                versionsOf(stories.data ?? [], "week", monday).length > 0) && (
+                <WeekChapter
+                  monday={monday}
+                  {...writingFor("week", monday, sunday)}
+                />
+              )}
+          </>
+        )}
       </Stack>
     </div>
   );

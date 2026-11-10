@@ -94,6 +94,21 @@
     "previousMonth": "Mois précédent",
     "nextMonth": "Mois suivant"
   },
+  "search": {
+    "label": "Chercher dans ce journal",
+    "placeholder": "Chercher dans les entrées et ce qui s'est passé",
+    "clear": "Effacer la recherche",
+    "short": "Tape au moins deux lettres.",
+    "none": "Rien trouvé pour « {{query}} ».",
+    "found_one": "{{count}} résultat.",
+    "found_other": "{{count}} résultats.",
+    "limited": "Les {{count}} premiers sont affichés.",
+    "source": {
+      "entry": "Entrée",
+      "facts": "Ce qui s'est passé",
+      "chapter": "Chapitre de la semaine"
+    }
+  },
   "page": {
     "nothing": "Rien à signaler.",
     "stayedIn": "Passé la journée dans {{place}}.",
