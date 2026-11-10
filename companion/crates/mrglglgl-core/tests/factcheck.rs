@@ -300,3 +300,15 @@ async fn a_rewrite_that_copies_its_instruction_keeps_only_the_entry() {
         "{result:?}"
     );
 }
+
+#[tokio::test]
+async fn an_answer_with_nothing_left_after_cleaning_is_a_failure_not_an_entry() {
+    let p = prompt("en");
+    // A model that only thought: once its reasoning is stripped, nothing is left to keep.
+    let provider = FakeProvider::new(["<think>The fish, the fish.</think>\n\n   "]);
+    let result = write(&provider, &p, &options(), &CancellationToken::new(), None).await;
+    assert!(
+        matches!(result, Err(mrglglgl_llm::ProviderError::Failed(_))),
+        "{result:?}"
+    );
+}

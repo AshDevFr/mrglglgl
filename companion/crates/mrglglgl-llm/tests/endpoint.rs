@@ -187,35 +187,144 @@ async fn errors_are_named_plainly() {
     );
 }
 
-#[tokio::test]
-async fn test_connection_checks_the_key_and_the_model() {
-    let listing = |models: &'static str| {
-        move |req: Request| {
-            assert_eq!(req.path, "/v1/models");
-            if req.header("authorization") != Some("Bearer secret") {
-                return Response::new(401, "no");
-            }
-            Response::new(200, format!(r#"{{"data": [{models}]}}"#))
+/// A server that lists `models` and answers a chat completion only for `answers`.
+fn endpoint(models: &'static str, answers: &'static str) -> impl Fn(Request) -> Response {
+    move |req: Request| {
+        if req.header("authorization") != Some("Bearer secret") {
+            return Response::new(401, "no");
         }
-    };
-    let has = serve(listing(r#"{"id": "scribe-3b"}"#)).await;
-    let lacks = serve(listing(r#"{"id": "other"}"#)).await;
+        match req.path.as_str() {
+            "/v1/models" => Response::new(200, format!(r#"{{"data": [{models}]}}"#)),
+            "/v1/chat/completions" => {
+                let body: serde_json::Value = serde_json::from_str(&req.body).unwrap();
+                // A check, not an entry: it asks for next to nothing.
+                assert!(body["max_tokens"].as_u64().unwrap() <= 16);
+                if body["model"] == answers {
+                    Response::new(200, r#"{"choices": [{"message": {"content": "Hi"}}]}"#)
+                } else {
+                    Response::new(
+                        400,
+                        r#"{"error": {"message": "Invalid model name passed in model=Qq"}}"#,
+                    )
+                }
+            }
+            other => panic!("unexpected {other}"),
+        }
+    }
+}
+
+fn with_model(url: &str, model: &str) -> EndpointProvider {
+    EndpointProvider::new(EndpointConfig {
+        base_url: format!("{url}/v1"),
+        model: model.into(),
+        api_key: Some("secret".into()),
+    })
+}
+
+#[tokio::test]
+async fn test_connection_lists_the_models_and_asks_the_chosen_one() {
+    let server = serve(endpoint(
+        r#"{"id": "scribe-3b"}, {"id": "a-big-one"}"#,
+        "scribe-3b",
+    ))
+    .await;
+    // No model yet: the test lists what there is to choose from, in order.
     assert_eq!(
-        provider(&has.url, Some("secret")).test_connection().await,
-        Ok(())
+        with_model(&server.url, "").test_connection().await,
+        Ok(vec!["a-big-one".to_string(), "scribe-3b".to_string()])
     );
     assert_eq!(
-        provider(&has.url, Some("wrong")).test_connection().await,
+        provider(&server.url, Some("secret"))
+            .test_connection()
+            .await
+            .map(|m| m.len()),
+        Ok(2)
+    );
+    assert_eq!(
+        provider(&server.url, Some("wrong")).test_connection().await,
         Err(ProviderError::Unauthorised)
-    );
-    assert_eq!(
-        provider(&lacks.url, Some("secret")).test_connection().await,
-        Err(ProviderError::ModelNotFound("scribe-3b".into()))
     );
     assert_eq!(
         provider("http://127.0.0.1:9", None).test_connection().await,
         Err(ProviderError::Unreachable("127.0.0.1".into()))
     );
+}
+
+#[tokio::test]
+async fn test_connection_says_no_to_a_model_that_does_not_answer() {
+    // Listed or not, a model is only fine once it answers: some servers list nothing useful.
+    let unlisted = serve(endpoint("", "scribe-3b")).await;
+    assert_eq!(
+        with_model(&unlisted.url, "Qq").test_connection().await,
+        Err(ProviderError::ModelNotFound("Qq".into()))
+    );
+    assert_eq!(
+        with_model(&unlisted.url, "scribe-3b")
+            .test_connection()
+            .await,
+        Ok(vec![])
+    );
+    let listed = serve(endpoint(r#"{"id": "other"}"#, "other")).await;
+    assert_eq!(
+        with_model(&listed.url, "scribe-3b").test_connection().await,
+        Err(ProviderError::ModelNotFound("scribe-3b".into()))
+    );
+}
+
+/// What a writer gets from a stream that carries `events` and then ends.
+async fn streamed(events: &[serde_json::Value]) -> Result<String, ProviderError> {
+    let mut chunks: Vec<Vec<u8>> = events
+        .iter()
+        .map(|e| format!("data: {e}\n\n").into_bytes())
+        .collect();
+    chunks.push(b"data: [DONE]\n\n".to_vec());
+    let server = serve(move |_| {
+        Response::chunked(200, chunks.clone(), Duration::from_millis(1))
+            .header("Content-Type", "text/event-stream")
+    })
+    .await;
+    generate_text(
+        &provider(&server.url, None),
+        request(),
+        Duration::from_secs(5),
+        CancellationToken::new(),
+        None,
+    )
+    .await
+    .map(|(_, text)| text)
+}
+
+#[tokio::test]
+async fn an_error_inside_the_stream_is_an_error() {
+    // A proxy such as LiteLLM answers 200 and then reports its backend's failure in the stream.
+    let result = streamed(&[serde_json::json!({
+        "error": {"message": "backend model is not loaded"}
+    })])
+    .await;
+    match result {
+        Err(ProviderError::Failed(message)) => {
+            assert!(message.contains("backend model is not loaded"), "{message}");
+        }
+        other => panic!("expected a failure, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn a_stream_with_no_text_is_an_error_not_an_empty_entry() {
+    match streamed(&[]).await {
+        Err(ProviderError::Failed(message)) => assert!(message.contains("no text"), "{message}"),
+        other => panic!("expected a failure, got {other:?}"),
+    }
+    // A thinking model that spends every token thinking writes nothing either, and says why.
+    let thinking = streamed(&[
+        serde_json::json!({"choices": [{"delta": {"reasoning_content": "Let me think about"}}]}),
+        serde_json::json!({"choices": [{"delta": {"reasoning_content": " the fish."}, "finish_reason": "length"}]}),
+    ])
+    .await;
+    match thinking {
+        Err(ProviderError::Failed(message)) => assert!(message.contains("thinking"), "{message}"),
+        other => panic!("expected a failure, got {other:?}"),
+    }
 }
 
 #[test]

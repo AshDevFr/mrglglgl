@@ -12,7 +12,7 @@ const commands = vi.hoisted(() => ({
   ),
   hasApiKey: vi.fn(async () => false),
   saveApiKey: vi.fn(async () => {}),
-  testEndpoint: vi.fn(async () => {}),
+  testEndpoint: vi.fn(async (..._: unknown[]) => [] as string[]),
   models: vi.fn(),
   downloadModel: vi.fn(async () => {}),
   cancelDownload: vi.fn(async () => {}),
@@ -38,6 +38,11 @@ function endpoint(extra: Partial<WritingSettings>) {
 }
 
 describe("EndpointFields", () => {
+  beforeEach(() => {
+    commands.testEndpoint.mockReset();
+    commands.testEndpoint.mockResolvedValue([]);
+  });
+
   it("states plainly what is sent to an endpoint that is not on this computer", async () => {
     endpoint({ endpointUrl: "https://api.example.com/v1" });
     expect(
@@ -59,14 +64,66 @@ describe("EndpointFields", () => {
   });
 
   it("tests the connection and reports the answer", async () => {
+    endpoint({ endpointUrl: "http://localhost:11434/v1" });
+    // Opening an endpoint already set up lists its models first, quietly.
+    await waitFor(() => expect(commands.testEndpoint).toHaveBeenCalled());
     commands.testEndpoint.mockRejectedValueOnce(
       "the endpoint refused the key (unauthorised)",
     );
-    endpoint({ endpointUrl: "http://localhost:11434/v1" });
     fireEvent.click(screen.getByRole("button", { name: "Test connection" }));
     expect(
       await screen.findByText(
         /^Test failed: the endpoint refused the key \(unauthorised\)\. Check the address/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("asks for the address and key first, then offers the models the endpoint lists", async () => {
+    commands.testEndpoint.mockResolvedValue(["qwen3.6-27b", "scribe-3b"]);
+    const onChange = endpoint({
+      endpointUrl: "https://llm.example.com/v1",
+      endpointModel: "",
+    });
+    // The key comes before the model, and the test needs no model.
+    const key = screen.getByLabelText(/Key \(optional\)/);
+    const model = screen.getByRole("combobox", { name: /Model name/ });
+    expect(
+      key.compareDocumentPosition(model) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    fireEvent.change(key, { target: { value: "sk-typed" } });
+    fireEvent.click(screen.getByRole("button", { name: "Test connection" }));
+    expect(
+      await screen.findByText(/lists 2 models: pick one under Model name/),
+    ).toBeInTheDocument();
+    // A key typed but not saved yet is the one tried.
+    expect(commands.testEndpoint).toHaveBeenLastCalledWith(
+      "https://llm.example.com/v1",
+      "",
+      "sk-typed",
+    );
+    fireEvent.click(model);
+    fireEvent.click(await screen.findByText("scribe-3b"));
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ endpointModel: "scribe-3b" }),
+    );
+  });
+
+  it("still takes a model's name typed by hand, and says when it wrote back", async () => {
+    commands.testEndpoint.mockResolvedValue([]);
+    const onChange = endpoint({
+      endpointUrl: "https://llm.example.com/v1",
+      endpointModel: "my-model",
+    });
+    fireEvent.change(screen.getByRole("combobox", { name: /Model name/ }), {
+      target: { value: "my-model-2" },
+    });
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ endpointModel: "my-model-2" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Test connection" }));
+    expect(
+      await screen.findByText(
+        "The endpoint answered, and my-model wrote back.",
       ),
     ).toBeInTheDocument();
   });

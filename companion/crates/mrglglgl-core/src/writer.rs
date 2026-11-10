@@ -226,6 +226,12 @@ async fn attempt(
                 cleaned.split_whitespace().count()
             );
             tracing::trace!("model answer:\n{text}");
+            // Nothing left to keep is a failure to retry, never an empty entry in the journal.
+            if cleaned.trim().is_empty() {
+                return Err(ProviderError::Failed(
+                    "the model wrote nothing that could be kept".to_string(),
+                ));
+            }
             Ok(cleaned)
         }
         GenerateOutcome::Cancelled => Err(WriteResult::Cancelled),

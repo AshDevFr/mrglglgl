@@ -1,5 +1,6 @@
 import {
   Alert,
+  Autocomplete,
   Button,
   Group,
   PasswordInput,
@@ -11,7 +12,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   endpointSendsOffMachine,
@@ -43,8 +44,12 @@ export function EndpointFields({ value, onChange }: Props) {
   const queryClient = useQueryClient();
   const [key, setKey] = useState("");
   const [test, setTest] = useState<
-    { state: "idle" | "testing" | "ok" } | { state: "failed"; message: string }
+    | { state: "idle" | "testing" }
+    | { state: "ok"; model: string }
+    | { state: "failed"; message: string }
   >({ state: "idle" });
+  // What the endpoint lists, offered as the model to pick; a name can still be typed.
+  const [models, setModels] = useState<string[] | null>(null);
   const set = (patch: Partial<WritingSettings>) =>
     onChange({ ...value, ...patch });
   const url = value.endpointUrl ?? "";
@@ -62,14 +67,24 @@ export function EndpointFields({ value, onChange }: Props) {
   }
 
   async function runTest() {
+    const model = (value.endpointModel ?? "").trim();
     setTest({ state: "testing" });
     try {
-      await testEndpoint(url, value.endpointModel ?? "");
-      setTest({ state: "ok" });
+      setModels(await testEndpoint(url, model, key.trim() || undefined));
+      setTest({ state: "ok", model });
     } catch (e) {
       setTest({ state: "failed", message: String(e) });
     }
   }
+
+  // An endpoint already set up lists its models on its own, so the picker is ready.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: once, for the address it opened with
+  useEffect(() => {
+    if (value.provider !== "endpoint" || url.trim() === "") return;
+    void testEndpoint(url, "")
+      .then(setModels)
+      .catch(() => {});
+  }, [value.provider]);
 
   return (
     <Stack>
@@ -98,11 +113,6 @@ export function EndpointFields({ value, onChange }: Props) {
               {t("settings.disclosure", { host: host(url) })}
             </Alert>
           )}
-          <TextInput
-            label={t("settings.endpointModel")}
-            value={value.endpointModel ?? ""}
-            onChange={(e) => set({ endpointModel: e.currentTarget.value })}
-          />
           <PasswordInput
             label={t("settings.apiKey")}
             description={
@@ -132,7 +142,7 @@ export function EndpointFields({ value, onChange }: Props) {
             )}
             <Button
               variant="default"
-              disabled={url.trim() === "" || !value.endpointModel}
+              disabled={url.trim() === ""}
               loading={test.state === "testing"}
               onClick={() => void runTest()}
             >
@@ -141,7 +151,11 @@ export function EndpointFields({ value, onChange }: Props) {
           </Group>
           {test.state === "ok" && (
             <Text size="sm" c="green" role="status">
-              {t("settings.connectionOk")}
+              {test.model
+                ? t("settings.connectionOkModel", { model: test.model })
+                : models && models.length > 0
+                  ? t("settings.connectionOkListed", { count: models.length })
+                  : t("settings.connectionOkUnlisted")}
             </Text>
           )}
           {test.state === "failed" && (
@@ -151,6 +165,23 @@ export function EndpointFields({ value, onChange }: Props) {
               })}
             </Text>
           )}
+          <Autocomplete
+            label={t("settings.endpointModel")}
+            description={
+              models && models.length > 0
+                ? t("settings.endpointModelPick")
+                : t("settings.endpointModelHelp")
+            }
+            data={models ?? []}
+            value={value.endpointModel ?? ""}
+            onChange={(model) => {
+              set({ endpointModel: model });
+              // A result said of another model no longer holds.
+              if (test.state !== "testing") setTest({ state: "idle" });
+            }}
+            limit={50}
+            maxDropdownHeight={280}
+          />
           <Switch
             label={t("settings.pseudonyms")}
             description={t("settings.pseudonymsHelp")}

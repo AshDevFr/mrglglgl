@@ -95,9 +95,9 @@ impl EndpointProvider {
         }
     }
 
-    /// Checks the endpoint answers, accepts the key and has the model.
-    pub async fn test_connection(&self) -> Result<(), ProviderError> {
-        tracing::debug!("testing the endpoint at {}", self.url("models"));
+    /// The models the endpoint lists, sorted; empty when it lists none (some servers do not).
+    pub async fn list_models(&self) -> Result<Vec<String>, ProviderError> {
+        tracing::debug!("listing models at {}", self.url("models"));
         let response = self
             .authorised(self.client.get(self.url("models")))
             .send()
@@ -106,28 +106,102 @@ impl EndpointProvider {
         match response.status() {
             s if s.is_success() => {
                 let listed: serde_json::Value = response.json().await.unwrap_or_default();
-                let ids: Vec<&str> = listed["data"]
+                let mut ids: Vec<String> = listed["data"]
                     .as_array()
-                    .map(|models| models.iter().filter_map(|m| m["id"].as_str()).collect())
+                    .map(|models| {
+                        models
+                            .iter()
+                            .filter_map(|m| m["id"].as_str().map(str::to_string))
+                            .collect()
+                    })
                     .unwrap_or_default();
-                // Some servers list nothing useful; only a list without the model is a no.
-                if !ids.is_empty() && !ids.contains(&self.config.model.as_str()) {
-                    return Err(ProviderError::ModelNotFound(self.config.model.clone()));
-                }
-                Ok(())
+                ids.sort();
+                ids.dedup();
+                Ok(ids)
             }
-            StatusCode::NOT_FOUND => Ok(()),
+            StatusCode::NOT_FOUND => Ok(Vec::new()),
             _ => Err(self.status_error(response).await),
         }
     }
+
+    /// Checks the endpoint answers and accepts the key, and returns the models it lists. With a
+    /// model chosen, also asks that model for a word: a list can be empty or wrong (a proxy may
+    /// list models it cannot reach), and only an answer proves the model writes.
+    pub async fn test_connection(&self) -> Result<Vec<String>, ProviderError> {
+        let models = self.list_models().await?;
+        let model = self.config.model.trim();
+        if model.is_empty() {
+            return Ok(models);
+        }
+        if !models.is_empty() && !models.iter().any(|m| m == model) {
+            return Err(ProviderError::ModelNotFound(model.to_string()));
+        }
+        tracing::debug!("asking {model} for a word, to check it answers");
+        let response = self
+            .authorised(self.client.post(self.url("chat/completions")))
+            .json(&json!({
+                "model": model,
+                "max_tokens": 8,
+                "messages": [{"role": "user", "content": "Say hello."}],
+            }))
+            .send()
+            .await
+            .map_err(|e| self.send_error(&e))?;
+        if !response.status().is_success() {
+            return Err(match self.status_error(response).await {
+                // Servers word an unknown model in many ways; the model was named, so say it.
+                ProviderError::Failed(message) if message.to_lowercase().contains("model") => {
+                    tracing::debug!("the model check failed: {message}");
+                    ProviderError::ModelNotFound(model.to_string())
+                }
+                other => other,
+            });
+        }
+        let answer: serde_json::Value = response.json().await.unwrap_or_default();
+        if let Some(message) = error_message(&answer) {
+            return Err(ProviderError::Failed(message));
+        }
+        Ok(models)
+    }
 }
 
-/// The text of one streamed chunk, from a `data:` line's JSON.
-fn delta(line: &str) -> Option<String> {
-    let value: serde_json::Value = serde_json::from_str(line).ok()?;
-    value["choices"][0]["delta"]["content"]
-        .as_str()
-        .map(str::to_string)
+/// The message of an error object, as OpenAI-compatible servers send it in a body or a stream.
+fn error_message(value: &serde_json::Value) -> Option<String> {
+    let error = value.get("error")?;
+    Some(
+        error["message"]
+            .as_str()
+            .or(error.as_str())
+            .unwrap_or("the endpoint reported an error")
+            .to_string(),
+    )
+}
+
+/// One streamed chunk: its text, and whether it carried thinking instead (reasoning models
+/// stream that apart, as `reasoning_content` or `reasoning`).
+fn delta(line: &str) -> Result<(Option<String>, bool), ProviderError> {
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(line) else {
+        return Ok((None, false));
+    };
+    if let Some(message) = error_message(&value) {
+        return Err(ProviderError::Failed(message));
+    }
+    let delta = &value["choices"][0]["delta"];
+    let thinking = ["reasoning_content", "reasoning"]
+        .iter()
+        .any(|k| delta[k].as_str().is_some_and(|t| !t.is_empty()));
+    Ok((delta["content"].as_str().map(str::to_string), thinking))
+}
+
+/// How a stream ended without any text, said plainly.
+fn nothing_written(thought: bool) -> ProviderError {
+    ProviderError::Failed(if thought {
+        "the model spent its tokens thinking and wrote no text; turn its thinking off or choose \
+         a model that does not think"
+            .to_string()
+    } else {
+        "the endpoint answered but sent no text".to_string()
+    })
 }
 
 #[async_trait]
@@ -179,13 +253,22 @@ impl Provider for EndpointProvider {
 
         let mut stream = response.bytes_stream();
         let mut pending: Vec<u8> = Vec::new();
+        let (mut wrote, mut thought) = (false, false);
+        // The end of the stream: complete with text, otherwise a failure, never an empty entry.
+        let finished = |wrote: bool, thought: bool| {
+            if wrote {
+                Ok(GenerateOutcome::Completed)
+            } else {
+                Err(nothing_written(thought))
+            }
+        };
         loop {
             let chunk = tokio::select! {
                 c = stream.next() => c,
                 () = cancel.cancelled() => return Ok(GenerateOutcome::Cancelled),
             };
             let Some(chunk) = chunk else {
-                return Ok(GenerateOutcome::Completed);
+                return finished(wrote, thought);
             };
             pending.extend_from_slice(&chunk.map_err(|e| self.send_error(&e))?);
             // Server-sent events: one `data:` line per chunk, possibly split across reads.
@@ -197,12 +280,17 @@ impl Provider for EndpointProvider {
                 };
                 let data = data.trim();
                 if data == "[DONE]" {
-                    return Ok(GenerateOutcome::Completed);
+                    return finished(wrote, thought);
                 }
-                if let Some(text) = delta(data).filter(|t| !t.is_empty())
-                    && sink.send(text).await.is_err()
-                {
-                    return Ok(GenerateOutcome::Cancelled);
+                let (text, thinking) = delta(data).inspect_err(|e| {
+                    tracing::warn!("the endpoint reported an error while writing: {e}");
+                })?;
+                thought |= thinking;
+                if let Some(text) = text.filter(|t| !t.is_empty()) {
+                    wrote = true;
+                    if sink.send(text).await.is_err() {
+                        return Ok(GenerateOutcome::Cancelled);
+                    }
                 }
             }
         }

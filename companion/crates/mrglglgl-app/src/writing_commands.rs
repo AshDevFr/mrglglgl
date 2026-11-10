@@ -849,19 +849,26 @@ pub fn has_api_key() -> bool {
     writing::api_key().is_some()
 }
 
-/// Checks an endpoint answers, accepts the stored key and has the model. The error is a plain
-/// sentence.
+/// Checks an endpoint answers and accepts the key, and returns the models it lists; with a model
+/// named, also checks that model answers. A key typed but not saved yet is tried in place of the
+/// stored one, so a key can be tested before it is kept. The error is a plain sentence.
 #[tauri::command]
-pub async fn test_endpoint(url: String, model: String) -> Result<(), String> {
-    tracing::info!("testing endpoint {url} with model {model}");
+pub async fn test_endpoint(
+    url: String,
+    model: String,
+    key: Option<String>,
+) -> Result<Vec<String>, String> {
+    tracing::info!("testing endpoint {url} with model {model:?}");
     EndpointProvider::new(EndpointConfig {
         base_url: url,
         model,
-        api_key: writing::api_key(),
+        api_key: key
+            .filter(|k| !k.trim().is_empty())
+            .or_else(writing::api_key),
     })
     .test_connection()
     .await
-    .inspect(|()| tracing::info!("endpoint test passed"))
+    .inspect(|models| tracing::info!("endpoint test passed, {} models listed", models.len()))
     .map_err(|e| {
         tracing::warn!("endpoint test failed: {e}");
         e.to_string()

@@ -79,7 +79,10 @@ To have entries written, open **Settings**, **Writing**, and choose who writes:
   before anything downloads). Nothing you write leaves your computer. This needs at least 8 GB of
   memory; the app tells you if your computer has less and suggests a model that fits.
 - **An endpoint you run or pay for:** any OpenAI-compatible address, such as Ollama or LM Studio
-  on your own machine, or a cloud provider. See [Your data and privacy](/guide/your-data/).
+  on your own machine, or a cloud provider. Enter its address and key, then **Test connection**:
+  it lists the endpoint's models to pick from (you can also type a model's name), and once a
+  model is chosen, testing again checks that it writes back. See
+  [Your data and privacy](/guide/your-data/).
 
 ![The Writing tab of Settings: the writing model, narrator, margin notes and writing preferences.](../../assets/screenshots/settings-writing.png)
 

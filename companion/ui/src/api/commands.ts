@@ -426,8 +426,14 @@ export function hasApiKey(): Promise<boolean> {
 }
 
 /** Resolves when the endpoint answers, accepts the key and has the model. */
-export function testEndpoint(url: string, model: string): Promise<void> {
-  return invoke<void>("test_endpoint", { url, model });
+/** Checks an endpoint and returns the models it lists; with a model named, checks it answers. A
+ * key typed but not saved is tried in place of the stored one. */
+export function testEndpoint(
+  url: string,
+  model: string,
+  key?: string,
+): Promise<string[]> {
+  return invoke<string[]>("test_endpoint", { url, model, key: key ?? null });
 }
 
 export function endpointSendsOffMachine(url: string): Promise<boolean> {
