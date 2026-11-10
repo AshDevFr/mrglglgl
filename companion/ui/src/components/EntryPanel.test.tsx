@@ -419,4 +419,56 @@ describe("EntryPanel, edited by hand", () => {
     await rewrite("Write again…");
     expect(screen.getByRole("button", { name: "Write again" })).toBeEnabled();
   });
+
+  it("keeps the entry on the page while a draft for To review is written, and links to it", () => {
+    const onOpenReview = vi.fn();
+    const { onCancel } = panel({
+      versions: [story(1, "Mrgl, the old entry.")],
+      live: {
+        text: "The new words",
+        active: true,
+        outcome: null,
+        message: null,
+      },
+      job: job({ state: "running", draft: true, position: null }),
+      onOpenReview,
+    });
+    // The entry stays; the new words are on the To review card, not here.
+    expect(screen.getByText("Mrgl, the old entry.")).toBeInTheDocument();
+    expect(screen.queryByText("The new words")).toBeNull();
+    expect(
+      screen.getByText("Writing a new version for To review…"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/This entry stays as it is/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open in To review" }));
+    expect(onOpenReview).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(onCancel).toHaveBeenCalled();
+  });
+
+  it("says a new version waits in To review once written, and opens it", () => {
+    const onOpenReview = vi.fn();
+    panel({
+      versions: [story(1, "Mrgl, the old entry.")],
+      live: { text: "", active: false, outcome: "written", message: null },
+      draftWaiting: true,
+      onOpenReview,
+    });
+    expect(screen.getByText("Mrgl, the old entry.")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "A new version waits in To review. This entry stays until you accept it there.",
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Open in To review" }));
+    expect(onOpenReview).toHaveBeenCalled();
+  });
+
+  it("says a queued new version will wait in To review", () => {
+    panel({
+      versions: [story(1, "Mrgl, the old entry.")],
+      job: job({ draft: true, position: 2 }),
+    });
+    expect(
+      screen.getByText(/number 2\. It will wait in To review/),
+    ).toBeInTheDocument();
+  });
 });

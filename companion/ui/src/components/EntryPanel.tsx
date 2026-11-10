@@ -69,6 +69,10 @@ interface Props {
   menuItems?: (story: Story) => ReactNode;
   /** Saves the player's own text as a new version, made from the version shown. */
   onEdit?: (story: Story, text: string) => Promise<void>;
+  /** A draft of this day or week waits in To review. */
+  draftWaiting?: boolean;
+  /** Opens this day or week's card in To review. */
+  onOpenReview?: () => void;
 }
 
 function failure(t: TFunction, reason: string | null) {
@@ -94,6 +98,8 @@ export function EntryPanel({
   actions,
   menuItems,
   onEdit,
+  draftWaiting,
+  onOpenReview,
 }: Props) {
   const { t, i18n } = useTranslation();
   const [index, setIndex] = useState(0);
@@ -132,7 +138,11 @@ export function EntryPanel({
     }
   }
 
-  if (live?.active) {
+  // A draft is written for To review: the entry on the page stays as it is meanwhile, and the
+  // words appear on the To review card, where the draft will wait.
+  const forReview = Boolean(job?.draft);
+  const writingDraft = forReview && (live?.active || job?.state === "running");
+  if (live?.active && !forReview) {
     return (
       <div className="entry-panel" aria-busy="true">
         <WritingNow label={t(loadingKey(day))} />
@@ -145,8 +155,35 @@ export function EntryPanel({
   }
 
   const retrying = job?.state === "pending";
+  const reviewButton = onOpenReview && (
+    <Button size="xs" variant="light" w="fit-content" onClick={onOpenReview}>
+      {t("writing.openReview")}
+    </Button>
+  );
   return (
-    <div className="entry-panel">
+    <div className="entry-panel" aria-busy={writingDraft || undefined}>
+      {writingDraft && (
+        <Alert color="teal" className="draft-note">
+          <WritingNow label={t("writing.draftWriting")} />
+          <Text size="sm" mt={4}>
+            {t(shown ? "writing.draftWritingKeeps" : "writing.draftWritingNew")}
+          </Text>
+          <Group gap="xs" mt="xs">
+            {reviewButton}
+            <Button size="xs" variant="subtle" color="gray" onClick={onCancel}>
+              {t("writing.cancel")}
+            </Button>
+          </Group>
+        </Alert>
+      )}
+      {!writingDraft && draftWaiting && (
+        <Alert color="teal" role="status" className="draft-note">
+          <Text size="sm">
+            {t(shown ? "writing.draftWaitsReplaces" : "writing.draftWaits")}
+          </Text>
+          {reviewButton && <Group mt="xs">{reviewButton}</Group>}
+        </Alert>
+      )}
       {live?.outcome === "cancelled" && (
         <Alert color="gray" role="status">
           {problem(t, "writing.outcome.cancelled")}
@@ -243,7 +280,7 @@ export function EntryPanel({
                 ` ${problem(t, `writing.blocked.${blocked}` as Problem)}`}
             </Text>
           )}
-          {!shown && job?.state === "running" && (
+          {!shown && job?.state === "running" && !forReview && (
             <Text className="note">{t(loadingKey(day))}</Text>
           )}
           {!shown && !finished && (
@@ -254,7 +291,9 @@ export function EntryPanel({
 
       {shown && job?.state === "pending" && (
         <Text className="note" role="status">
-          {t("writing.againQueued", { position: job.position ?? 1 })}
+          {t(forReview ? "writing.againQueuedDraft" : "writing.againQueued", {
+            position: job.position ?? 1,
+          })}
           {blocked && ` ${problem(t, `writing.blocked.${blocked}` as Problem)}`}
         </Text>
       )}

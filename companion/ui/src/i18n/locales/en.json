@@ -629,6 +629,13 @@
     "setAside": "The murloc's entry was set aside because it {{reason}}.",
     "notYet": "The murloc hasn't written this one yet. It is number {{position}} in line.",
     "againQueued": "A new version is in line, number {{position}}.",
+    "againQueuedDraft": "A new version is in line, number {{position}}. It will wait in To review; this entry stays until you accept it.",
+    "draftWriting": "Writing a new version for To review…",
+    "draftWritingKeeps": "This entry stays as it is. The new version appears on its To review card as it is written, and replaces this one only if you accept it.",
+    "draftWritingNew": "It appears on its To review card as it is written, and goes into the journal when you accept it.",
+    "draftWaits": "A draft of this entry waits in To review.",
+    "draftWaitsReplaces": "A new version waits in To review. This entry stays until you accept it there.",
+    "openReview": "Open in To review",
     "blocked": {
       "paused": "Writing is paused.",
       "noModel": "No writing model is downloaded yet.",

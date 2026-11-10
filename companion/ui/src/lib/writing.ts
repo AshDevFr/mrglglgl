@@ -17,6 +17,10 @@ export type LiveMap = Record<string, Live>;
 
 export const slot = (kind: StoryKind, day: string) => `${kind}:${day}`;
 
+/** The id of a day or week's card in To review, for a link straight to it. */
+export const reviewAnchor = (kind: StoryKind, day: string) =>
+  `review-${kind}-${day}`;
+
 const idle: Live = { text: "", active: false, outcome: null, message: null };
 
 /** Folds one writer event into what the window shows for a character. */

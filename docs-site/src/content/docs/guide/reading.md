@@ -48,6 +48,11 @@ Under a written entry, **Copy entry** and **Edit** are at hand; the rest is unde
 progress can be cancelled. A day with nothing written yet offers **Write now** straight away.
 Earlier versions are kept: **Older** and **Newer** move between them.
 
+With **Let me review entries first** on, the entry on the page stays as it is while the new
+version is written: the new one is written on the day's card in **To review**, and replaces the
+entry only once you accept it there. Meanwhile the day says a new version waits, with
+**Open in To review** to go straight to its card.
+
 ## The narrator checks its own work
 
 An entry that names a number, place, creature or item that is not in the day's notes is written

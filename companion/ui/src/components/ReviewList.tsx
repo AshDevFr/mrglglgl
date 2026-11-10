@@ -8,7 +8,7 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   acceptDraft,
@@ -35,7 +35,7 @@ import { narratorLabel } from "@/lib/narrators";
 import { daySentences } from "@/lib/sentences";
 import { scheduleRebuild } from "@/lib/siteBuild";
 import { useWriting } from "@/lib/useWriting";
-import { type Live, slot } from "@/lib/writing";
+import { type Live, reviewAnchor, slot } from "@/lib/writing";
 import { EmptyState } from "./EmptyState";
 import { EntryText } from "./EntryPanel";
 import { FactList } from "./FactList";
@@ -353,9 +353,16 @@ function ReviewRow({
   const day = item.kind === "day" ? journal?.days[item.startDay] : undefined;
   const facts = journal && day ? dayFacts(journal, day) : null;
   const busy = live?.active || item.job?.state === "running";
+  const anchor = reviewAnchor(item.kind, item.startDay);
+  const card = useRef<HTMLElement>(null);
+  // Opened from the journal page for this day: bring its card into view.
+  useEffect(() => {
+    if (window.location.hash === `#${anchor}`)
+      card.current?.scrollIntoView?.({ block: "start" });
+  }, [anchor]);
 
   return (
-    <article className="journal-page" aria-label={title}>
+    <article ref={card} id={anchor} className="journal-page" aria-label={title}>
       <Group gap="sm" wrap="nowrap" align="flex-start">
         <Checkbox
           aria-label={t("review.select", { day: title })}

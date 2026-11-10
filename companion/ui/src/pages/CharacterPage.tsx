@@ -33,7 +33,7 @@ import { daysNewestFirst } from "@/lib/journal";
 import { rememberDay } from "@/lib/lastDay";
 import { useWriting } from "@/lib/useWriting";
 import { dayKey, weekDays, weekStart } from "@/lib/weeks";
-import { jobFor, slot, versionsOf } from "@/lib/writing";
+import { jobFor, reviewAnchor, slot, versionsOf } from "@/lib/writing";
 
 interface Props {
   characterId: number;
@@ -112,6 +112,18 @@ export function CharacterPage({
         void retryWriting(characterId, kind, start).then(refreshStatus),
       actions: (story) => <CopyEntryButton story={story} />,
       menuItems: (story) => <DebugExportItem story={story} />,
+      draftWaiting: (review.data ?? []).some(
+        (item) =>
+          item.kind === kind &&
+          item.startDay === start &&
+          item.drafts.length > 0,
+      ),
+      onOpenReview: () =>
+        void navigate({
+          to: "/characters/$characterId/review",
+          params: { characterId: String(characterId) },
+          hash: reviewAnchor(kind, start),
+        }),
       onEdit: async (story, text) => {
         const saved = await editStory(characterId, story.id, text);
         if (saved === null) throw new Error(t("writing.editRefused"));
