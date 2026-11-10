@@ -254,6 +254,27 @@ describe("EntryPanel", () => {
     expect(onWrite).toHaveBeenCalledWith("grumpy_dwarf");
   });
 
+  it("says which narrator writes when none is picked, and marks it in the list", async () => {
+    panel({
+      versions: [story(1, "The plains were quiet.")],
+      defaultNarrator: "grumpy_dwarf",
+    });
+    await rewrite("Write again…");
+    const input = screen
+      .getAllByLabelText("Narrator for this day")
+      .find((el) => el.tagName === "INPUT");
+    if (!input) throw new Error("no narrator input");
+    expect(input).toHaveAttribute("placeholder", "Default: The grumpy dwarf");
+    fireEvent.click(input);
+    expect(
+      await screen.findByRole("option", { name: "The grumpy dwarf (default)" }),
+    ).toBeInTheDocument();
+    // The others keep their plain names.
+    expect(screen.getByRole("listbox", { hidden: true })).toHaveTextContent(
+      /^The murloc scribeThe grumpy dwarf \(default\)$/,
+    );
+  });
+
   it("shows the facts and the place in line while the murloc has not written yet", () => {
     panel({ job: job({ position: 3 }), blocked: "gameRunning" });
     expect(screen.getByText("Killed 23 Prairie Wolves.")).toBeInTheDocument();

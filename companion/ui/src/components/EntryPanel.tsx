@@ -24,7 +24,11 @@ import {
 import { WritingNow } from "@/components/WritingNow";
 import { type Problem, problem } from "@/i18n/problems";
 import { formatTime } from "@/lib/format";
-import { narratorLabel } from "@/lib/narrators";
+import {
+  defaultPlaceholder,
+  narratorChoices,
+  narratorLabel,
+} from "@/lib/narrators";
 import { type Live, loadingKey } from "@/lib/writing";
 
 /** An entry's text: paragraphs, with the murloc's margin note set apart. */
@@ -77,6 +81,8 @@ interface Props {
   onEdit?: (story: Story, text: string) => Promise<void>;
   /** A draft of this day or week waits in To review. */
   draftWaiting?: boolean;
+  /** The narrator that writes when none is picked: the character's own, or Settings'. */
+  defaultNarrator?: string;
   /** Opens this day or week's card in To review. */
   onOpenReview?: () => void;
 }
@@ -106,6 +112,7 @@ export function EntryPanel({
   onEdit,
   draftWaiting,
   onOpenReview,
+  defaultNarrator,
 }: Props) {
   const { t, i18n } = useTranslation();
   const [index, setIndex] = useState(0);
@@ -367,10 +374,18 @@ export function EntryPanel({
         <Group gap="xs" mt="sm" wrap="wrap">
           <Select
             aria-label={t(`writing.narratorFor.${kind}`)}
-            placeholder={t(`writing.narratorFor.${kind}`)}
-            data={narrators.map((n) => ({ value: n.id, label: n.name }))}
+            placeholder={defaultPlaceholder(
+              t,
+              narrators,
+              defaultNarrator,
+              t(`writing.narratorFor.${kind}`),
+            )}
+            data={narratorChoices(t, narrators, defaultNarrator)}
             renderOption={narratorOption(narrators)}
-            leftSection={narratorSection(narrators, narrator)}
+            leftSection={narratorSection(
+              narrators,
+              narrator ?? defaultNarrator,
+            )}
             value={narrator}
             onChange={setNarrator}
             clearable

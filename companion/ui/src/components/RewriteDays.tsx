@@ -24,7 +24,11 @@ import {
 } from "@/components/NarratorIcon";
 import { problem } from "@/i18n/problems";
 import { formatDay } from "@/lib/format";
-import { narratorLabel } from "@/lib/narrators";
+import {
+  defaultPlaceholder,
+  narratorChoices,
+  narratorLabel,
+} from "@/lib/narrators";
 import { weekStart } from "@/lib/weeks";
 
 /** A day the journal has an entry for: its newest version, which is the one shown. */
@@ -58,6 +62,8 @@ interface Props {
   onClose: () => void;
   stories: Story[];
   narrators: NarratorInfo[];
+  /** The narrator that writes when none is picked for the batch. */
+  defaultNarrator?: string;
   /** Review mode: where the batch goes unless the player says otherwise. */
   review: boolean;
   onQueued: (count: number) => void;
@@ -72,6 +78,7 @@ export function RewriteDays({
   onClose,
   stories,
   narrators,
+  defaultNarrator,
   review,
   onQueued,
 }: Props) {
@@ -215,10 +222,18 @@ export function RewriteDays({
             </ScrollArea.Autosize>
             <Select
               label={t("rewrite.narrator")}
-              placeholder={t("rewrite.usualNarrator")}
-              data={narrators.map((n) => ({ value: n.id, label: n.name }))}
+              placeholder={defaultPlaceholder(
+                t,
+                narrators,
+                defaultNarrator,
+                t("rewrite.usualNarrator"),
+              )}
+              data={narratorChoices(t, narrators, defaultNarrator)}
               renderOption={narratorOption(narrators)}
-              leftSection={narratorSection(narrators, narrator)}
+              leftSection={narratorSection(
+                narrators,
+                narrator ?? defaultNarrator,
+              )}
               value={narrator}
               onChange={setNarrator}
               clearable

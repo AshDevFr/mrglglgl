@@ -34,10 +34,15 @@ import {
 } from "@/components/NarratorIcon";
 import { WritingNow } from "@/components/WritingNow";
 import { type Problem, problem } from "@/i18n/problems";
+import { useDefaultNarrators } from "@/lib/defaultNarrator";
 import { dayFactRows } from "@/lib/factList";
 import { formatDay } from "@/lib/format";
 import { dayFacts, displayName } from "@/lib/journal";
-import { narratorLabel } from "@/lib/narrators";
+import {
+  defaultPlaceholder,
+  narratorChoices,
+  narratorLabel,
+} from "@/lib/narrators";
 import { daySentences } from "@/lib/sentences";
 import { scheduleRebuild } from "@/lib/siteBuild";
 import { useWriting } from "@/lib/useWriting";
@@ -110,6 +115,10 @@ export function ReviewList({ characterId }: { characterId?: number }) {
     : characterId !== undefined && one.data
       ? [{ characterId, items: one.data }]
       : [];
+  // Who writes when no narrator is picked: on one character's page that character's default;
+  // across characters each has its own, so the picker above the list names none.
+  const defaults = useDefaultNarrators(loaded.map((g) => g.characterId));
+  const shared = characterId === undefined ? undefined : defaults[characterId];
   const narrators = useQuery({
     queryKey: ["narrators"],
     queryFn: listNarrators,
@@ -207,13 +216,18 @@ export function ReviewList({ characterId }: { characterId?: number }) {
           aria-label={
             direct ? t("review.narratorEntries") : t("review.narrator")
           }
-          placeholder={t("review.usualNarrator")}
-          data={(narrators.data ?? []).map((n) => ({
-            value: n.id,
-            label: n.name,
-          }))}
+          placeholder={defaultPlaceholder(
+            t,
+            narrators.data ?? [],
+            shared,
+            t("review.usualNarrator"),
+          )}
+          data={narratorChoices(t, narrators.data ?? [], shared)}
           renderOption={narratorOption(narrators.data ?? [])}
-          leftSection={narratorSection(narrators.data ?? [], narrator)}
+          leftSection={narratorSection(
+            narrators.data ?? [],
+            narrator ?? shared,
+          )}
           value={narrator}
           onChange={setNarrator}
           clearable
@@ -259,6 +273,7 @@ export function ReviewList({ characterId }: { characterId?: number }) {
           name={everyone ? nameOf(g.characterId) : null}
           narrators={narrators.data ?? []}
           narrator={narrator}
+          defaultNarrator={defaults[g.characterId]}
           selected={selected}
           onToggle={toggle}
           actions={actionsFor(g.characterId)}
@@ -275,6 +290,8 @@ interface ItemsProps {
   name: string | null;
   narrators: NarratorInfo[];
   narrator: string | null;
+  /** The narrator this character writes with when none is picked. */
+  defaultNarrator?: string;
   selected: Set<Key>;
   onToggle: (key: Key) => void;
   actions: Actions;
@@ -288,6 +305,7 @@ function CharacterItems({
   name,
   narrators,
   narrator,
+  defaultNarrator,
   selected,
   onToggle,
   actions,
@@ -315,6 +333,7 @@ function CharacterItems({
         }
         narrators={narrators}
         narrator={narrator}
+        defaultNarrator={defaultNarrator}
         live={live[keyOf(item)]}
         selected={selected.has(key)}
         onToggle={() => onToggle(key)}
@@ -344,6 +363,8 @@ interface RowProps {
   narrators: NarratorInfo[];
   /** The narrator chosen above the list, for a plain write. */
   narrator: string | null;
+  /** The narrator this character writes with when none is picked. */
+  defaultNarrator?: string;
   live?: Live;
   selected: boolean;
   onToggle: () => void;
@@ -358,6 +379,7 @@ function ReviewRow({
   screenshots,
   narrators,
   narrator,
+  defaultNarrator,
   live,
   selected,
   onToggle,
@@ -470,10 +492,18 @@ function ReviewRow({
             <Stack gap="xs">
               <Select
                 aria-label={t("writing.narratorFor.day")}
-                placeholder={t("review.usualNarrator")}
-                data={narrators.map((n) => ({ value: n.id, label: n.name }))}
+                placeholder={defaultPlaceholder(
+                  t,
+                  narrators,
+                  defaultNarrator,
+                  t("review.usualNarrator"),
+                )}
+                data={narratorChoices(t, narrators, defaultNarrator)}
                 renderOption={narratorOption(narrators)}
-                leftSection={narratorSection(narrators, rewriteNarrator)}
+                leftSection={narratorSection(
+                  narrators,
+                  rewriteNarrator ?? defaultNarrator,
+                )}
                 value={rewriteNarrator}
                 onChange={setRewriteNarrator}
                 clearable

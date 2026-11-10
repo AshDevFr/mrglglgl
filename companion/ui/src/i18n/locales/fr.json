@@ -808,7 +808,7 @@
     "cancel": "Annuler",
     "select": "Sélectionner {{day}}",
     "narrator": "Narrateur des nouveaux brouillons",
-    "usualNarrator": "Ton narrateur habituel",
+    "usualNarrator": "Le narrateur par défaut de chaque personnage",
     "writeSelected": "Écrire la sélection ({{count}})",
     "acceptSelected": "Accepter la sélection",
     "discardSelected": "Jeter la sélection",
@@ -918,7 +918,9 @@
     "fileFailed": "Cela n'a pas marché : {{message}}",
     "fileFailedNext": "Vérifie le dossier ou le fichier, puis réessaie.",
     "fileKind": "Narrateur",
-    "new": "Nouveau narrateur"
+    "new": "Nouveau narrateur",
+    "isDefault": "{{name}} (par défaut)",
+    "defaultIs": "Par défaut : {{name}}"
   },
   "export": {
     "weekOf": "Semaine du {{date}}",
@@ -1271,7 +1273,7 @@
     "week": "Semaine du {{date}}",
     "edited": "modifié par toi",
     "narrator": "Narrateur",
-    "usualNarrator": "Le narrateur habituel de chaque jour",
+    "usualNarrator": "Le narrateur par défaut du personnage",
     "toReview": "Les envoyer dans À valider",
     "toReviewOn": "Chaque nouvelle version t'attend dans À valider ; l'entrée reste tant que tu ne l'as pas acceptée.",
     "toReviewOff": "Chaque nouvelle version remplace l'entrée dès qu'elle est écrite.",

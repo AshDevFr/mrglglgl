@@ -12,5 +12,31 @@ export function narratorLabel(
   return id.startsWith("custom_") ? t("narrators.removed") : id;
 }
 
+/** The choices of a narrator picker, the character's default one marked as such, since an
+ * entry with none picked is written by it. */
+export function narratorChoices(
+  t: TFunction,
+  narrators: NarratorInfo[],
+  defaultId?: string,
+): { value: string; label: string }[] {
+  return narrators.map((n) => ({
+    value: n.id,
+    label:
+      n.id === defaultId ? t("narrators.isDefault", { name: n.name }) : n.name,
+  }));
+}
+
+/** A picker's placeholder when nothing is picked: who writes then. */
+export function defaultPlaceholder(
+  t: TFunction,
+  narrators: NarratorInfo[],
+  defaultId: string | undefined,
+  fallback: string,
+): string {
+  return defaultId
+    ? t("narrators.defaultIs", { name: narratorLabel(t, narrators, defaultId) })
+    : fallback;
+}
+
 /** The editor's address for a narrator not made yet; saved ones have `custom_` ids. */
 export const NEW_NARRATOR = "new";

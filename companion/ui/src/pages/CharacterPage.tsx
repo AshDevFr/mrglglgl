@@ -31,6 +31,7 @@ import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
 import { WritingBanner } from "@/components/WritingBanner";
 import { type Problem, problem } from "@/i18n/problems";
+import { useDefaultNarrators } from "@/lib/defaultNarrator";
 import { daysNewestFirst } from "@/lib/journal";
 import { rememberDay } from "@/lib/lastDay";
 import { useWriting } from "@/lib/useWriting";
@@ -90,6 +91,7 @@ export function CharacterPage({
   // Weekly chapters off: a week shows its chapter only if one was written before.
   const weekly = settings.data?.settings.writing.weekly ?? false;
   const [rewriting, setRewriting] = useState(false);
+  const defaultNarrator = useDefaultNarrators([characterId])[characterId];
   const live = useWriting(characterId);
   const refreshStatus = () =>
     queryClient.invalidateQueries({ queryKey: ["writing", characterId] });
@@ -115,6 +117,7 @@ export function CharacterPage({
         void retryWriting(characterId, kind, start).then(refreshStatus),
       actions: (story) => <CopyEntryButton story={story} />,
       menuItems: (story) => <DebugExportItem story={story} />,
+      defaultNarrator,
       draftWaiting: (review.data ?? []).some(
         (item) =>
           item.kind === kind &&
@@ -197,6 +200,7 @@ export function CharacterPage({
           onClose={() => setRewriting(false)}
           stories={stories.data ?? []}
           narrators={narrators.data ?? []}
+          defaultNarrator={defaultNarrator}
           review={settings.data?.settings.writing.review ?? false}
           onQueued={(count) => {
             void refreshStatus();

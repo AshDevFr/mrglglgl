@@ -808,7 +808,7 @@
     "cancel": "Cancel",
     "select": "Select {{day}}",
     "narrator": "Narrator for new drafts",
-    "usualNarrator": "Your usual narrator",
+    "usualNarrator": "Each character's default narrator",
     "writeSelected": "Write {{count}} selected",
     "acceptSelected": "Accept selected",
     "discardSelected": "Discard selected",
@@ -918,7 +918,9 @@
     "fileFailed": "That did not work: {{message}}",
     "fileFailedNext": "Check the folder or the file, then try again.",
     "fileKind": "Narrator",
-    "new": "New narrator"
+    "new": "New narrator",
+    "isDefault": "{{name}} (default)",
+    "defaultIs": "Default: {{name}}"
   },
   "export": {
     "weekOf": "Week of {{date}}",
@@ -1271,7 +1273,7 @@
     "week": "Week of {{date}}",
     "edited": "edited by you",
     "narrator": "Narrator",
-    "usualNarrator": "Each day's usual narrator",
+    "usualNarrator": "The character's default narrator",
     "toReview": "Send them to To review",
     "toReviewOn": "Each new version waits in To review; the entry stays until you accept it.",
     "toReviewOff": "Each new version replaces the entry as soon as it is written.",
