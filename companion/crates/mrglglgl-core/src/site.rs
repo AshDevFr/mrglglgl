@@ -39,6 +39,10 @@ pub const DEFAULT_THEME: &[(&str, &str)] = &[
         "assets/site.js",
         include_str!("../site-theme/assets/site.js"),
     ),
+    (
+        "assets/favicon.svg",
+        include_str!("../site-theme/assets/favicon.svg"),
+    ),
 ];
 
 /// Everything a site shows, prepared by the window. Field names are what templates use.
@@ -221,6 +225,59 @@ fn clean_url(url: &str) -> String {
     out
 }
 
+/// A post as templates see it: its own fields plus `cover` (its first photo, with `path` from the
+/// site's top folder) and `stamps` (every stamp of its days), so a card needs no loop over days.
+fn post_value(post: &SitePost, character: &str) -> Value {
+    let mut value = serde_json::to_value(post).expect("a post always serialises");
+    let cover = post.days.iter().flat_map(|d| &d.photos).next().map(|p| {
+        serde_json::json!({
+            "path": format!("images/{character}/{}", p.file),
+            "caption": p.caption,
+        })
+    });
+    let stamps: Vec<&SiteStamp> = post.days.iter().flat_map(|d| &d.stamps).collect();
+    if let Some(map) = value.as_object_mut() {
+        map.insert("cover".into(), cover.unwrap_or(serde_json::Value::Null));
+        map.insert(
+            "stamps".into(),
+            serde_json::to_value(stamps).expect("stamps always serialise"),
+        );
+    }
+    Value::from_serialize(&value)
+}
+
+/// A character's milestones for the milestones page: each stamp with the day it was earned (as
+/// the day's own title) and a link to that day on its post, when that day is in a post.
+fn milestones_value(character: &SiteCharacter, root: &str) -> Value {
+    let list: Vec<serde_json::Value> = character
+        .milestones
+        .iter()
+        .map(|stamp| {
+            let found = character.posts.iter().find_map(|post| {
+                post.days
+                    .iter()
+                    .find(|d| d.date == stamp.day)
+                    .map(|d| (post, d))
+            });
+            let mut value = serde_json::to_value(stamp).expect("a stamp always serialises");
+            if let Some(map) = value.as_object_mut() {
+                map.insert(
+                    "day_title".into(),
+                    found.map_or(stamp.day.clone().into(), |(_, d)| d.title.clone().into()),
+                );
+                map.insert(
+                    "url".into(),
+                    found.map_or(serde_json::Value::Null, |(post, d)| {
+                        format!("{root}{}/{}/#{}", character.slug, post.slug, d.date).into()
+                    }),
+                );
+            }
+            value
+        })
+        .collect();
+    Value::from_serialize(&list)
+}
+
 /// Every file of the site, rendered through `theme` over the default theme. Nothing is written.
 pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, SiteError> {
     let mut env = Environment::new();
@@ -248,6 +305,13 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
 
     let mut files = Vec::new();
     let mut page = |template: &str, path: String, root: &str, extra: Value| {
+        // The page's own address, for link previews; only knowable when the site's address is.
+        let canonical = base_url.as_ref().map(|base| {
+            link(&format!(
+                "{base}{}",
+                path.strip_suffix("index.html").unwrap_or(&path)
+            ))
+        });
         let text = env
             .get_template(template)
             .and_then(|t| {
@@ -255,6 +319,7 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
                     site => data,
                     root => link(root),
                     has_custom_css => has_custom_css,
+                    canonical => canonical,
                     labels => &data.labels,
                     ..extra
                 })
@@ -275,7 +340,18 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
         let mut posts: Vec<&SitePost> = character.posts.iter().collect();
         posts.sort_by(|a, b| b.date.cmp(&a.date));
 
-        let pages: Vec<&[&SitePost]> = posts.chunks(POSTS_PER_PAGE).collect();
+        let rich: Vec<Value> = posts.iter().map(|p| post_value(p, slug)).collect();
+        // A relative address cannot be a preview image, so one is offered only with a site address.
+        let share = |post: Option<&SitePost>| -> Option<Value> {
+            let base = base_url.as_deref()?;
+            let photo = post?.days.iter().flat_map(|d| &d.photos).next()?;
+            Some(link(&format!("{base}images/{slug}/{}", photo.file)))
+        };
+        let newest_with_photo = posts
+            .iter()
+            .find(|p| p.days.iter().any(|d| !d.photos.is_empty()))
+            .copied();
+        let pages: Vec<&[Value]> = rich.chunks(POSTS_PER_PAGE).collect();
         let total = pages.len().max(1);
         for number in 1..=total {
             let (path, root) = if number == 1 {
@@ -298,6 +374,7 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
                     character => character,
                     section => "posts",
                     posts => pages.get(number - 1).copied().unwrap_or(&[]),
+                    share_image => share(newest_with_photo),
                     page => context! {
                         number => number,
                         total => total,
@@ -316,7 +393,8 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
                 context! {
                     character => character,
                     section => "post",
-                    post => post,
+                    post => rich[i],
+                    share_image => share(Some(post)),
                     newer_post => i.checked_sub(1).and_then(|j| posts.get(j)),
                     older_post => posts.get(i + 1),
                 },
@@ -354,7 +432,11 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
             "milestones.html",
             format!("{slug}/milestones/index.html"),
             "../../",
-            context! { character => character, section => "milestones" },
+            context! {
+                character => character,
+                section => "milestones",
+                milestones => milestones_value(character, "../../"),
+            },
         )?;
         page(
             "feed.xml",
@@ -368,7 +450,7 @@ pub fn render(data: &SiteData, theme: Option<&Path>) -> Result<Vec<SiteFile>, Si
         )?;
     }
 
-    for asset in ["assets/site.css", "assets/site.js"] {
+    for asset in ["assets/site.css", "assets/site.js", "assets/favicon.svg"] {
         let text = theme_file(theme, asset)?.unwrap_or_default();
         files.push(SiteFile {
             path: asset.to_string(),

@@ -1,7 +1,7 @@
 {#- The frame every page extends. Override a block in your own template, or copy this file
     into your theme folder to change the frame for every page.
-    Blocks: title, head, menu, content, footer. Every page receives site, root, labels and
-    has_custom_css; character pages also character and section ("posts", "post", "archive" or
+    Blocks: title, head, menu, content, footer. Every page receives site, root, labels,
+    has_custom_css and canonical (the page's full address, only when the site has a base_url); character pages also character and section ("posts", "post", "archive" or
     "milestones"), and a post page post. -#}
 <!doctype html>
 <html lang="{{ site.language }}" data-paper="{{ site.paper }}">
@@ -13,6 +13,7 @@
 {%- if has_custom_css %}
 <link rel="stylesheet" href="{{ root }}assets/custom.css">
 {%- endif %}
+<link rel="icon" type="image/svg+xml" href="{{ root }}assets/favicon.svg">
 <script src="{{ root }}assets/site.js"></script>
 {%- if character %}
 <link rel="alternate" type="application/rss+xml" title="{{ character.name }}" href="{{ root }}{{ character.slug }}/feed.xml">
@@ -32,36 +33,51 @@
 <meta property="og:title" content="{{ site.title }}">
 <meta property="og:type" content="website">
 {%- endif %}
+{#- A relative address does not work in a preview, so address and image appear only when known. -#}
+{%- if canonical %}
+<meta property="og:url" content="{{ canonical }}">
+{%- endif %}
+{%- if share_image %}
+<meta property="og:image" content="{{ share_image }}">
+{%- endif %}
+<meta name="twitter:card" content="{{ 'summary_large_image' if share_image else 'summary' }}">
 {% block head %}{% endblock %}
 </head>
 <body>
 <header class="site-header">
   <a class="site-title" href="{{ root }}">{{ site.title }}</a>
   {% block menu %}
+  {#- Only worth a switcher when there is a second character to switch to. -#}
+  {%- if site.characters | length > 1 %}
   <nav class="site-menu" aria-label="{{ labels.characters | default('Characters') }}">
     {%- for c in site.characters %}
     <a href="{{ root }}{{ c.slug }}/"{% if character and character.slug == c.slug %} aria-current="page"{% endif %}>{{ c.name }}</a>
     {%- endfor %}
   </nav>
+  {%- endif %}
   {%- if character %}
   <nav class="character-menu" aria-label="{{ character.name }}">
     <a href="{{ root }}{{ character.slug }}/"{% if section == "posts" %} aria-current="page"{% endif %}>{{ labels.posts | default('Posts') }}</a>
     <a href="{{ root }}{{ character.slug }}/archive/"{% if section == "archive" %} aria-current="page"{% endif %}>{{ labels.archive | default('Archive') }}</a>
     <a href="{{ root }}{{ character.slug }}/milestones/"{% if section == "milestones" %} aria-current="page"{% endif %}>{{ labels.milestones | default('Milestones') }}</a>
-    <a href="{{ root }}{{ character.slug }}/feed.xml" title="{{ labels.feed_help | default('For a feed reader app') }}">{{ labels.feed | default('Feed') }}</a>
   </nav>
   {%- endif %}
   {% endblock %}
   <div class="site-controls">
-    <button type="button" data-toggle="scheme">{{ labels.light_dark | default('Light / dark') }}</button>
-    <button type="button" data-toggle="paper">{{ labels.change_paper | default('Change paper') }}</button>
+    <button type="button" data-toggle="scheme" aria-label="{{ labels.light_dark | default('Light / dark') }}" title="{{ labels.light_dark | default('Light / dark') }}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 4a8 8 0 0 1 0 16z" fill="currentColor"/></svg></button>
+    <button type="button" data-toggle="paper" aria-label="{{ labels.change_paper | default('Change paper') }}" title="{{ labels.change_paper | default('Change paper') }}"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 3h8l4 4v14H6z M14 3v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
   </div>
 </header>
 <main class="site-main">
 {% block content %}{% endblock %}
 </main>
 <footer class="site-footer">
-{% block footer %}{{ labels.written_with | default('Written with Mrglglgl, a journal for World of Warcraft adventurers.') }}{% endblock %}
+{% block footer %}
+{%- if character %}
+<p><a href="{{ root }}{{ character.slug }}/feed.xml" title="{{ labels.feed_help | default('For a feed reader app') }}">{{ labels.feed | default('RSS feed') }}</a></p>
+{%- endif %}
+<p>{{ labels.written_with | default('Written with Mrglglgl, a journal for World of Warcraft adventurers.') }}</p>
+{% endblock %}
 </footer>
 </body>
 </html>

@@ -5,7 +5,7 @@ use mrglglgl_core::site::{
     SiteStamp,
 };
 
-const STAMP_SVG: &str = "<svg class=\"ink-stamp\"><text>KEPT THE BOOT</text></svg>";
+const STAMP_SVG: &str = "<svg class=\"ink-stamp\" viewBox=\"0 0 120 120\"><text x=\"10\" y=\"60\">KEPT THE BOOT</text></svg>";
 
 fn day(date: &str, photo: Option<&Path>) -> SiteDay {
     SiteDay {
@@ -465,4 +465,130 @@ fn a_site_of_one_character_opens_on_their_journal() {
         home.contains(r#"<meta http-equiv="refresh" content="0; url=wren/">"#),
         "{home}"
     );
+}
+
+fn without_base_url(dir: &Path) -> SiteData {
+    let mut data = sample(&photo(dir));
+    data.base_url = None;
+    data
+}
+
+#[test]
+fn a_post_page_has_the_week_as_its_h1_and_days_as_h2() {
+    let dir = tempfile::tempdir().unwrap();
+    let files = site::render(&sample(&photo(dir.path())), None).unwrap();
+    let post = text(&files, "wren/2026-w45/index.html");
+    assert_eq!(post.matches("<h1").count(), 1, "{post}");
+    assert!(post.contains(r#"<h1 class="post-week">Week of 2026-11-02</h1>"#));
+    assert!(post.contains("<h2>Day 2026-11-02</h2>"));
+}
+
+#[test]
+fn link_previews_carry_an_address_and_image_only_when_the_site_has_a_base_url() {
+    let dir = tempfile::tempdir().unwrap();
+    let with = site::render(&sample(&photo(dir.path())), None).unwrap();
+    let post = text(&with, "wren/2026-w45/index.html");
+    assert!(
+        post.contains(r#"<meta property="og:url" content="https://example.com/wren/2026-w45/">"#)
+    );
+    assert!(post.contains(
+        r#"<meta property="og:image" content="https://example.com/images/wren/2026-11-02-1.jpg">"#
+    ));
+    assert!(post.contains(r#"content="summary_large_image""#));
+    let index = text(&with, "wren/index.html");
+    assert!(index.contains(r#"content="https://example.com/images/wren/2026-11-02-1.jpg""#));
+    // An older post without a photo has an address but no image.
+    let older = text(&with, "wren/2026-w44/index.html");
+    assert!(older.contains("og:url") && !older.contains("og:image"));
+    assert!(older.contains(r#"name="twitter:card" content="summary""#));
+
+    let without = site::render(&without_base_url(dir.path()), None).unwrap();
+    for path in ["wren/2026-w45/index.html", "wren/index.html"] {
+        let page = text(&without, path);
+        assert!(
+            !page.contains("og:url") && !page.contains("og:image"),
+            "{path}"
+        );
+        assert!(page.contains(r#"name="twitter:card" content="summary""#));
+    }
+}
+
+#[test]
+fn a_site_of_one_character_has_no_character_switcher() {
+    let dir = tempfile::tempdir().unwrap();
+    let mut data = sample(&photo(dir.path()));
+    let files = site::render(&data, None).unwrap();
+    let post = text(&files, "wren/2026-w45/index.html");
+    assert!(!post.contains(r#"class="site-menu""#), "{post}");
+    assert!(post.contains(r#"class="character-menu""#), "sections stay");
+
+    let mut second = data.characters[0].clone();
+    second.slug = "finn".into();
+    second.name = "Finn".into();
+    data.characters.push(second);
+    let files = site::render(&data, None).unwrap();
+    assert!(text(&files, "wren/2026-w45/index.html").contains(r#"class="site-menu""#));
+}
+
+#[test]
+fn a_milestone_links_to_the_day_it_was_earned_on() {
+    let dir = tempfile::tempdir().unwrap();
+    let files = site::render(&sample(&photo(dir.path())), None).unwrap();
+    let page = text(&files, "wren/milestones/index.html");
+    assert!(
+        page.contains(r#"href="../../wren/2026-w45/#2026-11-02">Day 2026-11-02</a>"#),
+        "{page}"
+    );
+
+    let mut data = sample(&photo(dir.path()));
+    data.characters[0].milestones[0].day = "2020-01-01".into();
+    let files = site::render(&data, None).unwrap();
+    let page = text(&files, "wren/milestones/index.html");
+    assert!(page.contains("2020-01-01") && !page.contains("#2020-01-01"));
+}
+
+#[test]
+fn the_feed_link_is_in_the_footer_not_the_menu() {
+    let dir = tempfile::tempdir().unwrap();
+    let files = site::render(&sample(&photo(dir.path())), None).unwrap();
+    let page = text(&files, "wren/archive/index.html");
+    let (head, footer) = page.split_once("<footer").unwrap();
+    assert!(footer.contains(r#"href="../../wren/feed.xml""#), "{footer}");
+    assert!(footer.contains("RSS feed"));
+    assert!(!head.contains(r#"href="../../wren/feed.xml" title"#));
+}
+
+#[test]
+fn the_site_has_a_favicon() {
+    let dir = tempfile::tempdir().unwrap();
+    let files = site::render(&sample(&photo(dir.path())), None).unwrap();
+    assert!(text(&files, "assets/favicon.svg").starts_with("<svg"));
+    assert!(
+        text(&files, "wren/index.html")
+            .contains(r#"rel="icon" type="image/svg+xml" href="../assets/favicon.svg""#)
+    );
+}
+
+#[test]
+fn index_cards_link_whole_and_show_photo_and_stamps() {
+    let dir = tempfile::tempdir().unwrap();
+    let files = site::render(&sample(&photo(dir.path())), None).unwrap();
+    let index = text(&files, "wren/index.html");
+    assert!(
+        index.contains(r#"class="post-card-link" href="../wren/2026-w45/""#),
+        "{index}"
+    );
+    assert!(index.contains(r#"class="post-card-thumb" src="../images/wren/2026-11-02-1.jpg""#));
+    assert!(index.contains("Level up in Red Rocks"));
+    assert!(index.contains("November 2026"));
+}
+
+#[test]
+fn a_photo_links_to_the_full_image() {
+    let dir = tempfile::tempdir().unwrap();
+    let files = site::render(&sample(&photo(dir.path())), None).unwrap();
+    let post = text(&files, "wren/2026-w45/index.html");
+    assert!(post.contains(
+        r#"<a href="../../images/wren/2026-11-02-1.jpg"><img src="../../images/wren/2026-11-02-1.jpg""#
+    ));
 }

@@ -1,5 +1,5 @@
 {#- A character's posts, newest first, ten to a page.
-    Receives: site, root, labels, character, posts (this page's), page (number, total, newer_url,
+    Receives: site, root, labels, character, posts (this page's; each also has cover and stamps), page (number, total, newer_url,
     older_url). -#}
 {% extends "base.html" %}
 {% block title %}{{ character.name }} · {{ site.title }}{% endblock %}
@@ -8,8 +8,19 @@
 <p class="page-subtitle">{{ character.summary }}</p>
 {%- for post in posts %}
 <article class="post-card">
-  <h2><a href="{{ root }}{{ character.slug }}/{{ post.slug }}/">{{ post.title }}</a></h2>
-  <p class="post-card-excerpt">{{ post.excerpt }}</p>
+  <a class="post-card-link" href="{{ root }}{{ character.slug }}/{{ post.slug }}/">
+    {%- if post.cover %}
+    <img class="post-card-thumb" src="{{ root }}{{ post.cover.path | safe }}" alt="{{ post.cover.caption }}" loading="lazy" width="160" height="100">
+    {%- endif %}
+    <div class="post-card-body">
+      <h2>{{ post.title }}</h2>
+      <p class="post-card-meta">{{ post.month_label }}</p>
+      <p class="post-card-excerpt">{{ post.excerpt }}</p>
+      {%- if post.stamps %}
+      <div class="post-card-stamps">{% for stamp in post.stamps[:4] %}<span class="stamp-mark" aria-hidden="true" title="{{ stamp.name }}">{{ stamp.svg | safe }}</span>{% endfor %}{% if post.stamps | length > 4 %}<span class="stamp-more">+{{ post.stamps | length - 4 }}</span>{% endif %}</div>
+      {%- endif %}
+    </div>
+  </a>
 </article>
 {%- else %}
 <p class="empty">{{ labels.no_posts | default('Nothing written yet.') }}</p>

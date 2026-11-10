@@ -1,10 +1,12 @@
 {#- One week: its chapter, then each day's page with stamps and photos.
-    Receives: site, root, labels, character, post, newer_post, older_post. -#}
+    Receives: site, root, labels, character, post, newer_post, older_post. The post also has
+    cover (its first photo: path, caption, or none) and stamps (all of its days' stamps). -#}
 {% extends "base.html" %}
 {% block title %}{{ post.title }} · {{ character.name }}{% endblock %}
 {% block content %}
 <article class="post">
-  <p class="post-week">{{ character.name }} · {{ post.title }}</p>
+  <p class="post-character">{{ character.name }}</p>
+  <h1 class="post-week">{{ post.title }}</h1>
   {%- if post.chapter_html %}
   <div class="chapter">{{ post.chapter_html | safe }}</div>
   {%- endif %}
@@ -22,7 +24,7 @@
     <div class="photos">
       {%- for photo in day.photos %}
       <figure class="photo">
-        <img src="{{ root }}images/{{ character.slug }}/{{ photo.file }}" alt="{{ photo.caption }}" loading="lazy">
+        <a href="{{ root }}images/{{ character.slug }}/{{ photo.file }}"><img src="{{ root }}images/{{ character.slug }}/{{ photo.file }}" alt="{{ photo.caption }}" loading="lazy"></a>
         <figcaption>{{ photo.caption }}</figcaption>
       </figure>
       {%- endfor %}

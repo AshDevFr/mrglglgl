@@ -158,8 +158,11 @@ export async function buildSiteData(
       name: t(`milestones.${a.id}.name`),
       description: t(`milestones.${a.id}.description`),
       day: a.day,
+      // Each stamp is rendered on its own, where useId starts over, and several share a page:
+      // the prefix keeps one stamp's rim path and ink filter from answering for another's.
       svg: renderToStaticMarkup(
         createElement(InkStamp, { award: a, size: 96, zoom: false }),
+        { identifierPrefix: `${a.id}-${a.day}-` },
       ),
     });
 
