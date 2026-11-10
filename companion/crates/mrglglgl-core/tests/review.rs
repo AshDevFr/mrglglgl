@@ -113,6 +113,32 @@ fn lists_finished_days_and_weeks_without_an_accepted_entry_newest_first() {
 }
 
 #[test]
+fn a_written_day_is_listed_as_soon_as_a_new_version_for_review_is_asked_for() {
+    let (db, id, journal) = setup();
+    save(&db, id, StoryKind::Day, DAYS[0], StoryStatus::Accepted);
+    save(&db, id, StoryKind::Day, DAYS[1], StoryStatus::Accepted);
+    let listed = |db: &Database| {
+        review::items(db, id, &journal, TODAY)
+            .unwrap()
+            .into_iter()
+            .filter(|i| i.kind == StoryKind::Day && i.has_entry)
+            .map(|i| (i.start_day, i.job.map(|j| j.draft)))
+            .collect::<Vec<_>>()
+    };
+    assert!(listed(&db).is_empty());
+    let ask = |draft| Ask {
+        narrator: None,
+        draft,
+        note: None,
+        partial: false,
+    };
+    // For review: its card is there before a word is written. Straight into the journal: not.
+    queue::request(&db, id, StoryKind::Day, DAYS[0], &ask(true)).unwrap();
+    queue::request(&db, id, StoryKind::Day, DAYS[1], &ask(false)).unwrap();
+    assert_eq!(listed(&db), vec![(DAYS[0].to_string(), Some(true))]);
+}
+
+#[test]
 fn a_day_with_an_accepted_entry_and_a_new_draft_is_listed_for_its_draft() {
     let (db, id, journal) = setup();
     save(&db, id, StoryKind::Day, DAYS[0], StoryStatus::Accepted);

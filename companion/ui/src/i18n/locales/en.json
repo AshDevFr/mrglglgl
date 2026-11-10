@@ -819,7 +819,8 @@
     "writeNow": "Write",
     "writeEntry": "Write the entry",
     "narratorEntries": "Narrator for new entries",
-    "selectAll": "Select all"
+    "selectAll": "Select all",
+    "newVersionComing": "A new version of this entry is on its way; the one in the journal stays until you accept this one."
   },
   "narrators": {
     "title": "Narrators",

@@ -97,7 +97,8 @@
   }
 }
 
-.journal-page h2 {
+.journal-page h2,
+.journal-page h3.day-title {
   margin: 0 0 1.75rem;
   font-family: var(--reading-font);
   font-size: 2.1rem;

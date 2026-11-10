@@ -1,5 +1,6 @@
-//! The To review list: a character's finished days and weeks that have no accepted entry, or
-//! that have a draft waiting, with what stands in each one's way.
+//! The To review list: a character's finished days and weeks that have no accepted entry, that
+//! have a draft waiting, or that have a new version being written for review, with what stands
+//! in each one's way.
 
 use serde::Serialize;
 
@@ -29,7 +30,8 @@ pub struct ReviewItem {
     pub job: Option<Job>,
 }
 
-/// The finished days and weeks without an accepted entry or with a draft waiting, newest first.
+/// The finished days and weeks without an accepted entry, with a draft waiting, or with a new
+/// version on its way for review, newest first.
 pub fn items(
     db: &Database,
     character_id: i64,
@@ -56,10 +58,17 @@ pub fn items(
         let has_entry = here
             .iter()
             .any(|s| s.status == StoryStatus::Accepted && !s.partial);
-        if has_entry && drafts.is_empty() {
+        let job = jobs
+            .iter()
+            .find(|j| j.kind == kind && j.start_day == start_day)
+            .cloned();
+        // A new version asked for To review has its place there from the moment it is asked
+        // for, so the words appear where the draft will wait, and a failure shows there too.
+        let for_review = job.as_ref().is_some_and(|j| j.draft);
+        if has_entry && drafts.is_empty() && !for_review {
             continue;
         }
-        if kind == StoryKind::Week && !weekly && drafts.is_empty() {
+        if kind == StoryKind::Week && !weekly && drafts.is_empty() && !for_review {
             continue;
         }
         let end_day = match kind {
@@ -68,10 +77,7 @@ pub fn items(
         };
         items.push(ReviewItem {
             discarded: drafts.is_empty() && has(StoryStatus::Discarded),
-            job: jobs
-                .iter()
-                .find(|j| j.kind == kind && j.start_day == start_day)
-                .cloned(),
+            job,
             kind,
             start_day,
             end_day,

@@ -291,7 +291,14 @@ export function EntryPanel({
               })}
             </Text>
           )}
-          {facts}
+          {/* Folded as under an entry: a full day's list runs long, and the photos, stamps
+              and milestones beside it already say much of it. */}
+          {facts && (
+            <details className="facts">
+              <summary>{t("writing.facts")}</summary>
+              {facts}
+            </details>
+          )}
           {!shown && job?.state === "pending" && (
             <Text className="note">
               {t("writing.notYet", { position: job.position ?? 1 })}

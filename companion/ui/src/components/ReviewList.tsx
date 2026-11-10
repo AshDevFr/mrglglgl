@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import {
   acceptDraft,
   characterJournal,
+  characterMilestones,
   characterScreenshots,
   discardDraft,
   getSettings,
@@ -22,6 +23,7 @@ import {
   reviewList,
   writeDrafts,
 } from "@/api/commands";
+import type { Award } from "@/bindings/Award";
 import type { Journal } from "@/bindings/Journal";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { ReviewItem } from "@/bindings/ReviewItem";
@@ -50,7 +52,7 @@ import { type Live, reviewAnchor, slot } from "@/lib/writing";
 import { EmptyState } from "./EmptyState";
 import { EntryText } from "./EntryPanel";
 import { FactList } from "./FactList";
-import { PinnedPhotos } from "./JournalPage";
+import { DaySheet } from "./JournalPage";
 
 /** The longest rewrite note the writer takes; the backend cuts anything longer. */
 const NOTE_CHARS = 120;
@@ -321,6 +323,10 @@ function CharacterItems({
     queryKey: ["screenshots", characterId],
     queryFn: () => characterScreenshots(characterId),
   });
+  const awards = useQuery({
+    queryKey: ["milestones", characterId],
+    queryFn: () => characterMilestones(characterId),
+  });
   const rows = items.map((item) => {
     const key = choiceOf(characterId, item);
     return (
@@ -331,6 +337,7 @@ function CharacterItems({
         screenshots={
           item.kind === "day" ? (screenshots.data?.[item.startDay] ?? []) : []
         }
+        awards={awards.data ?? []}
         narrators={narrators}
         narrator={narrator}
         defaultNarrator={defaultNarrator}
@@ -360,6 +367,8 @@ interface RowProps {
   journal: Journal | null;
   /** The day's screenshots, pinned as on the journal page. */
   screenshots: Screenshot[];
+  /** The character's milestones: the day's are stamped and listed as on the journal page. */
+  awards: Award[];
   narrators: NarratorInfo[];
   /** The narrator chosen above the list, for a plain write. */
   narrator: string | null;
@@ -377,6 +386,7 @@ function ReviewRow({
   item,
   journal,
   screenshots,
+  awards,
   narrators,
   narrator,
   defaultNarrator,
@@ -410,7 +420,14 @@ function ReviewRow({
   }, [anchor]);
 
   return (
-    <article ref={card} id={anchor} className="journal-page" aria-label={title}>
+    <DaySheet
+      label={title}
+      day={item.kind === "day" ? item.startDay : undefined}
+      awards={awards}
+      screenshots={screenshots}
+      id={anchor}
+      sheetRef={card}
+    >
       <Group gap="sm" wrap="nowrap" align="flex-start">
         <Checkbox
           aria-label={t("review.select", { day: title })}
@@ -419,7 +436,7 @@ function ReviewRow({
           mt={6}
         />
         <Stack gap="xs" style={{ flex: 1 }}>
-          <h3>{title}</h3>
+          <h3 className="day-title">{title}</h3>
           {live?.active ? (
             <>
               <WritingNow
@@ -449,7 +466,11 @@ function ReviewRow({
             </>
           ) : (
             <Text className="note">
-              {item.discarded ? t("review.discarded") : t("review.notWritten")}
+              {item.hasEntry
+                ? t("review.newVersionComing")
+                : item.discarded
+                  ? t("review.discarded")
+                  : t("review.notWritten")}
             </Text>
           )}
           {!live?.active && item.job?.state === "pending" && (
@@ -476,7 +497,6 @@ function ReviewRow({
               )}
             </Text>
           )}
-          {screenshots.length > 0 && <PinnedPhotos screenshots={screenshots} />}
           {facts && (
             <details className="facts">
               <summary>{t("review.facts")}</summary>
@@ -587,6 +607,6 @@ function ReviewRow({
           )}
         </Stack>
       </Group>
-    </article>
+    </DaySheet>
   );
 }

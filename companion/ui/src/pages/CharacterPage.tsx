@@ -93,8 +93,12 @@ export function CharacterPage({
   const [rewriting, setRewriting] = useState(false);
   const defaultNarrator = useDefaultNarrators([characterId])[characterId];
   const live = useWriting(characterId);
+  // A write asked for To review puts its card there at once, so the review list is refreshed too.
   const refreshStatus = () =>
-    queryClient.invalidateQueries({ queryKey: ["writing", characterId] });
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["writing", characterId] }),
+      queryClient.invalidateQueries({ queryKey: ["review"] }),
+    ]);
 
   /** What the entry panel needs for one day or week. */
   function writingFor(kind: StoryKind, start: string, end: string): DayWriting {

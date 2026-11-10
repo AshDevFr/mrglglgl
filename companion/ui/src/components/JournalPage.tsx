@@ -1,5 +1,5 @@
 import { Image, Modal } from "@mantine/core";
-import { type ComponentProps, useState } from "react";
+import { type ComponentProps, type ReactNode, type Ref, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { screenshotUrl } from "@/api/commands";
 import type { Award } from "@/bindings/Award";
@@ -66,34 +66,41 @@ interface Props {
   writing?: DayWriting;
 }
 
-/** One day as a journal page: the date, the entry (or what happened in short sentences while
- * there is none), stamps and photos. */
-export function JournalPage({
-  journal,
+interface SheetProps {
+  /** The page's name for assistive technology: the day, or the week. */
+  label: string;
+  /** The day the stamps and milestones are for; a week has none. */
+  day?: string;
+  awards?: Award[];
+  screenshots?: Screenshot[];
+  /** The heading and the entry, or whatever stands in for it. */
+  children: ReactNode;
+  /** Under the page, across its width. */
+  footer?: ReactNode;
+  id?: string;
+  sheetRef?: Ref<HTMLElement>;
+}
+
+/** A day laid out as a journal page: stamps in the corner, the entry, and beside it on a wide
+ * window (under it on a narrow one) the day's photos and the milestones without a stamp. The
+ * journal and To review show days the same way through it. */
+export function DaySheet({
+  label,
   day,
-  awards,
+  awards = [],
   screenshots = [],
-  writing,
-}: Props) {
-  const { t, i18n } = useTranslation();
-  const facts = dayFacts(journal, journal.days[day]);
-  const sentences = daySentences(facts, t, i18n.language);
+  children,
+  footer,
+  id,
+  sheetRef,
+}: SheetProps) {
+  const { t } = useTranslation();
   // A character's first days can earn many stamps: the rarest are pressed, the rest listed.
   const { pressed: stamps, more } = splitStamps(
-    awards.filter((a) => a.day === day),
-  );
-  // The day as recorded, item by item; when nothing was, the plain sentence that says so.
-  const plain = (
-    <FactList
-      rows={facts.nothingHappened ? [] : dayFactRows(facts, t)}
-      empty={sentences.join(" ")}
-    />
+    day ? awards.filter((a) => a.day === day) : [],
   );
   return (
-    <article
-      className="journal-page"
-      aria-label={formatDay(day, i18n.language, true)}
-    >
+    <article ref={sheetRef} id={id} className="journal-page" aria-label={label}>
       {stamps.length > 0 && (
         <div className="stamps">
           {stamps.map((a, i) => (
@@ -103,14 +110,7 @@ export function JournalPage({
       )}
       {/* On a wide window the photos and milestones sit beside the entry, not under it. */}
       <div className="page-columns">
-        <div className="page-main">
-          <h2>{formatDay(day, i18n.language, true)}</h2>
-          {writing ? (
-            <EntryPanel kind="day" day={day} facts={plain} {...writing} />
-          ) : (
-            plain
-          )}
-        </div>
+        <div className="page-main">{children}</div>
         {(screenshots.length > 0 || more.length > 0) && (
           <aside className="page-side">
             {screenshots.length > 0 && (
@@ -135,7 +135,47 @@ export function JournalPage({
           </aside>
         )}
       </div>
-      {facts.compacted && <p className="note">{t("character.compacted")}</p>}
+      {footer}
     </article>
+  );
+}
+
+/** One day as a journal page: the date, the entry (or what happened in short sentences while
+ * there is none), stamps and photos. */
+export function JournalPage({
+  journal,
+  day,
+  awards,
+  screenshots = [],
+  writing,
+}: Props) {
+  const { t, i18n } = useTranslation();
+  const facts = dayFacts(journal, journal.days[day]);
+  const sentences = daySentences(facts, t, i18n.language);
+  // The day as recorded, item by item; when nothing was, the plain sentence that says so.
+  const plain = (
+    <FactList
+      rows={facts.nothingHappened ? [] : dayFactRows(facts, t)}
+      empty={sentences.join(" ")}
+    />
+  );
+  const title = formatDay(day, i18n.language, true);
+  return (
+    <DaySheet
+      label={title}
+      day={day}
+      awards={awards}
+      screenshots={screenshots}
+      footer={
+        facts.compacted && <p className="note">{t("character.compacted")}</p>
+      }
+    >
+      <h2>{title}</h2>
+      {writing ? (
+        <EntryPanel kind="day" day={day} facts={plain} {...writing} />
+      ) : (
+        plain
+      )}
+    </DaySheet>
   );
 }
