@@ -81,8 +81,15 @@ ci: check ## What CI runs
 
 # ── App ──────────────────────────────────────────────────────────────────────
 
+# A code-signing identity for `make dev` (on macOS, the first valid one by default; DEV_SIGN=
+# for none), so the keychain's "Always Allow" for the endpoint key survives rebuilds.
+DEV_SIGN ?= $(shell security find-identity -v -p codesigning 2>/dev/null | awk 'NR == 1 && NF > 2 { print $$2 }')
+HOST_TRIPLE := $(shell rustc -vV 2>/dev/null | sed -n 's/^host: //p' | tr 'a-z-' 'A-Z_')
+
 dev: ui-install ## Run the app with hot reload (Vite + Tauri)
-	cd crates/mrglglgl-app && $(NICE) ../../ui/node_modules/.bin/tauri dev
+	cd crates/mrglglgl-app && DEV_SIGN="$(DEV_SIGN)" \
+		CARGO_TARGET_$(HOST_TRIPLE)_RUNNER="$(CURDIR)/scripts/dev-run.sh" \
+		$(NICE) ../../ui/node_modules/.bin/tauri dev
 
 build: ui-install ## Build the app and its installers
 	cd crates/mrglglgl-app && $(NICE) ../../ui/node_modules/.bin/tauri build
