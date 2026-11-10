@@ -2607,7 +2607,7 @@ dependencies = [
 
 [[package]]
 name = "mrglglgl-app"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "chrono",
  "dirs",
@@ -2639,7 +2639,7 @@ dependencies = [
 
 [[package]]
 name = "mrglglgl-core"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "chrono",
  "image",
@@ -2663,7 +2663,7 @@ dependencies = [
 
 [[package]]
 name = "mrglglgl-llm"
-version = "0.1.12"
+version = "0.1.13"
 dependencies = [
  "async-trait",
  "futures-util",
