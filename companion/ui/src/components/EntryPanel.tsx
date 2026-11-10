@@ -15,6 +15,7 @@ import type { Job } from "@/bindings/Job";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { Story } from "@/bindings/Story";
 import type { StoryKind } from "@/bindings/StoryKind";
+import { WritingNow } from "@/components/WritingNow";
 import { type Problem, problem } from "@/i18n/problems";
 import { formatTime } from "@/lib/format";
 import { narratorLabel } from "@/lib/narrators";
@@ -134,9 +135,7 @@ export function EntryPanel({
   if (live?.active) {
     return (
       <div className="entry-panel" aria-busy="true">
-        <Text className="writing-status" role="status">
-          {t(loadingKey(day))}
-        </Text>
+        <WritingNow label={t(loadingKey(day))} />
         {live.text && <p className="entry streaming">{live.text}</p>}
         <Button variant="subtle" color="gray" onClick={onCancel}>
           {t("writing.cancel")}

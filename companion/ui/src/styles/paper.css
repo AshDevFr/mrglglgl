@@ -415,10 +415,7 @@ details.facts .fact-list {
   }
 }
 
-.entry-panel .writing-status {
-  font-family: var(--reading-font);
-  font-style: italic;
-  color: var(--ink-faded);
+.entry-panel .writing-now {
   margin-bottom: 0.75rem;
 }
 

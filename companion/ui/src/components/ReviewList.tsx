@@ -26,6 +26,7 @@ import type { Journal } from "@/bindings/Journal";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { ReviewItem } from "@/bindings/ReviewItem";
 import type { Screenshot } from "@/bindings/Screenshot";
+import { WritingNow } from "@/components/WritingNow";
 import { type Problem, problem } from "@/i18n/problems";
 import { dayFactRows } from "@/lib/factList";
 import { formatDay } from "@/lib/format";
@@ -366,10 +367,7 @@ function ReviewRow({
           <h3>{title}</h3>
           {live?.active ? (
             <>
-              {/* Announced once; the words themselves are not read out as they arrive. */}
-              <Text size="sm" className="note" role="status">
-                {t("review.running")}
-              </Text>
+              <WritingNow label={t("review.running")} />
               <p className="entry streaming">{live.text}</p>
             </>
           ) : draft ? (
@@ -398,9 +396,7 @@ function ReviewRow({
             </Text>
           )}
           {!live?.active && item.job?.state === "running" && (
-            <Text size="sm" className="note">
-              {t("review.running")}
-            </Text>
+            <WritingNow label={t("review.running")} />
           )}
           {item.job?.state === "failed" && (
             <Text size="sm" className="note">
