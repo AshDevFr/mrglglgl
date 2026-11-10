@@ -42,13 +42,20 @@ pub struct EndpointProvider {
     quirks: std::sync::Mutex<Quirks>,
 }
 
+/// Tokens added to an entry's budget for a model that thinks before it writes, should the server
+/// not let its thinking be turned off: enough to think a little and still write the entry.
+const THINKING_ROOM: u64 = 2048;
+
 /// What a server turned out to refuse, learned from its first 400 and kept for later requests.
 /// OpenAI's newer models want `max_completion_tokens` in place of `max_tokens`, and some accept
-/// no temperature but their own.
+/// no temperature but their own. A model that spent an answer thinking is asked with its
+/// thinking off, where the server's chat template allows it, and with room to think otherwise.
 #[derive(Debug, Default, Clone, Copy)]
 struct Quirks {
     completion_tokens: bool,
     no_temperature: bool,
+    thinks: bool,
+    no_template_kwargs: bool,
 }
 
 impl Quirks {
@@ -56,13 +63,26 @@ impl Quirks {
         let Some(map) = body.as_object_mut() else {
             return;
         };
+        if self.no_temperature {
+            map.remove("temperature");
+        }
+        // Only an entry, which streams, is worth the room; a check asks for a word.
+        if self.thinks && map.contains_key("stream") {
+            if !self.no_template_kwargs {
+                map.insert(
+                    "chat_template_kwargs".into(),
+                    json!({"enable_thinking": false}),
+                );
+            }
+            if let Some(limit) = map.get_mut("max_tokens").and_then(|l| l.as_u64()) {
+                map.insert("max_tokens".into(), json!(limit + THINKING_ROOM));
+            }
+        }
+        // Applied after the room is added, so the larger budget is the one renamed.
         if self.completion_tokens
             && let Some(limit) = map.remove("max_tokens")
         {
             map.insert("max_completion_tokens".into(), limit);
-        }
-        if self.no_temperature {
-            map.remove("temperature");
         }
     }
 
@@ -78,6 +98,10 @@ impl Quirks {
             && (refusal.contains("unsupported") || refusal.contains("not support"))
         {
             self.no_temperature = true;
+            return true;
+        }
+        if self.thinks && !self.no_template_kwargs && refusal.contains("chat_template_kwargs") {
+            self.no_template_kwargs = true;
             return true;
         }
         false
@@ -149,9 +173,11 @@ impl EndpointProvider {
     /// is retried once per quirk with the request changed to suit, and remembered.
     async fn post_chat(
         &self,
-        mut body: serde_json::Value,
+        original: serde_json::Value,
     ) -> Result<reqwest::Response, ProviderError> {
         loop {
+            // Each try starts from the request as asked, with what is known now applied once.
+            let mut body = original.clone();
             self.quirks().apply(&mut body);
             let response = self
                 .authorised(self.client.post(self.url("chat/completions")))
@@ -388,9 +414,42 @@ impl Provider for EndpointProvider {
             request.max_tokens,
             self.config.model
         );
+        loop {
+            match self.stream_entry(body.clone(), &cancel, &sink).await? {
+                Streamed::Done(outcome) => return Ok(outcome),
+                // Nothing reached the sink, so asking again starts the entry afresh.
+                Streamed::ThoughtOnly if !self.quirks().thinks => {
+                    if let Ok(mut q) = self.quirks.lock() {
+                        q.thinks = true;
+                    }
+                    tracing::info!(
+                        "{} spent its answer thinking; asking again with thinking off and room \
+                         to think",
+                        self.config.model
+                    );
+                }
+                Streamed::ThoughtOnly => return Err(nothing_written(true)),
+            }
+        }
+    }
+}
+
+/// How streaming an entry ended: done (written or cancelled), or with only thinking and no text.
+enum Streamed {
+    Done(GenerateOutcome),
+    ThoughtOnly,
+}
+
+impl EndpointProvider {
+    async fn stream_entry(
+        &self,
+        body: serde_json::Value,
+        cancel: &CancellationToken,
+        sink: &mpsc::Sender<String>,
+    ) -> Result<Streamed, ProviderError> {
         let response = tokio::select! {
             r = self.post_chat(body) => r?,
-            () = cancel.cancelled() => return Ok(GenerateOutcome::Cancelled),
+            () = cancel.cancelled() => return Ok(Streamed::Done(GenerateOutcome::Cancelled)),
         };
         if !response.status().is_success() {
             let error = self.status_error(response).await;
@@ -403,17 +462,15 @@ impl Provider for EndpointProvider {
         let mut pending: Vec<u8> = Vec::new();
         let (mut wrote, mut thought) = (false, false);
         // The end of the stream: complete with text, otherwise a failure, never an empty entry.
-        let finished = |wrote: bool, thought: bool| {
-            if wrote {
-                Ok(GenerateOutcome::Completed)
-            } else {
-                Err(nothing_written(thought))
-            }
+        let finished = |wrote: bool, thought: bool| match (wrote, thought) {
+            (true, _) => Ok(Streamed::Done(GenerateOutcome::Completed)),
+            (false, true) => Ok(Streamed::ThoughtOnly),
+            (false, false) => Err(nothing_written(false)),
         };
         loop {
             let chunk = tokio::select! {
                 c = stream.next() => c,
-                () = cancel.cancelled() => return Ok(GenerateOutcome::Cancelled),
+                () = cancel.cancelled() => return Ok(Streamed::Done(GenerateOutcome::Cancelled)),
             };
             let Some(chunk) = chunk else {
                 return finished(wrote, thought);
@@ -437,7 +494,7 @@ impl Provider for EndpointProvider {
                 if let Some(text) = text.filter(|t| !t.is_empty()) {
                     wrote = true;
                     if sink.send(text).await.is_err() {
-                        return Ok(GenerateOutcome::Cancelled);
+                        return Ok(Streamed::Done(GenerateOutcome::Cancelled));
                     }
                 }
             }

@@ -499,3 +499,91 @@ async fn models_are_read_from_the_shapes_servers_send() {
         "{message}"
     );
 }
+
+/// A thinking model's stream: only thinking, or the entry once its thinking is off or it has
+/// room to think and then write.
+fn thinking_stream(writes: bool) -> Vec<Vec<u8>> {
+    let thought = serde_json::json!({"choices": [{"delta": {"reasoning_content": "Hmm, fish."}}]});
+    let mut chunks = vec![format!("data: {thought}\n\n").into_bytes()];
+    if writes {
+        let text = serde_json::json!({"choices": [{"delta": {"content": "Mrgl!"}}]});
+        chunks.push(format!("data: {text}\n\n").into_bytes());
+    }
+    chunks.push(b"data: [DONE]\n\n".to_vec());
+    chunks
+}
+
+async fn write_with(provider: &EndpointProvider) -> Result<String, ProviderError> {
+    generate_text(
+        provider,
+        request(),
+        Duration::from_secs(5),
+        CancellationToken::new(),
+        None,
+    )
+    .await
+    .map(|(_, text)| text)
+}
+
+#[tokio::test]
+async fn a_model_that_only_thinks_is_asked_again_with_its_thinking_off() {
+    let asked: Arc<Mutex<Vec<serde_json::Value>>> = Arc::default();
+    let seen = asked.clone();
+    let server = serve(move |req: Request| {
+        let body: serde_json::Value = serde_json::from_str(&req.body).unwrap();
+        seen.lock().unwrap().push(body.clone());
+        let off = body["chat_template_kwargs"]["enable_thinking"] == false;
+        Response::chunked(200, thinking_stream(off), Duration::from_millis(1))
+            .header("Content-Type", "text/event-stream")
+    })
+    .await;
+    let scribe = provider(&server.url, None);
+    assert_eq!(write_with(&scribe).await, Ok("Mrgl!".to_string()));
+    {
+        let asked = asked.lock().unwrap();
+        assert_eq!(asked.len(), 2);
+        assert!(asked[0].get("chat_template_kwargs").is_none());
+        assert_eq!(asked[1]["max_tokens"], 200 + 2048);
+    }
+    // Learned: the next entry asks with thinking off at once.
+    assert_eq!(write_with(&scribe).await, Ok("Mrgl!".to_string()));
+    assert_eq!(asked.lock().unwrap().len(), 3);
+}
+
+#[tokio::test]
+async fn a_server_that_refuses_the_thinking_switch_gives_the_model_room_to_think() {
+    let asked: Arc<Mutex<Vec<serde_json::Value>>> = Arc::default();
+    let seen = asked.clone();
+    let server = serve(move |req: Request| {
+        let body: serde_json::Value = serde_json::from_str(&req.body).unwrap();
+        seen.lock().unwrap().push(body.clone());
+        if body.get("chat_template_kwargs").is_some() {
+            return Response::new(
+                400,
+                r#"{"error": {"message": "Unrecognized request argument supplied: chat_template_kwargs"}}"#,
+            );
+        }
+        // With room, it thinks and then writes.
+        let roomy = body["max_tokens"].as_u64().unwrap() > 1000;
+        Response::chunked(200, thinking_stream(roomy), Duration::from_millis(1))
+            .header("Content-Type", "text/event-stream")
+    })
+    .await;
+    assert_eq!(
+        write_with(&provider(&server.url, None)).await,
+        Ok("Mrgl!".to_string())
+    );
+    assert_eq!(asked.lock().unwrap().len(), 3);
+
+    // A model that thinks through any room still fails, saying why, after one more try.
+    let stubborn = serve(|_| {
+        Response::chunked(200, thinking_stream(false), Duration::from_millis(1))
+            .header("Content-Type", "text/event-stream")
+    })
+    .await;
+    match write_with(&provider(&stubborn.url, None)).await {
+        Err(ProviderError::Failed(message)) => assert!(message.contains("thinking"), "{message}"),
+        other => panic!("expected a failure, got {other:?}"),
+    }
+    assert_eq!(stubborn.hits(), 2);
+}
