@@ -119,6 +119,28 @@ impl EndpointProvider {
         }
     }
 
+    /// A web page where the API should answer: most often a sign-in page that a proxy in front
+    /// of the server redirected to, which would otherwise read as no models and no text.
+    fn web_page(&self, response: &reqwest::Response) -> Option<ProviderError> {
+        let html = response
+            .headers()
+            .get(reqwest::header::CONTENT_TYPE)
+            .and_then(|v| v.to_str().ok())
+            .is_some_and(|t| t.to_ascii_lowercase().starts_with("text/html"));
+        html.then(|| {
+            let landed = response.url().host_str().unwrap_or_default().to_string();
+            ProviderError::Failed(if landed.is_empty() || landed == self.host() {
+                format!("{} answered with a web page, not the API", self.host())
+            } else {
+                format!(
+                    "{} sent the request on to a web page at {landed}, likely a sign-in page in \
+                     front of the API: let the API through it, or use the server's own address",
+                    self.host()
+                )
+            })
+        })
+    }
+
     fn quirks(&self) -> Quirks {
         self.quirks.lock().map(|q| *q).unwrap_or_default()
     }
@@ -137,6 +159,9 @@ impl EndpointProvider {
                 .send()
                 .await
                 .map_err(|e| self.send_error(&e))?;
+            if let Some(e) = self.web_page(&response) {
+                return Err(e);
+            }
             if response.status() != StatusCode::BAD_REQUEST {
                 return Ok(response);
             }
@@ -173,41 +198,63 @@ impl EndpointProvider {
         }
     }
 
-    /// The models the endpoint lists, sorted; empty when it lists none (some servers do not).
+    /// The models the endpoint lists at `models`, sorted. A server with no list there, or one
+    /// that sends something other than a list, is an error that says so, so the player sees why
+    /// there is nothing to pick from rather than an empty picker.
     pub async fn list_models(&self) -> Result<Vec<String>, ProviderError> {
-        tracing::debug!("listing models at {}", self.url("models"));
+        let url = self.url("models");
+        tracing::debug!("listing models at {url}");
         let response = self
-            .authorised(self.client.get(self.url("models")))
+            .authorised(self.client.get(&url))
             .send()
             .await
             .map_err(|e| self.send_error(&e))?;
-        match response.status() {
+        if let Some(e) = self.web_page(&response) {
+            return Err(e);
+        }
+        let status = response.status();
+        match status {
             s if s.is_success() => {
-                let listed: serde_json::Value = response.json().await.unwrap_or_default();
-                let mut ids: Vec<String> = listed["data"]
-                    .as_array()
-                    .map(|models| {
-                        models
-                            .iter()
-                            .filter_map(|m| m["id"].as_str().map(str::to_string))
-                            .collect()
-                    })
-                    .unwrap_or_default();
-                ids.sort();
-                ids.dedup();
+                let body = response.text().await.unwrap_or_default();
+                let ids = serde_json::from_str(&body)
+                    .ok()
+                    .and_then(|listed| model_ids(&listed))
+                    .ok_or_else(|| {
+                        ProviderError::Failed(format!(
+                            "{url} did not answer with a list of models: {}",
+                            body.chars().take(200).collect::<String>()
+                        ))
+                    })?;
+                tracing::info!("{url} lists {} models", ids.len());
                 Ok(ids)
             }
-            StatusCode::NOT_FOUND => Ok(Vec::new()),
-            _ => Err(self.status_error(response).await),
+            StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => Err(ProviderError::Unauthorised),
+            _ => Err(ProviderError::Failed(format!(
+                "{url} answered {}: no model list there",
+                status.as_u16()
+            ))),
         }
     }
 
     /// Checks the endpoint answers and accepts the key, and returns the models it lists. With a
     /// model chosen, also asks that model for a word: a list can be empty or wrong (a proxy may
-    /// list models it cannot reach), and only an answer proves the model writes.
+    /// list models it cannot reach), and only an answer proves the model writes. A server that
+    /// lists nothing can still write, so only an unreachable server or a refused key ends the
+    /// test at the list, unless no model was named and the list is all there is to test.
     pub async fn test_connection(&self) -> Result<Vec<String>, ProviderError> {
-        let models = self.list_models().await?;
         let model = self.config.model.trim();
+        let models = match self.list_models().await {
+            Ok(models) => models,
+            // With no model to ask, the list is the whole test.
+            Err(e) if model.is_empty() => return Err(e),
+            Err(e @ (ProviderError::Unauthorised | ProviderError::Unreachable(_))) => {
+                return Err(e);
+            }
+            Err(e) => {
+                tracing::info!("no model list, testing {model} without one: {e}");
+                Vec::new()
+            }
+        };
         if model.is_empty() {
             return Ok(models);
         }
@@ -245,6 +292,29 @@ impl EndpointProvider {
         }
         Ok(models)
     }
+}
+
+/// The model names in a listing, sorted. OpenAI-compatible servers send `{"data": [{"id"}]}`;
+/// some send a bare array, or `models` (Ollama's own shape), with `id`, `name` or `model` keys,
+/// or plain strings.
+fn model_ids(listed: &serde_json::Value) -> Option<Vec<String>> {
+    let entries = listed
+        .as_array()
+        .or_else(|| listed["data"].as_array())
+        .or_else(|| listed["models"].as_array())?;
+    let mut ids: Vec<String> = entries
+        .iter()
+        .filter_map(|m| {
+            m.as_str()
+                .or_else(|| m["id"].as_str())
+                .or_else(|| m["name"].as_str())
+                .or_else(|| m["model"].as_str())
+                .map(str::to_string)
+        })
+        .collect();
+    ids.sort();
+    ids.dedup();
+    Some(ids)
 }
 
 /// The message of an error object, as OpenAI-compatible servers send it in a body or a stream.

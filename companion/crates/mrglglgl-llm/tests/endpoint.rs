@@ -424,3 +424,78 @@ async fn the_connection_test_is_not_fooled_into_calling_a_newer_model_missing() 
         Ok(vec!["scribe-3b".to_string()])
     );
 }
+
+#[tokio::test]
+async fn a_sign_in_page_in_front_of_the_api_is_named_not_read_as_empty() {
+    // A proxy such as a single sign-on gate redirects every API call to its login page, which
+    // answers 200 with HTML: that is neither "no models" nor "no text".
+    let gate = serve(|req: Request| match req.path.as_str() {
+        "/login" => Response::new(200, "<html>Sign in</html>")
+            .header("Content-Type", "text/html; charset=utf-8"),
+        _ => Response::new(302, "").header("Location", "/login"),
+    })
+    .await;
+    let sign_in =
+        serve(|_| Response::new(200, "<html>Sign in</html>").header("Content-Type", "text/html"))
+            .await;
+    let elsewhere = sign_in.url.replace("127.0.0.1", "localhost");
+    let redirecting = serve(move |_: Request| {
+        Response::new(302, "").header("Location", &format!("{elsewhere}/authorize"))
+    })
+    .await;
+
+    let same_host = with_model(&gate.url, "").test_connection().await;
+    assert_eq!(
+        same_host,
+        Err(ProviderError::Failed(
+            "127.0.0.1 answered with a web page, not the API".into()
+        ))
+    );
+    let Err(ProviderError::Failed(message)) =
+        with_model(&redirecting.url, "").test_connection().await
+    else {
+        panic!("a redirect to a sign-in page passed the test");
+    };
+    assert!(message.contains("web page at localhost"), "{message}");
+    // Writing names it too, instead of saying the model sent no text.
+    let written = generate_text(
+        &with_model(&gate.url, "scribe-3b"),
+        request(),
+        Duration::from_secs(5),
+        CancellationToken::new(),
+        None,
+    )
+    .await;
+    assert_eq!(
+        written.map(|(_, text)| text),
+        Err(ProviderError::Failed(
+            "127.0.0.1 answered with a web page, not the API".into()
+        ))
+    );
+}
+
+#[tokio::test]
+async fn models_are_read_from_the_shapes_servers_send() {
+    for body in [
+        r#"{"object": "list", "data": [{"id": "b"}, {"id": "a"}]}"#,
+        r#"[{"id": "b"}, "a"]"#,
+        r#"{"models": [{"name": "b"}, {"model": "a"}]}"#,
+    ] {
+        let server = serve(move |_| Response::new(200, body)).await;
+        assert_eq!(
+            with_model(&server.url, "").list_models().await,
+            Ok(vec!["a".to_string(), "b".to_string()]),
+            "{body}"
+        );
+    }
+    let nothing_there = serve(|_| Response::new(404, "not found")).await;
+    let Err(ProviderError::Failed(message)) =
+        with_model(&nothing_there.url, "").list_models().await
+    else {
+        panic!("a missing list read as an empty one");
+    };
+    assert!(
+        message.ends_with("/v1/models answered 404: no model list there"),
+        "{message}"
+    );
+}

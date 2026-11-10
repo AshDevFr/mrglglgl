@@ -530,6 +530,7 @@
     "endpointModel": "Nom du modèle",
     "endpointModelPick": "Choisis-en un parmi ceux du point d'accès, ou tape son nom.",
     "endpointModelHelp": "Teste la connexion pour lister les modèles du point d'accès, ou tape le nom.",
+    "endpointModelUnlisted": "Aucun modèle à choisir ({{message}}). Tape le nom du modèle.",
     "apiKey": "Clé (facultative)",
     "apiKeyHelp": "Conservée dans le trousseau de ton système, jamais dans les fichiers de l'application.",
     "apiKeySaved": "Une clé est enregistrée.",

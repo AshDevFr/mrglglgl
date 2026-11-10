@@ -12,6 +12,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
+import { useDebouncedValue } from "@mantine/hooks";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -52,6 +53,8 @@ export function EndpointFields({ value, onChange }: Props) {
   >({ state: "idle" });
   // What the endpoint lists, offered as the model to pick; a name can still be typed.
   const [models, setModels] = useState<string[] | null>(null);
+  // Why the endpoint gave nothing to pick from, when it did not list.
+  const [listError, setListError] = useState<string | null>(null);
   const set = (patch: Partial<WritingSettings>) =>
     onChange({ ...value, ...patch });
   const url = value.endpointUrl ?? "";
@@ -73,20 +76,35 @@ export function EndpointFields({ value, onChange }: Props) {
     setTest({ state: "testing" });
     try {
       setModels(await testEndpoint(url, model, key.trim() || undefined));
+      setListError(null);
       setTest({ state: "ok", model });
     } catch (e) {
       setTest({ state: "failed", message: String(e) });
     }
   }
 
-  // An endpoint already set up lists its models on its own, so the picker is ready.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: once, for the address it opened with
+  // The endpoint's models are listed on their own, on opening and once the address settles,
+  // so the picker is ready without a test.
+  const [settledUrl] = useDebouncedValue(url.trim(), 600);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a key saved or removed lists again
   useEffect(() => {
-    if (value.provider !== "endpoint" || url.trim() === "") return;
-    void testEndpoint(url, "")
-      .then(setModels)
-      .catch(() => {});
-  }, [value.provider]);
+    if (value.provider !== "endpoint" || settledUrl === "") return;
+    let current = true;
+    testEndpoint(settledUrl, "")
+      .then((listed) => {
+        if (!current) return;
+        setModels(listed);
+        setListError(null);
+      })
+      .catch((e) => {
+        if (!current) return;
+        setModels(null);
+        setListError(String(e));
+      });
+    return () => {
+      current = false;
+    };
+  }, [value.provider, settledUrl, keySaved.data]);
 
   return (
     <Stack>
@@ -186,7 +204,9 @@ export function EndpointFields({ value, onChange }: Props) {
             description={
               models && models.length > 0
                 ? t("settings.endpointModelPick")
-                : t("settings.endpointModelHelp")
+                : listError
+                  ? t("settings.endpointModelUnlisted", { message: listError })
+                  : t("settings.endpointModelHelp")
             }
             data={models ?? []}
             value={value.endpointModel ?? ""}

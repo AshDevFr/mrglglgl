@@ -111,7 +111,7 @@ describe("EndpointFields", () => {
       await screen.findByText(/lists 2 models: pick one under Model name/),
     ).toBeInTheDocument();
     // A key typed but not saved yet is the one tried.
-    expect(commands.testEndpoint).toHaveBeenLastCalledWith(
+    expect(commands.testEndpoint).toHaveBeenCalledWith(
       "https://llm.example.com/v1",
       "",
       "sk-typed",
@@ -121,6 +121,18 @@ describe("EndpointFields", () => {
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ endpointModel: "scribe-3b" }),
     );
+  });
+
+  it("says why there is nothing to pick from when the endpoint lists no models", async () => {
+    commands.testEndpoint.mockRejectedValue(
+      "llm.example.com sent the request on to a web page at sso.example.com",
+    );
+    endpoint({ endpointUrl: "https://llm.example.com/v1", endpointModel: "" });
+    expect(
+      await screen.findByText(
+        /^No models to pick from \(llm\.example\.com sent the request on to a web page at sso\.example\.com\)\. Type the model's name\.$/,
+      ),
+    ).toBeInTheDocument();
   });
 
   it("still takes a model's name typed by hand, and says when it wrote back", async () => {

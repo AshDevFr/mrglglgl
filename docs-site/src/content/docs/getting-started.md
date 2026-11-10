@@ -81,10 +81,12 @@ To have entries written, open **Settings**, **AI**, and choose who writes:
 - **An endpoint you run or pay for:** any OpenAI-compatible address, such as Ollama or LM Studio
   on your own machine, or a cloud provider. **Service** fills in the address of a known one
   (Ollama, LM Studio, llama.cpp server, OpenAI, OpenRouter, Mistral, Groq); **Other** takes any
-  address that speaks the same API, such as a LiteLLM proxy. Enter the key, then **Test connection**:
-  it lists the endpoint's models to pick from (you can also type a model's name), and once a
-  model is chosen, testing again checks that it writes back. See
-  [Your data and privacy](/guide/your-data/).
+  address that speaks the same API, such as a LiteLLM proxy. Enter the key, and the endpoint's
+  models are listed under **Model name** to pick from (you can also type a model's name); once a
+  model is chosen, **Test connection** checks that it writes back. When nothing is listed, the
+  field says why. A sign-in page in front of a server you host (single sign-on on a reverse
+  proxy) blocks the app as it would any program: let the API's paths through it, or use the
+  server's own address on your network. See [Your data and privacy](/guide/your-data/).
 
 ![The AI tab of Settings: who writes, the writing models, and when the model runs.](../../assets/screenshots/settings-ai.png)
 

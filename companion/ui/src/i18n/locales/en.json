@@ -530,6 +530,7 @@
     "endpointModel": "Model name",
     "endpointModelPick": "Pick one the endpoint lists, or type its name.",
     "endpointModelHelp": "Test the connection to list the endpoint's models, or type the name.",
+    "endpointModelUnlisted": "No models to pick from ({{message}}). Type the model's name.",
     "apiKey": "Key (optional)",
     "apiKeyHelp": "Kept in your system's keychain, never in the app's files.",
     "apiKeySaved": "A key is saved.",
