@@ -80,23 +80,40 @@ pub fn chosen_model(catalogue: &Catalogue, settings: &Settings) -> Option<ModelE
         .cloned()
 }
 
+/// The endpoint key as read from the keychain this run, or as last saved: `None` until first
+/// read. macOS may ask before each keychain read (every time for a build it has not been told to
+/// trust, as each local build is), and the key is needed for every entry written, every test and
+/// every look at Settings, so it is read once per run.
+static API_KEY: std::sync::Mutex<Option<Option<String>>> = std::sync::Mutex::new(None);
+
 pub fn api_key() -> Option<String> {
-    keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY)
-        .ok()?
-        .get_password()
-        .ok()
+    let read = || {
+        keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY)
+            .ok()?
+            .get_password()
+            .ok()
+    };
+    let Ok(mut cached) = API_KEY.lock() else {
+        return read();
+    };
+    cached.get_or_insert_with(read).clone()
 }
 
 /// Stores the endpoint key in the system keychain, or removes it when empty.
 pub fn set_api_key(key: Option<&str>) -> Result<(), String> {
     let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY).map_err(|e| e.to_string())?;
-    match key.filter(|k| !k.is_empty()) {
-        Some(k) => entry.set_password(k).map_err(|e| e.to_string()),
+    let key = key.filter(|k| !k.is_empty());
+    match key {
+        Some(k) => entry.set_password(k).map_err(|e| e.to_string())?,
         None => match entry.delete_credential() {
-            Ok(()) | Err(keyring::Error::NoEntry) => Ok(()),
-            Err(e) => Err(e.to_string()),
+            Ok(()) | Err(keyring::Error::NoEntry) => {}
+            Err(e) => return Err(e.to_string()),
         },
     }
+    if let Ok(mut cached) = API_KEY.lock() {
+        *cached = Some(key.map(str::to_string));
+    }
+    Ok(())
 }
 
 pub fn endpoint_config(settings: &Settings) -> Option<EndpointConfig> {
