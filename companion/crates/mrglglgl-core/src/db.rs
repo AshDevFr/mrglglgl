@@ -189,6 +189,9 @@ const MIGRATIONS: &[&str] = &[
     // Whether the character is in the app: when not, its journal is no longer read, its
     // entries wait unwritten, and it is out of sight. Its history stays.
     "ALTER TABLE characters ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1;",
+    // Entries and drafts with no text, which a model that answered nothing used to leave behind
+    // as if the day were written. Writing now fails instead, so the day waits to be written.
+    "DELETE FROM stories WHERE trim(text) = '';",
 ];
 
 /// The schema version this build creates and understands.

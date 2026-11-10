@@ -327,3 +327,63 @@ fn a_character_is_in_the_app_until_the_player_takes_it_out() {
     db.set_character_enabled(id, true).unwrap();
     assert!(db.characters().unwrap()[0].enabled);
 }
+
+#[test]
+fn an_entry_with_no_text_is_dropped_so_its_day_waits_to_be_written() {
+    use mrglglgl_core::stories::{self, NewStory, StoryKind, StoryStatus};
+    use mrglglgl_core::writer::CheckStatus;
+    let dir = tempfile::tempdir().unwrap();
+    {
+        let db = Database::open(dir.path()).unwrap();
+        let id = db
+            .upsert_character(&source("Wren-Hollowbrook"), Some(&wren()), Some(100))
+            .unwrap();
+        for (day, text) in [("2026-11-04", "Mrgl, a fine day."), ("2026-11-05", "x")] {
+            stories::save(
+                &db,
+                &NewStory {
+                    character_id: id,
+                    kind: StoryKind::Day,
+                    start_day: day.into(),
+                    end_day: day.into(),
+                    narrator: "murloc_speak".into(),
+                    language: "en".into(),
+                    provider: "endpoint".into(),
+                    model: "a-thinking-model".into(),
+                    prompt_hash: "h".into(),
+                    text: text.into(),
+                    check: CheckStatus::Passed,
+                    check_reason: None,
+                    status: StoryStatus::Draft,
+                    note: None,
+                    partial: false,
+                },
+            )
+            .unwrap();
+        }
+    }
+    // As an older app left it: an empty draft, and the schema one step behind.
+    let conn = rusqlite::Connection::open(dir.path().join(DATABASE_FILE)).unwrap();
+    conn.execute(
+        "UPDATE stories SET text = ' ' WHERE start_day = '2026-11-05'",
+        [],
+    )
+    .unwrap();
+    conn.pragma_update(None, "user_version", CURRENT_VERSION - 1)
+        .unwrap();
+    drop(conn);
+
+    let db = Database::open(dir.path()).unwrap();
+    let id = db.characters().unwrap()[0].id;
+    assert!(
+        stories::versions(&db, id, StoryKind::Day, "2026-11-05")
+            .unwrap()
+            .is_empty()
+    );
+    assert_eq!(
+        stories::versions(&db, id, StoryKind::Day, "2026-11-04")
+            .unwrap()
+            .len(),
+        1
+    );
+}
