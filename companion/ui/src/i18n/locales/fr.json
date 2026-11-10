@@ -1204,6 +1204,8 @@
     "running": "En cours",
     "waiting": "En attente ({{count}})",
     "couldNotWrite": "Non écrites ({{count}})",
+    "retrying": "Échec, nouvel essai tout seul dans un instant : {{reason}}",
+    "tookTooLong": "c'était trop long",
     "writing": "Écriture…",
     "words_one": "Écriture… {{count}} mot pour l'instant",
     "words_other": "Écriture… {{count}} mots pour l'instant",

@@ -123,6 +123,37 @@ describe("ActivityPanel", () => {
     ).toBeInTheDocument();
   });
 
+  it("says when a waiting entry is back in line after a failed attempt", async () => {
+    api.now = {
+      ...idle(),
+      jobs: [
+        job({
+          position: 1,
+          attempts: 1,
+          lastError: "the endpoint refused the key (unauthorised)",
+        }),
+        job({
+          startDay: "2026-11-06",
+          position: 2,
+          attempts: 1,
+          lastError: "timedOut",
+        }),
+      ],
+    };
+    renderWithProviders(<ActivityPanel />);
+    const drawer = await open(/Activity \(2\)/);
+    expect(
+      await within(drawer).findByText(
+        "Failed, tries again on its own in a moment: the endpoint refused the key (unauthorised)",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(drawer).getByText(
+        "Failed, tries again on its own in a moment: it took too long",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("stops the entry being written and retries a failed one", async () => {
     api.now = {
       ...idle(),

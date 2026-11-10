@@ -1204,6 +1204,8 @@
     "running": "Running",
     "waiting": "Waiting ({{count}})",
     "couldNotWrite": "Could not be written ({{count}})",
+    "retrying": "Failed, tries again on its own in a moment: {{reason}}",
+    "tookTooLong": "it took too long",
     "writing": "Writing…",
     "words_one": "Writing… {{count}} word so far",
     "words_other": "Writing… {{count}} words so far",

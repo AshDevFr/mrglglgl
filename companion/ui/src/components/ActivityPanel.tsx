@@ -359,14 +359,27 @@ function ActivityList({
           {waiting.map((job) => (
             <li key={`${job.characterId}|${slot(job.kind, job.startDay)}`}>
               <Group justify="space-between" wrap="nowrap">
-                <Anchor
-                  component="button"
-                  size="sm"
-                  ta="left"
-                  onClick={() => openDay(job)}
-                >
-                  {label(job)}
-                </Anchor>
+                <Stack gap={0}>
+                  <Anchor
+                    component="button"
+                    size="sm"
+                    ta="left"
+                    onClick={() => openDay(job)}
+                  >
+                    {label(job)}
+                  </Anchor>
+                  {/* Back in line after a failed attempt: say so, or it reads as still running. */}
+                  {job.attempts > 0 && job.lastError && (
+                    <Text size="xs" c="red.4">
+                      {t("activity.retrying", {
+                        reason:
+                          job.lastError === "timedOut"
+                            ? t("activity.tookTooLong")
+                            : job.lastError,
+                      })}
+                    </Text>
+                  )}
+                </Stack>
                 <Text size="xs" c="dimmed">
                   #{job.position ?? ""}
                 </Text>
