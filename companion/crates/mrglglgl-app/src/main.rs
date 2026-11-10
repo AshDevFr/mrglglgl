@@ -149,6 +149,8 @@ fn main() {
             writing_commands::edit_story,
             writing_commands::discard_draft,
             writing_commands::write_drafts,
+            writing_commands::rewrite_days,
+            writing_commands::cancel_waiting,
             writing_commands::writing_status,
             writing_commands::activity,
             writing_commands::write_now,

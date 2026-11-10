@@ -53,6 +53,14 @@ version is written: the new one is written on the day's card in **To review**, a
 entry only once you accept it there. Meanwhile the day says a new version waits, with
 **Open in To review** to go straight to its card.
 
+**Rewrite days…**, beside the search field, writes many days again in one go, for example after
+changing the narrator or the model: tick days one by one, a whole week, or every written day.
+Days whose entry you edited by hand are left out unless you tick them. Leave the narrator on each
+day's usual one, or pick one for the whole batch, and choose whether the new versions wait in
+**To review** (as **Let me review entries first** has it, unless you switch it for this batch) or
+replace the entries as they are written. They are written one after another; **Cancel the waiting
+ones**, in **Activity**, stops the rest. In **To review**, **Select all** accepts a batch at once.
+
 ## The narrator checks its own work
 
 An entry that names a number, place, creature or item that is not in the day's notes is written

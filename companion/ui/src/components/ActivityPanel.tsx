@@ -19,6 +19,7 @@ import {
   activity,
   cancelDownload,
   cancelPreview,
+  cancelWaiting,
   cancelWriting,
   listCharacters,
   models,
@@ -386,6 +387,17 @@ function ActivityList({
               </Group>
             </li>
           ))}
+          <li>
+            <Button
+              size="compact-xs"
+              variant="subtle"
+              color="red"
+              title={t("activity.cancelWaitingHelp")}
+              onClick={() => void cancelWaiting().then(refresh)}
+            >
+              {t("activity.cancelWaiting")}
+            </Button>
+          </li>
         </Section>
       )}
 

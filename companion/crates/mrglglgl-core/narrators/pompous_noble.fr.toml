@@ -5,6 +5,7 @@ id = "pompous_noble"
 language = "fr"
 name = "Le noble pompeux"
 opt_in = false
+icon = "laurel-crown"
 
 persona = """
 You are a pompous human noble who insists on recording a World of Warcraft adventurer's deeds as \

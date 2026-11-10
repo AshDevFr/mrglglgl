@@ -818,7 +818,8 @@
     "draftWaitingHere": "A draft for this day is waiting in To review.",
     "writeNow": "Write",
     "writeEntry": "Write the entry",
-    "narratorEntries": "Narrator for new entries"
+    "narratorEntries": "Narrator for new entries",
+    "selectAll": "Select all"
   },
   "narrators": {
     "title": "Narrators",
@@ -847,6 +848,21 @@
     "name": "Name",
     "persona": "Who is writing",
     "personaHelp": "Who the narrator is and how they keep the journal. Written to the model, as \"You are…\".",
+    "icon": "Icon",
+    "iconCredit": "Icons from game-icons.net, by Lorc, Delapouite and contributors, under CC BY 3.0.",
+    "icons": {
+      "quill-ink": "Quill and ink",
+      "fish-monster": "Murloc",
+      "dwarf-face": "Dwarf",
+      "laurel-crown": "Laurel crown",
+      "scroll-unfurled": "Scroll",
+      "troll": "Troll",
+      "woman-elf-face": "Elf",
+      "totem": "Totem",
+      "battle-axe": "Battle axe",
+      "death-skull": "Skull",
+      "gear-hammer": "Gear and hammer"
+    },
     "pointOfView": "Point of view",
     "pointOfViewHelp": "As the adventurer, the entry says \"I\" and the voice below is how it is written. About the adventurer, the narrator tells what it watched, using their name.",
     "asAdventurer": "As the adventurer",
@@ -1225,12 +1241,16 @@
     "pause": "Pause writing",
     "resume": "Resume writing",
     "blocked": "Writing is blocked",
-    "openSettings": "Open Settings"
+    "openSettings": "Open Settings",
+    "cancelWaiting": "Cancel the waiting ones",
+    "cancelWaitingHelp": "Days not written yet come back on their own at the next read of the journal."
   },
   "characterSettings": {
     "title": "Writing for this character",
     "intro": "How this character's entries are written, where it should differ from the app's Settings. Anything left as in Settings follows them, even when they change. Entries already written stay as they are.",
     "asSettings": "As in Settings ({{what}})",
+    "raceHint": "Made for this character's race: {{narrator}}.",
+    "raceHintUse": "Use it",
     "preferences": "Writing preferences for this character",
     "preferencesAdded": "Added after the ones in the app's Settings, which still hold: \"{{general}}\"",
     "preferencesAlone": "Sent with this character's entries only, alongside any you set in the app's Settings.",
@@ -1240,5 +1260,28 @@
     "dataTitle": "What the narrator may use",
     "dataHelp": "Which recorded things this character's narrator, website and exports may use, and which the app shows.",
     "dataButton": "Choose what is used"
+  },
+  "rewrite": {
+    "title": "Rewrite days",
+    "button": "Rewrite days…",
+    "intro": "Write days again that already have an entry, for example after changing the narrator or the model. The entries there now stay as older versions.",
+    "none": "No day has an entry yet.",
+    "all_one": "All written days ({{count}})",
+    "all_other": "All written days ({{count}})",
+    "week": "Week of {{date}}",
+    "edited": "edited by you",
+    "narrator": "Narrator",
+    "usualNarrator": "Each day's usual narrator",
+    "toReview": "Send them to To review",
+    "toReviewOn": "Each new version waits in To review; the entry stays until you accept it.",
+    "toReviewOff": "Each new version replaces the entry as soon as it is written.",
+    "time_one": "Written one after another; a local model takes a minute or two for it.",
+    "time_other": "Written one after another; a local model takes a minute or two each, so {{count}} entries take a while. You can stop them from Activity.",
+    "go_one": "Rewrite {{count}} day",
+    "go_other": "Rewrite {{count}} days",
+    "queued_one": "{{count}} day is waiting to be written again.",
+    "queued_other": "{{count}} days are waiting to be written again.",
+    "failed": "The days could not be queued: {{message}}",
+    "failedNext": "Try again; if it keeps failing, the Logs tab in Settings says why."
   }
 }

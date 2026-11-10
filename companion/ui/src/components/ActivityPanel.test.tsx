@@ -9,6 +9,7 @@ const api = vi.hoisted(() => ({
   now: null as Activity | null,
   activity: vi.fn(),
   cancelWriting: vi.fn(async () => true),
+  cancelWaiting: vi.fn(async () => 2),
   retryWriting: vi.fn(async () => {}),
   setWritingPaused: vi.fn(async () => {}),
   cancelPreview: vi.fn(async () => true),
@@ -212,6 +213,24 @@ describe("ActivityPanel", () => {
       within(download as HTMLElement).getByRole("button", { name: "Stop" }),
     );
     await waitFor(() => expect(api.cancelDownload).toHaveBeenCalled());
+  });
+
+  it("drops everything waiting in one go", async () => {
+    api.now = {
+      ...idle(),
+      jobs: [
+        job({ position: 1 }),
+        job({ startDay: "2026-11-06", position: 2 }),
+      ],
+    };
+    renderWithProviders(<ActivityPanel />);
+    const drawer = await open(/Activity \(2\)/);
+    fireEvent.click(
+      await within(drawer).findByRole("button", {
+        name: "Cancel the waiting ones",
+      }),
+    );
+    await waitFor(() => expect(api.cancelWaiting).toHaveBeenCalled());
   });
 
   it("pauses and resumes writing", async () => {

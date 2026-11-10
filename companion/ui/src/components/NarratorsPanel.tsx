@@ -24,6 +24,7 @@ import {
 } from "@/api/commands";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { NarratorSaved } from "@/bindings/NarratorSaved";
+import { NarratorIcon } from "@/components/NarratorIcon";
 import { problem } from "@/i18n/problems";
 import { exportFolder, rememberExportFolder } from "@/lib/exportFolder";
 import { NEW_NARRATOR } from "@/lib/narrators";
@@ -100,6 +101,7 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
     <li key={n.id} aria-label={n.name} style={{ listStyle: "none" }}>
       <Group justify="space-between" wrap="nowrap" py={4}>
         <Group gap="xs" wrap="nowrap">
+          <NarratorIcon icon={n.icon} />
           <Text>{n.name}</Text>
           {n.id === inUse && (
             <Badge size="sm" variant="outline">
@@ -232,6 +234,9 @@ export function NarratorsPanel({ onEdit }: { onEdit: (id: string) => void }) {
       >
         {profile.data && <NarratorPreview narrator={profile.data} />}
       </Modal>
+      <Text size="xs" c="dimmed">
+        {t("narrators.iconCredit")}
+      </Text>
     </Stack>
   );
 }

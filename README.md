@@ -55,4 +55,6 @@ use it.
 ## Licence
 
 MIT, see `LICENSE`. World of Warcraft is a trademark of Blizzard Entertainment; Mrglglgl is an
-unofficial fan project and ships no Blizzard assets.
+unofficial fan project and ships no Blizzard assets. The narrators' icons are from
+[game-icons.net](https://game-icons.net), by Lorc, Delapouite and contributors, under
+[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).

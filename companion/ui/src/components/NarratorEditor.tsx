@@ -1,7 +1,9 @@
 import {
+  ActionIcon,
   Alert,
   Button,
   Group,
+  Input,
   Radio,
   Select,
   Stack,
@@ -26,6 +28,7 @@ import type { Narrator } from "@/bindings/Narrator";
 import type { PointOfView } from "@/bindings/PointOfView";
 import type { PreviewDay } from "@/bindings/PreviewDay";
 import type { PreviewResult } from "@/bindings/PreviewResult";
+import { NARRATOR_ICONS, NarratorIcon } from "@/components/NarratorIcon";
 import { problem } from "@/i18n/problems";
 import { formatDay } from "@/lib/format";
 import { daysNewestFirst, displayName } from "@/lib/journal";
@@ -120,6 +123,33 @@ export function NarratorEditor({ initial, onSaved }: Props) {
           onChange={(e) => set({ name: e.currentTarget.value })}
           error={error("name")}
         />
+        <Input.Wrapper label={t("narrators.icon")}>
+          <Group
+            gap={4}
+            mt={4}
+            role="radiogroup"
+            aria-label={t("narrators.icon")}
+          >
+            {NARRATOR_ICONS.map((icon) => {
+              const chosen = (draft.icon ?? "quill-ink") === icon;
+              return (
+                <ActionIcon
+                  key={icon}
+                  role="radio"
+                  aria-checked={chosen}
+                  aria-label={t(`narrators.icons.${icon}`)}
+                  title={t(`narrators.icons.${icon}`)}
+                  variant={chosen ? "light" : "subtle"}
+                  color={chosen ? undefined : "gray"}
+                  size="lg"
+                  onClick={() => set({ icon })}
+                >
+                  <NarratorIcon icon={icon} size={20} />
+                </ActionIcon>
+              );
+            })}
+          </Group>
+        </Input.Wrapper>
         {text(
           "persona",
           t("narrators.persona"),

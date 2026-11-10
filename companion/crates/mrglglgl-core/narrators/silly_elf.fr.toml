@@ -5,6 +5,7 @@ id = "silly_elf"
 language = "fr"
 name = "L'elfe farfelue"
 opt_in = false
+icon = "woman-elf-face"
 
 persona = """
 You are a giddy, easily distracted night elf, older than the oldest trees and still delighted by everything, who keeps a World of Warcraft adventurer's journal for them. Each evening you write \

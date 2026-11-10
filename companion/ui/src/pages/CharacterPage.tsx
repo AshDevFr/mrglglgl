@@ -1,4 +1,5 @@
-import { Alert, Stack } from "@mantine/core";
+import { Alert, Button, Group, Stack } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
@@ -24,6 +25,7 @@ import { CharacterTop } from "@/components/CharacterTop";
 import { EmptyState } from "@/components/EmptyState";
 import { type DayWriting, JournalPage } from "@/components/JournalPage";
 import { SearchField, SearchResults } from "@/components/JournalSearch";
+import { RewriteDays } from "@/components/RewriteDays";
 import { CopyEntryButton, DebugExportItem } from "@/components/Sharing";
 import { WeekChapter } from "@/components/WeekChapter";
 import { WeekNav } from "@/components/WeekNav";
@@ -87,6 +89,7 @@ export function CharacterPage({
   const settings = useQuery({ queryKey: ["settings"], queryFn: getSettings });
   // Weekly chapters off: a week shows its chapter only if one was written before.
   const weekly = settings.data?.settings.writing.weekly ?? false;
+  const [rewriting, setRewriting] = useState(false);
   const live = useWriting(characterId);
   const refreshStatus = () =>
     queryClient.invalidateQueries({ queryKey: ["writing", characterId] });
@@ -180,7 +183,26 @@ export function CharacterPage({
         {writingState.data && (
           <WritingBanner status={writingState.data} drafts={summary.toReview} />
         )}
-        <SearchField value={query} onChange={setQuery} />
+        <Group gap="sm" wrap="nowrap" align="flex-end">
+          <div style={{ flex: 1 }}>
+            <SearchField value={query} onChange={setQuery} />
+          </div>
+          <Button variant="default" onClick={() => setRewriting(true)}>
+            {t("rewrite.button")}
+          </Button>
+        </Group>
+        <RewriteDays
+          characterId={characterId}
+          opened={rewriting}
+          onClose={() => setRewriting(false)}
+          stories={stories.data ?? []}
+          narrators={narrators.data ?? []}
+          review={settings.data?.settings.writing.review ?? false}
+          onQueued={(count) => {
+            void refreshStatus();
+            notifications.show({ message: t("rewrite.queued", { count }) });
+          }}
+        />
         {/* While searching, the results take the week's place; choosing one opens its day. */}
         {query !== "" && journal.data ? (
           <SearchResults

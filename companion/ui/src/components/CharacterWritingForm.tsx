@@ -5,12 +5,19 @@ import { useTranslation } from "react-i18next";
 import {
   characterWriting,
   getSettings,
+  listCharacters,
   listNarrators,
   setCharacterWriting,
 } from "@/api/commands";
 import type { CharacterWriting } from "@/bindings/CharacterWriting";
 import type { Meddling } from "@/bindings/Meddling";
+import {
+  NarratorIcon,
+  narratorOption,
+  narratorSection,
+} from "@/components/NarratorIcon";
 import { narratorLabel } from "@/lib/narrators";
+import { narratorForRace } from "@/lib/raceNarrator";
 
 const MEDDLING: Meddling[] = ["off", "rare", "sometimes", "often"];
 /** The choice that leaves a field to Settings. */
@@ -32,6 +39,10 @@ export function CharacterWritingForm({ characterId }: { characterId: number }) {
   const narrators = useQuery({
     queryKey: ["narrators"],
     queryFn: listNarrators,
+  });
+  const characters = useQuery({
+    queryKey: ["characters"],
+    queryFn: listCharacters,
   });
   const [draft, setDraft] = useState<CharacterWriting | null>(null);
   const [saved, setSaved] = useState(false);
@@ -58,6 +69,11 @@ export function CharacterWritingForm({ characterId }: { characterId: number }) {
 
   const asSettings = (what: string) =>
     t("characterSettings.asSettings", { what });
+  // The narrator made for the character's race, offered when another one writes for it.
+  const race = characters.data?.find((c) => c.character.id === characterId)
+    ?.character.race;
+  const suggested = narrators.data.find((n) => n.id === narratorForRace(race));
+  const writing = draft.narrator ?? general.narrator;
   return (
     <Stack gap="md">
       <Text size="sm" c="dimmed">
@@ -74,10 +90,27 @@ export function CharacterWritingForm({ characterId }: { characterId: number }) {
           },
           ...narrators.data.map((n) => ({ value: n.id, label: n.name })),
         ]}
+        renderOption={narratorOption(narrators.data)}
+        leftSection={narratorSection(narrators.data, writing)}
         value={draft.narrator ?? AS_SETTINGS}
         onChange={(v) => set({ narrator: v ? v : null })}
         allowDeselect={false}
       />
+      {suggested && suggested.id !== writing && (
+        <Group gap="xs" wrap="nowrap" className="race-hint">
+          <NarratorIcon icon={suggested.icon} size={16} />
+          <Text size="sm" c="dimmed">
+            {t("characterSettings.raceHint", { narrator: suggested.name })}
+          </Text>
+          <Button
+            size="compact-xs"
+            variant="light"
+            onClick={() => set({ narrator: suggested.id })}
+          >
+            {t("characterSettings.raceHintUse")}
+          </Button>
+        </Group>
+      )}
       <Select
         label={t("settings.meddling")}
         data={[

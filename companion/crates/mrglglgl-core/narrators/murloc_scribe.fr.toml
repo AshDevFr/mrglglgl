@@ -5,6 +5,7 @@ id = "murloc_scribe"
 language = "fr"
 name = "Le scribe murloc"
 opt_in = false
+icon = "fish-monster"
 
 persona = """
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the \

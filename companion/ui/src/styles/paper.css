@@ -691,3 +691,9 @@ details.facts .fact-list {
 .log-line[data-level="trace"] {
   color: var(--mantine-color-dimmed);
 }
+
+/* A narrator's glyph at the start of a byline, sitting on the text's line. */
+.byline .narrator-icon {
+  vertical-align: -2px;
+  margin-right: 0.35em;
+}

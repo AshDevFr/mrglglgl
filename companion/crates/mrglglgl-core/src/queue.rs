@@ -259,6 +259,18 @@ pub fn request(
     Ok(())
 }
 
+/// Drops every day and week waiting in the queue, for every character; the one being written
+/// finishes, and failed ones stay for the player to retry or leave. Finished days with no entry
+/// are queued again on the next read of the journal, so only rewrites the player asked for are
+/// gone for good. Returns how many were dropped.
+pub fn drop_waiting(db: &Database) -> Result<usize, DbError> {
+    let dropped = db
+        .conn()
+        .execute("DELETE FROM write_queue WHERE state = 'pending'", [])?;
+    tracing::info!("dropped {dropped} entries waiting to be written");
+    Ok(dropped)
+}
+
 /// Drops every week waiting or failed in the queue, for every character, once weekly chapters
 /// are turned off; one being written finishes. Returns how many were dropped.
 pub fn drop_weeks(db: &Database) -> Result<usize, DbError> {
@@ -471,6 +483,8 @@ pub enum QueueEvent {
         character_id: i64,
         kind: StoryKind,
         start_day: String,
+        /// The narrator writing it, so the window can show who is at work.
+        narrator: String,
     },
     #[serde(rename_all = "camelCase")]
     Chunk {
@@ -795,6 +809,7 @@ pub async fn run_next(
         character_id,
         kind,
         start_day: start_day.clone(),
+        narrator: prepared.narrator.clone(),
     });
 
     let (tx, mut rx) = mpsc::channel::<StreamEvent>(64);

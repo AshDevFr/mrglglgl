@@ -6,8 +6,11 @@ description: Who writes your journal, the murloc's margin notes, writing prefere
 ## Choosing a narrator
 
 **Narrator**, in **Settings**, **Writing**, chooses who writes your journal. The murloc scribe is
-the default; the grumpy dwarf, the pompous noble, the smug academic, the easygoing troll and the
-silly elf are other styles you can choose. The murloc writing entirely in its own language is only used if you pick it. On any day
+the default; the grumpy dwarf, the pompous noble, the smug academic, the easygoing troll, the
+silly elf, the tauren elder, the orc grunt, the Forsaken chronicler and the gnome tinkerer are
+other styles you can choose. Each has its own small icon beside its name; your own narrators pick
+one from the same set. The icons are from [game-icons.net](https://game-icons.net), by Lorc,
+Delapouite and contributors, under CC BY 3.0. The murloc writing entirely in its own language is only used if you pick it. On any day
 or week you can also pick a narrator for that entry alone.
 
 **Murloc margin notes** sets how often the murloc adds a note in the margin, from never to about
@@ -19,7 +22,8 @@ language.
 ## A character's own narrator and preferences
 
 Each character's **This character** tab, beside **Milestones**, sets how that character's entries are
-written where it should differ from **Settings**: its own narrator (a troll written by the troll),
+written where it should differ from **Settings**: its own narrator (a troll written by the troll;
+the tab suggests the narrator made for the character's race, until it is the one writing),
 how often the murloc writes in its margins, and writing preferences added after the ones in
 **Settings**, which still hold ("write as a role-play diary"). Anything left as in Settings follows
 them, even when they change. The same tab chooses what that character's narrator may use of what

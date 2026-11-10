@@ -15,6 +15,12 @@ import type { Job } from "@/bindings/Job";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { Story } from "@/bindings/Story";
 import type { StoryKind } from "@/bindings/StoryKind";
+import {
+  iconOf,
+  NarratorIcon,
+  narratorOption,
+  narratorSection,
+} from "@/components/NarratorIcon";
 import { WritingNow } from "@/components/WritingNow";
 import { type Problem, problem } from "@/i18n/problems";
 import { formatTime } from "@/lib/format";
@@ -145,7 +151,10 @@ export function EntryPanel({
   if (live?.active && !forReview) {
     return (
       <div className="entry-panel" aria-busy="true">
-        <WritingNow label={t(loadingKey(day))} />
+        <WritingNow
+          label={t(loadingKey(day))}
+          icon={iconOf(narrators, live.narrator)}
+        />
         {live.text && <p className="entry streaming">{live.text}</p>}
         <Button variant="subtle" color="gray" onClick={onCancel}>
           {t("writing.cancel")}
@@ -164,7 +173,10 @@ export function EntryPanel({
     <div className="entry-panel" aria-busy={writingDraft || undefined}>
       {writingDraft && (
         <Alert color="teal" className="draft-note">
-          <WritingNow label={t("writing.draftWriting")} />
+          <WritingNow
+            label={t("writing.draftWriting")}
+            icon={iconOf(narrators, live?.narrator)}
+          />
           <Text size="sm" mt={4}>
             {t(shown ? "writing.draftWritingKeeps" : "writing.draftWritingNew")}
           </Text>
@@ -335,7 +347,8 @@ export function EntryPanel({
         </Group>
       )}
       {shown && (
-        <Text size="xs" c="dimmed">
+        <Text size="xs" c="dimmed" className="byline">
+          <NarratorIcon icon={iconOf(narrators, shown.narrator)} size={14} />
           {t(
             shown.check === "edited"
               ? "writing.editedByline"
@@ -356,6 +369,8 @@ export function EntryPanel({
             aria-label={t(`writing.narratorFor.${kind}`)}
             placeholder={t(`writing.narratorFor.${kind}`)}
             data={narrators.map((n) => ({ value: n.id, label: n.name }))}
+            renderOption={narratorOption(narrators)}
+            leftSection={narratorSection(narrators, narrator)}
             value={narrator}
             onChange={setNarrator}
             clearable

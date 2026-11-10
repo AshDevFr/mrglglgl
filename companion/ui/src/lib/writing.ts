@@ -11,6 +11,8 @@ export interface Live {
   /** How the last attempt ended: "written", "setAside", "cancelled", "timedOut", "failed". */
   outcome: string | null;
   message: string | null;
+  /** The narrator writing it, from the moment it starts. */
+  narrator: string | null;
 }
 
 export type LiveMap = Record<string, Live>;
@@ -21,7 +23,13 @@ export const slot = (kind: StoryKind, day: string) => `${kind}:${day}`;
 export const reviewAnchor = (kind: StoryKind, day: string) =>
   `review-${kind}-${day}`;
 
-const idle: Live = { text: "", active: false, outcome: null, message: null };
+const idle: Live = {
+  text: "",
+  active: false,
+  outcome: null,
+  message: null,
+  narrator: null,
+};
 
 /** Folds one writer event into what the window shows for a character. */
 export function applyEvent(
@@ -34,8 +42,15 @@ export function applyEvent(
   const current = map[key] ?? idle;
   switch (event.type) {
     case "started":
+      return {
+        ...map,
+        [key]: { ...idle, active: true, narrator: event.narrator },
+      };
     case "restarted":
-      return { ...map, [key]: { ...idle, active: true } };
+      return {
+        ...map,
+        [key]: { ...idle, active: true, narrator: current.narrator },
+      };
     case "chunk":
       return { ...map, [key]: { ...current, text: current.text + event.text } };
     case "finished":
@@ -46,6 +61,7 @@ export function applyEvent(
           active: false,
           outcome: event.outcome,
           message: event.message,
+          narrator: current.narrator,
         },
       };
   }

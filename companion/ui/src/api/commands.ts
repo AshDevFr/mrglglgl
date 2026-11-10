@@ -241,6 +241,26 @@ export function writeDrafts(
   return invoke<void>("write_drafts", { characterId, slots, narrator, note });
 }
 
+/** Writes again days that already have an entry, as drafts for To review or into the journal. */
+export function rewriteDays(
+  characterId: number,
+  days: string[],
+  narrator: string | null,
+  toReview: boolean,
+): Promise<void> {
+  return invoke<void>("rewrite_days", {
+    characterId,
+    days,
+    narrator,
+    toReview,
+  });
+}
+
+/** Drops everything waiting to be written; returns how many. */
+export function cancelWaiting(): Promise<number> {
+  return invoke<number>("cancel_waiting");
+}
+
 export function writingStatus(characterId: number): Promise<WritingStatus> {
   return invoke<WritingStatus>("writing_status", { characterId });
 }

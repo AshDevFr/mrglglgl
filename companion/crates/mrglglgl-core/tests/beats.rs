@@ -692,6 +692,10 @@ fn a_hardcore_death_makes_the_day_a_farewell_with_a_eulogy_hint() {
         "smug_academic",
         "easygoing_troll",
         "silly_elf",
+        "tauren_elder",
+        "orc_grunt",
+        "forsaken_chronicler",
+        "gnome_tinkerer",
         "murloc_speak",
     ] {
         assert!(

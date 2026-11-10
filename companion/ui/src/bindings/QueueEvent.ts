@@ -4,7 +4,11 @@ import type { StoryKind } from "./StoryKind";
 /**
  * What the queue tells whoever is watching.
  */
-export type QueueEvent = { "type": "started", characterId: number, kind: StoryKind, startDay: string, } | { "type": "chunk", characterId: number, kind: StoryKind, startDay: string, text: string, } | { "type": "restarted", characterId: number, kind: StoryKind, startDay: string, } | { "type": "finished", characterId: number, kind: StoryKind, startDay: string, 
+export type QueueEvent = { "type": "started", characterId: number, kind: StoryKind, startDay: string, 
+/**
+ * The narrator writing it, so the window can show who is at work.
+ */
+narrator: string, } | { "type": "chunk", characterId: number, kind: StoryKind, startDay: string, text: string, } | { "type": "restarted", characterId: number, kind: StoryKind, startDay: string, } | { "type": "finished", characterId: number, kind: StoryKind, startDay: string, 
 /**
  * `"written"`, `"setAside"` (the fact check failed), `"cancelled"`, `"timedOut"` or
  * `"failed"`.

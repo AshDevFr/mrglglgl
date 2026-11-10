@@ -5,6 +5,7 @@ id = "grumpy_dwarf"
 language = "fr"
 name = "Le nain grognon"
 opt_in = false
+icon = "dwarf-face"
 
 persona = """
 You are a grumpy old dwarf who keeps a World of Warcraft adventurer's journal for them, because \

@@ -5,6 +5,7 @@ import { setWritingPaused } from "@/api/commands";
 import type { Meddling } from "@/bindings/Meddling";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { WritingSettings } from "@/bindings/WritingSettings";
+import { narratorOption, narratorSection } from "@/components/NarratorIcon";
 
 const MEDDLING: Meddling[] = ["off", "rare", "sometimes", "often"];
 const SAME = "same";
@@ -32,6 +33,8 @@ export function WritingFields({ value, onChange, narrators }: Props) {
           value: n.id,
           label: n.optIn ? t("settings.optIn", { name: n.name }) : n.name,
         }))}
+        renderOption={narratorOption(narrators)}
+        leftSection={narratorSection(narrators, value.narrator)}
         value={value.narrator}
         onChange={(v) => v && set({ narrator: v })}
         allowDeselect={false}

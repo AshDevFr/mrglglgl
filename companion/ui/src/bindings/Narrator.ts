@@ -12,6 +12,11 @@ language: string, name: string,
  */
 opt_in: boolean, 
 /**
+ * The glyph shown beside the narrator's name, one of [`ICONS`]; files saved before icons
+ * existed, or naming one this version does not know, show [`DEFAULT_ICON`].
+ */
+icon?: string, 
+/**
  * Files saved before the setting existed write as the adventurer.
  */
 point_of_view: PointOfView, persona: string, voice: string, 

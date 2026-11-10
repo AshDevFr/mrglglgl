@@ -818,7 +818,8 @@
     "draftWaitingHere": "Un brouillon pour cette journée attend dans À valider.",
     "writeNow": "Écrire",
     "writeEntry": "Écrire l'entrée",
-    "narratorEntries": "Narrateur des nouvelles entrées"
+    "narratorEntries": "Narrateur des nouvelles entrées",
+    "selectAll": "Tout sélectionner"
   },
   "narrators": {
     "title": "Narrateurs",
@@ -847,6 +848,21 @@
     "name": "Nom",
     "persona": "Qui écrit",
     "personaHelp": "Qui est le narrateur et comment il tient le journal. Écrit au modèle, sous la forme « Tu es… ».",
+    "icon": "Icône",
+    "iconCredit": "Icônes de game-icons.net, par Lorc, Delapouite et leurs contributeurs, sous licence CC BY 3.0.",
+    "icons": {
+      "quill-ink": "Plume et encre",
+      "fish-monster": "Murloc",
+      "dwarf-face": "Nain",
+      "laurel-crown": "Couronne de laurier",
+      "scroll-unfurled": "Parchemin",
+      "troll": "Troll",
+      "woman-elf-face": "Elfe",
+      "totem": "Totem",
+      "battle-axe": "Hache de guerre",
+      "death-skull": "Crâne",
+      "gear-hammer": "Engrenage et marteau"
+    },
     "pointOfView": "Point de vue",
     "pointOfViewHelp": "Comme l'aventurier, l'entrée dit « je » et la voix ci-dessous est sa façon d'écrire. Sur l'aventurier, le narrateur raconte ce qu'il a vu, en l'appelant par son nom.",
     "asAdventurer": "Comme l'aventurier",
@@ -1225,12 +1241,16 @@
     "pause": "Mettre l'écriture en pause",
     "resume": "Reprendre l'écriture",
     "blocked": "L'écriture est bloquée",
-    "openSettings": "Ouvrir les Réglages"
+    "openSettings": "Ouvrir les Réglages",
+    "cancelWaiting": "Annuler ceux en attente",
+    "cancelWaitingHelp": "Les jours pas encore écrits reviennent d'eux-mêmes à la prochaine lecture du journal."
   },
   "characterSettings": {
     "title": "Écriture pour ce personnage",
     "intro": "Comment les entrées de ce personnage sont écrites, là où elles doivent différer des Réglages de l'application. Ce qui est laissé comme dans les Réglages les suit, même quand ils changent. Les entrées déjà écrites restent telles quelles.",
     "asSettings": "Comme dans les Réglages ({{what}})",
+    "raceHint": "Fait pour la race de ce personnage : {{narrator}}.",
+    "raceHintUse": "L'utiliser",
     "preferences": "Préférences d'écriture pour ce personnage",
     "preferencesAdded": "Ajoutées après celles des Réglages de l'application, qui s'appliquent toujours : « {{general}} »",
     "preferencesAlone": "Envoyées avec les entrées de ce personnage seulement, en plus de celles des Réglages de l'application.",
@@ -1240,5 +1260,28 @@
     "dataTitle": "Ce que le narrateur peut utiliser",
     "dataHelp": "Ce que le narrateur, le site et les exports de ce personnage peuvent utiliser parmi ce qui est enregistré, et ce que l'app affiche.",
     "dataButton": "Choisir ce qui est utilisé"
+  },
+  "rewrite": {
+    "title": "Réécrire des jours",
+    "button": "Réécrire des jours…",
+    "intro": "Réécris des jours qui ont déjà une entrée, par exemple après avoir changé de narrateur ou de modèle. Les entrées actuelles restent comme anciennes versions.",
+    "none": "Aucun jour n'a encore d'entrée.",
+    "all_one": "Tous les jours écrits ({{count}})",
+    "all_other": "Tous les jours écrits ({{count}})",
+    "week": "Semaine du {{date}}",
+    "edited": "modifié par toi",
+    "narrator": "Narrateur",
+    "usualNarrator": "Le narrateur habituel de chaque jour",
+    "toReview": "Les envoyer dans À valider",
+    "toReviewOn": "Chaque nouvelle version t'attend dans À valider ; l'entrée reste tant que tu ne l'as pas acceptée.",
+    "toReviewOff": "Chaque nouvelle version remplace l'entrée dès qu'elle est écrite.",
+    "time_one": "Écrits l'un après l'autre ; un modèle local y passe une minute ou deux.",
+    "time_other": "Écrits l'un après l'autre ; un modèle local passe une minute ou deux sur chacun, donc {{count}} entrées prennent un moment. Tu peux les arrêter depuis Activité.",
+    "go_one": "Réécrire {{count}} jour",
+    "go_other": "Réécrire {{count}} jours",
+    "queued_one": "{{count}} jour attend d'être réécrit.",
+    "queued_other": "{{count}} jours attendent d'être réécrits.",
+    "failed": "Les jours n'ont pas pu être mis en file : {{message}}",
+    "failedNext": "Réessaie ; si ça échoue encore, l'onglet Journaux des Réglages dit pourquoi."
   }
 }

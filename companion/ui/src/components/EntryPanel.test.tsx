@@ -11,10 +11,17 @@ const narrators: NarratorInfo[] = [
   {
     id: "murloc_scribe",
     name: "The murloc scribe",
+    icon: "fish-monster",
     optIn: false,
     custom: false,
   },
-  { id: "grumpy_dwarf", name: "The grumpy dwarf", optIn: false, custom: false },
+  {
+    id: "grumpy_dwarf",
+    name: "The grumpy dwarf",
+    icon: "dwarf-face",
+    optIn: false,
+    custom: false,
+  },
 ];
 
 function story(id: number, text: string, extra: Partial<Story> = {}): Story {
@@ -87,7 +94,11 @@ describe("the writer's events", () => {
   it("streams, restarts and finishes per day, ignoring other characters", () => {
     let map = {};
     const at = { characterId: 1, kind: "day" as const, startDay: "2026-11-08" };
-    map = applyEvent(map, 1, { type: "started", ...at });
+    map = applyEvent(map, 1, {
+      type: "started",
+      ...at,
+      narrator: "grumpy_dwarf",
+    });
     map = applyEvent(map, 1, { type: "chunk", ...at, text: "The wolves " });
     map = applyEvent(map, 1, { type: "chunk", ...at, text: "were many." });
     map = applyEvent(map, 1, {
@@ -102,11 +113,13 @@ describe("the writer's events", () => {
       active: true,
       outcome: null,
       message: null,
+      narrator: "grumpy_dwarf",
     });
     map = applyEvent(map, 1, { type: "restarted", ...at });
-    expect((map as Record<string, Live>)[slot("day", "2026-11-08")].text).toBe(
-      "",
-    );
+    // Started again by the same narrator.
+    expect(
+      (map as Record<string, Live>)[slot("day", "2026-11-08")],
+    ).toMatchObject({ text: "", narrator: "grumpy_dwarf" });
     map = applyEvent(map, 1, {
       type: "finished",
       ...at,
@@ -130,6 +143,7 @@ describe("EntryPanel", () => {
         active: true,
         outcome: null,
         message: null,
+        narrator: null,
       },
       job: job({ state: "running", position: null }),
     });
@@ -143,7 +157,13 @@ describe("EntryPanel", () => {
 
   it("says plainly whether the user cancelled or the time ran out", () => {
     panel({
-      live: { text: "", active: false, outcome: "cancelled", message: null },
+      live: {
+        text: "",
+        active: false,
+        outcome: "cancelled",
+        message: null,
+        narrator: null,
+      },
     });
     expect(
       screen.getByText(
@@ -154,7 +174,13 @@ describe("EntryPanel", () => {
 
   it("says a failure is tried again on its own while attempts are left", () => {
     panel({
-      live: { text: "", active: false, outcome: "timedOut", message: null },
+      live: {
+        text: "",
+        active: false,
+        outcome: "timedOut",
+        message: null,
+        narrator: null,
+      },
       job: job({ state: "pending", attempts: 1 }),
     });
     expect(
@@ -171,6 +197,7 @@ describe("EntryPanel", () => {
         active: false,
         outcome: "failed",
         message: "the model stopped",
+        narrator: null,
       },
       job: job({ state: "failed", attempts: 3, position: null }),
     });
@@ -429,6 +456,7 @@ describe("EntryPanel, edited by hand", () => {
         active: true,
         outcome: null,
         message: null,
+        narrator: null,
       },
       job: job({ state: "running", draft: true, position: null }),
       onOpenReview,
@@ -450,7 +478,13 @@ describe("EntryPanel, edited by hand", () => {
     const onOpenReview = vi.fn();
     panel({
       versions: [story(1, "Mrgl, the old entry.")],
-      live: { text: "", active: false, outcome: "written", message: null },
+      live: {
+        text: "",
+        active: false,
+        outcome: "written",
+        message: null,
+        narrator: null,
+      },
       draftWaiting: true,
       onOpenReview,
     });

@@ -26,6 +26,12 @@ import type { Journal } from "@/bindings/Journal";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
 import type { ReviewItem } from "@/bindings/ReviewItem";
 import type { Screenshot } from "@/bindings/Screenshot";
+import {
+  iconOf,
+  NarratorIcon,
+  narratorOption,
+  narratorSection,
+} from "@/components/NarratorIcon";
 import { WritingNow } from "@/components/WritingNow";
 import { type Problem, problem } from "@/i18n/problems";
 import { dayFactRows } from "@/lib/factList";
@@ -153,6 +159,7 @@ export function ReviewList({ characterId }: { characterId?: number }) {
     }))
     .filter((g) => g.items.length > 0);
   const count = chosen.reduce((n, g) => n + g.items.length, 0);
+  const total = list.reduce((n, g) => n + g.items.length, 0);
   const anyDraft = chosen.some((g) => g.items.some((i) => i.drafts.length > 0));
   const toggle = (key: Key) =>
     setSelected((s) => {
@@ -179,6 +186,23 @@ export function ReviewList({ characterId }: { characterId?: number }) {
         {direct ? t("review.introDirect") : t("review.intro")}
       </Text>
       <Group gap="xs" wrap="wrap">
+        <Checkbox
+          label={t("review.selectAll")}
+          checked={count > 0 && count === total}
+          indeterminate={count > 0 && count < total}
+          onChange={(e) =>
+            setSelected(
+              e.currentTarget.checked
+                ? new Set(
+                    list.flatMap((g) =>
+                      g.items.map((i) => choiceOf(g.characterId, i)),
+                    ),
+                  )
+                : new Set(),
+            )
+          }
+          mr="xs"
+        />
         <Select
           aria-label={
             direct ? t("review.narratorEntries") : t("review.narrator")
@@ -188,6 +212,8 @@ export function ReviewList({ characterId }: { characterId?: number }) {
             value: n.id,
             label: n.name,
           }))}
+          renderOption={narratorOption(narrators.data ?? [])}
+          leftSection={narratorSection(narrators.data ?? [], narrator)}
           value={narrator}
           onChange={setNarrator}
           clearable
@@ -374,13 +400,20 @@ function ReviewRow({
           <h3>{title}</h3>
           {live?.active ? (
             <>
-              <WritingNow label={t("review.running")} />
+              <WritingNow
+                label={t("review.running")}
+                icon={iconOf(narrators, live.narrator)}
+              />
               <p className="entry streaming">{live.text}</p>
             </>
           ) : draft ? (
             <>
               <EntryText text={draft.text} />
-              <Text size="xs" c="dimmed">
+              <Text size="xs" c="dimmed" className="byline">
+                <NarratorIcon
+                  icon={iconOf(narrators, draft.narrator)}
+                  size={14}
+                />
                 {t("review.draftBy", {
                   narrator: narratorName(draft.narrator),
                 })}
@@ -403,7 +436,10 @@ function ReviewRow({
             </Text>
           )}
           {!live?.active && item.job?.state === "running" && (
-            <WritingNow label={t("review.running")} />
+            <WritingNow
+              label={t("review.running")}
+              icon={iconOf(narrators, live?.narrator ?? item.job.narrator)}
+            />
           )}
           {item.job?.state === "failed" && (
             <Text size="sm" className="note">
@@ -436,6 +472,8 @@ function ReviewRow({
                 aria-label={t("writing.narratorFor.day")}
                 placeholder={t("review.usualNarrator")}
                 data={narrators.map((n) => ({ value: n.id, label: n.name }))}
+                renderOption={narratorOption(narrators)}
+                leftSection={narratorSection(narrators, rewriteNarrator)}
                 value={rewriteNarrator}
                 onChange={setRewriteNarrator}
                 clearable

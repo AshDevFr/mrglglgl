@@ -72,6 +72,11 @@ pub struct Narrator {
     /// Shown only to players who turn it on.
     #[serde(default)]
     pub opt_in: bool,
+    /// The glyph shown beside the narrator's name, one of [`ICONS`]; files saved before icons
+    /// existed, or naming one this version does not know, show [`DEFAULT_ICON`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "ts", ts(optional))]
+    pub icon: Option<String>,
     /// Files saved before the setting existed write as the adventurer.
     #[serde(default)]
     pub point_of_view: PointOfView,
@@ -94,9 +99,39 @@ pub struct Narrator {
 pub struct NarratorInfo {
     pub id: String,
     pub name: String,
+    /// One of [`ICONS`], never missing.
+    pub icon: String,
     pub opt_in: bool,
     /// Made by the player, not shipped with the app.
     pub custom: bool,
+}
+
+/// The glyphs a narrator can be shown with, named as on game-icons.net, which drew them.
+pub const ICONS: &[&str] = &[
+    "quill-ink",
+    "fish-monster",
+    "dwarf-face",
+    "laurel-crown",
+    "scroll-unfurled",
+    "troll",
+    "woman-elf-face",
+    "totem",
+    "battle-axe",
+    "death-skull",
+    "gear-hammer",
+];
+
+/// The glyph of a narrator that names none, or one this version does not know.
+pub const DEFAULT_ICON: &str = "quill-ink";
+
+impl Narrator {
+    /// The glyph to show: the narrator's own when known, otherwise [`DEFAULT_ICON`].
+    pub fn icon(&self) -> &str {
+        self.icon
+            .as_deref()
+            .filter(|i| ICONS.contains(i))
+            .unwrap_or(DEFAULT_ICON)
+    }
 }
 
 const BUILT_IN: &[&str] = &[
@@ -112,6 +147,14 @@ const BUILT_IN: &[&str] = &[
     include_str!("../narrators/easygoing_troll.fr.toml"),
     include_str!("../narrators/silly_elf.en.toml"),
     include_str!("../narrators/silly_elf.fr.toml"),
+    include_str!("../narrators/tauren_elder.en.toml"),
+    include_str!("../narrators/tauren_elder.fr.toml"),
+    include_str!("../narrators/orc_grunt.en.toml"),
+    include_str!("../narrators/orc_grunt.fr.toml"),
+    include_str!("../narrators/forsaken_chronicler.en.toml"),
+    include_str!("../narrators/forsaken_chronicler.fr.toml"),
+    include_str!("../narrators/gnome_tinkerer.en.toml"),
+    include_str!("../narrators/gnome_tinkerer.fr.toml"),
     include_str!("../narrators/murloc_speak.en.toml"),
     include_str!("../narrators/murloc_speak.fr.toml"),
 ];
@@ -140,6 +183,7 @@ pub fn list() -> Vec<NarratorInfo> {
             seen.push(NarratorInfo {
                 id: n.id.clone(),
                 name: n.name.clone(),
+                icon: n.icon().to_string(),
                 opt_in: n.opt_in,
                 custom: false,
             });
@@ -210,6 +254,7 @@ impl Library {
             .map(|n| NarratorInfo {
                 id: n.id.clone(),
                 name: n.name.clone(),
+                icon: n.icon().to_string(),
                 opt_in: false,
                 custom: true,
             })
@@ -330,6 +375,7 @@ pub fn blank(language: &str) -> Narrator {
         language: scribe.language.clone(),
         name: String::new(),
         opt_in: false,
+        icon: None,
         point_of_view: PointOfView::default(),
         persona: String::new(),
         voice: String::new(),

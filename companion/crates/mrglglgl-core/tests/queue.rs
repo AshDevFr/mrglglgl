@@ -1143,3 +1143,27 @@ fn a_character_out_of_the_app_keeps_its_place_in_line_but_is_not_written() {
     let job = queue::take_next(&db, i64::MAX).unwrap().unwrap();
     assert_eq!((job.character_id, job.start_day.as_str()), (wren, DAYS[0]));
 }
+
+#[test]
+fn waiting_entries_can_all_be_dropped_and_the_one_being_written_finishes() {
+    let (db, id) = setup();
+    let db = db.lock().unwrap();
+    let ask = queue::Ask {
+        narrator: None,
+        draft: true,
+        note: None,
+        partial: false,
+    };
+    for day in ["2026-11-02", "2026-11-03", "2026-11-04"] {
+        queue::request(&db, id, StoryKind::Day, day, &ask).unwrap();
+    }
+    // A batch of rewrites for To review waits as drafts.
+    assert!(queue::jobs(&db, id).unwrap().iter().all(|j| j.draft));
+    let running = queue::take_next(&db, i64::MAX).unwrap().unwrap();
+
+    assert_eq!(queue::drop_waiting(&db).unwrap(), 2);
+    let left = queue::jobs(&db, id).unwrap();
+    assert_eq!(left.len(), 1);
+    assert_eq!(left[0].start_day, running.start_day);
+    assert_eq!(left[0].state, queue::JobState::Running);
+}

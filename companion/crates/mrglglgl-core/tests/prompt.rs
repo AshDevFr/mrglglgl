@@ -417,7 +417,7 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
 }
 
 #[test]
-fn seven_narrators_ship_and_unknown_ones_fall_back_to_the_scribe() {
+fn the_narrators_ship_in_order_and_unknown_ones_fall_back_to_the_scribe() {
     let ids: Vec<String> = narrators::list().into_iter().map(|n| n.id).collect();
     assert_eq!(
         ids,
@@ -428,6 +428,10 @@ fn seven_narrators_ship_and_unknown_ones_fall_back_to_the_scribe() {
             "smug_academic",
             "easygoing_troll",
             "silly_elf",
+            "tauren_elder",
+            "orc_grunt",
+            "forsaken_chronicler",
+            "gnome_tinkerer",
             "murloc_speak"
         ]
     );
@@ -442,6 +446,59 @@ fn seven_narrators_ship_and_unknown_ones_fall_back_to_the_scribe() {
         prompt::week_start("2026-11-15").as_deref(),
         Some("2026-11-09")
     );
+}
+
+#[test]
+fn every_shipped_narrator_has_both_languages_every_hint_and_its_own_icon() {
+    let hints = narrators::get(DEFAULT_NARRATOR, "en")
+        .hints
+        .keys()
+        .cloned()
+        .collect::<Vec<_>>();
+    let mut icons = Vec::new();
+    for info in narrators::list() {
+        assert!(
+            narrators::ICONS.contains(&info.icon.as_str()),
+            "{}",
+            info.id
+        );
+        assert_ne!(
+            info.icon,
+            narrators::DEFAULT_ICON,
+            "{} has no icon",
+            info.id
+        );
+        // The two murlocs share theirs; every other narrator has its own.
+        if info.id != "murloc_speak" {
+            icons.push(info.icon.clone());
+        }
+        for language in ["en", "fr"] {
+            let n = narrators::get(&info.id, language);
+            assert_eq!(
+                (n.id.as_str(), n.language.as_str()),
+                (info.id.as_str(), language)
+            );
+            assert_eq!(n.icon(), info.icon, "{} in {language}", info.id);
+            let keys: Vec<_> = n.hints.keys().cloned().collect();
+            assert_eq!(keys, hints, "{} in {language}", info.id);
+            for text in [
+                &n.persona,
+                &n.voice,
+                &n.example.entry,
+                &n.example.margin_note,
+            ] {
+                assert!(
+                    !text.contains('\u{2014}'),
+                    "{} in {language} has an em dash",
+                    info.id
+                );
+            }
+        }
+    }
+    let mut unique = icons.clone();
+    unique.sort();
+    unique.dedup();
+    assert_eq!(unique.len(), icons.len(), "two narrators share an icon");
 }
 
 #[test]

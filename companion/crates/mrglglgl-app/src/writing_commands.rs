@@ -335,6 +335,45 @@ pub fn write_so_far(
     Ok(())
 }
 
+/// Writes days again that already have an entry, as a batch the player chose: with one narrator
+/// for all, or each with the character's own (`None`), as drafts for To review or straight into
+/// the journal, whatever review mode says, since the player chose for this batch. Older versions
+/// stay.
+#[tauri::command]
+pub fn rewrite_days(
+    state: State<'_, AppState>,
+    character_id: i64,
+    days: Vec<String>,
+    narrator: Option<String>,
+    to_review: bool,
+) -> Result<(), String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    tracing::info!(
+        "character {character_id}: {} days to write again{}",
+        days.len(),
+        if to_review { ", for To review" } else { "" }
+    );
+    let ask = queue::Ask {
+        narrator: narrator.as_deref(),
+        draft: to_review,
+        note: None,
+        partial: false,
+    };
+    for day in &days {
+        queue::request(&db, character_id, StoryKind::Day, day, &ask).map_err(|e| e.to_string())?;
+    }
+    drop(db);
+    state.control.wake();
+    Ok(())
+}
+
+/// Drops everything waiting to be written; the entry being written finishes.
+#[tauri::command]
+pub fn cancel_waiting(state: State<'_, AppState>) -> Result<usize, String> {
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    queue::drop_waiting(&db).map_err(|e| e.to_string())
+}
+
 /// Stops the entry being written; returns whether it was this one.
 #[tauri::command]
 pub fn cancel_writing(

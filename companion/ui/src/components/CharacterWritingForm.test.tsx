@@ -11,16 +11,20 @@ const commands = vi.hoisted(() => ({
   characterWriting: vi.fn(),
   setCharacterWriting: vi.fn(async () => {}),
   getSettings: vi.fn(),
+  race: "Human",
+  listCharacters: vi.fn(),
   listNarrators: vi.fn(async () => [
     {
       id: "murloc_scribe",
       name: "The murloc scribe",
+      icon: "fish-monster",
       optIn: false,
       custom: false,
     },
     {
       id: "easygoing_troll",
       name: "The easygoing troll",
+      icon: "troll",
       optIn: false,
       custom: false,
     },
@@ -32,6 +36,11 @@ beforeEach(() => {
   vi.clearAllMocks();
   commands.own = { narrator: null, meddling: null, preferences: "" };
   commands.characterWriting.mockImplementation(async () => commands.own);
+  // A race with no narrator among the ones listed here offers none.
+  commands.race = "Human";
+  commands.listCharacters.mockImplementation(async () => [
+    { character: { id: 2, race: commands.race }, level: 20 },
+  ]);
   commands.getSettings.mockImplementation(async () => ({
     settings: { writing: { ...defaultWriting, preferences: "No em dashes." } },
   }));
@@ -95,6 +104,28 @@ describe("CharacterWritingForm", () => {
         meddling: "off",
         preferences: "",
       }),
+    );
+  });
+
+  it("offers the narrator made for the character's race, until it writes", async () => {
+    commands.race = "Troll";
+    renderWithProviders(<CharacterWritingForm characterId={2} />);
+    expect(
+      await screen.findByText(
+        "Made for this character's race: The easygoing troll.",
+      ),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Use it" }));
+    expect(
+      await screen.findByDisplayValue("The easygoing troll"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Made for this character's race/)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(commands.setCharacterWriting).toHaveBeenCalledWith(
+        2,
+        expect.objectContaining({ narrator: "easygoing_troll" }),
+      ),
     );
   });
 });

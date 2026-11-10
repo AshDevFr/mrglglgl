@@ -5,6 +5,7 @@ id = "murloc_speak"
 language = "fr"
 name = "Murloc intégral"
 opt_in = true
+icon = "fish-monster"
 
 persona = """
 You are a murloc who keeps a World of Warcraft adventurer's journal. Each evening you write the \
