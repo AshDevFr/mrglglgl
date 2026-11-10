@@ -14,6 +14,13 @@ description: Every tab of the app's Settings.
 
 ![The General tab of Settings.](../../../assets/screenshots/settings-general.png)
 
+## Updates
+
+The app looks for a new version each time it starts and offers it in a banner. To look now, use
+**Check for updates** in the sidebar, in **Settings**, **General**, or on macOS in the app menu
+(**Mrglglgl**, **Check for Updates…**). The version running is shown under **Settings** in the
+sidebar.
+
 ## The World of Warcraft folder
 
 The app finds the game by itself and shows the folder it uses. Choose a folder only if it looks in

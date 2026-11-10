@@ -22,6 +22,7 @@ import {
 } from "@/api/commands";
 import { ActivityPanel } from "@/components/ActivityPanel";
 import { CharacterTree } from "@/components/CharacterTree";
+import { SidebarUpdateCheck } from "@/components/SidebarUpdateCheck";
 import { SyncNow } from "@/components/SyncNow";
 import { UpdateBanner } from "@/components/UpdateBanner";
 import { scheduleRebuild } from "@/lib/siteBuild";
@@ -138,6 +139,7 @@ export function Layout() {
           />
           <ActivityPanel />
           <SyncNow />
+          <SidebarUpdateCheck />
           <NavLink
             component="button"
             label={t("nav.settings")}

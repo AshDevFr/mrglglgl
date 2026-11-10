@@ -16,8 +16,41 @@ mod writing_commands;
 use mrglglgl_core::db::Database;
 use tauri::Manager;
 
+/// The macOS app menu's Check for Updates item, and the event it sends the window.
+#[cfg(target_os = "macos")]
+const CHECK_FOR_UPDATES: &str = "check-for-updates";
+
+/// macOS's standard menus, with Check for Updates under About in the app menu, where Mac apps
+/// keep it. The label follows the system language, as the rest of that menu does. Windows has
+/// no menu bar, and gets none.
+#[cfg(target_os = "macos")]
+fn app_menu(handle: &tauri::AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
+    use tauri::menu::{Menu, MenuItem, MenuItemKind};
+    let menu = Menu::default(handle)?;
+    let french = sys_locale::get_locale().is_some_and(|l| l.to_lowercase().starts_with("fr"));
+    let label = if french {
+        "Rechercher des mises à jour…"
+    } else {
+        "Check for Updates…"
+    };
+    if let Some(MenuItemKind::Submenu(app)) = menu.items()?.into_iter().next() {
+        let item = MenuItem::with_id(handle, CHECK_FOR_UPDATES, label, true, None::<&str>)?;
+        // Right after "About Mrglglgl".
+        app.insert(&item, 1)?;
+    }
+    Ok(menu)
+}
+
 fn main() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(target_os = "macos")]
+    let builder = builder.menu(app_menu).on_menu_event(|app, event| {
+        if event.id() == CHECK_FOR_UPDATES {
+            tracing::info!("update check asked for from the app menu");
+            let _ = tauri::Emitter::emit(app, CHECK_FOR_UPDATES, ());
+        }
+    });
+    builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
