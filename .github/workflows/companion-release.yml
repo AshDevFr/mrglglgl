@@ -1,9 +1,11 @@
 name: companion-release
 
 # Builds the app's installers for macOS and Windows when an app tag is pushed, and publishes them
-# with a changelog of the app's own commits. macOS builds are signed ad hoc (no developer
-# certificate yet): without that, macOS calls a downloaded app damaged and offers no way to open
-# it. The release notes tell players how to open them. Tags with a suffix (companion-vX.Y.Z-beta.N) publish a prerelease.
+# with a changelog of the app's own commits. macOS builds are signed with the Developer ID
+# certificate and notarized by Apple when the APPLE_* secrets are set, so macOS opens them without
+# a warning; without the secrets they are signed ad hoc, which at least keeps macOS from calling a
+# downloaded app damaged, and the release notes say how to open them. Windows builds are not
+# signed yet. Tags with a suffix (companion-vX.Y.Z-beta.N) publish a prerelease.
 on:
   push:
     tags: ["companion-v*"]
@@ -41,21 +43,87 @@ jobs:
         run: npm --prefix ui ci
       - name: Core tests
         run: cargo test -p mrglglgl-core
-      # The update files are signed with the updater key (TAURI_SIGNING_PRIVATE_KEY), not a
-      # developer certificate. Without the secret the installers still build, with no update files,
-      # and installed apps simply see no update for that release.
+      # The Developer ID certificate goes into a keychain of its own, which only this job uses and
+      # which goes with the runner. Apple's Developer ID intermediate is added beside it, since a
+      # certificate exported from Keychain Access often comes without it and codesign needs the
+      # whole chain.
+      - name: Import the Developer ID certificate
+        if: runner.os == 'macOS'
+        id: certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
+        run: |
+          if [ -z "$APPLE_CERTIFICATE" ] || [ -z "$APPLE_SIGNING_IDENTITY" ]; then
+            echo "::warning::no Developer ID certificate: the macOS build is signed ad hoc and not notarized"
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password=$(openssl rand -base64 24)
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          rm "$RUNNER_TEMP/certificate.p12"
+          curl -fsSL https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer \
+            -o "$RUNNER_TEMP/DeveloperIDG2CA.cer"
+          security import "$RUNNER_TEMP/DeveloperIDG2CA.cer" -k "$keychain" || true
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" >/dev/null
+          # Searched first, so codesign finds the identity without asking.
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          if ! security find-identity -v -p codesigning "$keychain" | grep -qF "$APPLE_SIGNING_IDENTITY"; then
+            echo "::error::the certificate does not hold a valid identity named by APPLE_SIGNING_IDENTITY"
+            security find-identity -v -p codesigning "$keychain" | sed -E 's/"[^"]*"/"<identity>"/'
+            exit 1
+          fi
+          # Notarization signs in to Apple with the App Store Connect API key, read from a file.
+          key="$RUNNER_TEMP/AuthKey_$APPLE_API_KEY.p8"
+          printf '%s\n' "$APPLE_API_KEY_P8" > "$key"
+          echo "APPLE_API_KEY_PATH=$key" >> "$GITHUB_ENV"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+      # The update files are signed with the updater key (TAURI_SIGNING_PRIVATE_KEY), apart from
+      # the developer certificate. Without the secret the installers still build, with no update
+      # files, and installed apps simply see no update for that release. With the certificate,
+      # Tauri signs the app with the hardened runtime, has Apple notarize it and staples the
+      # ticket, before the disk image and the update file are made from it.
       - name: Build installers
         working-directory: companion/crates/mrglglgl-app
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          SIGNED: ${{ steps.certificate.outputs.signed }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
         run: |
-          extra=()
+          config='{"bundle":{}}'
           if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
             echo "::warning::TAURI_SIGNING_PRIVATE_KEY is not set: this release has no in-app update"
-            extra=(--config '{"bundle":{"createUpdaterArtifacts":false}}')
+            config=$(jq -c '.bundle.createUpdaterArtifacts = false' <<< "$config")
           fi
-          ../../ui/node_modules/.bin/tauri build --bundles ${{ matrix.bundles }} "${extra[@]}"
+          if [ "$SIGNED" = true ]; then
+            # tauri.conf.json signs ad hoc, for builds made anywhere else.
+            config=$(jq -c --arg id "$APPLE_SIGNING_IDENTITY" '.bundle.macOS.signingIdentity = $id' <<< "$config")
+          else
+            unset APPLE_SIGNING_IDENTITY APPLE_API_ISSUER APPLE_API_KEY
+          fi
+          ../../ui/node_modules/.bin/tauri build --bundles ${{ matrix.bundles }} --config "$config"
+      # A signature or notarization that went wrong fails here, not on a player's Mac.
+      - name: Check the signature and notarization
+        if: steps.certificate.outputs.signed == 'true'
+        run: |
+          app=$(find target/release/bundle/macos -maxdepth 1 -name '*.app' | head -1)
+          codesign --verify --deep --strict --verbose=2 "$app"
+          xcrun stapler validate "$app"
+          spctl --assess --type execute --verbose=2 "$app"
+          dmg=$(find target/release/bundle/dmg -name '*.dmg' | head -1)
+          codesign --verify --verbose=2 "$dmg" || echo "::notice::the disk image itself is not signed; the app inside is"
       - uses: actions/upload-artifact@v7
         with:
           name: installers-${{ matrix.os }}
@@ -85,7 +153,8 @@ jobs:
           path: installers
           merge-multiple: true
       # Anyone can check a download with `gh attestation verify <file> --repo <this repo>`. It
-      # proves where the file was built, not who the developer is: macOS and Windows still warn.
+      # proves where the file was built, apart from who the developer is, which the macOS
+      # signature shows.
       - uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
@@ -102,16 +171,24 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
+          # The build fails when the certificate is set but cannot sign, so set means signed.
+          MAC_SIGNED: ${{ secrets.APPLE_CERTIFICATE != '' }}
         run: |
           {
             cat "${{ steps.changelog.outputs.changelog }}"
             echo
             echo "## Installing"
             echo
-            echo "These builds are not signed with a developer certificate yet, so your system asks once"
-            echo "whether to trust them. On macOS, open the app once; when it says it cannot verify the"
-            echo "developer, open System Settings > Privacy & Security and choose Open Anyway. On Windows,"
-            echo "choose More info then Run anyway in the SmartScreen prompt."
+            if [ "$MAC_SIGNED" = true ]; then
+              echo "The macOS app is signed and notarized by Apple: open the disk image and drag the app"
+              echo "to Applications. The Windows installer is not signed with a developer certificate"
+              echo "yet: choose More info then Run anyway in the SmartScreen prompt."
+            else
+              echo "These builds are not signed with a developer certificate yet, so your system asks once"
+              echo "whether to trust them. On macOS, open the app once; when it says it cannot verify the"
+              echo "developer, open System Settings > Privacy & Security and choose Open Anyway. On Windows,"
+              echo "choose More info then Run anyway in the SmartScreen prompt."
+            fi
             echo
             echo "## Checking a download"
             echo
