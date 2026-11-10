@@ -57,6 +57,7 @@ Keys are short because SavedVariables size counts. Types: `int` and `number` are
 | `settings.chat.say`, `settings.chat.emote`, `settings.chat.yell`, `settings.chat.party`, `settings.chat.raid`, `settings.chat.guild`, `settings.chat.officer`, `settings.chat.whisper`, `settings.chat.channel` | bool | Record the player's own lines in that channel while chat is on; `say`, `emote` and `yell` default to `true`, the rest to `false` |
 | `settings.chat.sayOthers`, `settings.chat.emoteOthers`, `settings.chat.yellOthers`, `settings.chat.partyOthers`, `settings.chat.raidOthers`, `settings.chat.guildOthers`, `settings.chat.officerOthers`, `settings.chat.whisperOthers`, `settings.chat.channelOthers` | bool | Record other players' lines in that channel while chat is on; all default to `false` |
 | `settings.lootQuality` | int | Minimum item quality counted as notable loot (3 = rare) |
+| `settings.loginSummary` | bool | Print one chat line at login (not on a reload) about the last day with something in it; defaults to `false` |
 | `settings.retentionDays` | int | Days of raw events kept before compaction: 7, 14 or 30 |
 | `settings.screenshots.levelUp` | bool | Take a screenshot on level-up |
 | `settings.screenshots.death` | bool | Take a screenshot on death |

@@ -621,6 +621,9 @@ pub struct AccountSettings {
     pub record: BTreeMap<String, bool>,
     pub loot_quality: Option<i64>,
     pub retention_days: Option<i64>,
+    /// The addon prints one line at login about the last day with something in it.
+    #[serde(default)]
+    pub login_summary: bool,
     /// Screenshot moments (`levelUp`, ...) and whether each is on.
     pub screenshots: BTreeMap<String, bool>,
     /// Chat channels and whether each is recorded: `say` for the player's own lines,
@@ -1177,6 +1180,9 @@ pub fn account_settings_from(file: &SavedVariables) -> Option<AccountSettings> {
         record: flags(settings.and_then(|s| table(s, "record"))),
         loot_quality: settings.and_then(|s| int(s, "lootQuality")),
         retention_days: settings.and_then(|s| int(s, "retentionDays")),
+        login_summary: settings
+            .and_then(|s| boolean(s, "loginSummary"))
+            .unwrap_or(false),
         screenshots: flags(settings.and_then(|s| table(s, "screenshots"))),
         chat: flags(settings.and_then(|s| table(s, "chat"))),
         welcomed: boolean(db, "welcomed").unwrap_or(false),

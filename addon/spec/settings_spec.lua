@@ -26,8 +26,15 @@ describe("Settings panel", function()
 		assert.is_false(Mock.controls.MRGLGLGL_CHAT_SAY_OTHERS.setting:GetValue())
 		assert.same({
 			"What gets recorded",
+			"Your adventure",
+			"Combat",
+			"Gathering and crafting",
+			"Items and gold",
+			"Growth",
+			"People",
 			"Storage",
-			"Chat channels (recorded while Chat is on, on the main page)",
+			"Messages",
+			"Chat (the channels below only matter while Chat is on)",
 			"Screenshots",
 			"Forget recorded data (press a button twice within 10 seconds)",
 		}, Mock.headers)
@@ -93,6 +100,65 @@ describe("Settings panel", function()
 		forget()
 		Mock.advance(30)
 		forget()
+		local n = 0
+		for _, event in ipairs(_G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)].ev) do
+			n = n + (event.k == "level" and 1 or 0)
+		end
+		assert.equals(1, n)
+	end)
+
+	it("puts the Chat switch on the Chat page, off by default, and not on the main page", function()
+		local chat = Mock.controls.MRGLGLGL_RECORD_CHAT
+		assert.equals("Chat", chat.page)
+		assert.is_false(chat.setting:GetValue())
+		chat.setting:SetValue(true)
+		assert.is_true(_G.MrglglglDB.settings.record.chat)
+	end)
+
+	it("groups the recording toggles under headers, with the loot quality after Notable loot", function()
+		assert.equals("Mrglglgl", Mock.controls.MRGLGLGL_RECORD_GROUP.page)
+		assert.is_table(Mock.controls.MRGLGLGL_LOOT_QUALITY)
+	end)
+
+	it("offers the login summary, off by default", function()
+		local control = Mock.controls.MRGLGLGL_LOGIN_SUMMARY
+		assert.equals("Mrglglgl", control.page)
+		assert.is_false(control.setting:GetValue())
+		control.setting:SetValue(true)
+		assert.is_true(_G.MrglglglDB.settings.loginSummary)
+	end)
+
+	it("forgets everything only on a second press, and warns in colour on the first", function()
+		Mock.fire("PLAYER_LEVEL_UP", 6)
+		Mock.recap = { { sourceName = "Prairie Wolf", sourceGUID = "Creature-0-1-1-1-2958-3" } }
+		Mock.fire("PLAYER_DEAD")
+		Mock.advance(1)
+		local function count(kind)
+			local n = 0
+			for _, event in ipairs(_G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)].ev) do
+				n = n + (event.k == kind and 1 or 0)
+			end
+			return n
+		end
+		local forgetAll = Mock.buttons["Everything"].click
+		Mock.printed = {}
+		forgetAll()
+		assert.matches("|cff", Mock.printed[1], 1, true)
+		assert.equals(1, count("level"))
+		assert.equals(1, count("death"))
+		Mock.advance(3)
+		forgetAll()
+		assert.equals(0, count("level"))
+		assert.equals(0, count("death"))
+		assert.matches("Everything recorded", Mock.printed[2], 1, true)
+	end)
+
+	it("does not forget everything when the second press comes too late", function()
+		Mock.fire("PLAYER_LEVEL_UP", 6)
+		local forgetAll = Mock.buttons["Everything"].click
+		forgetAll()
+		Mock.advance(30)
+		forgetAll()
 		local n = 0
 		for _, event in ipairs(_G.MrglglglCharDB.days[os.date("%Y-%m-%d", Mock.now)].ev) do
 			n = n + (event.k == "level" and 1 or 0)

@@ -44,9 +44,39 @@ describe("Slash commands", function()
 		assert.matches("Boots kept, all time: 1", out, 1, true)
 	end)
 
-	it("says which categories are not being recorded", function()
-		_G.MrglglglDB.settings.record.kills = false
-		assert.matches("Kills: not recorded", run("status"), 1, true)
+	it("lists only categories with something in them", function()
+		_G.MrglglglDB.settings.record.chat = true
+		Mock.fire("PLAYER_LEVEL_UP", 6)
+		local out = run("status")
+		assert.matches("Levels gained: 1", out, 1, true)
+		assert.not_matches("Kills:", out, 1, true)
+		assert.not_matches("Deaths:", out, 1, true)
+		assert.not_matches("Boots kept", out, 1, true)
+		assert.not_matches("Not recorded", out, 1, true)
+	end)
+
+	it("lists the categories turned off on one line", function()
+		_G.MrglglglDB.settings.record.chat = false
+		_G.MrglglglDB.settings.record.duels = false
+		Mock.fire("PLAYER_LEVEL_UP", 6)
+		local out = run("status")
+		assert.matches("Not recorded: Duels, Chat.", out, 1, true)
+	end)
+
+	it("says so in one line when nothing was noted today", function()
+		_G.MrglglglDB.settings.record.chat = true
+		local out = run("status")
+		assert.matches("Nothing noted yet today", out, 1, true)
+		assert.not_matches("Sessions:", out, 1, true)
+		assert.equals(2, select(2, out:gsub("\n", "\n")) + 1)
+	end)
+
+	it("leaves debug out of the help, but still runs it", function()
+		local out = run("help")
+		assert.matches("/mrgl status", out, 1, true)
+		assert.not_matches("debug", out, 1, true)
+		Mock.fire("PLAYER_LEVEL_UP", 6)
+		assert.matches("levels=1", run("debug"), 1, true)
 	end)
 
 	it("treats a bare /mrgl as status, and anything unknown as help", function()

@@ -9,6 +9,10 @@ export type AccountSettings = { schema: number,
  */
 record: { [key in string]: boolean }, lootQuality: number | null, retentionDays: number | null, 
 /**
+ * The addon prints one line at login about the last day with something in it.
+ */
+loginSummary: boolean, 
+/**
  * Screenshot moments (`levelUp`, ...) and whether each is on.
  */
 screenshots: { [key in string]: boolean }, 

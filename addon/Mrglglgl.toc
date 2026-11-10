@@ -34,6 +34,7 @@ Group.lua
 Digest.lua
 Compact.lua
 Slash.lua
+Summary.lua
 Forget.lua
 Settings.lua
 Screenshots.lua

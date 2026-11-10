@@ -8,30 +8,59 @@ local function say(text)
 	print(L.PREFIX .. text)
 end
 
--- One status line per recording category, in the order the settings panel lists them.
+local function any(counts, ...)
+	for _, key in ipairs({ ... }) do
+		if (counts[key] or 0) > 0 then
+			return true
+		end
+	end
+	return false
+end
+
+-- One status line per recording category, in the order the settings panel lists them. The third
+-- entry says whether the day has anything to show for it; quiet categories are left out.
 local STATUS = {
-	{ "sessions", function(c) return L.STATUS_SESSIONS:format(c.sessions) end },
-	{ "levels", function(c, d) return L.STATUS_LEVELS:format(c.levels, d.levelTo or UnitLevel("player")) end },
-	{ "quests", function(c) return L.STATUS_QUESTS:format(c.accepted, c.turnedIn) end },
-	{ "zones", function(c, d) return L.STATUS_ZONES:format(#d.zones, c.discoveries) end },
-	{ "kills", function(c) return L.STATUS_KILLS:format(c.kills, c.murlocs, c.anonKills) end },
-	{ "deaths", function(c) return L.STATUS_DEATHS:format(c.deaths) end },
-	{ "fishing", function(c) return L.STATUS_FISHING:format(c.fish, c.junk, c.boots) end },
-	{ "professions", function(c) return L.STATUS_PROFESSIONS:format(c.skillUps, c.crafted, c.gathered) end },
-	{ "loot", function(c) return L.STATUS_LOOT:format(c.loot) end },
+	{ "sessions", function(c) return L.STATUS_SESSIONS:format(c.sessions) end,
+		function(c) return any(c, "sessions") end },
+	{ "levels", function(c, d) return L.STATUS_LEVELS:format(c.levels, d.levelTo or UnitLevel("player")) end,
+		function(c) return any(c, "levels") end },
+	{ "quests", function(c) return L.STATUS_QUESTS:format(c.accepted, c.turnedIn) end,
+		function(c) return any(c, "accepted", "turnedIn") end },
+	{ "zones", function(c, d) return L.STATUS_ZONES:format(#d.zones, c.discoveries) end,
+		function(c, d) return #d.zones > 0 or any(c, "discoveries") end },
+	{ "kills", function(c) return L.STATUS_KILLS:format(c.kills, c.murlocs, c.anonKills) end,
+		function(c) return any(c, "kills") end },
+	{ "deaths", function(c) return L.STATUS_DEATHS:format(c.deaths) end,
+		function(c) return any(c, "deaths") end },
+	{ "duels", function(c) return L.STATUS_DUELS:format(c.duels) end,
+		function(c) return any(c, "duels") end },
+	{ "fishing", function(c) return L.STATUS_FISHING:format(c.fish, c.junk, c.boots) end,
+		function(c) return any(c, "fish", "junk", "boots") end },
+	{ "professions", function(c) return L.STATUS_PROFESSIONS:format(c.skillUps, c.crafted, c.gathered) end,
+		function(c) return any(c, "skillUps", "crafted", "gathered") end },
+	{ "loot", function(c) return L.STATUS_LOOT:format(c.loot) end,
+		function(c) return any(c, "loot") end },
+	{ "gear", function(c) return L.STATUS_GEAR:format(c.gear) end,
+		function(c) return any(c, "gear") end },
 	{ "money", function(c)
 		return L.STATUS_MONEY:format(ns.Money.format(c.moneyIn), ns.Money.format(c.moneyOut), c.auctions)
-	end },
-	{ "group", function(c) return L.STATUS_GROUP:format(c.group) end },
-	{ "achievements", function(c) return L.STATUS_ACHIEVEMENTS:format(c.achievements) end },
-	{ "spells", function(c) return L.STATUS_SPELLS:format(c.spells) end },
-	{ "collections", function(c) return L.STATUS_COLLECTIONS:format(c.collections) end },
-	{ "reputation", function(c) return L.STATUS_REPUTATION:format(c.reputation) end },
-	{ "gear", function(c) return L.STATUS_GEAR:format(c.gear) end },
-	{ "travel", function(c) return L.STATUS_TRAVEL:format(c.travel) end },
-	{ "dungeons", function(c) return L.STATUS_DUNGEONS:format(c.instances) end },
-	{ "duels", function(c) return L.STATUS_DUELS:format(c.duels) end },
-	{ "chat", function(c) return L.STATUS_CHAT:format(c.chat) end },
+	end, function(c) return any(c, "moneyIn", "moneyOut", "auctions") end },
+	{ "collections", function(c) return L.STATUS_COLLECTIONS:format(c.collections) end,
+		function(c) return any(c, "collections") end },
+	{ "spells", function(c) return L.STATUS_SPELLS:format(c.spells) end,
+		function(c) return any(c, "spells") end },
+	{ "reputation", function(c) return L.STATUS_REPUTATION:format(c.reputation) end,
+		function(c) return any(c, "reputation") end },
+	{ "achievements", function(c) return L.STATUS_ACHIEVEMENTS:format(c.achievements) end,
+		function(c) return any(c, "achievements") end },
+	{ "travel", function(c) return L.STATUS_TRAVEL:format(c.travel) end,
+		function(c) return any(c, "travel") end },
+	{ "dungeons", function(c) return L.STATUS_DUNGEONS:format(c.instances) end,
+		function(c) return any(c, "instances") end },
+	{ "group", function(c) return L.STATUS_GROUP:format(c.group) end,
+		function(c) return any(c, "group") end },
+	{ "chat", function(c) return L.STATUS_CHAT:format(c.chat) end,
+		function(c) return any(c, "chat") end },
 }
 
 local function today()
@@ -39,6 +68,8 @@ local function today()
 	return key, Storage.journal().days[key] or {}
 end
 
+-- Only what happened is listed, so a quiet day is a short answer. Having logged in is not
+-- something to report on its own: the routine lines appear alongside real activity only.
 local function status()
 	if not Storage.ready then
 		say(L.STATUS_UNAVAILABLE)
@@ -46,16 +77,38 @@ local function status()
 	end
 	local key, day = today()
 	local digest = Digest.build(day)
-	say(L.STATUS_HEADER:format(key))
+	local lines, off = {}, {}
+	local noted = false
 	for _, entry in ipairs(STATUS) do
-		local category, line = entry[1], entry[2]
-		if MrglglglDB.settings.record[category] then
-			say(line(digest.counts, digest))
-		else
-			say(L.STATUS_NOT_RECORDED:format(L["CATEGORY_" .. category:upper()]))
+		local category, line, active = entry[1], entry[2], entry[3]
+		if not MrglglglDB.settings.record[category] then
+			off[#off + 1] = L["CATEGORY_" .. category:upper()]
+		elseif active(digest.counts, digest) then
+			lines[#lines + 1] = line(digest.counts, digest)
+			-- Logging in puts you in a session and a zone; only more than that is news.
+			local routine = category == "sessions"
+				or (category == "zones" and #digest.zones <= 1 and not any(digest.counts, "discoveries"))
+			noted = noted or not routine
 		end
 	end
-	say(L.STATUS_BOOTS_TOTAL:format(Storage.journal().stats.boots))
+	if not MrglglglDB.settings.record.questText then
+		off[#off + 1] = L.CATEGORY_QUEST_TEXT
+	end
+	say(L.STATUS_HEADER:format(key))
+	if noted then
+		for _, line in ipairs(lines) do
+			say(line)
+		end
+	else
+		say(L.STATUS_NOTHING)
+	end
+	local boots = Storage.journal().stats.boots
+	if boots > 0 then
+		say(L.STATUS_BOOTS_TOTAL:format(boots))
+	end
+	if #off > 0 then
+		say(L.STATUS_OFF:format(table.concat(off, ", ")))
+	end
 end
 
 local function describe(value)
@@ -94,7 +147,7 @@ end
 
 local function help()
 	say(L.HELP_HEADER)
-	for _, line in ipairs({ L.HELP_STATUS, L.HELP_SETTINGS, L.HELP_DEBUG }) do
+	for _, line in ipairs({ L.HELP_STATUS, L.HELP_SETTINGS }) do
 		say(line)
 	end
 end

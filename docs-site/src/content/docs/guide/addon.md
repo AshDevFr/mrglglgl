@@ -12,25 +12,31 @@ you ask, except one line the first time it records on your account, to say it is
 
 ## In game
 
-- `/mrgl status` shows what has been recorded today.
+- `/mrgl status` shows what has been recorded today: one line per kind that has something, then
+  the kinds you turned off, in one line.
 - `/mrgl settings` opens its panel, also under Options, AddOns, Mrglglgl.
 
 The settings are spread over pages under **Mrglglgl** in Options, AddOns:
 
 - **Mrglglgl** (the main page):
-  - **What gets recorded:** each category can be turned off. Quest descriptions are most of the
-    journal's size; the names of people you group with are other people's names; **Chat** is off
-    by default.
-  - **Notable loot quality:** the lowest item quality recorded as notable loot.
+  - **What gets recorded:** each category can be turned off, grouped under Your adventure,
+    Combat, Gathering and crafting, Items and gold, Growth and People. Quest descriptions are most
+    of the journal's size; the names of people you group with are other people's names.
+  - **Notable loot quality**, right under **Notable loot:** the lowest item quality recorded as
+    notable loot.
   - **Storage**, **Keep full detail for:** 14, 30 (the default), 60 or 90 days. Older days keep
     their key moments and a daily summary; the app keeps the full history once it has seen it.
-- **Chat:** under **Chat channels**, two switches per channel, "your lines" and "others' lines".
-  See [What gets recorded](/guide/recorded/#chat-for-role-play).
+  - **Messages**, **Say what was noted at login:** one line in chat when you log in (not on a
+    reload) about the last day with something in it. Off by default.
+- **Chat:** the **Chat** switch, off by default, then two switches per channel, "your lines" and
+  "others' lines", which only matter while Chat is on (they grey out while it is off, where the
+  game allows). See [What gets recorded](/guide/recorded/#chat-for-role-play).
 - **Screenshots:** take a game screenshot on a level up, a death, a boss kill and a few firsts
   (your first boot, first murloc slain, first death by murloc), for the app to show with the day.
   Off by default.
-- **Forget:** **Forget recorded data** deletes what this character has recorded in a category.
-  Press **Forget** twice to confirm. Copies the app already has are not affected.
+- **Forget:** **Forget recorded data** deletes what this character has recorded in a category, or
+  everything with **Forget everything**. Press the button twice within 10 seconds to confirm; the
+  first press warns in chat, in orange. Copies the app already has are not affected.
 
 The addon speaks the language of your game client: English, or French on a French client. The
 app's own language is chosen separately (see [Settings](/guide/settings/#language)).

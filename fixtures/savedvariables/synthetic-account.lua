@@ -22,6 +22,7 @@ MrglglglDB = {
 ["yell"] = true,
 ["yellOthers"] = false,
 },
+["loginSummary"] = false,
 ["lootQuality"] = 3,
 ["record"] = {
 ["achievements"] = true,

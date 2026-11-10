@@ -496,11 +496,17 @@ function Compat.AddSettingsHeader(layout, name)
 	layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(name))
 end
 
-function Compat.AddCheckbox(category, variable, name, tooltip, getValue, setValue, default)
+-- Returns the setting and the control's initializer (nil where the client does not return one).
+-- parent, another control's initializer, greys this one out while isEnabled() is false; clients
+-- without parent controls just leave it enabled.
+function Compat.AddCheckbox(category, variable, name, tooltip, getValue, setValue, default, parent, isEnabled)
 	local setting = Settings.RegisterProxySetting(category, variable, Settings.VarType.Boolean, name, default,
 		getValue, setValue)
-	Settings.CreateCheckbox(category, setting, tooltip)
-	return setting
+	local initializer = Settings.CreateCheckbox(category, setting, tooltip)
+	if parent and initializer and type(initializer.SetParentInitializer) == "function" then
+		initializer:SetParentInitializer(parent, isEnabled)
+	end
+	return setting, initializer
 end
 
 -- choices: list of { value, label }.

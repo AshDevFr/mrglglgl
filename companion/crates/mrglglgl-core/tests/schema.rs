@@ -371,6 +371,7 @@ fn reads_every_documented_field() {
         "settings.chat.channelOthers",
         "settings.lootQuality",
         "settings.retentionDays",
+        "settings.loginSummary",
         "settings.screenshots.levelUp",
         "settings.screenshots.death",
         "settings.screenshots.bossKill",

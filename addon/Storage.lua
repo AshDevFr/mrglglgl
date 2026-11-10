@@ -25,6 +25,7 @@ local DEFAULT_SETTINGS = {
 		guildOthers = false, officerOthers = false, whisperOthers = false, channelOthers = false,
 	},
 	lootQuality = 3,
+	loginSummary = false,
 	retentionDays = 30,
 	screenshots = {
 		levelUp = false, death = false, bossKill = false,
