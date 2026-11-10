@@ -493,6 +493,7 @@
     "forgetting": "Oublier des données dans le jeu (avec les boutons « Oublier ce qui a été noté » de l'addon) ne change que les fichiers du jeu. L'application garde sa propre copie jusqu'à ce que tu retires le personnage ici.",
     "error": "Les réglages n'ont pas pu être enregistrés : {{message}}",
     "writingTitle": "Écriture",
+    "runTitle": "Quand le modèle tourne",
     "narrator": "Narrateur",
     "narratorHelp": "Qui écrit ton journal. Tu peux choisir un autre narrateur pour une seule journée depuis la journée elle-même.",
     "optIn": "{{name}} (seulement si tu le choisis)",
@@ -568,6 +569,7 @@
     },
     "tab": {
       "general": "Général",
+      "ai": "IA",
       "writing": "Écriture",
       "characters": "Personnages",
       "narrators": "Narrateurs",
@@ -632,11 +634,11 @@
       "noEndpoint": "Le point d'accès n'est pas encore configuré.",
       "gameRunning": "L'écriture attend pendant que le jeu tourne, pour que le jeu reste fluide.",
       "pausedNext": "Appuie sur Reprendre l'écriture dans Activité, dans la barre latérale.",
-      "noModelNext": "Télécharges-en un dans les réglages, sous Modèles d'écriture.",
-      "noEndpointNext": "Entre son adresse et son modèle dans les réglages, sous Qui écrit.",
-      "gameRunningNext": "Ferme le jeu, ou autorise l'écriture pendant que tu joues dans les réglages.",
+      "noModelNext": "Télécharges-en un dans les réglages, IA, sous Modèles d'écriture.",
+      "noEndpointNext": "Entre son adresse et son modèle dans les réglages, IA, sous Qui écrit.",
+      "gameRunningNext": "Ferme le jeu, ou autorise l'écriture pendant que tu joues dans les réglages, IA.",
       "onBattery": "L'écriture attend pendant que cet ordinateur fonctionne sur batterie.",
-      "onBatteryNext": "Branche le chargeur, ou autorise l'écriture sur batterie dans les réglages."
+      "onBatteryNext": "Branche le chargeur, ou autorise l'écriture sur batterie dans les réglages, IA."
     },
     "stillGoing": {
       "day": "Cette journée n'est pas finie. Le murloc l'écrira quand elle le sera.",

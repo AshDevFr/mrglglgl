@@ -82,7 +82,7 @@ test("milestones", async ({ page }) => {
   await page.screenshot({ path: out("milestones") });
 });
 
-for (const tab of ["General", "Writing", "Narrators", "Website", "Addon"]) {
+for (const tab of ["General", "AI", "Writing", "Characters", "Narrators", "Website", "Addon"]) {
   test(`settings ${tab}`, async ({ page }) => {
     await page.goto("/settings");
     await page.getByRole("tab", { name: tab }).click();

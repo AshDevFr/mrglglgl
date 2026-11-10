@@ -15,10 +15,9 @@ interface Props {
   narrators: NarratorInfo[];
 }
 
-/** How entries are written: narrator, margin notes, language, and when. */
+/** How entries are written: narrator, margin notes, language, preferences and chapters. */
 export function WritingFields({ value, onChange, narrators }: Props) {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
   const set = (patch: Partial<WritingSettings>) =>
     onChange({ ...value, ...patch });
   return (
@@ -83,6 +82,26 @@ export function WritingFields({ value, onChange, narrators }: Props) {
         onChange={(e) => set({ review: e.currentTarget.checked })}
       />
       <Switch
+        label={t("settings.copyFooter")}
+        checked={value.copyFooter}
+        onChange={(e) => set({ copyFooter: e.currentTarget.checked })}
+      />
+    </Stack>
+  );
+}
+
+/** When the model may run: while the game runs, on battery, or not at all for now. */
+export function RunFields({ value, onChange }: Omit<Props, "narrators">) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const set = (patch: Partial<WritingSettings>) =>
+    onChange({ ...value, ...patch });
+  return (
+    <Stack>
+      <Title order={2} size="h3">
+        {t("settings.runTitle")}
+      </Title>
+      <Switch
         label={t("settings.writeWhilePlaying")}
         description={t("settings.writeWhilePlayingHelp")}
         checked={value.writeWhilePlaying}
@@ -110,11 +129,6 @@ export function WritingFields({ value, onChange, narrators }: Props) {
             ),
           );
         }}
-      />
-      <Switch
-        label={t("settings.copyFooter")}
-        checked={value.copyFooter}
-        onChange={(e) => set({ copyFooter: e.currentTarget.checked })}
       />
     </Stack>
   );

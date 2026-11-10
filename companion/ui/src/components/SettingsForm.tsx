@@ -1,6 +1,6 @@
 import { Alert, Button, Group, Select, Stack, Text } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getSettings, listNarrators } from "@/api/commands";
 import type { BackupRetention } from "@/bindings/BackupRetention";
@@ -10,13 +10,15 @@ import type { WritingSettings } from "@/bindings/WritingSettings";
 import { problem } from "@/i18n/problems";
 import { EndpointFields } from "./EndpointFields";
 import { WowFolderField } from "./WowFolderField";
-import { WritingFields } from "./WritingFields";
+import { RunFields, WritingFields } from "./WritingFields";
 
 interface Props {
   view: SettingsView;
   onSave: (settings: Settings) => Promise<unknown>;
   /** Which settings this form edits; everything else is saved as it is. */
-  section?: "general" | "writing";
+  section?: "general" | "writing" | "ai";
+  /** The models to download, shown on the AI tab while this computer writes. */
+  localModels?: ReactNode;
   /** The settings as stored now, which each save starts from. */
   readStored?: () => Promise<Settings>;
 }
@@ -56,6 +58,7 @@ export function SettingsForm({
   onSave,
   section = "general",
   readStored = storedSettings,
+  localModels,
 }: Props) {
   const { t } = useTranslation();
   const [folder, setFolder] = useState(view.settings.wowRootOverride ?? "");
@@ -186,13 +189,14 @@ export function SettingsForm({
             {t("settings.forgetting")}
           </Text>
         </>
+      ) : section === "writing" ? (
+        <WritingFields
+          value={writing}
+          onChange={changeWriting}
+          narrators={narrators.data ?? []}
+        />
       ) : (
         <>
-          <WritingFields
-            value={writing}
-            onChange={changeWriting}
-            narrators={narrators.data ?? []}
-          />
           <EndpointFields value={endpoint} onChange={setEndpoint} />
           {endpointChanged && (
             <Group gap="xs">
@@ -214,6 +218,9 @@ export function SettingsForm({
               </Text>
             </Group>
           )}
+          {/* The models matter while this computer writes; an endpoint brings its own. */}
+          {endpoint.provider === "local" && localModels}
+          <RunFields value={writing} onChange={changeWriting} />
         </>
       )}
       {error && (

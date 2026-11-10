@@ -2,6 +2,7 @@
 // (the home page's "Install the addon" opens the Addon tab).
 export const SETTINGS_TABS = [
   "general",
+  "ai",
   "writing",
   "characters",
   "narrators",

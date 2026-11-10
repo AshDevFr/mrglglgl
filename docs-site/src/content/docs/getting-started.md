@@ -73,7 +73,7 @@ and each character's latest entry, with **Continue reading** to open their journ
 
 ![The app's main page with a character in the sidebar and the addon recording.](../../assets/screenshots/home.png)
 
-To have entries written, open **Settings**, **Writing**, and choose who writes:
+To have entries written, open **Settings**, **AI**, and choose who writes:
 
 - **This computer:** the app downloads a writing model once (a few gigabytes; the size is shown
   before anything downloads). Nothing you write leaves your computer. This needs at least 8 GB of
@@ -86,7 +86,10 @@ To have entries written, open **Settings**, **Writing**, and choose who writes:
   model is chosen, testing again checks that it writes back. See
   [Your data and privacy](/guide/your-data/).
 
-![The Writing tab of Settings: the writing model, narrator, margin notes and writing preferences.](../../assets/screenshots/settings-writing.png)
+![The AI tab of Settings: who writes, the writing models, and when the model runs.](../../assets/screenshots/settings-ai.png)
+
+The narrator, margin notes, the journal's language and your writing preferences are on the
+**Writing** tab.
 
 Finished days are then written in the background, oldest first. Open a character to read them:
 see [Reading your journal](/guide/reading/).

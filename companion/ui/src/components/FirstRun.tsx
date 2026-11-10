@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getSettings, models, saveSettings } from "@/api/commands";
 import { problem } from "@/i18n/problems";
+import { rememberSettingsTab } from "@/lib/settingsTab";
 import { FolderField } from "./FolderField";
 import { gigabytes } from "./ModelsPanel";
 
@@ -115,7 +116,15 @@ export function FirstRun({ onOpenSettings }: { onOpenSettings: () => void }) {
             )
           )}
           {!installed && (
-            <Button variant="light" w="fit-content" onClick={onOpenSettings}>
+            <Button
+              variant="light"
+              w="fit-content"
+              onClick={() => {
+                // The models are on the AI tab.
+                rememberSettingsTab("ai");
+                onOpenSettings();
+              }}
+            >
               {t("firstRun.chooseModel")}
             </Button>
           )}
@@ -131,7 +140,15 @@ export function FirstRun({ onOpenSettings }: { onOpenSettings: () => void }) {
           ) : (
             <>
               <Text>{problem(t, "writing.blocked.noEndpoint")}</Text>
-              <Button variant="light" w="fit-content" onClick={onOpenSettings}>
+              <Button
+                variant="light"
+                w="fit-content"
+                onClick={() => {
+                  // The models are on the AI tab.
+                  rememberSettingsTab("ai");
+                  onOpenSettings();
+                }}
+              >
                 {t("firstRun.setUpEndpoint")}
               </Button>
             </>

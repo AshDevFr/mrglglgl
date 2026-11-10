@@ -6,7 +6,8 @@ description: Every tab of the app's Settings.
 | Tab | What it holds |
 |---|---|
 | **General** | On this computer: the paper, the size of the interface and Wowhead links. For the app: the World of Warcraft folder, how long backups are kept, and the app's language. The app's version, and **Check for updates** |
-| **Writing** | The writing model or endpoint, the narrator, margin notes, the journal's language, writing preferences, and when entries are written |
+| **AI** | Who writes: this computer, with the models to download, or an endpoint; and when the model may run (while playing, on battery, paused) |
+| **Writing** | The narrator, margin notes, the journal's language, writing preferences, weekly chapters, review first, and the "via Mrglglgl" footer |
 | **Characters** | Every character the app has found: **In the app**, and **On the site** |
 | **Narrators** | Every narrator, and your own: [Narrators and style](/guide/narrators/) |
 | **Website** | [The journal website](/guide/website/) |
@@ -16,7 +17,7 @@ description: Every tab of the app's Settings.
 ![The General tab of Settings.](../../../assets/screenshots/settings-general.png)
 
 Settings are saved as you change them, with nothing to press, except two: who writes (this
-computer or an endpoint), which waits for **Save who writes** so a half-typed address never
+computer or an endpoint, on the **AI** tab), which waits for **Save who writes** so a half-typed address never
 reaches the writer, and the [website](/guide/website/), which has its own **Save**.
 
 ## Characters

@@ -232,7 +232,7 @@ describe("EntryPanel", () => {
     expect(screen.getByText("Killed 23 Prairie Wolves.")).toBeInTheDocument();
     expect(
       screen.getByText(
-        /The murloc hasn't written this one yet\. It is number 3 in line\. Writing waits while the game is running, so the game keeps running smoothly\. Close the game, or allow writing while playing in Settings\./,
+        /The murloc hasn't written this one yet\. It is number 3 in line\. Writing waits while the game is running, so the game keeps running smoothly\. Close the game, or allow writing while playing in Settings, AI\./,
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Write now" })).toBeEnabled();

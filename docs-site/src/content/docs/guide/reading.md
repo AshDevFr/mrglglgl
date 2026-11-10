@@ -23,7 +23,7 @@ that day. **⌘F** (or **Ctrl+F**) puts the cursor in the field and **Escape** e
 A day the narrator has not written yet says so, with its place in line. The app writes finished
 days one at a time in the background, oldest first. By default it waits while the game is
 running, because writing uses the processor and the game may stutter. In **Settings**,
-**Writing**, turn on **Write while the game is running** to change that, or
+**AI**, turn on **Write while the game is running** to change that, or
 **Pause background writing** to stop it.
 
 A week's chapter is told from its days' entries, so it waits until each of its days is written,

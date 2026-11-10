@@ -95,7 +95,7 @@ describe("the problem inventory", () => {
 
   it("renders the message and the step together", () => {
     expect(problem(i18n.t, "writing.blocked.noModel")).toBe(
-      "No writing model is downloaded yet. Download one in Settings, under Writing models.",
+      "No writing model is downloaded yet. Download one in Settings, AI, under Writing models.",
     );
     expect(problem(i18n.t, "settings.error", { message: "disk full" })).toBe(
       "The settings could not be saved: disk full. Check that the folder above exists, then save again.",

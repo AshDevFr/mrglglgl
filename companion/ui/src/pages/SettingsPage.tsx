@@ -120,9 +120,18 @@ export function SettingsPage() {
               </Stack>
             </Stack>
           </Tabs.Panel>
+          <Tabs.Panel value="ai">
+            <Stack gap="xl" maw={640}>
+              <SettingsForm
+                view={view.data}
+                onSave={save}
+                section="ai"
+                localModels={<ModelsPanel onChoose={(id) => void choose(id)} />}
+              />
+            </Stack>
+          </Tabs.Panel>
           <Tabs.Panel value="writing">
             <Stack gap="xl" maw={640}>
-              <ModelsPanel onChoose={(id) => void choose(id)} />
               <SettingsForm view={view.data} onSave={save} section="writing" />
             </Stack>
           </Tabs.Panel>

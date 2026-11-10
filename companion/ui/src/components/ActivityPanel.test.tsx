@@ -228,7 +228,7 @@ describe("ActivityPanel", () => {
     const drawer = await screen.findByRole("dialog");
     const warning = within(drawer).getByRole("alert");
     expect(warning).toHaveTextContent(
-      "No writing model is downloaded yet. Download one in Settings, under Writing models.",
+      "No writing model is downloaded yet. Download one in Settings, AI, under Writing models.",
     );
     fireEvent.click(
       within(warning).getByRole("button", { name: "Open Settings" }),

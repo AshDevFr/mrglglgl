@@ -240,7 +240,7 @@ describe("SettingsForm", () => {
     const onSave = vi.fn((_: Settings) => Promise.resolve());
     renderWithProviders(
       <SettingsForm
-        section="writing"
+        section="ai"
         view={{ settings: settings(), roots: [], unreadable: [] }}
         onSave={onSave}
         readStored={async () => settings()}

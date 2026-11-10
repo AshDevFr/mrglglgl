@@ -493,6 +493,7 @@
     "forgetting": "Forgetting data in the game (with the addon's \"Forget recorded\" buttons) changes only the game's files. The app keeps its own copy until you remove the character here.",
     "error": "The settings could not be saved: {{message}}",
     "writingTitle": "Writing",
+    "runTitle": "When the model runs",
     "narrator": "Narrator",
     "narratorHelp": "Who writes your journal. You can pick another narrator for a single day from the day itself.",
     "optIn": "{{name}} (only if you choose it)",
@@ -568,6 +569,7 @@
     },
     "tab": {
       "general": "General",
+      "ai": "AI",
       "writing": "Writing",
       "characters": "Characters",
       "narrators": "Narrators",
@@ -632,11 +634,11 @@
       "noEndpoint": "The endpoint is not set up yet.",
       "gameRunning": "Writing waits while the game is running, so the game keeps running smoothly.",
       "pausedNext": "Press Resume writing in Activity, in the sidebar.",
-      "noModelNext": "Download one in Settings, under Writing models.",
-      "noEndpointNext": "Enter its address and model in Settings, under Who writes.",
-      "gameRunningNext": "Close the game, or allow writing while playing in Settings.",
+      "noModelNext": "Download one in Settings, AI, under Writing models.",
+      "noEndpointNext": "Enter its address and model in Settings, AI, under Who writes.",
+      "gameRunningNext": "Close the game, or allow writing while playing in Settings, AI.",
       "onBattery": "Writing waits while this computer runs on battery.",
-      "onBatteryNext": "Plug in the charger, or allow writing on battery in Settings."
+      "onBatteryNext": "Plug in the charger, or allow writing on battery in Settings, AI."
     },
     "stillGoing": {
       "day": "This day isn't over yet. The murloc writes it once it is.",
