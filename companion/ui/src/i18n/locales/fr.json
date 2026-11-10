@@ -522,6 +522,8 @@
       "local": "Cet ordinateur (un modèle d'écriture téléchargé une seule fois)",
       "endpoint": "Un point d'accès que tu héberges ou que tu paies (compatible OpenAI)"
     },
+    "service": "Service",
+    "serviceOther": "Autre (tape l'adresse)",
     "endpointUrl": "Adresse du point d'accès",
     "endpointUrlHelp": "L'adresse qui se termine par /v1, par exemple http://localhost:11434/v1 pour Ollama.",
     "endpointModel": "Nom du modèle",

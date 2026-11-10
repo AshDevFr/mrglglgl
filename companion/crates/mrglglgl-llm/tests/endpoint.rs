@@ -346,3 +346,81 @@ fn only_loopback_addresses_stay_on_the_machine() {
         assert!(sends_off_machine(remote), "{remote}");
     }
 }
+
+/// A server that, like OpenAI's newer models, refuses `max_tokens` and any temperature but the
+/// default, and records each body it was sent.
+fn newer_openai(bodies: Arc<Mutex<Vec<serde_json::Value>>>) -> impl Fn(Request) -> Response {
+    move |req: Request| {
+        if req.path == "/v1/models" {
+            return Response::new(200, r#"{"data": [{"id": "scribe-3b"}]}"#);
+        }
+        let body: serde_json::Value = serde_json::from_str(&req.body).unwrap();
+        bodies.lock().unwrap().push(body.clone());
+        if body.get("max_tokens").is_some() {
+            return Response::new(
+                400,
+                r#"{"error": {"message": "Unsupported parameter: 'max_tokens' is not supported with this model. Use 'max_completion_tokens' instead.", "type": "invalid_request_error", "param": "max_tokens", "code": "unsupported_parameter"}}"#,
+            );
+        }
+        if body.get("temperature").is_some() {
+            return Response::new(
+                400,
+                r#"{"error": {"message": "Unsupported value: 'temperature' does not support 0.4 with this model. Only the default (1) value is supported.", "type": "invalid_request_error", "param": "temperature", "code": "unsupported_value"}}"#,
+            );
+        }
+        if body["stream"] == true {
+            Response::chunked(
+                200,
+                sse(&["Caught", " six", " fish."]),
+                Duration::from_millis(1),
+            )
+            .header("Content-Type", "text/event-stream")
+        } else {
+            Response::new(200, r#"{"choices": [{"message": {"content": ""}}]}"#)
+        }
+    }
+}
+
+#[tokio::test]
+async fn a_newer_model_that_wants_max_completion_tokens_and_no_temperature_still_writes() {
+    let bodies: Arc<Mutex<Vec<serde_json::Value>>> = Arc::default();
+    let server = serve(newer_openai(bodies.clone())).await;
+    let provider = provider(&server.url, None);
+    let (_, text) = generate_text(
+        &provider,
+        request(),
+        Duration::from_secs(5),
+        CancellationToken::new(),
+        None,
+    )
+    .await
+    .unwrap();
+    assert_eq!(text, "Caught six fish.");
+    let sent = bodies.lock().unwrap().clone();
+    let last = sent.last().unwrap();
+    assert_eq!(last["max_completion_tokens"], 200);
+    assert!(last.get("max_tokens").is_none());
+    assert!(last.get("temperature").is_none());
+
+    // What it learned holds for the next entry: no refused request first.
+    bodies.lock().unwrap().clear();
+    generate_text(
+        &provider,
+        request(),
+        Duration::from_secs(5),
+        CancellationToken::new(),
+        None,
+    )
+    .await
+    .unwrap();
+    assert_eq!(bodies.lock().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn the_connection_test_is_not_fooled_into_calling_a_newer_model_missing() {
+    let server = serve(newer_openai(Arc::default())).await;
+    assert_eq!(
+        provider(&server.url, None).test_connection().await,
+        Ok(vec!["scribe-3b".to_string()])
+    );
+}

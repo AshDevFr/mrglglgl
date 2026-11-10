@@ -522,6 +522,8 @@
       "local": "This computer (a writing model downloaded once)",
       "endpoint": "An endpoint you run or pay for (OpenAI-compatible)"
     },
+    "service": "Service",
+    "serviceOther": "Other (type the address)",
     "endpointUrl": "Endpoint address",
     "endpointUrlHelp": "The address ending in /v1, for example http://localhost:11434/v1 for Ollama.",
     "endpointModel": "Model name",

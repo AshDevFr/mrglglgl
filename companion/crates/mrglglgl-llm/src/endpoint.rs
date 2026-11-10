@@ -39,6 +39,49 @@ pub fn sends_off_machine(base_url: &str) -> bool {
 pub struct EndpointProvider {
     config: EndpointConfig,
     client: reqwest::Client,
+    quirks: std::sync::Mutex<Quirks>,
+}
+
+/// What a server turned out to refuse, learned from its first 400 and kept for later requests.
+/// OpenAI's newer models want `max_completion_tokens` in place of `max_tokens`, and some accept
+/// no temperature but their own.
+#[derive(Debug, Default, Clone, Copy)]
+struct Quirks {
+    completion_tokens: bool,
+    no_temperature: bool,
+}
+
+impl Quirks {
+    fn apply(self, body: &mut serde_json::Value) {
+        let Some(map) = body.as_object_mut() else {
+            return;
+        };
+        if self.completion_tokens
+            && let Some(limit) = map.remove("max_tokens")
+        {
+            map.insert("max_completion_tokens".into(), limit);
+        }
+        if self.no_temperature {
+            map.remove("temperature");
+        }
+    }
+
+    /// The quirk a refusal names, if it is one not yet known.
+    fn learn(&mut self, refusal: &str) -> bool {
+        let refusal = refusal.to_lowercase();
+        if !self.completion_tokens && refusal.contains("max_completion_tokens") {
+            self.completion_tokens = true;
+            return true;
+        }
+        if !self.no_temperature
+            && refusal.contains("temperature")
+            && (refusal.contains("unsupported") || refusal.contains("not support"))
+        {
+            self.no_temperature = true;
+            return true;
+        }
+        false
+    }
 }
 
 impl EndpointProvider {
@@ -46,6 +89,7 @@ impl EndpointProvider {
         Self {
             config,
             client: reqwest::Client::new(),
+            quirks: std::sync::Mutex::default(),
         }
     }
 
@@ -75,9 +119,43 @@ impl EndpointProvider {
         }
     }
 
+    fn quirks(&self) -> Quirks {
+        self.quirks.lock().map(|q| *q).unwrap_or_default()
+    }
+
+    /// Posts a chat completion, adjusting to what the server refuses: a 400 naming a known quirk
+    /// is retried once per quirk with the request changed to suit, and remembered.
+    async fn post_chat(
+        &self,
+        mut body: serde_json::Value,
+    ) -> Result<reqwest::Response, ProviderError> {
+        loop {
+            self.quirks().apply(&mut body);
+            let response = self
+                .authorised(self.client.post(self.url("chat/completions")))
+                .json(&body)
+                .send()
+                .await
+                .map_err(|e| self.send_error(&e))?;
+            if response.status() != StatusCode::BAD_REQUEST {
+                return Ok(response);
+            }
+            let refusal = response.text().await.unwrap_or_default();
+            let learned = self.quirks.lock().is_ok_and(|mut q| q.learn(&refusal));
+            if !learned {
+                return Err(self.error_for(StatusCode::BAD_REQUEST, &refusal));
+            }
+            tracing::info!("the endpoint wants the request adjusted, asking again: {refusal}");
+        }
+    }
+
     async fn status_error(&self, response: reqwest::Response) -> ProviderError {
         let status = response.status();
         let body = response.text().await.unwrap_or_default();
+        self.error_for(status, &body)
+    }
+
+    fn error_for(&self, status: StatusCode, body: &str) -> ProviderError {
         let lower = body.to_lowercase();
         match status {
             StatusCode::UNAUTHORIZED | StatusCode::FORBIDDEN => ProviderError::Unauthorised,
@@ -138,15 +216,19 @@ impl EndpointProvider {
         }
         tracing::debug!("asking {model} for a word, to check it answers");
         let response = self
-            .authorised(self.client.post(self.url("chat/completions")))
-            .json(&json!({
+            .post_chat(json!({
                 "model": model,
                 "max_tokens": 8,
                 "messages": [{"role": "user", "content": "Say hello."}],
             }))
-            .send()
             .await
-            .map_err(|e| self.send_error(&e))?;
+            .map_err(|e| match e {
+                ProviderError::Failed(message) if message.to_lowercase().contains("model") => {
+                    tracing::debug!("the model check failed: {message}");
+                    ProviderError::ModelNotFound(model.to_string())
+                }
+                other => other,
+            })?;
         if !response.status().is_success() {
             return Err(match self.status_error(response).await {
                 // Servers word an unknown model in many ways; the model was named, so say it.
@@ -236,12 +318,8 @@ impl Provider for EndpointProvider {
             request.max_tokens,
             self.config.model
         );
-        let send = self
-            .authorised(self.client.post(self.url("chat/completions")))
-            .json(&body)
-            .send();
         let response = tokio::select! {
-            r = send => r.map_err(|e| self.send_error(&e))?,
+            r = self.post_chat(body) => r?,
             () = cancel.cancelled() => return Ok(GenerateOutcome::Cancelled),
         };
         if !response.status().is_success() {

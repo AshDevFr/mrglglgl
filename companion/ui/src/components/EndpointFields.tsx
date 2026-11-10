@@ -5,6 +5,7 @@ import {
   Group,
   PasswordInput,
   Radio,
+  Select,
   Stack,
   Switch,
   Text,
@@ -23,6 +24,7 @@ import {
 import type { ProviderChoice } from "@/bindings/ProviderChoice";
 import type { WritingSettings } from "@/bindings/WritingSettings";
 import { problem } from "@/i18n/problems";
+import { ENDPOINT_PRESETS, OTHER, presetFor } from "@/lib/endpoints";
 
 interface Props {
   value: WritingSettings;
@@ -102,6 +104,20 @@ export function EndpointFields({ value, onChange }: Props) {
       </Radio.Group>
       {value.provider === "endpoint" && (
         <Stack>
+          {/* A known service fills the address in; Other keeps whatever is typed below. */}
+          <Select
+            label={t("settings.service")}
+            data={[
+              ...ENDPOINT_PRESETS.map((p) => ({ value: p.id, label: p.name })),
+              { value: OTHER, label: t("settings.serviceOther") },
+            ]}
+            value={presetFor(url)}
+            onChange={(id) => {
+              const preset = ENDPOINT_PRESETS.find((p) => p.id === id);
+              if (preset) set({ endpointUrl: preset.url });
+            }}
+            allowDeselect={false}
+          />
           <TextInput
             label={t("settings.endpointUrl")}
             description={t("settings.endpointUrlHelp")}

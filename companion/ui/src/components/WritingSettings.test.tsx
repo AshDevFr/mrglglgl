@@ -43,6 +43,21 @@ describe("EndpointFields", () => {
     commands.testEndpoint.mockResolvedValue([]);
   });
 
+  it("fills the address from a known service, and keeps any other as Other", async () => {
+    const onChange = endpoint({
+      endpointUrl: "https://litellm.example.com/v1",
+    });
+    const service = screen
+      .getAllByLabelText("Service")
+      .find((el) => el.tagName === "INPUT") as HTMLInputElement;
+    expect(service.value).toBe("Other (type the address)");
+    fireEvent.click(service);
+    fireEvent.click(await screen.findByText("OpenAI"));
+    expect(onChange).toHaveBeenLastCalledWith(
+      expect.objectContaining({ endpointUrl: "https://api.openai.com/v1" }),
+    );
+  });
+
   it("states plainly what is sent to an endpoint that is not on this computer", async () => {
     endpoint({ endpointUrl: "https://api.example.com/v1" });
     expect(
