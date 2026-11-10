@@ -87,19 +87,32 @@ pub fn chosen_model(catalogue: &Catalogue, settings: &Settings) -> Option<ModelE
 static API_KEY: std::sync::Mutex<Option<Option<String>>> = std::sync::Mutex::new(None);
 
 pub fn api_key() -> Option<String> {
-    let read = || {
-        keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY)
-            .ok()?
-            .get_password()
-            .ok()
-    };
     let Ok(mut cached) = API_KEY.lock() else {
-        return read();
+        return None;
     };
-    cached.get_or_insert_with(read).clone()
+    if let Some(known) = cached.as_ref() {
+        return known.clone();
+    }
+    let read = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY)
+        .and_then(|entry| entry.get_password());
+    match read {
+        Ok(key) => {
+            *cached = Some(Some(key.clone()));
+            Some(key)
+        }
+        Err(keyring::Error::NoEntry) => {
+            *cached = Some(None);
+            None
+        }
+        // Refused or not answered: not "no key", so it is asked again next time rather than
+        // every endpoint request going out without one for the rest of the run.
+        Err(e) => {
+            tracing::warn!("the endpoint key could not be read from the keychain: {e}");
+            None
+        }
+    }
 }
 
-/// Stores the endpoint key in the system keychain, or removes it when empty.
 pub fn set_api_key(key: Option<&str>) -> Result<(), String> {
     let entry = keyring::Entry::new(KEYCHAIN_SERVICE, KEYCHAIN_ENTRY).map_err(|e| e.to_string())?;
     let key = key.filter(|k| !k.is_empty());

@@ -835,13 +835,22 @@ pub fn delete_model(state: State<'_, AppState>, model_id: String) -> Result<(), 
 }
 
 #[tauri::command]
-pub fn save_api_key(key: Option<String>) -> Result<(), String> {
+pub fn save_api_key(state: State<'_, AppState>, key: Option<String>) -> Result<(), String> {
     // Never the key itself.
     tracing::info!(
         "API key {}",
         if key.is_some() { "saved" } else { "removed" }
     );
-    writing::set_api_key(key.as_deref())
+    writing::set_api_key(key.as_deref())?;
+    // The endpoint kept for writing was made with the key before; the next entry makes one anew.
+    if let Ok(mut kept) = state.provider.lock()
+        && kept
+            .as_ref()
+            .is_some_and(|(k, _)| k.starts_with("endpoint:"))
+    {
+        *kept = None;
+    }
+    Ok(())
 }
 
 #[tauri::command]
