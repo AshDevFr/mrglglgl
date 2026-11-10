@@ -27,6 +27,16 @@ const answers: Record<string, (args: Args) => unknown> = {
   set_character_enabled: () => null,
   character_screenshots: () => ({}),
   character_stories: () => data.stories,
+  // A few lines of each level, so the Logs tab shows its colours.
+  recent_log: () => [
+    "2026-11-10T02:00:00Z  INFO mrglglgl::sync: sync: 1 characters, 1 imported, 0 unreadable, in 41ms",
+    "2026-11-10T02:00:00Z DEBUG mrglglgl::sync: imported Wren-Hollowbrook (character 1) in 38ms",
+    "2026-11-10T02:00:01Z TRACE mrglglgl_core::queue: character 1: nothing new to write",
+    "2026-11-10T02:01:12Z  INFO mrglglgl_core::queue: character 1: day of 2026-11-08 written in 41.2s",
+    "2026-11-10T02:03:40Z  WARN mrglglgl_core::writer: entry asked again, it got facts wrong: says 17 wolves, the notes say 23",
+    "2026-11-10T02:05:02Z ERROR mrglglgl_llm::endpoint: the endpoint refused: generation failed: the endpoint answered 500",
+    "  caused by: backend model is not loaded",
+  ],
   review_list: () => [],
   writing_status: () => data.writingStatus,
   get_settings: () => data.settings,

@@ -665,3 +665,32 @@ details.facts .fact-list {
   border-radius: 2px;
   padding: 0 0.1em;
 }
+
+/* The log: one line per row, coloured by how serious it is. */
+.log-lines {
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: var(--mantine-color-default);
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.log-line[data-level="error"] {
+  color: var(--mantine-color-red-text);
+  font-weight: 600;
+}
+.log-line[data-level="warn"] {
+  color: var(--mantine-color-orange-text);
+}
+.log-line[data-level="info"] {
+  color: var(--mantine-color-text);
+}
+.log-line[data-level="debug"] {
+  color: var(--mantine-color-blue-text);
+}
+.log-line[data-level="trace"] {
+  color: var(--mantine-color-dimmed);
+}

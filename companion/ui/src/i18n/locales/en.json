@@ -1025,9 +1025,17 @@
     "refresh": "Refresh",
     "copy": "Copy the lines",
     "copied": "Copied",
-    "onlyProblems": "Only warnings and errors",
+    "level": "Level",
+    "levelHelp": "This level and the more serious ones.",
+    "levels": {
+      "ERROR": "Error",
+      "WARN": "Warning",
+      "INFO": "Info",
+      "DEBUG": "Debug",
+      "TRACE": "Trace"
+    },
     "empty": "Nothing in the log yet.",
-    "noProblems": "No warnings or errors: all quiet.",
+    "nothingAtLevel": "Nothing at this level or above: all quiet.",
     "copyFailed": "Could not copy the lines: {{message}}",
     "copyFailedNext": "Select them in the box and copy them by hand, or use Show the log file."
   },

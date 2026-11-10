@@ -1025,9 +1025,17 @@
     "refresh": "Actualiser",
     "copy": "Copier les lignes",
     "copied": "Copié",
-    "onlyProblems": "Seulement les avertissements et les erreurs",
+    "level": "Niveau",
+    "levelHelp": "Ce niveau et les plus graves.",
+    "levels": {
+      "ERROR": "Erreur",
+      "WARN": "Avertissement",
+      "INFO": "Info",
+      "DEBUG": "Débogage",
+      "TRACE": "Trace"
+    },
     "empty": "Rien dans le journal pour le moment.",
-    "noProblems": "Aucun avertissement ni erreur : tout est calme.",
+    "nothingAtLevel": "Rien à ce niveau ou au-dessus : tout est calme.",
     "copyFailed": "Impossible de copier les lignes : {{message}}",
     "copyFailedNext": "Sélectionne-les dans le cadre et copie-les à la main, ou utilise Afficher le fichier."
   },
