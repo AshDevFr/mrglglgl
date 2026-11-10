@@ -165,6 +165,14 @@ export function syncNow(): Promise<SyncReport> {
   return invoke<SyncReport>("sync_now");
 }
 
+/** Puts a character in the app or takes it out; back in, its journal is read again at once. */
+export function setCharacterEnabled(
+  characterId: number,
+  enabled: boolean,
+): Promise<void> {
+  return invoke<void>("set_character_enabled", { characterId, enabled });
+}
+
 export function deleteCharacter(characterId: number): Promise<void> {
   return invoke<void>("delete_character", { characterId });
 }

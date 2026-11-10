@@ -49,6 +49,7 @@ vi.mock("@/api/commands", () => ({
         race: "Tauren",
         class: "HUNTER",
         characterFolder: "Wren-Hollowbrook",
+        enabled: true,
       },
       archived: false,
       milestones: 6,

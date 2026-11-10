@@ -185,6 +185,7 @@ describe("keyboard", () => {
               locale: "enUS",
               lastSynced: null,
               status: null,
+              enabled: true,
             },
           },
         ]}

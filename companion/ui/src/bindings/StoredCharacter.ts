@@ -8,4 +8,8 @@ lastSynced: number | null,
 /**
  * Why the latest journal could not be read (`"older"`, `"newer"`, `"unreadable"`), if so.
  */
-status: string | null, };
+status: string | null, 
+/**
+ * In the app; when not, its journal is not read and nothing is written for it.
+ */
+enabled: boolean, };

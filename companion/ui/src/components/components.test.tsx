@@ -37,6 +37,7 @@ const wren: CharacterSummary = {
     locale: "enUS",
     lastSynced: 1794400000,
     status: null,
+    enabled: true,
   },
 };
 

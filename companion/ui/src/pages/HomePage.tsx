@@ -125,7 +125,8 @@ export function HomePage({
         {characters.isSuccess && !empty && (
           <Stack gap="sm">
             <h2 className="page-title page-title-small">{t("home.latest")}</h2>
-            {[...characters.data]
+            {characters.data
+              .filter((c) => c.character.enabled)
               .sort(
                 (a, b) =>
                   (b.character.lastSynced ?? 0) - (a.character.lastSynced ?? 0),

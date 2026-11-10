@@ -9,7 +9,8 @@ Cloudflare Pages, Netlify or GitHub Pages, with nothing to build.
 
 ![The Website tab of Settings.](../../../assets/screenshots/settings-website.png)
 
-- **Characters:** choose whose journals the site shows.
+- **Characters:** whose journals the site shows is chosen under **Settings**, **Characters**,
+  with **On the site**.
 - **Stand-in names:** other players appear under invented names unless you turn that off. Realm
   names are left out unless you choose to show them.
 - The site only shows finished days and accepted entries: never today, never an entry told so far.

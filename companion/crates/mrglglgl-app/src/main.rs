@@ -120,6 +120,7 @@ fn main() {
             commands::save_settings,
             commands::sync_now,
             commands::delete_character,
+            commands::set_character_enabled,
             writing_commands::character_stories,
             writing_commands::review_list,
             writing_commands::review_all,

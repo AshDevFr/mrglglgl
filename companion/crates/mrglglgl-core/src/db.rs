@@ -186,6 +186,9 @@ const MIGRATIONS: &[&str] = &[
     // How a character's entries are written when it differs from Settings, as JSON (see
     // `CharacterWriting`); none means Settings decide. On the character's row so it goes with it.
     "ALTER TABLE characters ADD COLUMN writing TEXT;",
+    // Whether the character is in the app: when not, its journal is no longer read, its
+    // entries wait unwritten, and it is out of sight. Its history stays.
+    "ALTER TABLE characters ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1;",
 ];
 
 /// The schema version this build creates and understands.
@@ -386,6 +389,8 @@ pub struct StoredCharacter {
     pub last_synced: Option<i64>,
     /// Why the latest journal could not be read (`"older"`, `"newer"`, `"unreadable"`), if so.
     pub status: Option<String>,
+    /// In the app; when not, its journal is not read and nothing is written for it.
+    pub enabled: bool,
 }
 
 pub struct Database {
@@ -622,7 +627,7 @@ impl Database {
     pub fn characters(&self) -> Result<Vec<StoredCharacter>, DbError> {
         let mut stmt = self.conn.prepare(
             "SELECT id, flavor, account, realm_folder, character_folder, journal_path, name,
-                    surname, realm, race, class, faction, locale, last_synced, status
+                    surname, realm, race, class, faction, locale, last_synced, status, enabled
              FROM characters
              ORDER BY flavor, account, coalesce(realm, realm_folder), coalesce(name, character_folder)",
         )?;
@@ -643,6 +648,7 @@ impl Database {
                 locale: row.get(12)?,
                 last_synced: row.get(13)?,
                 status: row.get(14)?,
+                enabled: row.get(15)?,
             })
         })?;
         Ok(rows.collect::<Result<_, _>>()?)
@@ -657,6 +663,36 @@ impl Database {
             params![id, status],
         )?;
         Ok(())
+    }
+
+    /// Puts a character in the app or takes it out. Out of the app its history is kept, but its
+    /// journal is not read and its entries are not written until it is back.
+    pub fn set_character_enabled(&self, id: i64, enabled: bool) -> Result<(), DbError> {
+        self.conn.execute(
+            "UPDATE characters SET enabled = ?2 WHERE id = ?1",
+            params![id, enabled],
+        )?;
+        Ok(())
+    }
+
+    /// Whether the journal at `source` belongs to a character the player took out of the app.
+    /// A character never seen before is in the app.
+    pub fn is_disabled(&self, source: &CharacterSource) -> Result<bool, DbError> {
+        Ok(self
+            .conn
+            .query_row(
+                "SELECT enabled = 0 FROM characters
+                 WHERE flavor = ?1 AND account = ?2 AND realm_folder = ?3 AND character_folder = ?4",
+                params![
+                    source.flavor,
+                    source.account,
+                    source.realm_folder,
+                    source.character_folder
+                ],
+                |row| row.get(0),
+            )
+            .optional()?
+            .unwrap_or(false))
     }
 
     /// Forgets a character and everything archived for it. Backups on disk are the archive's to

@@ -32,6 +32,7 @@ const wren: StoredCharacter = {
   locale: "enUS",
   lastSynced: 1794400000,
   status: null,
+  enabled: true,
 };
 
 describe("JournalPage", () => {

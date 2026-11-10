@@ -88,7 +88,9 @@ export function Layout() {
   }, [queryClient]);
 
   // Drafts waiting across every character, as each one's badge in the list counts them.
-  const toReview = (characters.data ?? []).reduce((n, c) => n + c.toReview, 0);
+  // Characters taken out of the app are only listed in Settings, Characters.
+  const inApp = (characters.data ?? []).filter((c) => c.character.enabled);
+  const toReview = inApp.reduce((n, c) => n + c.toReview, 0);
 
   return (
     <AppShell navbar={{ width: 280, breakpoint: "sm" }} padding={0}>
@@ -118,7 +120,7 @@ export function Layout() {
         <AppShell.Section grow component={ScrollArea}>
           {characters.data && (
             <CharacterTree
-              characters={characters.data}
+              characters={inApp}
               selectedId={selectedId}
               onSelect={(id) =>
                 navigate({

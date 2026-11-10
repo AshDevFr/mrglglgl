@@ -124,6 +124,7 @@ describe("HomePage", () => {
           surname: "Hollowbrook",
           characterFolder: "Wren",
           lastSynced: 1,
+          enabled: true,
         },
       },
     ];

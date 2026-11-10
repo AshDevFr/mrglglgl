@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { appInfo, getSettings, saveSettings } from "@/api/commands";
 import type { Settings } from "@/bindings/Settings";
 import { AddonPanel } from "@/components/AddonPanel";
+import { CharactersPanel } from "@/components/CharactersPanel";
 import { LogPanel } from "@/components/LogPanel";
 import { ModelsPanel } from "@/components/ModelsPanel";
 import { NarratorsPanel } from "@/components/NarratorsPanel";
@@ -123,6 +124,11 @@ export function SettingsPage() {
             <Stack gap="xl" maw={640}>
               <ModelsPanel onChoose={(id) => void choose(id)} />
               <SettingsForm view={view.data} onSave={save} section="writing" />
+            </Stack>
+          </Tabs.Panel>
+          <Tabs.Panel value="characters">
+            <Stack gap="xl" maw={720}>
+              <CharactersPanel />
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value="narrators">

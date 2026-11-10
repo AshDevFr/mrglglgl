@@ -138,6 +138,8 @@ export async function buildSiteData(
 
   for (const id of site.characters) {
     const summary = summaries.find((c) => c.character.id === id);
+    // Out of the app is off the site, whatever the website's own list still says.
+    if (!summary?.character.enabled) continue;
     const [journal, stories, awards, shots] = await Promise.all([
       characterJournalShared(id),
       characterStories(id),

@@ -109,6 +109,14 @@
       "chapter": "Chapitre de la semaine"
     }
   },
+  "characters": {
+    "title": "Personnages",
+    "help": "Chaque personnage trouvé par l'app. Hors de l'app, un personnage n'est plus affiché, son journal n'est plus lu et rien n'est écrit pour lui ; ce que l'app a déjà gardé reste, et le recocher reprend les jours que le jeu garde encore. Sur le site demande que le personnage soit dans l'app.",
+    "character": "Personnage",
+    "inApp": "Dans l'app",
+    "onSite": "Sur le site",
+    "none": "Aucun personnage pour l'instant : ils apparaissent quand le jeu a enregistré un journal."
+  },
   "page": {
     "nothing": "Rien à signaler.",
     "stayedIn": "Passé la journée dans {{place}}.",
@@ -554,6 +562,7 @@
     "tab": {
       "general": "Général",
       "writing": "Écriture",
+      "characters": "Personnages",
       "narrators": "Narrateurs",
       "website": "Site web",
       "addon": "Addon",
@@ -935,9 +944,12 @@
     "built": "Construit le {{when}} : {{written}} fichiers écrits, {{unchanged}} inchangés, {{removed}} supprimés.",
     "buildFailed": "Le site web n'a pas été construit : {{message}}",
     "buildFailedNext": "Vérifie le dossier du site et le dossier de thème, puis construis à nouveau. Une erreur de modèle nomme son fichier et sa ligne.",
-    "cannotBuild": "Choisis un dossier et au moins un personnage : d'ici là, rien n'est construit.",
+    "cannotBuild": "Choisis un dossier, et au moins un personnage dans Réglages, Personnages : d'ici là, rien n'est construit.",
     "open": "Ouvrir dans le navigateur",
-    "showFolder": "Afficher le dossier"
+    "showFolder": "Afficher le dossier",
+    "charactersMoved_zero": "Aucun personnage n'est encore sur le site : choisis-les dans Réglages, Personnages.",
+    "charactersMoved_one": "{{count}} personnage est sur le site ; choisis lesquels dans Réglages, Personnages.",
+    "charactersMoved_other": "{{count}} personnages sont sur le site ; choisis lesquels dans Réglages, Personnages."
   },
   "addon": {
     "title": "L'addon",

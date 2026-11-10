@@ -111,6 +111,10 @@ const WEEK_WAITS: &str = "(kind = 'week' AND EXISTS (
       AND day.state IN ('pending', 'running')
       AND day.start_day BETWEEN write_queue.start_day AND date(write_queue.start_day, '+6 days')))";
 
+/// Jobs of characters the player took out of the app: they keep their place, but wait unwritten
+/// and unlisted until the character is back.
+const OUT_OF_APP: &str = "character_id IN (SELECT id FROM characters WHERE enabled = 0)";
+
 const ORDER: &str = "priority DESC,
     CASE kind WHEN 'week' THEN date(start_day, '+6 days') ELSE start_day END,
     kind";
@@ -308,6 +312,7 @@ pub fn take_next(db: &Database, now: i64) -> Result<Option<Job>, DbError> {
             &format!(
                 "SELECT {JOB_COLUMNS} FROM write_queue
                  WHERE state = 'pending' AND not_before <= ?1 AND NOT {WEEK_WAITS}
+                   AND NOT {OUT_OF_APP}
                  ORDER BY {ORDER} LIMIT 1"
             ),
             [now],
@@ -330,7 +335,7 @@ pub fn next_due_in(db: &Database, now: i64) -> Result<Option<i64>, DbError> {
         .query_row(
             &format!(
                 "SELECT min(not_before) FROM write_queue
-                 WHERE state = 'pending' AND NOT {WEEK_WAITS}"
+                 WHERE state = 'pending' AND NOT {WEEK_WAITS} AND NOT {OUT_OF_APP}"
             ),
             [],
             |row| row.get::<_, Option<i64>>(0),
@@ -438,6 +443,7 @@ pub fn jobs(db: &Database, character_id: i64) -> Result<Vec<Job>, DbError> {
 pub fn all_jobs(db: &Database) -> Result<Vec<Job>, DbError> {
     let mut stmt = db.conn().prepare(&format!(
         "SELECT {JOB_COLUMNS} FROM write_queue
+         WHERE NOT {OUT_OF_APP}
          ORDER BY state = 'failed', state != 'running', {ORDER}"
     ))?;
     let all: Vec<Job> = stmt.query_map([], read_job)?.collect::<Result<_, _>>()?;

@@ -33,6 +33,7 @@ function character(overrides: Partial<StoredCharacter>): CharacterSummary {
       locale: "enUS",
       lastSynced: 1794400000,
       status: null,
+      enabled: true,
       ...overrides,
     },
   };

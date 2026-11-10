@@ -275,6 +275,35 @@ pub fn sync_now(state: State<'_, AppState>) -> Result<SyncReport, String> {
     sync::sync_all(&state)
 }
 
+/// Puts a character in the app or takes it out. Back in the app, its journal is read again at
+/// once, so the days played meanwhile (those the game still holds) arrive and get written.
+#[tauri::command]
+pub fn set_character_enabled(
+    state: State<'_, AppState>,
+    character_id: i64,
+    enabled: bool,
+) -> Result<(), String> {
+    tracing::info!(
+        "character {character_id}: {}",
+        if enabled {
+            "back in the app"
+        } else {
+            "taken out of the app"
+        }
+    );
+    state
+        .db
+        .lock()
+        .map_err(|e| e.to_string())?
+        .set_character_enabled(character_id, enabled)
+        .map_err(|e| e.to_string())?;
+    if enabled {
+        sync::sync_all(&state)?;
+    }
+    state.control.wake();
+    Ok(())
+}
+
 #[tauri::command]
 pub fn delete_character(state: State<'_, AppState>, character_id: i64) -> Result<(), String> {
     tracing::info!("character {character_id}: deleting");

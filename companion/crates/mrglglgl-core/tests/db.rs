@@ -162,7 +162,8 @@ fn database_with_backup_count(dir: &std::path::Path, count: &str) {
          ALTER TABLE archive_days DROP COLUMN format;
          ALTER TABLE archive_journals DROP COLUMN format;
          ALTER TABLE characters DROP COLUMN unused_data;
-         ALTER TABLE characters DROP COLUMN writing;",
+         ALTER TABLE characters DROP COLUMN writing;
+         ALTER TABLE characters DROP COLUMN enabled;",
     )
     .unwrap();
     conn.pragma_update(None, "user_version", 2).unwrap();
@@ -302,4 +303,27 @@ fn a_settings_group_that_cannot_be_read_is_reported_and_kept_aside() {
         .unwrap();
     assert_eq!(aside, "{\"paused\": \"not a bool\"");
     assert!(db.settings_checked().unwrap().1.is_empty());
+}
+
+#[test]
+fn a_character_is_in_the_app_until_the_player_takes_it_out() {
+    let db = Database::open_in_memory().unwrap();
+    let id = db
+        .upsert_character(&source("Wren"), Some(&wren()), None)
+        .unwrap();
+    assert!(db.characters().unwrap()[0].enabled);
+    assert!(!db.is_disabled(&source("Wren")).unwrap());
+    // A character the app has never seen is read as usual.
+    assert!(!db.is_disabled(&source("Brakka")).unwrap());
+
+    db.set_character_enabled(id, false).unwrap();
+    assert!(!db.characters().unwrap()[0].enabled);
+    assert!(db.is_disabled(&source("Wren")).unwrap());
+    // Reading the character again does not put it back.
+    db.upsert_character(&source("Wren"), Some(&wren()), Some(1))
+        .unwrap();
+    assert!(db.is_disabled(&source("Wren")).unwrap());
+
+    db.set_character_enabled(id, true).unwrap();
+    assert!(db.characters().unwrap()[0].enabled);
 }

@@ -5,6 +5,8 @@ import { defaultSite, renderWithProviders } from "@/test/render";
 
 const api = vi.hoisted(() => ({
   saveSiteSettings: vi.fn(async () => {}),
+  // The characters on the site, as chosen under Settings, Characters.
+  getSettings: vi.fn(async () => ({ settings: { site: { characters: [1] } } })),
   copySiteTheme: vi.fn(async () => ["base.html", "post.html"]),
   listCharacters: vi.fn(async () => [
     {
@@ -58,7 +60,7 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({ open: vi.fn() }));
 beforeEach(() => vi.clearAllMocks());
 
 describe("WebsitePanel", () => {
-  it("saves the site's folder, title, characters and privacy", async () => {
+  it("saves the site's folder, title and privacy, keeping its characters as chosen", async () => {
     renderWithProviders(<WebsitePanel site={defaultSite} />);
     fireEvent.click(screen.getByLabelText(/Keep a website up to date/));
     fireEvent.change(screen.getByLabelText("Site folder"), {
@@ -67,7 +69,11 @@ describe("WebsitePanel", () => {
     fireEvent.change(screen.getByLabelText("Site title"), {
       target: { value: "Wren's travels" },
     });
-    fireEvent.click(await screen.findByLabelText("Wren Hollowbrook"));
+    // The characters are chosen under Settings, Characters, not here.
+    expect(screen.queryByLabelText("Wren Hollowbrook")).toBeNull();
+    expect(
+      screen.getByText(/No character is on the site yet/),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/stand-in names/)).toBeChecked();
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() =>
@@ -92,6 +98,9 @@ describe("WebsitePanel", () => {
       await screen.findByText(/3 files written, 2 unchanged, 1 removed/),
     ).toBeInTheDocument();
     expect(api.saveSiteSettings).toHaveBeenCalled();
+    expect(build.rebuildSite).toHaveBeenCalledWith(
+      expect.objectContaining({ folder: "/sites/wren", characters: [1] }),
+    );
   });
 
   it("says why an enabled site is not built yet", () => {
@@ -100,7 +109,7 @@ describe("WebsitePanel", () => {
     );
     expect(
       screen.getByText(
-        /Choose a folder and at least one character: until then nothing is built/,
+        /Choose a folder, and at least one character under Settings, Characters: until then nothing is built/,
       ),
     ).toBeInTheDocument();
   });

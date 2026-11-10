@@ -88,17 +88,21 @@ export function ReviewList({ characterId }: { characterId?: number }) {
     queryFn: reviewAll,
     enabled: everyone,
   });
-  const pending = everyone ? all.isPending : one.isPending;
-  const loaded: CharacterGroup[] = everyone
-    ? (all.data ?? [])
-    : characterId !== undefined && one.data
-      ? [{ characterId, items: one.data }]
-      : [];
   const characters = useQuery({
     queryKey: ["characters"],
     queryFn: listCharacters,
     enabled: everyone,
   });
+  const pending = everyone ? all.isPending : one.isPending;
+  const loaded: CharacterGroup[] = everyone
+    ? (all.data ?? []).filter(
+        (group) =>
+          characters.data?.find((c) => c.character.id === group.characterId)
+            ?.character.enabled ?? true,
+      )
+    : characterId !== undefined && one.data
+      ? [{ characterId, items: one.data }]
+      : [];
   const narrators = useQuery({
     queryKey: ["narrators"],
     queryFn: listNarrators,

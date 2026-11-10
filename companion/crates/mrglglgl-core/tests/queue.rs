@@ -1125,3 +1125,21 @@ fn weekly_chapters_are_off_by_default_and_ones_queued_before_are_dropped_at_star
             .all(|j| j.kind == StoryKind::Day)
     );
 }
+
+#[test]
+fn a_character_out_of_the_app_keeps_its_place_in_line_but_is_not_written() {
+    let (db, wren) = setup();
+    let db = db.into_inner().unwrap();
+    queue::request(&db, wren, StoryKind::Day, DAYS[0], &Ask::default()).unwrap();
+
+    db.set_character_enabled(wren, false).unwrap();
+    assert!(queue::take_next(&db, i64::MAX).unwrap().is_none());
+    assert!(queue::next_due_in(&db, 0).unwrap().is_none());
+    // Activity does not list what the player chose not to see.
+    assert!(queue::all_jobs(&db).unwrap().is_empty());
+
+    // Back in the app, the same job runs: nothing was lost meanwhile.
+    db.set_character_enabled(wren, true).unwrap();
+    let job = queue::take_next(&db, i64::MAX).unwrap().unwrap();
+    assert_eq!((job.character_id, job.start_day.as_str()), (wren, DAYS[0]));
+}

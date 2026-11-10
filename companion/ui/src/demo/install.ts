@@ -24,6 +24,7 @@ const answers: Record<string, (args: Args) => unknown> = {
   character_milestones_shared: () => data.awards,
   character_data_use: () => ({ shared: [], view: [] }),
   set_character_data_use: () => null,
+  set_character_enabled: () => null,
   character_screenshots: () => ({}),
   character_stories: () => data.stories,
   review_list: () => [],

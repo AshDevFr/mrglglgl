@@ -3,6 +3,7 @@
 export const SETTINGS_TABS = [
   "general",
   "writing",
+  "characters",
   "narrators",
   "website",
   "addon",

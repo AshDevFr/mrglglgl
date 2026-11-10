@@ -1,7 +1,6 @@
 import {
   Alert,
   Button,
-  Checkbox,
   Group,
   Stack,
   Switch,
@@ -9,12 +8,11 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   copySiteTheme,
-  listCharacters,
+  getSettings,
   openSite,
   saveSiteSettings,
   showSiteFolder,
@@ -22,7 +20,6 @@ import {
 import type { SiteSettings } from "@/bindings/SiteSettings";
 import { problem } from "@/i18n/problems";
 import { formatTime } from "@/lib/format";
-import { displayName } from "@/lib/journal";
 import {
   canBuild,
   rebuildSite,
@@ -44,37 +41,34 @@ export function WebsitePanel({ site }: { site: SiteSettings }) {
   const stored = useLastBuild();
   // The newer of this panel's own build and one the app ran by itself.
   const last = mine && (!stored || mine.at >= stored.at) ? mine : stored;
-  const characters = useQuery({
-    queryKey: ["characters"],
-    queryFn: listCharacters,
-  });
-
   const set = (patch: Partial<SiteSettings>) => {
     setDraft((d) => ({ ...d, ...patch }));
     setSaved(false);
   };
   const path = (text: string) => (text.trim() === "" ? null : text.trim());
-  const toggle = (id: number) =>
-    set({
-      characters: draft.characters.includes(id)
-        ? draft.characters.filter((c) => c !== id)
-        : [...draft.characters, id],
-    });
 
-  async function save() {
+  // The characters on the site are chosen under Settings, Characters: this tab saves its own
+  // fields and keeps that list as stored, so it never undoes a choice made there.
+  async function save(): Promise<SiteSettings> {
     setFailure(null);
     try {
-      await saveSiteSettings(draft);
+      const site = {
+        ...draft,
+        characters: (await getSettings()).settings.site.characters,
+      };
+      await saveSiteSettings(site);
+      setDraft(site);
       setSaved(true);
+      return site;
     } catch (e) {
       setFailure(String(e));
+      return draft;
     }
   }
 
   async function buildNow() {
     setBuilding(true);
-    await save();
-    setMine(await rebuildSite(draft));
+    setMine(await rebuildSite(await save()));
     setBuilding(false);
   }
 
@@ -121,19 +115,11 @@ export function WebsitePanel({ site }: { site: SiteSettings }) {
         value={draft.baseUrl ?? ""}
         onChange={(e) => set({ baseUrl: path(e.currentTarget.value) })}
       />
-      <Stack gap={6}>
-        <Text size="sm" fw={500}>
-          {t("site.characters")}
-        </Text>
-        {(characters.data ?? []).map((c) => (
-          <Checkbox
-            key={c.character.id}
-            label={displayName(c.character)}
-            checked={draft.characters.includes(c.character.id)}
-            onChange={() => toggle(c.character.id)}
-          />
-        ))}
-      </Stack>
+      <Text size="sm">
+        {t("site.charactersMoved", {
+          count: draft.characters.length,
+        })}
+      </Text>
       <Switch
         label={t("site.standInNames")}
         description={t("site.standInNamesHelp")}

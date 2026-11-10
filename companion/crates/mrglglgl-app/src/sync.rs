@@ -80,6 +80,11 @@ fn import_one(
     source: &CharacterSource,
     retention: BackupRetention,
 ) -> Option<i64> {
+    // A character taken out of the app is not read: the player chose not to keep its days.
+    if db.is_disabled(source).unwrap_or(false) {
+        tracing::debug!("{}: out of the app, not read", source.character_folder);
+        return None;
+    }
     let started = std::time::Instant::now();
     match archive::import(db, data_dir, source, retention) {
         Ok(ImportOutcome::Imported { character_id }) => {
@@ -133,6 +138,10 @@ pub fn sync_all(state: &AppState) -> Result<SyncReport, String> {
         ..SyncReport::default()
     };
     for source in sources(&roots) {
+        // Out of the app: neither read nor counted, so it is not reported as unreadable.
+        if db.is_disabled(&source).unwrap_or(false) {
+            continue;
+        }
         report.characters += 1;
         match import_one(&db, &state.data_dir, &source, settings.backup_retention) {
             Some(id) => {

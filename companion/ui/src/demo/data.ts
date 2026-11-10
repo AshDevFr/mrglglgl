@@ -39,6 +39,7 @@ export const characters: CharacterSummary[] = [
       locale: "enUS",
       lastSynced: 1794304800,
       status: null,
+      enabled: true,
     },
     archived: false,
     milestones: syntheticAwards.length,

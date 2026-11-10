@@ -109,6 +109,14 @@
       "chapter": "Week's chapter"
     }
   },
+  "characters": {
+    "title": "Characters",
+    "help": "Every character the app has found. Out of the app, a character is not shown, its journal is no longer read, and nothing is written for it; what the app already kept stays, and checking it again picks up the days the game still holds. On the site needs the character in the app.",
+    "character": "Character",
+    "inApp": "In the app",
+    "onSite": "On the site",
+    "none": "No characters yet: they appear once the game has saved a journal."
+  },
   "page": {
     "nothing": "Nothing to report.",
     "stayedIn": "Spent the day in {{place}}.",
@@ -554,6 +562,7 @@
     "tab": {
       "general": "General",
       "writing": "Writing",
+      "characters": "Characters",
       "narrators": "Narrators",
       "website": "Website",
       "addon": "Addon",
@@ -935,9 +944,12 @@
     "built": "Built {{when}}: {{written}} files written, {{unchanged}} unchanged, {{removed}} removed.",
     "buildFailed": "The website was not built: {{message}}",
     "buildFailedNext": "Check the site folder and the theme folder, then build again. A template error names its file and line.",
-    "cannotBuild": "Choose a folder and at least one character: until then nothing is built.",
+    "cannotBuild": "Choose a folder, and at least one character under Settings, Characters: until then nothing is built.",
     "open": "Open in the browser",
-    "showFolder": "Show the folder"
+    "showFolder": "Show the folder",
+    "charactersMoved_zero": "No character is on the site yet: choose them under Settings, Characters.",
+    "charactersMoved_one": "{{count}} character is on the site; choose which under Settings, Characters.",
+    "charactersMoved_other": "{{count}} characters are on the site; choose which under Settings, Characters."
   },
   "addon": {
     "title": "The addon",
