@@ -277,8 +277,10 @@ pub fn slots(db: &Database, character_id: i64) -> Result<BTreeSet<(StoryKind, St
 pub fn accept(db: &Database, character_id: i64, story_id: i64) -> Result<bool, DbError> {
     let conn = db.conn();
     let tx = conn.unchecked_transaction()?;
+    // The player read the draft before accepting it, so one the fact check set aside is kept.
     let accepted = tx.execute(
-        "UPDATE stories SET status = 'accepted'
+        "UPDATE stories SET status = 'accepted',
+             check_status = CASE check_status WHEN 'failed' THEN 'kept' ELSE check_status END
          WHERE id = ?1 AND character_id = ?2 AND status = 'draft'",
         params![story_id, character_id],
     )? > 0;
@@ -353,6 +355,16 @@ pub fn edit(
         [id],
     )?;
     Ok(Some(id))
+}
+
+/// Puts an entry the fact check set aside in the journal as it was: the player read it and
+/// vouches for it. Returns false when `story_id` is not this character's set-aside entry.
+pub fn keep(db: &Database, character_id: i64, story_id: i64) -> Result<bool, DbError> {
+    Ok(db.conn().execute(
+        "UPDATE stories SET check_status = 'kept'
+         WHERE id = ?1 AND character_id = ?2 AND check_status = 'failed'",
+        params![story_id, character_id],
+    )? > 0)
 }
 
 /// Throws a draft away. Returns false when `story_id` is not a draft of this character: an

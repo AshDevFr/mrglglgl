@@ -30,6 +30,7 @@ export const defaultWriting: WritingSettings = {
   copyFooter: true,
   weekly: false,
   preferences: "",
+  checkRetries: 1,
 };
 
 export function renderWithProviders(ui: ReactNode) {

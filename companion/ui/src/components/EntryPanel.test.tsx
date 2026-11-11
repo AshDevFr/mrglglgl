@@ -286,24 +286,51 @@ describe("EntryPanel", () => {
     expect(screen.getByRole("button", { name: "Write now" })).toBeEnabled();
   });
 
-  it("shows the facts instead of an entry that failed the fact check, and why", () => {
+  it("shows an entry the fact check flagged under a note saying what it flagged and why", async () => {
+    const onKeep = vi.fn().mockResolvedValue(undefined);
+    const flagged = story(1, "I collected ten scorpid tails in Booty Bay.", {
+      check: "failed",
+      checkReason: "ten, Booty Bay",
+    });
+    const { onWrite } = panel({ versions: [flagged], onKeep });
+    expect(
+      screen.getByText("I collected ten scorpid tails in Booty Bay."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("The fact check flagged this entry"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        /This entry mentions “ten”, “Booty Bay”, which your notes don't have\./,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/That doesn't mean it's wrong/),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Write again" }));
+    expect(onWrite).toHaveBeenCalledWith(null);
+    fireEvent.click(
+      screen.getByRole("button", { name: "It's right, keep it" }),
+    );
+    await waitFor(() => expect(onKeep).toHaveBeenCalledWith(flagged));
+  });
+
+  it("has no note on an entry the player kept", () => {
     panel({
       versions: [
-        story(1, "I sailed to Booty Bay.", {
-          check: "failed",
-          checkReason: "mentions Booty Bay not in the day's notes",
+        story(1, "I collected ten scorpid tails.", {
+          check: "kept",
+          checkReason: "ten",
         }),
       ],
     });
     expect(
-      screen.queryByText("I sailed to Booty Bay."),
-    ).not.toBeInTheDocument();
-    expect(screen.getByText("Killed 23 Prairie Wolves.")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        /set aside because it mentions Booty Bay not in the day's notes/,
-      ),
+      screen.getByText("I collected ten scorpid tails."),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByText("The fact check flagged this entry"),
+    ).not.toBeInTheDocument();
   });
 
   it("offers a retry for a failed job, in plain words", () => {

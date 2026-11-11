@@ -257,6 +257,7 @@ export const settings: SettingsView = {
       copyFooter: true,
       weekly: false,
       preferences: "No em dashes. Short paragraphs.",
+      checkRetries: 1,
     },
   },
   roots: [{ path: FOLDER, source: "defaultPath" }],

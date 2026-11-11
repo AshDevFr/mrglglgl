@@ -358,10 +358,7 @@ async fn an_entry_that_fails_the_fact_check_is_kept_with_its_reason() {
     let db = db.lock().unwrap();
     let story = &stories::versions(&db, id, StoryKind::Day, DAYS[0]).unwrap()[0];
     assert_eq!(story.check, CheckStatus::Failed);
-    assert_eq!(
-        story.check_reason.as_deref(),
-        Some("mentions Booty Bay not in the day's notes")
-    );
+    assert_eq!(story.check_reason.as_deref(), Some("Booty Bay"));
     assert!(events.lock().unwrap().iter().any(|e| matches!(
         e,
         QueueEvent::Finished { outcome, .. } if outcome == "setAside"
@@ -402,6 +399,25 @@ fn the_game_is_recognised_by_its_process_name() {
     ] {
         assert!(!is_game_process(name), "{name}");
     }
+}
+
+#[tokio::test]
+async fn the_number_of_tries_after_a_failed_fact_check_comes_from_settings() {
+    let (db, id) = setup();
+    {
+        let db = db.lock().unwrap();
+        let mut settings = db.settings().unwrap();
+        settings.writing.check_retries = 2;
+        db.save_settings(&settings).unwrap();
+        queue::request(&db, id, StoryKind::Day, DAYS[0], &Ask::default()).unwrap();
+    }
+    let invented = "I sailed all the way to Booty Bay today.";
+    let provider = FakeProvider::new([invented]);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &Control::new(false), "en", &on_event)
+        .await
+        .unwrap();
+    assert_eq!(provider.requests().len(), 3, "the first try and two more");
 }
 
 fn review_mode(db: &Database) {
@@ -555,6 +571,57 @@ fn accepting_a_draft_puts_it_in_the_journal_and_sets_its_rivals_aside() {
     assert!(!stories::discard(&db, id, kept).unwrap());
     // Another character's story is out of reach.
     assert!(!stories::accept(&db, id + 1, other).unwrap());
+}
+
+#[test]
+fn an_entry_the_fact_check_set_aside_is_in_the_journal_once_the_player_keeps_it() {
+    let (db, id) = setup();
+    let db = db.lock().unwrap();
+    let save = |status| {
+        stories::save(
+            &db,
+            &NewStory {
+                character_id: id,
+                kind: StoryKind::Day,
+                start_day: DAYS[0].into(),
+                end_day: DAYS[0].into(),
+                narrator: "murloc_scribe".into(),
+                language: "en".into(),
+                provider: "fake".into(),
+                model: "fake".into(),
+                prompt_hash: "h".into(),
+                text: "I collected ten scorpid tails.".into(),
+                check: CheckStatus::Failed,
+                check_reason: Some("ten".into()),
+                status,
+                note: None,
+                partial: false,
+            },
+        )
+        .unwrap()
+    };
+    let check = |sid: i64| {
+        stories::all(&db, id)
+            .unwrap()
+            .into_iter()
+            .find(|s| s.id == sid)
+            .unwrap()
+            .check
+    };
+    let entry = save(StoryStatus::Accepted);
+    assert!(!stories::keep(&db, id + 1, entry).unwrap(), "not another's");
+    assert!(stories::keep(&db, id, entry).unwrap());
+    assert_eq!(check(entry), CheckStatus::Kept);
+    assert!(
+        !stories::keep(&db, id, entry).unwrap(),
+        "only a set-aside one"
+    );
+    assert!(stories::day_entries(&db, id).unwrap().contains_key(DAYS[0]));
+
+    // A flagged draft the player read and accepted is kept as well.
+    let draft = save(StoryStatus::Draft);
+    assert!(stories::accept(&db, id, draft).unwrap());
+    assert_eq!(check(draft), CheckStatus::Kept);
 }
 
 #[tokio::test]

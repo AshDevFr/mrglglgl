@@ -362,14 +362,14 @@ fn an_entry_with_no_text_is_dropped_so_its_day_waits_to_be_written() {
             .unwrap();
         }
     }
-    // As an older app left it: an empty draft, and the schema one step behind.
+    // As an older app left it: an empty draft, and the schema from before it was cleared.
     let conn = rusqlite::Connection::open(dir.path().join(DATABASE_FILE)).unwrap();
     conn.execute(
         "UPDATE stories SET text = ' ' WHERE start_day = '2026-11-05'",
         [],
     )
     .unwrap();
-    conn.pragma_update(None, "user_version", CURRENT_VERSION - 1)
+    conn.pragma_update(None, "user_version", CURRENT_VERSION - 2)
         .unwrap();
     drop(conn);
 
@@ -386,4 +386,58 @@ fn an_entry_with_no_text_is_dropped_so_its_day_waits_to_be_written() {
             .len(),
         1
     );
+}
+
+#[test]
+fn a_set_aside_reason_stored_as_an_english_sentence_keeps_only_what_was_flagged() {
+    use mrglglgl_core::stories::{self, NewStory, StoryKind, StoryStatus};
+    use mrglglgl_core::writer::CheckStatus;
+    let dir = tempfile::tempdir().unwrap();
+    {
+        let db = Database::open(dir.path()).unwrap();
+        let id = db
+            .upsert_character(&source("Wren-Hollowbrook"), Some(&wren()), Some(100))
+            .unwrap();
+        stories::save(
+            &db,
+            &NewStory {
+                character_id: id,
+                kind: StoryKind::Day,
+                start_day: "2026-11-07".into(),
+                end_day: "2026-11-07".into(),
+                narrator: "murloc_speak".into(),
+                language: "en".into(),
+                provider: "endpoint".into(),
+                model: "m".into(),
+                prompt_hash: "h".into(),
+                text: "Mrgl, I collected ten scorpid tails.".into(),
+                check: CheckStatus::Failed,
+                check_reason: Some("mentions ten, Booty Bay not in the day's notes".into()),
+                status: StoryStatus::Accepted,
+                note: None,
+                partial: false,
+            },
+        )
+        .unwrap();
+    }
+    let conn = rusqlite::Connection::open(dir.path().join(DATABASE_FILE)).unwrap();
+    conn.pragma_update(None, "user_version", CURRENT_VERSION - 1)
+        .unwrap();
+    drop(conn);
+
+    let db = Database::open(dir.path()).unwrap();
+    let id = db.characters().unwrap()[0].id;
+    let story = &stories::versions(&db, id, StoryKind::Day, "2026-11-07").unwrap()[0];
+    assert_eq!(story.check_reason.as_deref(), Some("ten, Booty Bay"));
+}
+
+#[test]
+fn the_fact_check_asks_again_once_unless_the_player_chose_otherwise() {
+    let dir = tempfile::tempdir().unwrap();
+    let db = Database::open(dir.path()).unwrap();
+    assert_eq!(db.settings().unwrap().writing.check_retries, 1);
+    let mut settings = db.settings().unwrap();
+    settings.writing.check_retries = 3;
+    db.save_settings(&settings).unwrap();
+    assert_eq!(db.settings().unwrap().writing.check_retries, 3);
 }

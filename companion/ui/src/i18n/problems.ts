@@ -36,7 +36,7 @@ export const PROBLEMS = [
   "writing.reason.cancelled",
   "writing.reason.timedOut",
   "writing.reason.other",
-  "writing.setAside",
+  "writing.keepFailed",
   "rewrite.failed",
   "narrators.previewSetAside",
   "narrators.previewFailed",

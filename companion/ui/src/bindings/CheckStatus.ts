@@ -3,4 +3,4 @@
 /**
  * How an entry fared against the fact check.
  */
-export type CheckStatus = "passed" | "rewritten" | "failed" | "edited";
+export type CheckStatus = "passed" | "rewritten" | "failed" | "edited" | "kept";

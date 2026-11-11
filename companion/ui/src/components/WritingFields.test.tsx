@@ -53,4 +53,31 @@ describe("WritingFields", () => {
     fireEvent.click(weekly);
     expect(onChange).toHaveBeenCalledWith({ ...defaultWriting, weekly: true });
   });
+
+  it("asks the model again once when the fact check flags an entry, unless told otherwise", async () => {
+    const onChange = vi.fn();
+    renderWithProviders(
+      <WritingFields
+        value={defaultWriting}
+        onChange={onChange}
+        narrators={[]}
+      />,
+    );
+    const select = screen
+      .getAllByLabelText(/^When the fact check flags an entry/)
+      .find((el) => el.tagName === "INPUT");
+    if (!select) throw new Error("no fact check input");
+    expect(select).toHaveValue("Ask the model again once, then show it to me");
+    fireEvent.click(select);
+    fireEvent.click(
+      await screen.findByRole("option", {
+        name: "Ask the model again up to 3 times, then show it to me",
+        hidden: true,
+      }),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      ...defaultWriting,
+      checkRetries: 3,
+    });
+  });
 });

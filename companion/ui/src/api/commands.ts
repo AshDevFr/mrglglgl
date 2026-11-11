@@ -224,6 +224,14 @@ export function editStory(
   return invoke<number | null>("edit_story", { characterId, storyId, text });
 }
 
+/** Puts an entry the fact check flagged in the journal as it is, on the player's word. */
+export function keepEntry(
+  characterId: number,
+  storyId: number,
+): Promise<boolean> {
+  return invoke<boolean>("keep_entry", { characterId, storyId });
+}
+
 export function discardDraft(
   characterId: number,
   storyId: number,

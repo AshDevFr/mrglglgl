@@ -50,7 +50,7 @@ import { scheduleRebuild } from "@/lib/siteBuild";
 import { useWriting } from "@/lib/useWriting";
 import { type Live, reviewAnchor, slot } from "@/lib/writing";
 import { EmptyState } from "./EmptyState";
-import { EntryText } from "./EntryPanel";
+import { CheckNote, EntryText } from "./EntryPanel";
 import { FactList } from "./FactList";
 import { DaySheet } from "./JournalPage";
 
@@ -447,6 +447,8 @@ function ReviewRow({
             </>
           ) : draft ? (
             <>
+              {/* Accepting it is how the player vouches for it here. */}
+              {draft.check === "failed" && <CheckNote story={draft} />}
               <EntryText text={draft.text} />
               <Text size="xs" c="dimmed" className="byline">
                 <NarratorIcon

@@ -7,7 +7,7 @@ description: Every tab of the app's Settings.
 |---|---|
 | **General** | On this computer: the paper, the size of the interface and Wowhead links. For the app: the World of Warcraft folder, how long backups are kept, and the app's language. The app's version, and **Check for updates** |
 | **AI** | Who writes: this computer, with the models to download, or an endpoint; and when the model may run (while playing, on battery, paused) |
-| **Writing** | The narrator, margin notes, the journal's language, writing preferences, weekly chapters, review first, and the "via Mrglglgl" footer |
+| **Writing** | The narrator, margin notes, the journal's language, writing preferences, weekly chapters, review first, how often the fact check asks again, and the "via Mrglglgl" footer |
 | **Characters** | Every character the app has found: **In the app**, and **On the site** |
 | **Narrators** | Every narrator, and your own: [Narrators and style](/guide/narrators/) |
 | **Website** | [The journal website](/guide/website/) |

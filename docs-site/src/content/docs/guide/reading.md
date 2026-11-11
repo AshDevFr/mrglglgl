@@ -63,15 +63,24 @@ ones**, in **Activity**, stops the rest. In **To review**, **Select all** accept
 
 ## The narrator checks its own work
 
-An entry that names a number, place, creature or item that is not in the day's notes is written
-again once. If it is still wrong, the day keeps its plain notes and says why.
+Small models make things up, so every entry is checked against the day's notes: each number and
+each name of a place, creature or item it mentions must be in them. When one is not, the model is
+asked to write the entry again, once by default (**When the fact check flags an entry**, in
+**Settings**, **Writing**, asks up to five times, or not at all).
+
+If the entry still mentions something the notes do not have, it is shown with a note saying what
+was flagged. The flag is not always right: the model may know a detail from the game itself, such
+as how many items a quest asked for, which the notes do not record. **It's right, keep it** puts
+the entry in the journal as it is; **Write again** asks for a new one. Until you keep it, a flagged
+entry stays out of exports, the website and the week's chapter. In **To review**, accepting a
+flagged draft keeps it.
 
 ![One written day: the entry, the murloc's margin note, and the milestones stamped that day.](../../../assets/screenshots/entry.png)
 
 ## Editing an entry by hand
 
 **Edit** on a finished day or week lets you write your own version, starting from the one shown
-(a day set aside by the check included). It goes straight into the journal as a new version, the
+(a day flagged by the check included). It goes straight into the journal as a new version, the
 earlier ones are kept, and its byline says you edited it: the app does not check your words
 against the notes. The editor keeps the page's type, and a paragraph starting with `*` is the
 murloc's margin note.

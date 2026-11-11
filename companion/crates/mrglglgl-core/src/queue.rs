@@ -662,6 +662,7 @@ struct Prepared {
     end_day: String,
     allowed: Vec<String>,
     journal: Journal,
+    check_retries: u32,
 }
 
 fn prepare(
@@ -756,6 +757,7 @@ fn prepare(
         end_day,
         allowed,
         journal,
+        check_retries: settings.check_retries.min(crate::db::MAX_CHECK_RETRIES),
     }))
 }
 
@@ -843,6 +845,7 @@ pub async fn run_next(
             LOCAL_TIMEOUT
         },
         allowed: prepared.allowed.clone(),
+        check_retries: prepared.check_retries,
     };
     let write = async {
         let result = writer::write(provider, &prepared.prompt, &options, &cancel, Some(&tx)).await;
@@ -1050,7 +1053,7 @@ pub async fn preview(
     on_event: &(dyn Fn(StreamEvent) + Send + Sync),
 ) -> Result<WriteResult, String> {
     let is_endpoint = provider.id() == "endpoint";
-    let (prompt, language, allowed) = {
+    let (prompt, language, allowed, check_retries) = {
         let db = db.lock().unwrap();
         let settings = db.settings().map_err(|e| e.to_string())?.writing;
         // A day of a real character is previewed with that character's margin notes and
@@ -1106,7 +1109,8 @@ pub async fn preview(
             .flatten()
             .cloned()
             .collect();
-        (prompt, language, allowed)
+        let retries = settings.check_retries.min(crate::db::MAX_CHECK_RETRIES);
+        (prompt, language, allowed, retries)
     };
 
     let cancel = CancellationToken::new();
@@ -1137,6 +1141,7 @@ pub async fn preview(
             LOCAL_TIMEOUT
         },
         allowed,
+        check_retries,
     };
     let (tx, mut rx) = mpsc::channel::<StreamEvent>(64);
     let forward = async {

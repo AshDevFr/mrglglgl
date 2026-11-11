@@ -27,12 +27,14 @@ pub enum StreamEvent {
 #[serde(rename_all = "camelCase")]
 pub enum CheckStatus {
     Passed,
-    /// The first draft failed and the rewrite passed.
+    /// The first draft failed and a rewrite passed.
     Rewritten,
-    /// The rewrite failed too; the day shows its plain facts.
+    /// Every rewrite failed too; the day shows its plain facts until the player decides.
     Failed,
     /// Written or changed by the player by hand: the fact check does not vouch for it.
     Edited,
+    /// Set aside by the fact check, then put in the journal by the player as it was.
+    Kept,
 }
 
 impl CheckStatus {
@@ -42,13 +44,20 @@ impl CheckStatus {
             CheckStatus::Rewritten => "rewritten",
             CheckStatus::Failed => "failed",
             CheckStatus::Edited => "edited",
+            CheckStatus::Kept => "kept",
         }
     }
 
     pub fn from_key(key: &str) -> Option<Self> {
-        [Self::Passed, Self::Rewritten, Self::Failed, Self::Edited]
-            .into_iter()
-            .find(|s| s.key() == key)
+        [
+            Self::Passed,
+            Self::Rewritten,
+            Self::Failed,
+            Self::Edited,
+            Self::Kept,
+        ]
+        .into_iter()
+        .find(|s| s.key() == key)
     }
 }
 
@@ -74,6 +83,9 @@ pub struct WriteOptions {
     pub timeout: Duration,
     /// Words the entry may use besides the notes, such as the character's faction.
     pub allowed: Vec<String>,
+    /// How many times the model is asked again when the fact check fails, before the entry is
+    /// set aside for the player to decide.
+    pub check_retries: u32,
 }
 
 /// Strips what small models add around an entry: reasoning blocks and surrounding blank space.
@@ -250,43 +262,44 @@ pub async fn write(
     let allowed: Vec<&str> = options.allowed.iter().map(String::as_str).collect();
     let facts = FactSet::from_notes(&prompt.facts, &allowed);
 
-    let first = match attempt(provider, prompt, options, cancel, sink).await? {
+    let mut text = match attempt(provider, prompt, options, cancel, sink).await? {
         Ok(text) => text,
         Err(stopped) => return Ok(stopped),
     };
-    let claims = factcheck::check(&first, &facts);
+    let mut claims = factcheck::check(&text, &facts);
+    let mut asked = 0;
+    while !claims.is_empty() && asked < options.check_retries {
+        asked += 1;
+        tracing::info!(
+            "entry asked again ({asked} of {}), it mentions what the notes do not: {}",
+            options.check_retries,
+            factcheck::reason(&claims)
+        );
+        if let Some(sink) = sink {
+            let _ = sink.send(StreamEvent::Restart).await;
+        }
+        let again = prompt::rewrite_prompt(prompt, &text, &claims);
+        text = match attempt(provider, &again, options, cancel, sink).await? {
+            Ok(text) => text,
+            Err(stopped) => return Ok(stopped),
+        };
+        claims = factcheck::check(&text, &facts);
+    }
     if claims.is_empty() {
         return Ok(WriteResult::Written {
-            text: prompt::restore_names(&first, &prompt.aliases),
-            check: CheckStatus::Passed,
-            reason: None,
-        });
-    }
-    tracing::info!(
-        "entry asked again, it got facts wrong: {}",
-        factcheck::reason(&claims)
-    );
-
-    if let Some(sink) = sink {
-        let _ = sink.send(StreamEvent::Restart).await;
-    }
-    let again = prompt::rewrite_prompt(prompt, &first, &claims);
-    let second = match attempt(provider, &again, options, cancel, sink).await? {
-        Ok(text) => text,
-        Err(stopped) => return Ok(stopped),
-    };
-    let claims = factcheck::check(&second, &facts);
-    if claims.is_empty() {
-        return Ok(WriteResult::Written {
-            text: prompt::restore_names(&second, &prompt.aliases),
-            check: CheckStatus::Rewritten,
+            text: prompt::restore_names(&text, &prompt.aliases),
+            check: if asked == 0 {
+                CheckStatus::Passed
+            } else {
+                CheckStatus::Rewritten
+            },
             reason: None,
         });
     }
     let reason = factcheck::reason(&claims);
     tracing::warn!("entry set aside: {reason}");
     Ok(WriteResult::Written {
-        text: prompt::restore_names(&second, &prompt.aliases),
+        text: prompt::restore_names(&text, &prompt.aliases),
         check: CheckStatus::Failed,
         reason: Some(reason),
     })

@@ -381,7 +381,9 @@ pub fn check(entry: &str, facts: &FactSet) -> Vec<String> {
     claims
 }
 
-/// The reason stored with a story whose entry could not be made to agree with the notes.
+/// The reason stored with a story whose entry could not be made to agree with the notes: what it
+/// mentions that the notes do not, comma separated. Only the words, so the app can say it in the
+/// player's language.
 pub fn reason(claims: &[String]) -> String {
-    format!("mentions {} not in the day's notes", claims.join(", "))
+    claims.join(", ")
 }

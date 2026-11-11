@@ -9,6 +9,8 @@ import { narratorOption, narratorSection } from "@/components/NarratorIcon";
 
 const MEDDLING: Meddling[] = ["off", "rare", "sometimes", "often"];
 const SAME = "same";
+/** Tries after the first when the fact check flags an entry; the backend allows up to five. */
+const CHECK_RETRIES = [0, 1, 2, 3, 4, 5];
 
 interface Props {
   value: WritingSettings;
@@ -83,6 +85,17 @@ export function WritingFields({ value, onChange, narrators }: Props) {
         description={t("settings.reviewHelp")}
         checked={value.review}
         onChange={(e) => set({ review: e.currentTarget.checked })}
+      />
+      <Select
+        label={t("settings.checkRetries")}
+        description={t("settings.checkRetriesHelp")}
+        data={CHECK_RETRIES.map((n) => ({
+          value: String(n),
+          label: t("settings.checkRetriesChoice", { count: n }),
+        }))}
+        value={String(value.checkRetries)}
+        onChange={(v) => v && set({ checkRetries: Number(v) })}
+        allowDeselect={false}
       />
       <Switch
         label={t("settings.copyFooter")}

@@ -147,6 +147,18 @@ pub fn edit_story(
     stories::edit(&db, character_id, story_id, &text).map_err(|e| e.to_string())
 }
 
+/// Puts an entry the fact check set aside in the journal as it was, on the player's word.
+#[tauri::command]
+pub fn keep_entry(
+    state: State<'_, AppState>,
+    character_id: i64,
+    story_id: i64,
+) -> Result<bool, String> {
+    tracing::info!("character {character_id}: set-aside entry {story_id} kept by the player");
+    let db = state.db.lock().map_err(|e| e.to_string())?;
+    stories::keep(&db, character_id, story_id).map_err(|e| e.to_string())
+}
+
 /// Throws a draft away; the day stays on the To review list until written again.
 #[tauri::command]
 pub fn discard_draft(

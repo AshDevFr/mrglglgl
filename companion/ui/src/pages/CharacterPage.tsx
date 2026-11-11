@@ -12,6 +12,7 @@ import {
   characterStories,
   editStory,
   getSettings,
+  keepEntry,
   listCharacters,
   listNarrators,
   retryWriting,
@@ -137,6 +138,10 @@ export function CharacterPage({
       onEdit: async (story, text) => {
         const saved = await editStory(characterId, story.id, text);
         if (saved === null) throw new Error(t("writing.editRefused"));
+        await queryClient.invalidateQueries();
+      },
+      onKeep: async (story) => {
+        await keepEntry(characterId, story.id);
         await queryClient.invalidateQueries();
       },
     };

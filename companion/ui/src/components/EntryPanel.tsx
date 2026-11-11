@@ -54,6 +54,98 @@ export function EntryText({ text }: { text: string }) {
   );
 }
 
+/** The words a flagged entry mentions that the notes do not, quoted, from its stored reason. */
+function flagged(t: TFunction, reason: string | null): string {
+  return (reason ?? "")
+    .split(", ")
+    .filter(Boolean)
+    .map((word) => t("writing.check.word", { word }))
+    .join(", ");
+}
+
+/**
+ * Says why the fact check flagged an entry, shown above its text: what the check does, what it
+ * found, and that the find may be wrong. With `onKeep`, the player can vouch for the entry; with
+ * `onWrite`, ask for another one.
+ */
+export function CheckNote({
+  story,
+  onKeep,
+  onWrite,
+  writeDisabled,
+}: {
+  story: Story;
+  onKeep?: () => Promise<void>;
+  onWrite?: () => void;
+  writeDisabled?: boolean;
+}) {
+  const { t } = useTranslation();
+  const [keeping, setKeeping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <Alert
+      color="yellow"
+      className="check-note"
+      title={t("writing.check.title")}
+    >
+      <Text size="sm">
+        {t("writing.check.why", { words: flagged(t, story.checkReason) })}
+      </Text>
+      <Text size="sm" mt={4}>
+        {t("writing.check.maybe")}
+      </Text>
+      <Text size="sm" mt={4}>
+        {t(
+          story.status === "draft"
+            ? "writing.check.acceptIfRight"
+            : "writing.check.untilKept",
+        )}
+      </Text>
+      {(onKeep || onWrite) && (
+        <Group gap="xs" mt="xs">
+          {onKeep && (
+            <Button
+              size="xs"
+              variant="light"
+              color="yellow"
+              loading={keeping}
+              onClick={async () => {
+                setKeeping(true);
+                setError(null);
+                try {
+                  await onKeep();
+                } catch (e) {
+                  setError(String(e));
+                } finally {
+                  setKeeping(false);
+                }
+              }}
+            >
+              {t("writing.check.keep")}
+            </Button>
+          )}
+          {onWrite && (
+            <Button
+              size="xs"
+              variant="subtle"
+              color="gray"
+              disabled={writeDisabled}
+              onClick={onWrite}
+            >
+              {t("writing.again")}
+            </Button>
+          )}
+        </Group>
+      )}
+      {error && (
+        <Text size="sm" c="red" mt={4}>
+          {problem(t, "writing.keepFailed", { message: error })}
+        </Text>
+      )}
+    </Alert>
+  );
+}
+
 interface Props {
   kind: StoryKind;
   day: string;
@@ -79,6 +171,8 @@ interface Props {
   menuItems?: (story: Story) => ReactNode;
   /** Saves the player's own text as a new version, made from the version shown. */
   onEdit?: (story: Story, text: string) => Promise<void>;
+  /** Puts an entry the fact check flagged in the journal as it is. */
+  onKeep?: (story: Story) => Promise<void>;
   /** A draft of this day or week waits in To review. */
   draftWaiting?: boolean;
   /** The narrator that writes when none is picked: the character's own, or Settings'. */
@@ -110,6 +204,7 @@ export function EntryPanel({
   actions,
   menuItems,
   onEdit,
+  onKeep,
   draftWaiting,
   onOpenReview,
   defaultNarrator,
@@ -122,7 +217,6 @@ export function EntryPanel({
   useEffect(() => setIndex(0), [versions.length, day]);
 
   const shown = versions[index];
-  const readable = shown && shown.check !== "failed";
   const narratorName = (id: string) => narratorLabel(t, narrators, id);
   const [editing, setEditing] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -269,8 +363,20 @@ export function EntryPanel({
             </Button>
           </Group>
         </>
-      ) : readable ? (
+      ) : shown ? (
         <>
+          {shown.check === "failed" && (
+            <CheckNote
+              story={shown}
+              onKeep={onKeep && index === 0 ? () => onKeep(shown) : undefined}
+              onWrite={
+                finished && index === 0 ? () => onWrite(null) : undefined
+              }
+              writeDisabled={
+                job?.state === "running" || job?.state === "pending"
+              }
+            />
+          )}
           <EntryText text={shown.text} />
           {shown.partial && !finished && (
             <Text className="note">{t("writing.soFarNote")}</Text>
@@ -284,13 +390,6 @@ export function EntryPanel({
         </>
       ) : (
         <>
-          {shown?.check === "failed" && (
-            <Text className="note">
-              {problem(t, "writing.setAside", {
-                reason: shown.checkReason ?? "",
-              })}
-            </Text>
-          )}
           {/* Folded as under an entry: a full day's list runs long, and the photos, stamps
               and milestones beside it already say much of it. */}
           {facts && (
@@ -431,7 +530,7 @@ export function EntryPanel({
       )}
       {shown && editing === null && !rewriting && (
         <Group gap="xs" mt="sm" wrap="wrap">
-          {readable && actions?.(shown)}
+          {actions?.(shown)}
           {editable && (
             <Button
               size="xs"
@@ -442,7 +541,7 @@ export function EntryPanel({
               {t("writing.edit")}
             </Button>
           )}
-          {(finished || onWriteSoFar || (readable && menuItems)) && (
+          {(finished || onWriteSoFar || menuItems) && (
             <Menu position="bottom-start" withinPortal>
               <Menu.Target>
                 <ActionIcon
@@ -464,7 +563,7 @@ export function EntryPanel({
                       : t("writing.soFarAgainMenu")}
                   </Menu.Item>
                 )}
-                {readable && menuItems?.(shown)}
+                {menuItems?.(shown)}
               </Menu.Dropdown>
             </Menu>
           )}

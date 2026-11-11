@@ -147,6 +147,7 @@ fn main() {
             writing_commands::set_character_writing,
             writing_commands::accept_draft,
             writing_commands::edit_story,
+            writing_commands::keep_entry,
             writing_commands::discard_draft,
             writing_commands::write_drafts,
             writing_commands::rewrite_days,

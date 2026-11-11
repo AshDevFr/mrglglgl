@@ -51,4 +51,10 @@ weekly: boolean,
  * How the player likes the prose written, sent with every entry and chapter ("no em
  * dashes", "British spelling"). Style only: never taken as a fact of the day.
  */
-preferences: string, };
+preferences: string, 
+/**
+ * How many times the model is asked again when an entry mentions something the day's notes
+ * do not, before the entry is set aside for the player to decide. Each try costs a full
+ * generation, so the default asks once.
+ */
+checkRetries: number, };

@@ -45,6 +45,7 @@ fn options() -> WriteOptions {
         temperature: 0.4,
         timeout: Duration::from_secs(10),
         allowed: vec!["Horde".into()],
+        check_retries: 1,
     }
 }
 
@@ -163,11 +164,53 @@ async fn a_zone_never_visited_fails_twice_and_the_day_keeps_its_facts() {
         panic!("written, not stopped: {result:?}");
     };
     assert_eq!(check, CheckStatus::Failed);
-    assert_eq!(
-        reason.as_deref(),
-        Some("mentions Elwynn Forest not in the day's notes")
-    );
+    assert_eq!(reason.as_deref(), Some("Elwynn Forest"));
     assert_eq!(provider.requests().len(), 2);
+}
+
+#[tokio::test]
+async fn the_model_is_asked_again_as_many_times_as_the_player_allows() {
+    let p = prompt("en");
+    let elsewhere = "I spent the whole day wandering Elwynn Forest, far from Mulgore.";
+    // Three wrong answers, then a true one: with three tries after the first, the fourth passes.
+    let provider = FakeProvider::new([elsewhere, elsewhere, elsewhere, TRUE_ENTRY]);
+    let options = WriteOptions {
+        check_retries: 3,
+        ..options()
+    };
+    let result = write(&provider, &p, &options, &CancellationToken::new(), None)
+        .await
+        .unwrap();
+    assert!(matches!(
+        result,
+        WriteResult::Written {
+            check: CheckStatus::Rewritten,
+            ..
+        }
+    ));
+    assert_eq!(provider.requests().len(), 4);
+}
+
+#[tokio::test]
+async fn with_no_tries_after_the_first_a_failed_check_is_set_aside_at_once() {
+    let p = prompt("en");
+    let elsewhere = "I spent the whole day wandering Elwynn Forest, far from Mulgore.";
+    let provider = FakeProvider::new([elsewhere, TRUE_ENTRY]);
+    let options = WriteOptions {
+        check_retries: 0,
+        ..options()
+    };
+    let result = write(&provider, &p, &options, &CancellationToken::new(), None)
+        .await
+        .unwrap();
+    assert!(matches!(
+        result,
+        WriteResult::Written {
+            check: CheckStatus::Failed,
+            ..
+        }
+    ));
+    assert_eq!(provider.requests().len(), 1);
 }
 
 #[tokio::test]

@@ -420,6 +420,11 @@ details.facts .fact-list {
   margin-bottom: 0.75rem;
 }
 
+/* Why the fact check flagged an entry, set apart from the entry under it. */
+.check-note {
+  margin-bottom: 0.75rem;
+}
+
 /* Editing keeps the page's reading type, so the entry looks like itself while it changes. */
 .entry-editor textarea {
   font-family: var(--reading-font);

@@ -192,6 +192,10 @@ const MIGRATIONS: &[&str] = &[
     // Entries and drafts with no text, which a model that answered nothing used to leave behind
     // as if the day were written. Writing now fails instead, so the day waits to be written.
     "DELETE FROM stories WHERE trim(text) = '';",
+    // A set-aside entry's reason was stored as an English sentence; it is now only what the entry
+    // mentions that the notes do not, so the app can say it in the player's language.
+    "UPDATE stories SET check_reason = substr(check_reason, 10, length(check_reason) - 9 - 23)
+     WHERE check_reason LIKE 'mentions % not in the day''s notes';",
 ];
 
 /// The schema version this build creates and understands.
@@ -260,6 +264,10 @@ pub struct WritingSettings {
     /// How the player likes the prose written, sent with every entry and chapter ("no em
     /// dashes", "British spelling"). Style only: never taken as a fact of the day.
     pub preferences: String,
+    /// How many times the model is asked again when an entry mentions something the day's notes
+    /// do not, before the entry is set aside for the player to decide. Each try costs a full
+    /// generation, so the default asks once.
+    pub check_retries: u32,
 }
 
 /// What one character's entries are written with where it differs from Settings.
@@ -297,6 +305,11 @@ impl WritingSettings {
     }
 }
 
+/// Tries after the first when the fact check fails, unless the player chose otherwise.
+pub const DEFAULT_CHECK_RETRIES: u32 = 1;
+/// The most tries after the first the player may ask for: each is a full generation.
+pub const MAX_CHECK_RETRIES: u32 = 5;
+
 impl Default for WritingSettings {
     fn default() -> Self {
         Self {
@@ -315,6 +328,7 @@ impl Default for WritingSettings {
             copy_footer: true,
             weekly: false,
             preferences: String::new(),
+            check_retries: DEFAULT_CHECK_RETRIES,
         }
     }
 }
