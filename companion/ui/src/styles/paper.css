@@ -381,6 +381,26 @@ details.facts .fact-list {
   margin: 0;
   padding: 0;
 }
+/* Opens or folds a long row: faded ink so it reads as part of the list, not as an item in it. */
+.fact-list .fact-more {
+  margin: 0.15em 0 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-style: italic;
+  color: var(--ink-faded);
+  cursor: pointer;
+}
+.fact-list .fact-more::before {
+  content: "+ ";
+}
+.fact-list .fact-more[aria-expanded="true"]::before {
+  content: "− ";
+}
+.fact-list .fact-more:hover {
+  color: var(--stamp);
+}
 @media (max-width: 560px) {
   .fact-list {
     grid-template-columns: 1fr;

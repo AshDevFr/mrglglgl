@@ -1112,6 +1112,8 @@
     "unknownCause": "Unknown cause",
     "unknownItem": "Unknown item",
     "at": "{{what}}, at {{place}}",
+    "more": "{{count}} more",
+    "fewer": "Show fewer",
     "catches_one": "{{count}} catch",
     "catches_other": "{{count}} catches",
     "screenshotCount_one": "{{count}} taken",

@@ -1112,6 +1112,8 @@
     "unknownCause": "Cause inconnue",
     "unknownItem": "Objet inconnu",
     "at": "{{what}}, à {{place}}",
+    "more": "{{count}} de plus",
+    "fewer": "Afficher moins",
     "catches_one": "{{count}} prise",
     "catches_other": "{{count}} prises",
     "screenshotCount_one": "{{count}} prise",
