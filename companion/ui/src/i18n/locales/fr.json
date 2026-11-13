@@ -551,6 +551,13 @@
     "connectionFailedNext": "Vérifie l'adresse (elle se termine généralement par /v1), que le serveur tourne et le nom du modèle, puis teste à nouveau.",
     "writeOnBattery": "Écrire sur batterie",
     "writeOnBatteryHelp": "Désactivé par défaut : l'écriture sollicite fortement le processeur et vide la batterie d'un portable. Désactivé, l'écriture attend que le chargeur soit branché. Vérifié sur les portables macOS et Windows.",
+    "planning": "Planifier chaque journée avant de l'écrire",
+    "planningHelp": "Le modèle choisit d'abord les quelques moments qui ont fait la journée, puis écrit l'entrée autour d'eux. Les petits modèles racontent bien mieux les journées chargées ainsi ; chaque entrée prend un peu plus de temps.",
+    "planningChoice": {
+      "auto": "Automatique : activé pour les modèles sur cet ordinateur",
+      "on": "Toujours",
+      "off": "Jamais"
+    },
     "review": "Me laisser valider les entrées d'abord",
     "reviewHelp": "Les nouvelles entrées attendent dans À valider jusqu'à ce que tu les acceptes. Désactivé : elles vont directement dans le journal.",
     "checkRetries": "Quand la vérification des faits signale une entrée",

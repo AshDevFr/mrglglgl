@@ -4,10 +4,12 @@ import { useTranslation } from "react-i18next";
 import { setWritingPaused } from "@/api/commands";
 import type { Meddling } from "@/bindings/Meddling";
 import type { NarratorInfo } from "@/bindings/NarratorInfo";
+import type { Planning } from "@/bindings/Planning";
 import type { WritingSettings } from "@/bindings/WritingSettings";
 import { narratorOption, narratorSection } from "@/components/NarratorIcon";
 
 const MEDDLING: Meddling[] = ["off", "rare", "sometimes", "often"];
+const PLANNING: Planning[] = ["auto", "on", "off"];
 const SAME = "same";
 /** Tries after the first when the fact check flags an entry; the backend allows up to five. */
 const CHECK_RETRIES = [0, 1, 2, 3, 4, 5];
@@ -128,6 +130,17 @@ export function RunFields({ value, onChange }: Omit<Props, "narrators">) {
         description={t("settings.writeOnBatteryHelp")}
         checked={value.writeOnBattery}
         onChange={(e) => set({ writeOnBattery: e.currentTarget.checked })}
+      />
+      <Select
+        label={t("settings.planning")}
+        description={t("settings.planningHelp")}
+        data={PLANNING.map((p) => ({
+          value: p,
+          label: t(`settings.planningChoice.${p}`),
+        }))}
+        value={value.planning}
+        onChange={(v) => v && set({ planning: v as Planning })}
+        allowDeselect={false}
       />
       <Switch
         label={t("settings.paused")}

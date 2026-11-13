@@ -258,6 +258,7 @@ export const settings: SettingsView = {
       weekly: false,
       preferences: "No em dashes. Short paragraphs.",
       checkRetries: 1,
+      planning: "auto",
     },
   },
   roots: [{ path: FOLDER, source: "defaultPath" }],

@@ -64,6 +64,7 @@ fn day(
         note: None,
         preferences: None,
         gists: None,
+        plan: None,
     })
 }
 
@@ -302,6 +303,7 @@ fn companions_can_be_sent_under_stand_in_names() {
             note: None,
             preferences: None,
             gists: None,
+            plan: None,
         })
     };
     let plain = request(false);
@@ -358,6 +360,7 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
             note: None,
             preferences: None,
             gists: None,
+            plan: None,
         });
         assert!(p.meddling);
         let expected = tested(language, "## System")
@@ -530,6 +533,7 @@ fn a_rewrite_note_asks_for_tone_and_length_inside_the_fact_rules() {
         note: None,
         preferences: None,
         gists: None,
+        plan: None,
     };
     let plain = day_prompt(&base());
     let noted = day_prompt(&DayRequest {
@@ -606,6 +610,7 @@ fn writing_preferences_shape_the_style_of_every_entry_and_never_become_facts() {
         note: None,
         preferences: None,
         gists: None,
+        plan: None,
     };
     let plain = day_prompt(&base());
     let styled = day_prompt(&DayRequest {
@@ -776,6 +781,7 @@ fn a_narrator_writes_as_the_adventurer_or_about_them_as_it_is_set() {
         note: None,
         preferences: None,
         gists: None,
+        plan: None,
     });
     assert!(
         about_them
@@ -830,8 +836,7 @@ fn quest_block<'a>(user: &'a str, heading: &str) -> &'a str {
 fn a_heavy_questing_day_names_only_the_quests_its_notes_name_with_their_gists() {
     let j = busy_questing("2026-11-08", 60);
     let awards = milestones::compute(&j);
-    let gists: BTreeMap<i64, String> =
-        [(900_000, "the plains needed a hand.".to_string())].into();
+    let gists: BTreeMap<i64, String> = [(900_000, "the plains needed a hand.".to_string())].into();
     let p = day_prompt(&DayRequest {
         character_id: 1,
         journal: &j,
@@ -850,6 +855,7 @@ fn a_heavy_questing_day_names_only_the_quests_its_notes_name_with_their_gists() 
         note: None,
         preferences: None,
         gists: Some(&gists),
+        plan: None,
     });
     let block = quest_block(&p.user, "Quests touched today:");
     assert!(

@@ -31,6 +31,7 @@ export const defaultWriting: WritingSettings = {
   weekly: false,
   preferences: "",
   checkRetries: 1,
+  planning: "auto",
 };
 
 export function renderWithProviders(ui: ReactNode) {

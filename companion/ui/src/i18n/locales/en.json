@@ -551,6 +551,13 @@
     "connectionFailedNext": "Check the address (it usually ends in /v1), that the server is running and the model name, then test again.",
     "writeOnBattery": "Write while on battery",
     "writeOnBatteryHelp": "Off by default: writing uses the processor hard and drains a laptop. When off, writing waits until the charger is plugged in. Checked on macOS and Windows laptops.",
+    "planning": "Plan each day before writing it",
+    "planningHelp": "The model first picks the few moments that made the day, then writes the entry around them. Small models tell busy days much better this way; each entry takes a little longer.",
+    "planningChoice": {
+      "auto": "Automatic: on for the models on this computer",
+      "on": "Always",
+      "off": "Never"
+    },
     "review": "Let me review entries first",
     "reviewHelp": "New entries wait in To review until you accept them. Off: they go straight into the journal.",
     "checkRetries": "When the fact check flags an entry",

@@ -14,7 +14,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use mrglglgl_llm::{
-    CancellationToken, DEFAULT_TEMPERATURE, ENDPOINT_TIMEOUT, LOCAL_TIMEOUT, Provider,
+    CancellationToken, DEFAULT_TEMPERATURE, ENDPOINT_TIMEOUT, GenerateOutcome, GenerateRequest,
+    LOCAL_TIMEOUT, Provider, generate_text,
 };
 use rusqlite::{OptionalExtension, params};
 use serde::{Deserialize, Serialize};
@@ -26,6 +27,7 @@ use crate::continuity::{self, ContinuitySheet};
 use crate::db::{Database, DbError};
 use crate::milestones;
 use crate::narrators;
+use crate::planning::{self, Plan};
 use crate::prompt::{self, DayRequest, WeekRequest};
 use crate::schema::Journal;
 use crate::stories::{self, NewStory, StoryKind, StoryStatus};
@@ -656,7 +658,15 @@ pub fn next_prompt(
         partial: false,
         position: None,
     };
-    Ok(prepare(db, library, &job, language_fallback, provider_is_endpoint)?.map(|p| p.prompt))
+    Ok(prepare(
+        db,
+        library,
+        &job,
+        language_fallback,
+        provider_is_endpoint,
+        None,
+    )?
+    .map(|p| p.prompt))
 }
 
 /// Everything a job needs, gathered under one short lock.
@@ -668,6 +678,9 @@ struct Prepared {
     allowed: Vec<String>,
     journal: Journal,
     check_retries: u32,
+    planning: crate::db::Planning,
+    /// A day's notes, in the order the prompt tells them, for a planning pass.
+    notes: Vec<String>,
 }
 
 fn prepare(
@@ -676,6 +689,7 @@ fn prepare(
     job: &Job,
     language_fallback: &str,
     provider_is_endpoint: bool,
+    plan: Option<&Plan>,
 ) -> Result<Result<Prepared, String>, DbError> {
     let settings = db
         .settings()?
@@ -726,6 +740,7 @@ fn prepare(
                 },
                 preferences: Some(&settings.preferences),
                 gists: Some(&gists),
+                plan,
             }),
             job.start_day.clone(),
         ),
@@ -752,6 +767,11 @@ fn prepare(
         }
     };
     let allowed = allowed_words(&journal, narrator);
+    let notes = match job.kind {
+        StoryKind::Day => crate::beats::extract(&journal, &job.start_day, &awards, &thresholds)
+            .texts_in(&language),
+        StoryKind::Week => Vec::new(),
+    };
     Ok(Ok(Prepared {
         prompt,
         narrator: narrator.id.clone(),
@@ -760,6 +780,8 @@ fn prepare(
         allowed,
         journal,
         check_retries: settings.check_retries.min(crate::db::MAX_CHECK_RETRIES),
+        planning: settings.planning,
+        notes,
     }))
 }
 
@@ -774,6 +796,51 @@ fn allowed_words(journal: &Journal, narrator: &narrators::Narrator) -> Vec<Strin
         .chain(narrator.own_words())
         .map(str::to_string)
         .collect()
+}
+
+/// Asks the model which of a day's notes make it, before the entry is written. `None` when it
+/// could not be asked or its answer is not a plan: the entry is then written without one.
+async fn plan_day(provider: &dyn Provider, control: &Control, p: &Prepared) -> Option<Plan> {
+    if p.notes.len() < 2 {
+        return None;
+    }
+    let (system, user) = planning::request(&p.notes, &p.language);
+    let request = GenerateRequest {
+        system,
+        user,
+        max_tokens: planning::PLAN_TOKENS,
+        temperature: DEFAULT_TEMPERATURE,
+        language: p.language.clone(),
+    };
+    let timeout = if provider.id() == "endpoint" {
+        ENDPOINT_TIMEOUT
+    } else {
+        LOCAL_TIMEOUT
+    };
+    let answer = {
+        let _turn = control.take_turn().await;
+        generate_text(provider, request, timeout, CancellationToken::new(), None).await
+    };
+    let text = match answer {
+        Ok((GenerateOutcome::Completed, text)) => text,
+        Ok(_) => return None,
+        Err(e) => {
+            tracing::info!("day not planned, the model failed: {e}");
+            return None;
+        }
+    };
+    let allowed: Vec<&str> = p.allowed.iter().map(String::as_str).collect();
+    match planning::parse(&text, p.notes.len()) {
+        Some(plan) => {
+            let plan = planning::checked(plan, &p.prompt.facts, &allowed);
+            tracing::info!("day planned around notes {:?}", plan.moments);
+            Some(plan)
+        }
+        None => {
+            tracing::info!("day not planned, the answer was not a plan");
+            None
+        }
+    }
 }
 
 fn plain(e: &mrglglgl_llm::ProviderError) -> String {
@@ -805,13 +872,28 @@ pub async fn run_next(
         )
         .await?;
     }
-    let prepared = prepare(
+    let mut prepared = prepare(
         &db.lock().unwrap(),
         &control.narrators(),
         &job,
         language_fallback,
         is_endpoint,
+        None,
     )?;
+    if let Ok(p) = &prepared
+        && job.kind == StoryKind::Day
+        && p.planning.applies(provider.id())
+        && let Some(plan) = plan_day(provider, control, p).await
+    {
+        prepared = prepare(
+            &db.lock().unwrap(),
+            &control.narrators(),
+            &job,
+            language_fallback,
+            is_endpoint,
+            Some(&plan),
+        )?;
+    }
     let prepared = match prepared {
         Ok(p) => p,
         Err(reason) => {
@@ -1128,6 +1210,7 @@ pub async fn preview(
             note: None,
             preferences: Some(&settings.preferences),
             gists: Some(&gists),
+            plan: None,
         });
         let allowed = allowed_words(&journal, narrator);
         let retries = settings.check_retries.min(crate::db::MAX_CHECK_RETRIES);

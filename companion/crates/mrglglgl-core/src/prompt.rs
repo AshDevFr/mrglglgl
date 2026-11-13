@@ -291,6 +291,9 @@ pub struct DayRequest<'a> {
     /// One-line summaries of quests, by quest (see `gists`); a quest without one is named by
     /// its title only.
     pub gists: Option<&'a BTreeMap<i64, String>>,
+    /// The moments a planning pass chose (see `planning`); without one, the heart of the day is
+    /// the beats that usually make it.
+    pub plan: Option<&'a crate::planning::Plan>,
 }
 
 /// What a weekly chapter is built from.
@@ -532,9 +535,26 @@ fn quest_lines(
 }
 
 /// A day's beats as notes: the heart of the day, then what to mention in passing at most. A day
-/// with only one kind is a plain list.
-fn told(day: &beats::DayBeats, language: &str) -> String {
-    let (heart, background) = day.split_in(language);
+/// with only one kind is a plain list. A plan's moments are the heart, in its order.
+fn told(day: &beats::DayBeats, language: &str, plan: Option<&crate::planning::Plan>) -> String {
+    let (heart, background) = match plan {
+        Some(plan) => {
+            let texts = day.texts_in(language);
+            let heart = plan
+                .moments
+                .iter()
+                .filter_map(|i| texts.get(*i).cloned())
+                .collect();
+            let background = texts
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| !plan.moments.contains(i))
+                .map(|(_, t)| t.clone())
+                .collect();
+            (heart, background)
+        }
+        None => day.split_in(language),
+    };
     if heart.is_empty() || background.is_empty() {
         return bullets(&day.texts_in(language));
     }
@@ -642,11 +662,15 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
 
     let mut user = format!(
         "Notes for {date}.\n\n{adventurer}\n\n\
-         What happened today (the only events you may write about):\n{beats}\n\n\
+         What happened today (the only events you may write about):\n{beats}{thread}\n\n\
          Patterns of the day: {patterns}\n",
         date = dated(r.day),
         adventurer = adventurer(r.journal, level),
-        beats = told(&day_beats, r.language),
+        beats = told(&day_beats, r.language, r.plan),
+        thread = match r.plan.and_then(|p| p.arc.as_deref()) {
+            Some(arc) => format!("\nThe thread of the day: {arc}"),
+            None => String::new(),
+        },
         patterns = if patterns.is_empty() {
             "none".to_string()
         } else {

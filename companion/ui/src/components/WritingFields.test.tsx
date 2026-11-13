@@ -80,4 +80,24 @@ describe("WritingFields", () => {
       checkRetries: 3,
     });
   });
+
+  it("plans each day first for the models on this computer, unless told otherwise", async () => {
+    const onChange = vi.fn();
+    renderWithProviders(
+      <RunFields value={defaultWriting} onChange={onChange} />,
+    );
+    const select = screen
+      .getAllByLabelText(/^Plan each day before writing it/)
+      .find((el) => el.tagName === "INPUT");
+    if (!select) throw new Error("no planning input");
+    expect(select).toHaveValue("Automatic: on for the models on this computer");
+    fireEvent.click(select);
+    fireEvent.click(
+      await screen.findByRole("option", { name: "Always", hidden: true }),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      ...defaultWriting,
+      planning: "on",
+    });
+  });
 });

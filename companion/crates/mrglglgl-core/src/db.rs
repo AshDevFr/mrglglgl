@@ -239,6 +239,31 @@ pub enum ProviderChoice {
     Endpoint,
 }
 
+/// Whether a day's entry is planned first: one short call picks the day's few moments, and the
+/// entry is written from them. Small models told a busy day as a list; a plan gives them less to
+/// choose from. It costs a second call per entry.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
+#[serde(rename_all = "camelCase")]
+pub enum Planning {
+    /// For the models on this computer, which are small; an endpoint's are usually not.
+    #[default]
+    Auto,
+    On,
+    Off,
+}
+
+impl Planning {
+    /// Whether entries written by the provider `provider_id` are planned first.
+    pub fn applies(self, provider_id: &str) -> bool {
+        match self {
+            Planning::Auto => provider_id == "local",
+            Planning::On => true,
+            Planning::Off => false,
+        }
+    }
+}
+
 /// How entries are written. Stored as one JSON value, so a new field needs no migration.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts", derive(ts_rs::TS), ts(export))]
@@ -279,6 +304,8 @@ pub struct WritingSettings {
     /// do not, before the entry is set aside for the player to decide. Each try costs a full
     /// generation, so the default asks once.
     pub check_retries: u32,
+    /// Whether a day's entry is planned first.
+    pub planning: Planning,
 }
 
 /// What one character's entries are written with where it differs from Settings.
@@ -340,6 +367,7 @@ impl Default for WritingSettings {
             weekly: false,
             preferences: String::new(),
             check_retries: DEFAULT_CHECK_RETRIES,
+            planning: Planning::default(),
         }
     }
 }

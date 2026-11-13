@@ -18,6 +18,7 @@ pub mod game;
 pub mod gists;
 pub mod milestones;
 pub mod narrators;
+pub mod planning;
 pub mod prompt;
 pub mod queue;
 pub mod review;

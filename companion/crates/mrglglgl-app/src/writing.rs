@@ -374,6 +374,7 @@ mod tests {
             note: None,
             preferences: None,
             gists: None,
+            plan: None,
         });
         let provider = LocalProvider::new(LocalOptions::new(path, "test", reasoning));
         let started = std::time::Instant::now();
@@ -464,6 +465,7 @@ mod tests {
                         note: None,
                         preferences: None,
                         gists: None,
+                        plan: None,
                     });
                     let started = std::time::Instant::now();
                     let result = write(
