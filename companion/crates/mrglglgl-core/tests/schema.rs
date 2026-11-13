@@ -441,6 +441,7 @@ fn reads_every_documented_field() {
         "thin",
         "title",
         "text",
+        "done",
         "first",
         "last",
         // Professions
