@@ -705,15 +705,16 @@ fn the_day_prompt_asks_for_the_length_its_notes_call_for() {
 fn a_long_session_earns_a_longer_entry_than_a_short_one() {
     let short = journal();
     let mut long = journal();
-    // Hours more of fighting: many more kinds of creature killed the same day.
+    // Hours more of play: more that happened, not more of the same. A hundred more kinds of
+    // creature would only be counted.
     let kills = &mut long.days.get_mut("2026-11-08").unwrap().kills;
-    for n in 0..120 {
+    for n in 0..6 {
         kills.insert(
             900_000 + n,
             mrglglgl_core::schema::KillAggregate {
-                count: 3,
-                name: Some(format!("Dunemaul Brute Number {n}")),
-                classification: "normal".into(),
+                count: 1,
+                name: Some(format!("Dunemaul Brute Warlord of the Southern Wastes {n}")),
+                classification: "elite".into(),
                 murloc: false,
             },
         );
@@ -850,4 +851,21 @@ fn a_week_lists_quests_by_title_only_since_its_days_tell_the_story() {
         "{} chars",
         block.chars().count()
     );
+}
+
+#[test]
+fn a_days_notes_put_its_heart_first_and_the_rest_in_passing() {
+    let j = journal();
+    let p = day(&j, &milestones::compute(&j), "en", DEFAULT_NARRATOR, false);
+    let at = |text: &str| {
+        p.user
+            .find(text)
+            .unwrap_or_else(|| panic!("{text} in {}", p.user))
+    };
+    assert!(at("What happened today") < at("The heart of the day:"));
+    assert!(at("The heart of the day:") < at("In passing, at most:"));
+    assert!(at("In passing, at most:") < at("Patterns of the day:"));
+    // The rare find is the heart; the completed quest is background.
+    assert!(at("Looted Carving Knife") < at("In passing, at most:"));
+    assert!(at("In passing, at most:") < at("Completed the quest"));
 }

@@ -1,5 +1,5 @@
 meddling: false
-hash: ef01f83335f5d1d7439b3fc0409e6c9aaaecc4e57e12219eff85adb03482692e
+hash: 0990f7a689f8950578a71c8b0df50fa35bfb5a925e6e403743c25edc1693b72c
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as a journal entry.
@@ -24,15 +24,17 @@ Notes for 2026-11-08.
 Adventurer: Wren Hollowbrook, Tauren Hunter, went from level 5 to level 6 today.
 
 What happened today (the only events you may write about):
+The heart of the day:
 - Visité pour la première fois : Bloodhoof Village, Red Rocks et Thunder Bluff
-- Tué Prairie Wolf ×23, Murloc Streamrunner ×1 et 1 autre créature
 - Tué Flatland Cougar, un élite
 - Vaincu Hogger
 - Ramassé Carving Knife
-- Terminé la quête "The Ravaged Caravan"
 - Tué par Murloc Streamrunner à Red Rocks
 - Atteint le niveau 6
 - Obtenu les jalons "Mrglglgl'isé", "Le boss, c'est moi" et "Ouvert aux affaires" et accompli le défi Legacy "Explore Moonglade"
+In passing, at most:
+- Tué Prairie Wolf ×23, Murloc Streamrunner ×1 et 1 autre créature
+- Terminé la quête "The Ravaged Caravan"
 
 Patterns of the day: new zone, rare loot, murloc death
 How to tell a day like this (where a line names the narrator, that is you, still writing as the adventurer and saying "I"):

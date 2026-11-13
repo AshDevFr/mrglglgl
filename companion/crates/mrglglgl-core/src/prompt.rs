@@ -534,6 +534,20 @@ fn quest_lines(journal: &Journal, record: &DayRecord) -> Vec<String> {
     capped(lines)
 }
 
+/// A day's beats as notes: the heart of the day, then what to mention in passing at most. A day
+/// with only one kind is a plain list.
+fn told(day: &beats::DayBeats, language: &str) -> String {
+    let (heart, background) = day.split_in(language);
+    if heart.is_empty() || background.is_empty() {
+        return bullets(&day.texts_in(language));
+    }
+    format!(
+        "The heart of the day:\n{}\nIn passing, at most:\n{}",
+        bullets(&heart),
+        bullets(&background)
+    )
+}
+
 /// Memory lines as a list, "- nothing yet" when empty, as in the tested prompt.
 fn memory_block(lines: &[String]) -> String {
     if lines.is_empty() {
@@ -635,7 +649,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
          Patterns of the day: {patterns}\n",
         date = dated(r.day),
         adventurer = adventurer(r.journal, level),
-        beats = bullets(&notes),
+        beats = told(&day_beats, r.language),
         patterns = if patterns.is_empty() {
             "none".to_string()
         } else {

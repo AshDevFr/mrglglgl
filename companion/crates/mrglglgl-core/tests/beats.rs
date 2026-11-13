@@ -785,3 +785,129 @@ fn a_long_session_together_survives_a_crowded_day() {
         day.texts()
     );
 }
+
+/// A fast-levelling day: dozens of creatures, quests, places and spells.
+fn busy_day() -> Journal {
+    let mut events = Vec::new();
+    for (i, zone) in [
+        "The Barrens",
+        "Mulgore",
+        "Durotar",
+        "Orgrimmar",
+        "Thunder Bluff",
+    ]
+    .iter()
+    .enumerate()
+    {
+        let mut e = event(EventKind::Zone);
+        e.zone = Some(zone.to_string());
+        e.subzone = Some(format!("Camp {i}"));
+        events.push(e);
+    }
+    for q in 1..=12 {
+        events.push(event(EventKind::QuestTurnin {
+            quest_id: Some(q),
+            xp: Some(100),
+            money: Some(10),
+        }));
+    }
+    for s in 1..=5 {
+        events.push(event(EventKind::Spell {
+            spell_id: Some(s),
+            name: Some(format!("Spell {s}")),
+        }));
+        events.push(event(EventKind::Gear {
+            item_id: Some(s),
+            name: Some(format!("Belt {s}")),
+            slot: None,
+            item_level: None,
+            quality: None,
+        }));
+    }
+    let mut list: Vec<(i64, String, i64, &str, bool)> = (1..=10)
+        .map(|n| (n, format!("Plainstrider {n}"), 30 - n, "normal", false))
+        .collect();
+    list.push((99, "Murloc Forager".into(), 2, "normal", true));
+    let borrowed: Vec<(i64, &str, i64, &str, bool)> = list
+        .iter()
+        .map(|(a, b, c, d, e)| (*a, b.as_str(), *c, *d, *e))
+        .collect();
+    let day = Day {
+        events: Some(events),
+        kills: kills(&borrowed),
+        ..Day::default()
+    };
+    let mut j = journal(vec![("2026-11-11", day)]);
+    for q in 1..=12 {
+        j.quests.insert(
+            q,
+            Quest {
+                title: Some(format!("Errand {q}")),
+                kind: (q == 7).then(|| "elite".to_string()),
+                ..Quest::default()
+            },
+        );
+    }
+    j
+}
+
+#[test]
+fn a_busy_day_names_a_few_of_each_list_and_counts_the_rest() {
+    let all = Thresholds {
+        max_beats: 30,
+        ..Thresholds::default()
+    };
+    let texts = beats::extract(&busy_day(), "2026-11-11", &[], &all).texts();
+    let has = |expected: &str| {
+        assert!(
+            texts.iter().any(|t| t == expected),
+            "missing {expected}: {texts:?}"
+        )
+    };
+    // Most killed first, and murlocs always, however few: the murloc is the product.
+    has(
+        "Killed Plainstrider 1 ×29, Plainstrider 2 ×28, Plainstrider 3 ×27, Murloc Forager ×2 \
+         and 161 other creatures",
+    );
+    has("Completed the elite quest \"Errand 7\"");
+    has("Completed the quests \"Errand 1\", \"Errand 2\" and \"Errand 3\", and 8 other quests");
+    has("Travelled through The Barrens, Mulgore, Durotar and 2 other zones");
+    has(
+        "Visited for the first time: The Barrens, Mulgore, Durotar, Camp 0, Camp 1, Camp 2 \
+         and 5 other places",
+    );
+    has("Learned Spell 1, Spell 2, Spell 3 and 2 other spells");
+    has("Put on a better Belt 1, Belt 2, Belt 3 and 2 other pieces");
+}
+
+#[test]
+fn the_heart_of_a_day_is_what_changed_it_and_the_rest_is_background() {
+    let all = Thresholds {
+        max_beats: 30,
+        ..Thresholds::default()
+    };
+    let day = beats::extract(&busy_day(), "2026-11-11", &[], &all);
+    let (heart, background) = day.split_in("en");
+    assert!(heart.contains(&"Completed the elite quest \"Errand 7\"".to_string()));
+    assert!(
+        heart
+            .iter()
+            .any(|t| t.starts_with("Visited for the first time"))
+    );
+    for told in [
+        "Killed",
+        "Completed the quests",
+        "Travelled",
+        "Learned",
+        "Put on",
+    ] {
+        assert!(
+            background.iter().any(|t| t.starts_with(told)),
+            "{told} in background: {background:?}"
+        );
+        assert!(
+            !heart.iter().any(|t| t.starts_with(told)),
+            "{told} not heart"
+        );
+    }
+}

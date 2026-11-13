@@ -688,18 +688,22 @@ impl Pattern {
 /// One thing worth telling about a day.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Beat {
-    /// Where the day was spent.
+    /// Where the day was spent: the first zones, and how many more.
     Travelled {
         zones: Vec<String>,
+        others: usize,
     },
-    /// Places never seen on an earlier day.
+    /// Places never seen on an earlier day: the first new zones, then the first new smaller
+    /// places, and how many more.
     FirstVisit {
         places: Vec<String>,
+        others: usize,
     },
-    /// Every named kill, collapsed by creature.
+    /// The most killed creatures, and murlocs however few; `others` counts every other kill,
+    /// named or not.
     Kills {
         lines: Vec<(String, i64)>,
-        unnamed: i64,
+        others: i64,
     },
     /// An elite, rare or world boss.
     Notable {
@@ -777,6 +781,7 @@ pub enum Beat {
     },
     Learned {
         spells: Vec<String>,
+        others: usize,
     },
     /// Mounts and pets added.
     Collected {
@@ -788,6 +793,7 @@ pub enum Beat {
     /// Better gear put on.
     Gear {
         items: Vec<String>,
+        others: usize,
     },
     /// The hearthstone set and flight paths learned.
     Travel {
@@ -814,15 +820,20 @@ pub enum Beat {
         sold: Vec<String>,
         won: Vec<String>,
     },
-    /// Quests handed in; `unnamed` counts those whose title the journal never learned.
+    /// Ordinary quests handed in: the first titles, and how many more, untitled ones included.
     QuestsDone {
         titles: Vec<String>,
-        unnamed: i64,
+        others: i64,
     },
-    /// Quests taken on and not finished the same day.
+    /// Quests taken on and not finished the same day, as [`Beat::QuestsDone`].
     QuestsTaken {
         titles: Vec<String>,
-        unnamed: i64,
+        others: i64,
+    },
+    /// Elite, dungeon, raid and group quests handed in, as `(title, kind)`: rarer than errands,
+    /// and told as the day's work rather than in passing.
+    BigQuests {
+        quests: Vec<(String, String)>,
     },
 }
 
@@ -838,6 +849,7 @@ impl Beat {
             Beat::LevelUp { .. } => 4,
             // A finished quest is often what the day was for.
             Beat::QuestsDone { .. } => 4,
+            Beat::BigQuests { .. } => 4,
             Beat::Notable { .. } => 5,
             Beat::Bosses { .. } => 6,
             Beat::FirstVisit { .. } => 7,
@@ -884,6 +896,7 @@ impl Beat {
             Beat::Loot { .. } => 8,
             Beat::SeenLoot { .. } => 8,
             Beat::QuestsDone { .. } => 8,
+            Beat::BigQuests { .. } => 8,
             Beat::Death { .. } => 9,
             Beat::LevelUp { .. } => 10,
             Beat::Profession { .. } => 10,
@@ -903,6 +916,45 @@ impl Beat {
         }
     }
 
+    /// Whether the beat is part of what made the day, to be told properly, rather than
+    /// background a narrator mentions in passing at most. Routine work (kills, errands, travel,
+    /// crafting, skills, money, gear) is background however much of it there was.
+    pub fn is_heart(&self) -> bool {
+        match self {
+            Beat::Farewell
+            | Beat::Death { .. }
+            | Beat::LevelUp { .. }
+            | Beat::Milestones { .. }
+            | Beat::Notable { .. }
+            | Beat::Bosses { .. }
+            | Beat::Instances { .. }
+            | Beat::Loot { .. }
+            | Beat::Boot { .. }
+            | Beat::FirstVisit { .. }
+            | Beat::Spoke { .. }
+            | Beat::Reputation { .. }
+            | Beat::Collected { .. }
+            | Beat::BigQuests { .. } => true,
+            Beat::Companions { minutes, .. } => !minutes.is_empty(),
+            Beat::Travelled { .. }
+            | Beat::Kills { .. }
+            | Beat::Fishing { .. }
+            | Beat::SeenLoot { .. }
+            | Beat::Profession { .. }
+            | Beat::Crafted { .. }
+            | Beat::Gathered { .. }
+            | Beat::Practice { .. }
+            | Beat::Money { .. }
+            | Beat::Learned { .. }
+            | Beat::Gear { .. }
+            | Beat::Travel { .. }
+            | Beat::Duels { .. }
+            | Beat::Auctions { .. }
+            | Beat::QuestsDone { .. }
+            | Beat::QuestsTaken { .. } => false,
+        }
+    }
+
     /// The beat as a line of notes for the prompt, in English.
     /// The beat in the prose language: French for `"fr"`, English otherwise. Game names are kept
     /// as recorded either way.
@@ -916,23 +968,27 @@ impl Beat {
 
     pub fn text(&self) -> String {
         match self {
-            Beat::Travelled { zones } if zones.len() == 1 => {
+            Beat::Travelled { zones, others: 0 } if zones.len() == 1 => {
                 format!("Spent the day in {}", zones[0])
             }
-            Beat::Travelled { zones } => format!("Travelled through {}", and_list(zones)),
-            Beat::FirstVisit { places } => {
-                format!("Visited for the first time: {}", and_list(places))
-            }
-            Beat::Kills { lines, unnamed } => {
+            Beat::Travelled { zones, others } => format!(
+                "Travelled through {}",
+                and_list(&with_others(zones, *others, "other zone", "other zones"))
+            ),
+            Beat::FirstVisit { places, others } => format!(
+                "Visited for the first time: {}",
+                and_list(&with_others(places, *others, "other place", "other places"))
+            ),
+            Beat::Kills { lines, others } => {
                 let mut parts: Vec<String> = lines
                     .iter()
                     .map(|(name, count)| format!("{name} ×{count}"))
                     .collect();
-                if *unnamed > 0 {
-                    parts.push(if *unnamed == 1 {
+                if *others > 0 {
+                    parts.push(if *others == 1 {
                         "1 other creature".to_string()
                     } else {
-                        format!("{unnamed} other creatures")
+                        format!("{others} other creatures")
                     });
                 }
                 format!("Killed {}", and_list(&parts))
@@ -1089,7 +1145,10 @@ impl Beat {
                 }
                 parts.join("; ")
             }
-            Beat::Learned { spells } => format!("Learned {}", and_list(spells)),
+            Beat::Learned { spells, others } => format!(
+                "Learned {}",
+                and_list(&with_others(spells, *others, "other spell", "other spells"))
+            ),
             Beat::Collected { names } => format!("Added {} to the collection", and_list(names)),
             Beat::Reputation { lines } => {
                 let parts: Vec<String> = lines
@@ -1098,7 +1157,10 @@ impl Beat {
                     .collect();
                 format!("Became {}", and_list(&parts))
             }
-            Beat::Gear { items } => format!("Put on a better {}", and_list(items)),
+            Beat::Gear { items, others } => format!(
+                "Put on a better {}",
+                and_list(&with_others(items, *others, "other piece", "other pieces"))
+            ),
             Beat::Travel {
                 bound,
                 flight_paths,
@@ -1181,12 +1243,22 @@ impl Beat {
                 Some(skill) => format!("Gathered {} ({skill})", and_list(&counted(items))),
                 None => format!("Gathered {}", and_list(&counted(items))),
             },
-            Beat::QuestsDone { titles, unnamed } => {
-                format!("Completed {}", quest_list(titles, *unnamed))
+            Beat::QuestsDone { titles, others } => {
+                format!("Completed {}", quest_list(titles, *others))
             }
-            Beat::QuestsTaken { titles, unnamed } => {
-                format!("Took on {}", quest_list(titles, *unnamed))
+            Beat::QuestsTaken { titles, others } => {
+                format!("Took on {}", quest_list(titles, *others))
             }
+            Beat::BigQuests { quests } => match quests.as_slice() {
+                [(title, kind)] => format!("Completed the {kind} quest \"{title}\""),
+                _ => {
+                    let parts: Vec<String> = quests
+                        .iter()
+                        .map(|(title, kind)| format!("\"{title}\" ({kind})"))
+                        .collect();
+                    format!("Completed {}", and_list(&parts))
+                }
+            },
             Beat::Practice { skills } => {
                 let parts: Vec<String> = skills
                     .iter()
@@ -1243,8 +1315,8 @@ fn mostly(side: &BTreeMap<String, i64>) -> Option<String> {
 }
 
 /// "the quest \"A\"", "the quests \"A\" and \"B\", and 1 other quest", "2 quests".
-fn quest_list(titles: &[String], unnamed: i64) -> String {
-    let others = |n: i64, other: bool| {
+fn quest_list(titles: &[String], others: i64) -> String {
+    let counted_quests = |n: i64, other: bool| {
         let kind = if other { "other quest" } else { "quest" };
         if n == 1 {
             format!("1 {kind}")
@@ -1253,7 +1325,7 @@ fn quest_list(titles: &[String], unnamed: i64) -> String {
         }
     };
     if titles.is_empty() {
-        return others(unnamed, false);
+        return counted_quests(others, false);
     }
     let quoted: Vec<String> = titles.iter().map(|t| format!("\"{t}\"")).collect();
     let named = if titles.len() == 1 {
@@ -1261,8 +1333,8 @@ fn quest_list(titles: &[String], unnamed: i64) -> String {
     } else {
         format!("the quests {}", and_list(&quoted))
     };
-    if unnamed > 0 {
-        format!("{named}, and {}", others(unnamed, true))
+    if others > 0 {
+        format!("{named}, and {}", counted_quests(others, true))
     } else {
         named
     }
@@ -1283,6 +1355,26 @@ fn counted(items: &[(String, i64)]) -> Vec<String> {
         .iter()
         .map(|(name, count)| format!("{name} ×{count}"))
         .collect()
+}
+
+/// The most names a background list keeps; the rest are counted.
+pub const LISTED: usize = 3;
+
+/// The first [`LISTED`] of `items` and how many more there were.
+fn first(items: &[String]) -> (Vec<String>, usize) {
+    let kept = items.iter().take(LISTED).cloned().collect();
+    (kept, items.len().saturating_sub(LISTED))
+}
+
+/// `items`, then "1 other …" or "N other …" when `others` is not zero.
+fn with_others(items: &[String], others: usize, one: &str, many: &str) -> Vec<String> {
+    let mut list = items.to_vec();
+    match others {
+        0 => {}
+        1 => list.push(format!("1 {one}")),
+        n => list.push(format!("{n} {many}")),
+    }
+    list
 }
 
 fn and_list(items: &[String]) -> String {
@@ -1308,6 +1400,15 @@ impl DayBeats {
     /// The beats in the prose language: French for `"fr"`, English otherwise.
     pub fn texts_in(&self, language: &str) -> Vec<String> {
         self.beats.iter().map(|b| b.text_in(language)).collect()
+    }
+
+    /// The beats in the prose language, split into the heart of the day and the background
+    /// (see [`Beat::is_heart`]), each in telling order.
+    pub fn split_in(&self, language: &str) -> (Vec<String>, Vec<String>) {
+        let (heart, background): (Vec<&Beat>, Vec<&Beat>) =
+            self.beats.iter().partition(|b| b.is_heart());
+        let texts = |beats: Vec<&Beat>| beats.iter().map(|b| b.text_in(language)).collect();
+        (texts(heart), texts(background))
     }
 }
 
@@ -1348,9 +1449,8 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
 
     let mut beats = Vec::new();
     if !record.zones.is_empty() {
-        beats.push(Beat::Travelled {
-            zones: record.zones.clone(),
-        });
+        let (zones, others) = first(&record.zones);
+        beats.push(Beat::Travelled { zones, others });
     }
     let mut new_places = Vec::new();
     for p in record.places() {
@@ -1359,8 +1459,16 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         }
     }
     if !new_places.is_empty() {
+        let (zones, smaller): (Vec<String>, Vec<String>) = new_places
+            .iter()
+            .cloned()
+            .partition(|p| record.zones.contains(p));
+        let (mut places, more_zones) = first(&zones);
+        let (smaller, more_smaller) = first(&smaller);
+        places.extend(smaller);
         beats.push(Beat::FirstVisit {
-            places: new_places.clone(),
+            places,
+            others: more_zones + more_smaller,
         });
     }
 
@@ -1378,10 +1486,21 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         .sum::<i64>()
         + record.anon_kills;
     if !named.is_empty() || unnamed > 0 {
-        beats.push(Beat::Kills {
-            lines: named,
-            unnamed,
-        });
+        // The most killed, in order, and murlocs however few.
+        let mut lines = Vec::new();
+        let mut others = unnamed;
+        for (i, line) in named.into_iter().enumerate() {
+            let murloc = record
+                .kills
+                .iter()
+                .any(|k| k.murloc && k.name.as_ref() == Some(&line.0));
+            if i < LISTED || murloc {
+                lines.push(line);
+            } else {
+                others += line.1;
+            }
+        }
+        beats.push(Beat::Kills { lines, others });
     }
     for k in &record.kills {
         if let (true, Some(name)) = (NOTABLE.contains(&k.classification.as_str()), &k.name) {
@@ -1521,18 +1640,27 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
     for (via, items) in gathered {
         beats.push(Beat::Gathered { via, items });
     }
-    // A quest taken and handed in the same day is told once, as completed.
+    // A quest taken and handed in the same day is told once, as completed. Elite, dungeon, raid
+    // and group quests are told apart, all of them; the rest by their first titles and a count.
     let titled = |ids: &[i64]| {
         let mut titles: Vec<String> = Vec::new();
-        let mut unnamed = 0;
+        let mut untitled = 0;
         for id in ids {
             match journal.quests.get(id).and_then(|q| q.title.clone()) {
                 Some(title) if !titles.contains(&title) => titles.push(title),
                 Some(_) => {}
-                None => unnamed += 1,
+                None => untitled += 1,
             }
         }
-        (titles, unnamed)
+        let (titles, more) = first(&titles);
+        (titles, untitled + more as i64)
+    };
+    let kind_of = |id: &i64| journal.quests.get(id).and_then(|q| q.kind.clone());
+    let is_big = |id: &i64| {
+        journal
+            .quests
+            .get(id)
+            .is_some_and(|q| q.kind.is_some() && q.title.is_some())
     };
     let mut done: Vec<i64> = Vec::new();
     for id in &record.turned_in {
@@ -1546,13 +1674,27 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
             taken.push(*id);
         }
     }
-    if !done.is_empty() {
-        let (titles, unnamed) = titled(&done);
-        beats.push(Beat::QuestsDone { titles, unnamed });
+    let mut big: Vec<(String, String)> = Vec::new();
+    for id in &done {
+        if let (Some(kind), Some(title)) = (
+            kind_of(id),
+            journal.quests.get(id).and_then(|q| q.title.clone()),
+        ) && !big.iter().any(|(t, _)| *t == title)
+        {
+            big.push((title, kind));
+        }
+    }
+    if !big.is_empty() {
+        beats.push(Beat::BigQuests { quests: big });
+    }
+    let ordinary: Vec<i64> = done.iter().copied().filter(|id| !is_big(id)).collect();
+    if !ordinary.is_empty() {
+        let (titles, others) = titled(&ordinary);
+        beats.push(Beat::QuestsDone { titles, others });
     }
     if !taken.is_empty() {
-        let (titles, unnamed) = titled(&taken);
-        beats.push(Beat::QuestsTaken { titles, unnamed });
+        let (titles, others) = titled(&taken);
+        beats.push(Beat::QuestsTaken { titles, others });
     }
     let practice: Vec<(String, i64, i64)> = record
         .skills
@@ -1601,9 +1743,8 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         });
     }
     if !p.gear.is_empty() {
-        beats.push(Beat::Gear {
-            items: p.gear.clone(),
-        });
+        let (items, others) = first(&p.gear);
+        beats.push(Beat::Gear { items, others });
     }
     if p.duels_won + p.duels_lost > 0 {
         beats.push(Beat::Duels {
@@ -1612,9 +1753,8 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
         });
     }
     if !p.spells.is_empty() {
-        beats.push(Beat::Learned {
-            spells: p.spells.clone(),
-        });
+        let (spells, others) = first(&p.spells);
+        beats.push(Beat::Learned { spells, others });
     }
     if p.bound.is_some() || !p.flight_paths.is_empty() {
         beats.push(Beat::Travel {

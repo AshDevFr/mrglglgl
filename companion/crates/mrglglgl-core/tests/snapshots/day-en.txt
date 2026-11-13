@@ -1,5 +1,5 @@
 meddling: false
-hash: 349ad8fa81029f15727953996290baf6bfad05ce3ef47e7b40c6c161e41867e8
+hash: 12ef56f9b1ba69cf846e1d8c2e6764caac15b4a64fd921fd3437d2464227314e
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as a journal entry.
@@ -24,15 +24,17 @@ Notes for 2026-11-08.
 Adventurer: Wren Hollowbrook, Tauren Hunter, went from level 5 to level 6 today.
 
 What happened today (the only events you may write about):
+The heart of the day:
 - Visited for the first time: Bloodhoof Village, Red Rocks and Thunder Bluff
-- Killed Prairie Wolf ×23, Murloc Streamrunner ×1 and 1 other creature
 - Killed Flatland Cougar, an elite
 - Defeated Hogger
 - Looted Carving Knife
-- Completed the quest "The Ravaged Caravan"
 - Died to a Murloc Streamrunner in Red Rocks
 - Reached level 6
 - Earned the milestones "Mrglglgl'd", "Bossed Around" and "Open for Business" and completed the Legacy Challenge "Explore Moonglade"
+In passing, at most:
+- Killed Prairie Wolf ×23, Murloc Streamrunner ×1 and 1 other creature
+- Completed the quest "The Ravaged Caravan"
 
 Patterns of the day: new zone, rare loot, murloc death
 How to tell a day like this (where a line names the narrator, that is you, still writing as the adventurer and saying "I"):

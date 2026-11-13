@@ -12,6 +12,17 @@ fn et_list(items: &[String]) -> String {
     }
 }
 
+/// `items`, then "1 autre …" or "N autres …" when `others` is not zero.
+fn with_others(items: &[String], others: usize, one: &str, many: &str) -> Vec<String> {
+    let mut list = items.to_vec();
+    match others {
+        0 => {}
+        1 => list.push(format!("1 {one}")),
+        n => list.push(format!("{n} {many}")),
+    }
+    list
+}
+
 fn counted(items: &[(String, i64)]) -> Vec<String> {
     items
         .iter()
@@ -52,15 +63,15 @@ fn money_place(source: &Option<String>, earned: bool) -> Option<&'static str> {
     })
 }
 
-fn quest_list(titles: &[String], unnamed: i64) -> String {
-    let others = |n: i64, other: bool| match (n, other) {
+fn quest_list(titles: &[String], others: i64) -> String {
+    let counted_quests = |n: i64, other: bool| match (n, other) {
         (1, true) => "1 autre quête".to_string(),
         (n, true) => format!("{n} autres quêtes"),
         (1, false) => "1 quête".to_string(),
         (n, false) => format!("{n} quêtes"),
     };
     if titles.is_empty() {
-        return others(unnamed, false);
+        return counted_quests(others, false);
     }
     let quoted: Vec<String> = titles.iter().map(|t| format!("\"{t}\"")).collect();
     let named = if titles.len() == 1 {
@@ -68,8 +79,8 @@ fn quest_list(titles: &[String], unnamed: i64) -> String {
     } else {
         format!("les quêtes {}", et_list(&quoted))
     };
-    if unnamed > 0 {
-        format!("{named}, et {}", others(unnamed, true))
+    if others > 0 {
+        format!("{named}, et {}", counted_quests(others, true))
     } else {
         named
     }
@@ -87,19 +98,23 @@ impl Beat {
     /// The beat in French.
     pub fn text_fr(&self) -> String {
         match self {
-            Beat::Travelled { zones } if zones.len() == 1 => {
+            Beat::Travelled { zones, others: 0 } if zones.len() == 1 => {
                 format!("Passé la journée à {}", zones[0])
             }
-            Beat::Travelled { zones } => format!("Traversé {}", et_list(zones)),
-            Beat::FirstVisit { places } => {
-                format!("Visité pour la première fois : {}", et_list(places))
-            }
-            Beat::Kills { lines, unnamed } => {
+            Beat::Travelled { zones, others } => format!(
+                "Traversé {}",
+                et_list(&with_others(zones, *others, "autre zone", "autres zones"))
+            ),
+            Beat::FirstVisit { places, others } => format!(
+                "Visité pour la première fois : {}",
+                et_list(&with_others(places, *others, "autre lieu", "autres lieux"))
+            ),
+            Beat::Kills { lines, others } => {
                 let mut parts: Vec<String> = lines
                     .iter()
                     .map(|(name, count)| format!("{name} ×{count}"))
                     .collect();
-                match unnamed {
+                match others {
                     0 => {}
                     1 => parts.push("1 autre créature".to_string()),
                     n => parts.push(format!("{n} autres créatures")),
@@ -243,7 +258,10 @@ impl Beat {
                 }
                 parts.join(" ; ")
             }
-            Beat::Learned { spells } => format!("Appris {}", et_list(spells)),
+            Beat::Learned { spells, others } => format!(
+                "Appris {}",
+                et_list(&with_others(spells, *others, "autre sort", "autres sorts"))
+            ),
             Beat::Collected { names } => format!("Ajouté {} à la collection", et_list(names)),
             Beat::Reputation { lines } => {
                 let parts: Vec<String> = lines
@@ -252,7 +270,10 @@ impl Beat {
                     .collect();
                 format!("Devenu {}", et_list(&parts))
             }
-            Beat::Gear { items } => format!("Équipé un meilleur {}", et_list(items)),
+            Beat::Gear { items, others } => format!(
+                "Équipé un meilleur {}",
+                et_list(&with_others(items, *others, "autre pièce", "autres pièces"))
+            ),
             Beat::Travel {
                 bound,
                 flight_paths,
@@ -324,11 +345,29 @@ impl Beat {
                 Some(skill) => format!("Récolté {} ({skill})", et_list(&counted(items))),
                 None => format!("Récolté {}", et_list(&counted(items))),
             },
-            Beat::QuestsDone { titles, unnamed } => {
-                format!("Terminé {}", quest_list(titles, *unnamed))
+            Beat::QuestsDone { titles, others } => {
+                format!("Terminé {}", quest_list(titles, *others))
             }
-            Beat::QuestsTaken { titles, unnamed } => {
-                format!("Accepté {}", quest_list(titles, *unnamed))
+            Beat::QuestsTaken { titles, others } => {
+                format!("Accepté {}", quest_list(titles, *others))
+            }
+            Beat::BigQuests { quests } => {
+                let kind = |k: &str| match k {
+                    "elite" => "élite".to_string(),
+                    "dungeon" => "donjon".to_string(),
+                    "group" => "groupe".to_string(),
+                    other => other.to_string(),
+                };
+                match quests.as_slice() {
+                    [(title, k)] => format!("Terminé la quête {} \"{title}\"", kind(k)),
+                    _ => {
+                        let parts: Vec<String> = quests
+                            .iter()
+                            .map(|(title, k)| format!("\"{title}\" ({})", kind(k)))
+                            .collect();
+                        format!("Terminé {}", et_list(&parts))
+                    }
+                }
             }
             Beat::Practice { skills } => {
                 let parts: Vec<String> = skills
