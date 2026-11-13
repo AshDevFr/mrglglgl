@@ -390,14 +390,18 @@ fn system(
          Rules, in order of importance:\n\
          1. Facts. Every event in the entry must come from the list \"{events}\". Do not add \
          events, people, places, items, dialogue or numbers. You may describe how things felt, \
-         the light, the weather of the mood, but nothing that happened. Keep every number and \
-         name exactly as given. Do not invent lore beyond what is given.\n\
+         the light, the weather of the mood, but nothing that happened. When you name something \
+         or give a number, use it exactly as given. Do not invent lore beyond what is given. You \
+         do not have to mention everything: the notes are a ledger, not an outline. Pick the two \
+         to four moments that make {when} a story and tell them properly; fold the rest into a \
+         short phrase (\"a string of errands\", \"a long road of plainstriders\") or leave it \
+         out. Never list more than three names in a row.\n\
          2. Earlier days are memory only. Never describe them as happening {when}.\n\
          3. Voice. {point_of_view} {voice}\n\
          4. The murloc. {murloc}\n\
-         5. Length and form. {length}. Give each paragraph its own part of {when}: a place, a \
-         stretch of fighting, a craft, who was with you. Leave a blank line between paragraphs. \
-         Say each thing once. Output only the entry: no title, no greeting, no signature.\n\
+         5. Length and form. {length}. Give each paragraph one of the moments you chose. Leave \
+         a blank line between paragraphs. Say each thing once. Output only the entry: no title, \
+         no greeting, no signature.\n\
          6. Language. Write in {language}. Keep names of places, creatures, quests and people \
          exactly as given, untranslated.\n\
          {style}\n\

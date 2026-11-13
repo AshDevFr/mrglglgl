@@ -359,10 +359,17 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
         let expected = tested(language, "## System")
             .replace("{language}", name)
             // The spec asks for an explicit ban on invented lore.
+            // The spec asks for an explicit ban on invented lore. "Keep every name" read as
+            // "name everything": a 27-quest day came back as a list of 27 titles, so the rule
+            // now limits what is added, not what is left out, and asks the model to choose.
             .replace(
                 "Keep every number and name exactly as given.",
-                "Keep every number and name exactly as given. Do not invent lore beyond what is \
-                 given.",
+                "When you name something or give a number, use it exactly as given. Do not \
+                 invent lore beyond what is given. You do not have to mention everything: the \
+                 notes are a ledger, not an outline. Pick the two to four moments that make \
+                 today a story and tell them properly; fold the rest into a short phrase (\"a \
+                 string of errands\", \"a long road of plainstriders\") or leave it out. Never \
+                 list more than three names in a row.",
             )
             // The footnote is asked for exactly when the murloc meddles, so its share is fixed.
             .replace(
@@ -387,9 +394,8 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
             .replace("5. Length. ", "5. Length and form. ")
             .replace(
                 "then the footnote. Output only",
-                "then the footnote. Give each paragraph its own part of today: a place, a \
-                 stretch of fighting, a craft, who was with you. Leave a blank line between \
-                 paragraphs. Say each thing once. Output only",
+                "then the footnote. Give each paragraph one of the moments you chose. Leave a \
+                 blank line between paragraphs. Say each thing once. Output only",
             );
         assert_eq!(p.system, expected, "{language}");
 
