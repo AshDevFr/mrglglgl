@@ -21,7 +21,7 @@ local CATEGORIES = {
 	questText = {
 		journal = function(journal)
 			for _, quest in pairs(journal.quests) do
-				quest.text = nil
+				quest.text, quest.done = nil, nil
 			end
 		end,
 	},

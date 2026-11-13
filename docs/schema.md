@@ -256,6 +256,7 @@ Fields added by later work are documented here as they land.
 |---|---|---|
 | `title` | string | Quest title |
 | `text` | string? | Quest description; absent when `record.questText` was off, and removed once the quest was last touched before the retention window (the title stays) |
+| `done` | string? | What the quest giver says when the quest is handed in, from the reward frame; absent and removed as `text` is |
 | `last` | string? | Day the quest was last accepted or turned in, `"YYYY-MM-DD"` |
 | `lv` | int? | The quest's level, from the quest log when it was accepted; absent when the client did not give it |
 | `kind` | string? | `"elite"`, `"dungeon"`, `"raid"` or `"group"`, from the quest log's tag; absent for an ordinary quest or when the client did not give it |

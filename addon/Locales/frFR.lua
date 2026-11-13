@@ -68,7 +68,7 @@ ns.RegisterLocale("frFR", {
 	TIP_SESSIONS = "Quand tu te connectes et te déconnectes.",
 	TIP_LEVELS = "Chaque niveau gagné.",
 	TIP_QUESTS = "Les quêtes que tu acceptes et rends, avec leur titre.",
-	TIP_QUEST_TEXT = "La description de chaque quête, gardée une fois par quête. L'essentiel de la taille du journal.",
+	TIP_QUEST_TEXT = "La description de chaque quête et ce que dit son donneur quand elle est rendue, gardées une fois par quête. L'essentiel de la taille du journal.",
 	TIP_ZONES = "Les zones et sous-zones où tu entres, et les lieux que tu découvres.",
 	TIP_KILLS = "Ce que toi et ton groupe tuez, compté par créature et par jour. En donjon et en raid, seulement un total.",
 	TIP_DEATHS = "Tes morts, et ce qui t'a tué.",

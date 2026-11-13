@@ -79,11 +79,11 @@ function Compact.run(journal, now, keepDays)
 			Digest.thin(day.digest)
 		end
 	end
-	-- Quest descriptions are kept while the quest is inside the window and only the title after:
-	-- the description is most of a journal's size, and the app has archived it by then.
+	-- Quest descriptions and hand-in texts are kept while the quest is inside the window and only
+	-- the title after: they are most of a journal's size, and the app has archived them by then.
 	for _, quest in pairs(journal.quests or {}) do
-		if quest.text and (quest.last == nil or quest.last < cutoff) then
-			quest.text = nil
+		if quest.last == nil or quest.last < cutoff then
+			quest.text, quest.done = nil, nil
 		end
 	end
 	return compacted

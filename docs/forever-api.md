@@ -74,6 +74,7 @@ addon code can pass them back to the client but cannot read, compare or print th
 | ID | Item | Status | Evidence |
 |---|---|---|---|
 | API-quest-detail | `QUEST_DETAIL(questStartItemID)`; while the detail frame is open, `GetTitleText()` and `GetQuestText()` return the title and description, `GetQuestID()` the quest | verified-by-source | API docs (QuestLog); the mainline `QuestInfo.lua` calls `GetTitleText()` and `GetQuestText()` for the detail panel |
+| API-quest-complete | `QUEST_COMPLETE()`; while the reward frame is open, `GetRewardText()` returns what the quest giver says on hand-in and `GetQuestID()` the quest | unconfirmed | API docs (QuestLog); the mainline `QuestInfo.lua` reads `GetRewardText()` for the reward panel. Fallback: without the text the quest keeps its title and description only |
 | API-quest-accepted | `QUEST_ACCEPTED(questId)`: one argument, no quest log index (unlike Classic Era) | verified-by-source | API docs (QuestLog) |
 | API-quest-turnin | `QUEST_TURNED_IN(questID, xpReward, moneyReward)` | verified-by-source | API docs (QuestLog) |
 | API-questlog-fallback | Quest titles by ID via `C_QuestLog.GetTitleForQuestID(questID)`; quest log entries via `C_QuestLog.GetInfo` and `C_QuestLog.GetQuestIDForLogIndex`. The legacy `GetQuestLogQuestText` is only called from Classic-family UI code | verified-by-source | API docs (QuestLog); UI call sites |

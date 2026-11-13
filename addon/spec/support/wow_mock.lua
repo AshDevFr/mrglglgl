@@ -153,9 +153,15 @@ function Mock.install()
 		GetRecapEvents = function() return Mock.recap or {} end,
 	}
 	Mock.questDetail, Mock.questTitles, Mock.questLogSelections = nil, {}, 0
-	_G.GetQuestID = function() return Mock.questDetail and Mock.questDetail.id end
+	_G.GetQuestID = function()
+		local frame = Mock.questComplete or Mock.questDetail
+		return frame and frame.id
+	end
 	_G.GetTitleText = function() return Mock.questDetail and Mock.questDetail.title end
 	_G.GetQuestText = function() return Mock.questDetail and Mock.questDetail.text end
+	-- The quest reward frame, open at QUEST_COMPLETE: { id = 749, text = "Thanks." }.
+	Mock.questComplete = nil
+	_G.GetRewardText = function() return Mock.questComplete and Mock.questComplete.text end
 	-- Quests in the log by ID: { level = 9, tagID = 81, isElite = false }.
 	Mock.questLog = {}
 	_G.C_QuestLog = {

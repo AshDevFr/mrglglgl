@@ -70,7 +70,7 @@ ns.RegisterLocale("enUS", {
 	TIP_SESSIONS = "When you log in and out.",
 	TIP_LEVELS = "Each level you gain.",
 	TIP_QUESTS = "Quests you accept and turn in, with their titles.",
-	TIP_QUEST_TEXT = "Each quest's description, stored once per quest. Most of the journal's size.",
+	TIP_QUEST_TEXT = "Each quest's description and what its giver says when it is handed in, stored once per quest. Most of the journal's size.",
 	TIP_ZONES = "Zones and subzones you enter, and places you discover.",
 	TIP_KILLS = "What you and your party kill, counted per creature per day. In dungeons and raids only a count.",
 	TIP_DEATHS = "Your deaths, and what killed you.",

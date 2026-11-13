@@ -126,11 +126,12 @@ describe("Compact", function()
 		local now = noon(2026, 11, 20)
 		local journal = { days = {}, quests = {
 			[1] = { title = "Recent", text = "Kept.", last = os.date("%Y-%m-%d", now - 3 * DAY) },
-			[2] = { title = "Old", text = "Dropped.", last = os.date("%Y-%m-%d", now - 40 * DAY) },
+			[2] = { title = "Old", text = "Dropped.", done = "Dropped too.", last = os.date("%Y-%m-%d", now - 40 * DAY) },
 			[3] = { title = "Unknown age", text = "Dropped." },
 		} }
 		ns.Compact.run(journal, now, 14)
 		assert.same({ "Kept.", nil, nil }, { journal.quests[1].text, journal.quests[2].text, journal.quests[3].text })
+		assert.is_nil(journal.quests[2].done)
 		assert.same({ "Recent", "Old", "Unknown age" }, { journal.quests[1].title, journal.quests[2].title,
 			journal.quests[3].title })
 	end)

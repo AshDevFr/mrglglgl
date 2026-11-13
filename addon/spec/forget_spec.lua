@@ -21,7 +21,7 @@ local function journal()
 				fish = { { item = 6150, n = 1 } }, deaths = { { env = "Drowning" } }, onlyFished = false,
 			} },
 		},
-		quests = { [749] = { title = "The Ravaged Caravan", text = "Wolves." } },
+		quests = { [749] = { title = "The Ravaged Caravan", text = "Wolves.", done = "Thanks." } },
 		companions = { ["Tamsin-Reedwater"] = { first = "2026-10-01", last = "2026-11-20", days = 2 } },
 		stats = { boots = 1, murlocsSlain = 2, deathsByMurloc = 0, drownings = 1 },
 	}

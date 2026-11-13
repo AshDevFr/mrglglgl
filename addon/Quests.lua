@@ -1,12 +1,15 @@
--- Quests accepted and turned in, with each quest's title and description stored once.
+-- Quests accepted and turned in, with each quest's title, description and hand-in text stored
+-- once.
 --
 -- The description is read from the quest detail frame while it is open (QUEST_DETAIL), which
 -- changes nothing in the player's quest log, and kept until QUEST_ACCEPTED confirms the quest.
+-- The hand-in text (what the quest giver says when it is done) is read the same way from the
+-- reward frame (QUEST_COMPLETE) and kept until QUEST_TURNED_IN confirms it.
 local _, ns = ...
 
 local Storage, Day, Compat = ns.Storage, ns.Day, ns.Compat
 
-local pending
+local pending, pendingDone
 
 ns.On("QUEST_DETAIL", function()
 	if not Storage.records("quests") then
@@ -14,6 +17,14 @@ ns.On("QUEST_DETAIL", function()
 	end
 	local questId, title, text = Compat.GetQuestDetailText()
 	pending = { id = questId, title = title, text = text }
+end)
+
+ns.On("QUEST_COMPLETE", function()
+	if not Storage.records("quests") then
+		return
+	end
+	local questId, text = Compat.GetQuestRewardText()
+	pendingDone = { id = questId, text = text }
 end)
 
 local function storeQuest(questId)
@@ -57,6 +68,11 @@ ns.On("QUEST_TURNED_IN", function(_, questId, xp, money)
 		end
 		if quest then
 			quest.last = Day.key(time())
+			local done = pendingDone and pendingDone.id == questId and pendingDone.text or nil
+			if quest.done == nil and done and done ~= "" and Storage.records("questText") then
+				quest.done = done
+			end
 		end
+		pendingDone = nil
 	end
 end)

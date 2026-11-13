@@ -56,6 +56,12 @@ function Compat.GetQuestDetailText()
 	return GetQuestID(), GetTitleText(), GetQuestText()
 end
 
+-- Only valid while the quest reward frame is open (QUEST_COMPLETE): what the quest giver says
+-- when the quest is handed in.
+function Compat.GetQuestRewardText()
+	return GetQuestID(), GetRewardText()
+end
+
 -- Tag IDs the quest log uses for the kinds of quest players mark in brackets ([9D], [9R], [9G]).
 local QUEST_TAGS = { [1] = "group", [62] = "raid", [81] = "dungeon" }
 

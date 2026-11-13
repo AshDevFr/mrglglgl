@@ -71,6 +71,29 @@ describe("Quests", function()
 			_G.MrglglglCharDB.quests[749])
 	end)
 
+	it("keeps what the quest giver says when the quest is handed in", function()
+		offer(749, "The Ravaged Caravan", "Wolves attacked a caravan.")
+		Mock.fire("QUEST_ACCEPTED", 749)
+		Mock.questComplete = { id = 749, text = "You have done the Horde a service." }
+		Mock.fire("QUEST_COMPLETE")
+		Mock.fire("QUEST_TURNED_IN", 749, 450, 75)
+		assert.equals("You have done the Horde a service.", _G.MrglglglCharDB.quests[749].done)
+	end)
+
+	it("keeps no hand-in text for another quest, or when quest text is off", function()
+		Mock.questComplete = { id = 750, text = "Not this one." }
+		Mock.fire("QUEST_COMPLETE")
+		Mock.questTitles[749] = "The Ravaged Caravan"
+		Mock.fire("QUEST_TURNED_IN", 749, 450, 75)
+		assert.is_nil(_G.MrglglglCharDB.quests[749].done)
+
+		_G.MrglglglDB.settings.record.questText = false
+		Mock.questComplete = { id = 749, text = "Thanks." }
+		Mock.fire("QUEST_COMPLETE")
+		Mock.fire("QUEST_TURNED_IN", 749, 450, 75)
+		assert.is_nil(_G.MrglglglCharDB.quests[749].done)
+	end)
+
 	it("records a turn-in with its rewards", function()
 		Mock.fire("QUEST_TURNED_IN", 749, 450, 75)
 		local turnin = events("quest_turnin")[1]
