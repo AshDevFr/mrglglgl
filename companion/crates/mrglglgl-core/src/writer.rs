@@ -89,7 +89,7 @@ pub struct WriteOptions {
 }
 
 /// Strips what small models add around an entry: reasoning blocks and surrounding blank space.
-fn clean(text: &str) -> String {
+pub(crate) fn clean(text: &str) -> String {
     let mut out = text.to_string();
     while let (Some(start), Some(end)) = (out.find("<think>"), out.find("</think>")) {
         if end < start {

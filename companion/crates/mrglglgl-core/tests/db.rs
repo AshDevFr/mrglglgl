@@ -159,6 +159,7 @@ fn database_with_backup_count(dir: &std::path::Path, count: &str) {
     conn.execute_batch(
         "DROP TABLE IF EXISTS continuity; DROP TABLE IF EXISTS stories;
          DROP TABLE IF EXISTS write_queue; DROP TABLE IF EXISTS archive_quarantine;
+         DROP TABLE IF EXISTS quest_gists;
          ALTER TABLE archive_days DROP COLUMN format;
          ALTER TABLE archive_journals DROP COLUMN format;
          ALTER TABLE characters DROP COLUMN unused_data;
@@ -369,7 +370,8 @@ fn an_entry_with_no_text_is_dropped_so_its_day_waits_to_be_written() {
         [],
     )
     .unwrap();
-    conn.pragma_update(None, "user_version", CURRENT_VERSION - 2)
+    conn.execute("DROP TABLE quest_gists", []).unwrap();
+    conn.pragma_update(None, "user_version", CURRENT_VERSION - 3)
         .unwrap();
     drop(conn);
 
@@ -421,7 +423,8 @@ fn a_set_aside_reason_stored_as_an_english_sentence_keeps_only_what_was_flagged(
         .unwrap();
     }
     let conn = rusqlite::Connection::open(dir.path().join(DATABASE_FILE)).unwrap();
-    conn.pragma_update(None, "user_version", CURRENT_VERSION - 1)
+    conn.execute("DROP TABLE quest_gists", []).unwrap();
+    conn.pragma_update(None, "user_version", CURRENT_VERSION - 2)
         .unwrap();
     drop(conn);
 

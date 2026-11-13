@@ -7,6 +7,7 @@ use std::time::Duration;
 
 use mrglglgl_core::db::{Database, ProviderChoice, Settings};
 use mrglglgl_core::game;
+use mrglglgl_core::gists;
 use mrglglgl_core::queue::{self, Control, QueueEvent};
 use mrglglgl_llm::Provider;
 use mrglglgl_llm::catalogue::{Catalogue, ModelEntry};
@@ -22,6 +23,9 @@ pub const WRITING: &str = "writing";
 const IDLE_CHECK: Duration = Duration::from_secs(60);
 /// How often the writer checks whether the game has closed.
 const GAME_CHECK: Duration = Duration::from_secs(30);
+/// Quests summed up in one idle turn, before the queue and the settings are looked at again: an
+/// entry asked for waits for at most this many.
+const GISTS_PER_TURN: usize = 3;
 
 const KEYCHAIN_ENTRY: &str = "endpoint-api-key";
 
@@ -277,6 +281,21 @@ pub async fn run(app: AppHandle) {
             // Look at the settings and the game again before the next entry.
             Ok(Some(_)) => continue,
             Ok(None) => {
+                // Nothing due: sum up a few quests ahead of the entries that will name them,
+                // then look at the settings and the game again.
+                match gists::backfill(
+                    &state.db,
+                    provider.as_ref(),
+                    &control,
+                    &language,
+                    GISTS_PER_TURN,
+                )
+                .await
+                {
+                    Ok(0) => {}
+                    Ok(_) => continue,
+                    Err(e) => tracing::warn!("quest gists: {e}"),
+                }
                 let due = state
                     .db
                     .lock()
@@ -354,6 +373,7 @@ mod tests {
             thresholds: &Thresholds::default(),
             note: None,
             preferences: None,
+            gists: None,
         });
         let provider = LocalProvider::new(LocalOptions::new(path, "test", reasoning));
         let started = std::time::Instant::now();
@@ -443,6 +463,7 @@ mod tests {
                         thresholds: &Thresholds::default(),
                         note: None,
                         preferences: None,
+                        gists: None,
                     });
                     let started = std::time::Instant::now();
                     let result = write(

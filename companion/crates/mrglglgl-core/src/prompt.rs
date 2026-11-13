@@ -1,7 +1,7 @@
 //! Builds the prompts the murloc scribe writes from: a day, or a week as one chapter.
 //!
-//! The prompt is grounded: the beats are the only events the model may tell, quest text is given
-//! for colour, earlier days come as memory only, and the narrator profile sets the voice. Tone
+//! The prompt is grounded: the beats are the only events the model may tell, the quests they name
+//! come with a one-line gist for colour, earlier days come as memory only, and the narrator profile sets the voice. Tone
 //! rules are explicit constraints, since the voice is the product: never mock the player, and the
 //! murloc is seasoning, not the meal. Whether the murloc meddles with a margin note is rolled from
 //! the character and the day, so regenerating never changes it.
@@ -31,13 +31,7 @@ pub const WEEK_WORDS: u32 = 250;
 const MEMORY_DAYS: usize = 2;
 /// Beats remembered from each earlier day.
 const MEMORY_BEATS: usize = 3;
-/// Quest text beyond this is cut, to keep small models' context for the day itself.
-const QUEST_TEXT_CHARS: usize = 500;
-/// The quest text a day prompt carries in all: quests keep their text, in order, while it fits,
-/// and the rest are named by title. A fast-levelling day touches dozens of quests, whose text
-/// alone would fill a local model's context and drown the day's own events.
-const QUEST_TEXT_BUDGET: usize = 3_000;
-/// The most quests a prompt names; the others are counted.
+/// The most quests a week's prompt names; the others are counted.
 const QUEST_TITLES_MAX: usize = 30;
 
 /// The words a day entry aims for, from the words in its notes: a long session leaves long notes
@@ -294,6 +288,9 @@ pub struct DayRequest<'a> {
     pub note: Option<&'a str>,
     /// The player's standing writing preferences, for every entry and chapter.
     pub preferences: Option<&'a str>,
+    /// One-line summaries of quests, by quest (see `gists`); a quest without one is named by
+    /// its title only.
+    pub gists: Option<&'a BTreeMap<i64, String>>,
 }
 
 /// What a weekly chapter is built from.
@@ -509,29 +506,29 @@ fn capped(mut lines: Vec<String>) -> Vec<String> {
     lines
 }
 
-/// A day's quests with their text, within [`QUEST_TEXT_BUDGET`].
-fn quest_lines(journal: &Journal, record: &DayRecord) -> Vec<String> {
-    let mut lines = Vec::new();
-    let mut budget = QUEST_TEXT_BUDGET;
-    for id in &quest_ids(record) {
-        let quest = journal.quests.get(id);
-        let title = quest_title(journal, *id);
-        let text = quest.and_then(|q| q.text.as_deref()).map(|t| {
-            let t = t.trim();
-            match t.char_indices().nth(QUEST_TEXT_CHARS) {
-                Some((cut, _)) => format!("{}...", &t[..cut]),
-                None => t.to_string(),
+/// The quests the day's notes name, in order, each with its gist when it has one. Only those:
+/// the notes count the rest, and naming them here would hand the model the list the notes left
+/// out.
+fn quest_lines(
+    journal: &Journal,
+    record: &DayRecord,
+    notes: &[String],
+    gists: Option<&BTreeMap<i64, String>>,
+) -> Vec<String> {
+    quest_ids(record)
+        .into_iter()
+        .filter_map(|id| {
+            let title = journal.quests.get(&id)?.title.clone()?;
+            let quoted = format!("\"{title}\"");
+            if !notes.iter().any(|n| n.contains(&quoted)) {
+                return None;
             }
-        });
-        lines.push(match text {
-            Some(t) if !t.is_empty() && t.chars().count() <= budget => {
-                budget -= t.chars().count();
-                format!("{title}: {t}")
-            }
-            _ => title,
-        });
-    }
-    capped(lines)
+            Some(match gists.and_then(|g| g.get(&id)) {
+                Some(gist) => format!("{title}: {gist}"),
+                None => title,
+            })
+        })
+        .collect()
 }
 
 /// A day's beats as notes: the heart of the day, then what to mention in passing at most. A day
@@ -681,7 +678,7 @@ pub fn day_prompt(r: &DayRequest) -> Prompt {
         } else {
             milestones_today.join(", ")
         },
-        quests = bullets(&quest_lines(r.journal, &record)),
+        quests = bullets(&quest_lines(r.journal, &record, &notes, r.gists)),
         memory = memory_block(&memory),
         note = note_line(r.note),
         language = language_name(r.language),

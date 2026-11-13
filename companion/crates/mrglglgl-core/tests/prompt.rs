@@ -63,6 +63,7 @@ fn day(
         thresholds: &Thresholds::default(),
         note: None,
         preferences: None,
+        gists: None,
     })
 }
 
@@ -177,8 +178,9 @@ fn a_day_prompt_carries_everything_the_entry_is_grounded_in() {
             p.user.contains(quest.title.as_deref().unwrap()),
             "quest title"
         );
+        // A quest's own text is summed up by a gist, never sent whole.
         if let Some(text) = &quest.text {
-            assert!(p.user.contains(&text[..40.min(text.len())]), "quest text");
+            assert!(!p.user.contains(&text[..40.min(text.len())]), "quest text");
         }
     }
     assert!(p.user.contains("Earlier days (memory only, not today)"));
@@ -299,6 +301,7 @@ fn companions_can_be_sent_under_stand_in_names() {
             thresholds: &all,
             note: None,
             preferences: None,
+            gists: None,
         })
     };
     let plain = request(false);
@@ -354,6 +357,7 @@ fn the_scribe_speaks_the_tested_prompt_word_for_word() {
             thresholds: &Thresholds::default(),
             note: None,
             preferences: None,
+            gists: None,
         });
         assert!(p.meddling);
         let expected = tested(language, "## System")
@@ -525,6 +529,7 @@ fn a_rewrite_note_asks_for_tone_and_length_inside_the_fact_rules() {
         thresholds: &thresholds,
         note: None,
         preferences: None,
+        gists: None,
     };
     let plain = day_prompt(&base());
     let noted = day_prompt(&DayRequest {
@@ -600,6 +605,7 @@ fn writing_preferences_shape_the_style_of_every_entry_and_never_become_facts() {
         thresholds: &thresholds,
         note: None,
         preferences: None,
+        gists: None,
     };
     let plain = day_prompt(&base());
     let styled = day_prompt(&DayRequest {
@@ -769,6 +775,7 @@ fn a_narrator_writes_as_the_adventurer_or_about_them_as_it_is_set() {
         thresholds: &Thresholds::default(),
         note: None,
         preferences: None,
+        gists: None,
     });
     assert!(
         about_them
@@ -820,21 +827,39 @@ fn quest_block<'a>(user: &'a str, heading: &str) -> &'a str {
 }
 
 #[test]
-fn a_heavy_questing_day_keeps_quest_text_within_a_budget_then_lists_titles() {
+fn a_heavy_questing_day_names_only_the_quests_its_notes_name_with_their_gists() {
     let j = busy_questing("2026-11-08", 60);
     let awards = milestones::compute(&j);
-    let p = day(&j, &awards, "en", DEFAULT_NARRATOR, false);
+    let gists: BTreeMap<i64, String> =
+        [(900_000, "the plains needed a hand.".to_string())].into();
+    let p = day_prompt(&DayRequest {
+        character_id: 1,
+        journal: &j,
+        day: "2026-11-08",
+        awards: &awards,
+        running_jokes: &[],
+        narrator: narrators::get(DEFAULT_NARRATOR, "en"),
+        language: "en",
+        meddling: Meddling::Off,
+        pseudonyms: false,
+        // Room for the quests taken on, which a crowded day would otherwise drop.
+        thresholds: &Thresholds {
+            max_beats: 30,
+            ..Thresholds::default()
+        },
+        note: None,
+        preferences: None,
+        gists: Some(&gists),
+    });
     let block = quest_block(&p.user, "Quests touched today:");
-    // The first quests keep their text; the budget stops it well before all sixty.
-    assert!(block.contains("Busy Quest 0: Description 0:"), "{block}");
-    assert!(!block.contains("Description 59:"), "{block}");
-    // A short list of titles, then how many more there were.
-    assert!(block.contains("more quests"), "{block}");
     assert!(
-        block.chars().count() < 5_000,
-        "the quest block stays small: {} chars",
-        block.chars().count()
+        block.contains("- Busy Quest 0: the plains needed a hand."),
+        "{block}"
     );
+    assert!(block.contains("- Busy Quest 1\n"), "{block}");
+    // The notes count the rest, so the list does not name them either.
+    assert!(!block.contains("Busy Quest 59"), "{block}");
+    assert!(!block.contains("Description"), "{block}");
 }
 
 #[test]

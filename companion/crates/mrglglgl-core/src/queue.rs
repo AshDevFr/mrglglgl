@@ -576,6 +576,11 @@ impl Control {
         self.paused.load(Ordering::SeqCst)
     }
 
+    /// Waits for the model to be free, and holds it until the guard is dropped.
+    pub(crate) async fn take_turn(&self) -> tokio::sync::MutexGuard<'_, ()> {
+        self.writer.lock().await
+    }
+
     /// Something changed (a job was queued, a setting saved): look at the queue again.
     pub fn wake(&self) {
         self.wake.notify_one();
@@ -700,6 +705,7 @@ fn prepare(
     let narrator = library.get(&narrator_id, &language);
     let pseudonyms = provider_is_endpoint && settings.pseudonyms;
     let thresholds = Thresholds::default();
+    let gists = crate::gists::for_journal(db, &journal, &language)?;
     let (prompt, end_day) = match job.kind {
         StoryKind::Day => (
             prompt::day_prompt(&DayRequest {
@@ -719,6 +725,7 @@ fn prepare(
                     job.note.as_deref()
                 },
                 preferences: Some(&settings.preferences),
+                gists: Some(&gists),
             }),
             job.start_day.clone(),
         ),
@@ -783,20 +790,28 @@ pub async fn run_next(
     on_event: &(dyn Fn(QueueEvent) + Send + Sync),
 ) -> Result<Option<Job>, DbError> {
     let is_endpoint = provider.id() == "endpoint";
-    let (job, prepared) = {
-        let db = db.lock().unwrap();
-        let Some(job) = take_next(&db, now())? else {
-            return Ok(None);
-        };
-        let prepared = prepare(
-            &db,
-            &control.narrators(),
-            &job,
-            language_fallback,
-            is_endpoint,
-        )?;
-        (job, prepared)
+    let Some(job) = take_next(&db.lock().unwrap(), now())? else {
+        return Ok(None);
     };
+    // The day's quests are summed up first, so the entry can say what they were about.
+    if job.kind == StoryKind::Day {
+        crate::gists::for_day(
+            db,
+            provider,
+            control,
+            job.character_id,
+            &job.start_day,
+            language_fallback,
+        )
+        .await?;
+    }
+    let prepared = prepare(
+        &db.lock().unwrap(),
+        &control.narrators(),
+        &job,
+        language_fallback,
+        is_endpoint,
+    )?;
     let prepared = match prepared {
         Ok(p) => p,
         Err(reason) => {
@@ -1097,6 +1112,8 @@ pub async fn preview(
                 (0, journal, SAMPLE_DAY.to_string(), awards, Vec::new())
             }
         };
+        let gists =
+            crate::gists::for_journal(&db, &journal, &language).map_err(|e| e.to_string())?;
         let prompt = prompt::day_prompt(&DayRequest {
             character_id,
             journal: &journal,
@@ -1110,6 +1127,7 @@ pub async fn preview(
             thresholds: &Thresholds::default(),
             note: None,
             preferences: Some(&settings.preferences),
+            gists: Some(&gists),
         });
         let allowed = allowed_words(&journal, narrator);
         let retries = settings.check_retries.min(crate::db::MAX_CHECK_RETRIES);

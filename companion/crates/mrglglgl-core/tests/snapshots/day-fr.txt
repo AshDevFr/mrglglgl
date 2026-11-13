@@ -1,5 +1,5 @@
 meddling: false
-hash: 568a55ef2fac3176596f82a095b73de4631450a44167c1f940cc5a60ec28ef5e
+hash: 3f03bd28002d6a35dfca21396efba407a20d0936598668ffac3442c8239fed69
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as a journal entry.
@@ -45,7 +45,7 @@ How to tell a day like this (where a line names the narrator, that is you, still
 Milestones stamped today: Mrglglgl'isé, Le boss, c'est moi, Ouvert aux affaires
 
 Quests touched today:
-- The Ravaged Caravan: Some marauding wolves have attacked a caravan near Red Rocks.
+- The Ravaged Caravan
 
 Earlier days (memory only, not today):
 - Boots kept so far: 1

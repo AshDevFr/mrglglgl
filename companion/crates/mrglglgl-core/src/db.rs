@@ -196,6 +196,17 @@ const MIGRATIONS: &[&str] = &[
     // mentions that the notes do not, so the app can say it in the player's language.
     "UPDATE stories SET check_reason = substr(check_reason, 10, length(check_reason) - 9 - 23)
      WHERE check_reason LIKE 'mentions % not in the day''s notes';",
+    // One-line summaries of quests, per prose language and per hash of the texts each came from
+    // (two clients in different languages have different texts); a summary that failed its check
+    // is kept as NULL so it is not asked for again.
+    "CREATE TABLE quest_gists (
+        quest_id INTEGER NOT NULL,
+        language TEXT NOT NULL,
+        source TEXT NOT NULL,
+        gist TEXT,
+        created_at INTEGER NOT NULL,
+        PRIMARY KEY (quest_id, language, source)
+    );",
 ];
 
 /// The schema version this build creates and understands.

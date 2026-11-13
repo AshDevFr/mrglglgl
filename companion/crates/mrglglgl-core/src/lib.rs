@@ -15,6 +15,7 @@ pub mod discovery;
 pub mod export;
 pub mod factcheck;
 pub mod game;
+pub mod gists;
 pub mod milestones;
 pub mod narrators;
 pub mod prompt;
