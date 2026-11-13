@@ -34,8 +34,17 @@ local function discover(area, source)
 	Day.append("discover", { area = area, src = source })
 end
 
+-- Zones flown over on a flight path were not visited: a druid flying home from Moonglade crossed
+-- four zones and fifty places, and the journal told them all. Nothing is recorded in flight, and
+-- the place landed in is recorded when the flight ends.
+local skippedInFlight = false
+
 local function onZoneChanged()
 	if not Storage.records("zones") then
+		return
+	end
+	if Compat.OnTaxi() then
+		skippedInFlight = true
 		return
 	end
 	local zone, subzone, now = GetZoneText(), GetSubZoneText(), time()
@@ -61,6 +70,14 @@ end)
 ns.On("ZONE_CHANGED_NEW_AREA", onZoneChanged)
 ns.On("ZONE_CHANGED", onZoneChanged)
 ns.On("ZONE_CHANGED_INDOORS", onZoneChanged)
+-- Fires when a flight path lands, and also after a stun or a fear, which must not record the
+-- subzone again.
+ns.On("PLAYER_CONTROL_GAINED", function()
+	if skippedInFlight then
+		skippedInFlight = false
+		onZoneChanged()
+	end
+end)
 
 -- The discovery message arrives as a UI info message or a system chat line; which one was not
 -- observed on Forever, so both are handled.

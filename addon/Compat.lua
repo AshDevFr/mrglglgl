@@ -25,6 +25,12 @@ function Compat.IsForever()
 	return type(interface) == "number" and interface >= 16000 and interface < 20000
 end
 
+-- True while the player rides a flight path. Unconfirmed on Forever; without the function the
+-- player is taken to be on the ground, as before it was asked.
+function Compat.OnTaxi()
+	return UnitOnTaxi ~= nil and UnitOnTaxi("player") == true
+end
+
 -- Values the client withholds from addons (in dungeons, raids, encounters and PvP) are secret:
 -- they can be passed back to the client but not read, compared or stored.
 function Compat.IsSecret(value)

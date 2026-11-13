@@ -13,7 +13,7 @@ read_globals = {
 	"C_AddOns", "CreateFrame", "CreateSettingsButtonInitializer", "CreateSettingsListSectionHeaderInitializer", "GetAddOnMetadata", "GetBuildInfo", "GetLocale", "geterrorhandler", "GetLootSlotLink", "GetNumGroupMembers", "GetNumLootItems",
 	"GetItemInfo", "GetQuestID", "GetQuestText", "GetRealmID", "GetRealmName", "GetSubZoneText", "GetTime", "GetTitleText",
 	"GetZoneText", "IsFishingLoot", "IsInGroup", "IsInRaid", "Screenshot", "Settings",
-	"UnitClass", "UnitClassification", "UnitFactionGroup", "UnitFullName", "UnitGUID", "UnitIsUnit", "UnitLevel",
+	"UnitClass", "UnitClassification", "UnitFactionGroup", "UnitFullName", "UnitGUID", "UnitIsUnit", "UnitLevel", "UnitOnTaxi",
 	"UnitName", "UnitRace", "_G", "date", "issecretvalue", "time",
 	"COMBATLOG_XPGAIN_FIRSTPERSON", "COMBATLOG_XPGAIN_FIRSTPERSON_GROUP", "COMBATLOG_XPGAIN_FIRSTPERSON_RAID", "ERR_ZONE_EXPLORED", "ERR_ZONE_EXPLORED_XP", "LOOT_ITEM_PUSHED_SELF",
 	"LOOT_ITEM_PUSHED_SELF_MULTIPLE", "LOOT_ITEM_SELF", "LOOT_ITEM_SELF_MULTIPLE",

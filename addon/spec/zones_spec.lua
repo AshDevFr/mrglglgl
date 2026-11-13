@@ -103,6 +103,26 @@ describe("Zones", function()
 		assert.equals(2, #events("discover"))
 	end)
 
+	it("records nothing flown over on a flight path, and the place landed in once it ends", function()
+		enter("Mulgore", "Red Rocks")
+		Mock.onTaxi = true
+		enter("Darkshore", "Auberdine")
+		enter("Ashenvale", "")
+		enter("Thunder Bluff", "")
+		Mock.onTaxi = false
+		Mock.fire("PLAYER_CONTROL_GAINED")
+		local zones, areas = {}, {}
+		for _, event in ipairs(events("zone")) do
+			zones[#zones + 1] = event.z
+		end
+		for _, event in ipairs(events("discover")) do
+			areas[#areas + 1] = event.area
+		end
+		assert.same({ "Mulgore", "Thunder Bluff" }, zones)
+		assert.same({ "Mulgore", "Red Rocks", "Thunder Bluff" }, areas)
+		assert.is_nil(_G.MrglglglCharDB.discovered.Darkshore)
+	end)
+
 	it("records nothing when zones are off", function()
 		_G.MrglglglDB.settings.record.zones = false
 		enter("Mulgore", "Red Rocks")

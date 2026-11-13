@@ -137,6 +137,8 @@ function Mock.install()
 	_G.UnitFullName = function(token) return unitField(token, "name"), unitField(token, "surname") end
 	_G.UnitClassification = function(token) return unitField(token, "classification") or "normal" end
 	_G.UnitLevel = function(token) return unitField(token, "level") or 1 end
+	Mock.onTaxi = false
+	_G.UnitOnTaxi = function(token) return token == "player" and Mock.onTaxi end
 	_G.UnitRace = function(token) return unitField(token, "race"), unitField(token, "race") end
 	_G.UnitClass = function(token) return unitField(token, "className"), unitField(token, "class") end
 	_G.UnitFactionGroup = function(token) return unitField(token, "faction") end

@@ -86,6 +86,7 @@ addon code can pass them back to the client but cannot read, compare or print th
 | API-classification | `UnitClassification(unit)` returns e.g. `"normal"`; no secrecy predicate | verified-in-game | S-06: `"normal"` for a wolf and a named NPC; API docs (Unit) |
 | API-item-info-async | `GET_ITEM_INFO_RECEIVED(itemID, success)` and `ITEM_DATA_LOAD_RESULT(itemID, success)`; `C_Item.RequestLoadItemDataByID`, `C_Item.GetItemQualityByID` | verified-by-source | API docs (Item) |
 | API-zone-events | `ZONE_CHANGED`, `ZONE_CHANGED_INDOORS`, `ZONE_CHANGED_NEW_AREA`, no payload | verified-by-source | API docs (Map) |
+| API-on-taxi | `UnitOnTaxi("player")` is true while riding a flight path, during which zone events still fire for the zones flown over; `PLAYER_CONTROL_GAINED` fires on landing | unconfirmed | Long-standing in every client and seen in the journal: a flight from Moonglade recorded Darkshore, Ashenvale and Stonetalon Mountains as visited. Fallback: without `UnitOnTaxi` the player is taken to be on the ground (Compat.OnTaxi), which records flights as before |
 | API-zone-text | `GetZoneText()`, `GetSubZoneText()`, `GetRealZoneText()`, `GetMinimapZoneText()` | verified-by-source | API docs (ZoneScript) |
 | API-map-id | `C_Map.GetBestMapForUnit(unit)`, `C_Map.GetMapInfo(mapID)` | verified-by-source | API docs (Map) |
 | API-group-roster | `GROUP_ROSTER_UPDATE`; `GetNumGroupMembers()`, `IsInGroup()` | verified-by-source | API docs (PartyInfo); widely called by the client UI. Party members are player-controlled, so their names are not secret |
