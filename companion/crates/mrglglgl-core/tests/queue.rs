@@ -625,6 +625,28 @@ fn an_entry_the_fact_check_set_aside_is_in_the_journal_once_the_player_keeps_it(
 }
 
 #[tokio::test]
+async fn names_from_the_narrators_own_voice_pass_the_fact_check() {
+    // The tauren elder's voice asks for "a gentle mention of the Earth Mother"; obeying it must
+    // not set the entry aside as invented.
+    let (db, id) = setup();
+    let ask = Ask {
+        narrator: Some("tauren_elder"),
+        ..Ask::default()
+    };
+    queue::request(&db.lock().unwrap(), id, StoryKind::Day, DAYS[0], &ask).unwrap();
+    let provider = FakeProvider::new(["A still day by the water. The Earth Mother was kind."]);
+    let control = Control::new(false);
+    let (_, on_event) = recorder();
+    run_next(&db, &provider, &control, "en", &on_event)
+        .await
+        .unwrap();
+    let db = db.lock().unwrap();
+    let story = &stories::versions(&db, id, StoryKind::Day, DAYS[0]).unwrap()[0];
+    assert_eq!(story.check_reason, None);
+    assert_eq!(story.check, CheckStatus::Passed);
+}
+
+#[tokio::test]
 async fn a_job_is_written_with_the_players_own_narrator() {
     let (db, id) = setup();
     let folder = tempfile::tempdir().unwrap();

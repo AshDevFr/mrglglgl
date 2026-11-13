@@ -125,6 +125,13 @@ pub const ICONS: &[&str] = &[
 pub const DEFAULT_ICON: &str = "quill-ink";
 
 impl Narrator {
+    /// The narrator's own framing, which an entry may name although the day's notes do not: the
+    /// persona, the voice and the murloc instructions ("a gentle mention of the Earth Mother").
+    /// The worked example is left out, since its events are not the day's.
+    pub fn own_words(&self) -> [&str; 4] {
+        [&self.persona, &self.voice, &self.murloc, &self.margin_note]
+    }
+
     /// The glyph to show: the narrator's own when known, otherwise [`DEFAULT_ICON`].
     pub fn icon(&self) -> &str {
         self.icon

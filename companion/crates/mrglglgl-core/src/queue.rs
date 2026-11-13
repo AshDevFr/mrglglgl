@@ -744,12 +744,7 @@ fn prepare(
             )
         }
     };
-    let c = &journal.character;
-    let allowed = [&c.faction, &c.realm]
-        .into_iter()
-        .flatten()
-        .cloned()
-        .collect();
+    let allowed = allowed_words(&journal, narrator);
     Ok(Ok(Prepared {
         prompt,
         narrator: narrator.id.clone(),
@@ -759,6 +754,19 @@ fn prepare(
         journal,
         check_retries: settings.check_retries.min(crate::db::MAX_CHECK_RETRIES),
     }))
+}
+
+/// Words an entry may use besides the notes: the character's faction and realm, and the
+/// narrator's own framing.
+fn allowed_words(journal: &Journal, narrator: &narrators::Narrator) -> Vec<String> {
+    let c = &journal.character;
+    [&c.faction, &c.realm]
+        .into_iter()
+        .flatten()
+        .map(String::as_str)
+        .chain(narrator.own_words())
+        .map(str::to_string)
+        .collect()
 }
 
 fn plain(e: &mrglglgl_llm::ProviderError) -> String {
@@ -1103,12 +1111,7 @@ pub async fn preview(
             note: None,
             preferences: Some(&settings.preferences),
         });
-        let c = &journal.character;
-        let allowed: Vec<String> = [&c.faction, &c.realm]
-            .into_iter()
-            .flatten()
-            .cloned()
-            .collect();
+        let allowed = allowed_words(&journal, narrator);
         let retries = settings.check_retries.min(crate::db::MAX_CHECK_RETRIES);
         (prompt, language, allowed, retries)
     };
