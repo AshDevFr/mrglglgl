@@ -2,6 +2,10 @@
 
 export type Quest = { title: string | null, text: string | null, 
 /**
+ * What the quest giver says when it is handed in; dropped in game with `text`.
+ */
+done: string | null, 
+/**
  * Day the quest was last accepted or turned in; its text is dropped in game once this falls
  * outside the retention window.
  */

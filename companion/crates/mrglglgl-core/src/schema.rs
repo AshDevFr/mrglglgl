@@ -428,6 +428,8 @@ pub struct KillAggregate {
 pub struct Quest {
     pub title: Option<String>,
     pub text: Option<String>,
+    /// What the quest giver says when it is handed in; dropped in game with `text`.
+    pub done: Option<String>,
     /// Day the quest was last accepted or turned in; its text is dropped in game once this falls
     /// outside the retention window.
     pub last: Option<String>,
@@ -1087,6 +1089,7 @@ pub fn journal_from(file: &SavedVariables) -> Result<Journal, JournalError> {
                         Quest {
                             title: string(q, "title"),
                             text: string(q, "text"),
+                            done: string(q, "done"),
                             last: string(q, "last"),
                             level: int(q, "lv"),
                             kind: string(q, "kind"),

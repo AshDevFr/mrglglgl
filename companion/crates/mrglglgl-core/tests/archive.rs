@@ -312,10 +312,12 @@ fn quest_text_the_game_has_pruned_stays_in_the_archive() {
     let id = db
         .upsert_character(&source(Path::new("/wow"), "Wren-Hollowbrook"), None, None)
         .unwrap();
-    let earlier = synthetic();
+    let mut earlier = synthetic();
+    earlier.quests.get_mut(&749).unwrap().done = Some("The caravan is avenged.".into());
     let mut pruned = synthetic();
     let quest = pruned.quests.get_mut(&749).unwrap();
     quest.text = None;
+    quest.done = None;
     quest.last = Some("2026-11-20".into());
 
     merge_snapshot(&db, id, &earlier, 100).unwrap();
@@ -323,6 +325,7 @@ fn quest_text_the_game_has_pruned_stays_in_the_archive() {
 
     let archived = &archive::load(&db, id).unwrap().unwrap().quests[&749];
     assert_eq!(archived.text, earlier.quests[&749].text);
+    assert_eq!(archived.done.as_deref(), Some("The caravan is avenged."));
     assert_eq!(archived.last.as_deref(), Some("2026-11-20"));
 }
 

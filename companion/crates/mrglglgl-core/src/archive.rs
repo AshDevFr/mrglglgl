@@ -358,10 +358,13 @@ fn merge_quest(into: &mut Quest, from: &Quest) {
     if from.title.is_some() {
         into.title.clone_from(&from.title);
     }
-    // The addon drops a quest's text once the quest leaves its retention window; the archive
-    // keeps the text it already has, so an absent text never erases one.
+    // The addon drops a quest's texts once the quest leaves its retention window; the archive
+    // keeps the texts it already has, so an absent text never erases one.
     if from.text.is_some() {
         into.text.clone_from(&from.text);
+    }
+    if from.done.is_some() {
+        into.done.clone_from(&from.done);
     }
     if from.level.is_some() {
         into.level = from.level;

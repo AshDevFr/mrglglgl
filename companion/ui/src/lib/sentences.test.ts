@@ -367,6 +367,7 @@ describe("quests and skills on the page", () => {
       1: {
         title: "Fizsprocket's Notes",
         text: null,
+        done: null,
         last: null,
         level: 9,
         kind: "elite",
@@ -374,6 +375,7 @@ describe("quests and skills on the page", () => {
       2: {
         title: "Swoop Hunting",
         text: null,
+        done: null,
         last: null,
         level: null,
         kind: null,

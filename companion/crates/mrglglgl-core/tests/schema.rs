@@ -588,7 +588,7 @@ fn reads_a_quests_level_and_kind() {
     assert_eq!(caravan.title.as_deref(), Some("The Ravaged Caravan"));
     assert_eq!(caravan.level, Some(6));
     assert_eq!(caravan.kind, None, "an ordinary quest has no kind");
-    let text = "MrglglglCharDB = { [\"schema\"] = 1, [\"quests\"] = { [800] = { [\"title\"] = \"Into the Mines\", [\"lv\"] = 18, [\"kind\"] = \"dungeon\" } } }";
+    let text = "MrglglglCharDB = { [\"schema\"] = 1, [\"quests\"] = { [800] = { [\"title\"] = \"Into the Mines\", [\"lv\"] = 18, [\"kind\"] = \"dungeon\", [\"done\"] = \"The mines are clear.\" } } }";
     let dungeon = &mrglglgl_core::schema::journal_from_text(text)
         .unwrap()
         .quests[&800];
@@ -596,4 +596,5 @@ fn reads_a_quests_level_and_kind() {
         (dungeon.level, dungeon.kind.as_deref()),
         (Some(18), Some("dungeon"))
     );
+    assert_eq!(dungeon.done.as_deref(), Some("The mines are clear."));
 }
