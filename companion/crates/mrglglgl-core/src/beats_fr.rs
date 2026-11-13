@@ -345,8 +345,24 @@ impl Beat {
                 Some(skill) => format!("Récolté {} ({skill})", et_list(&counted(items))),
                 None => format!("Récolté {}", et_list(&counted(items))),
             },
-            Beat::QuestsDone { titles, others } => {
-                format!("Terminé {}", quest_list(titles, *others))
+            Beat::QuestsDone { groups, elsewhere } => {
+                let mut parts: Vec<String> = groups
+                    .iter()
+                    .map(|g| match &g.zone {
+                        Some(zone) => format!("à {zone}, {}", quest_list(&g.titles, g.others)),
+                        None => quest_list(&g.titles, g.others),
+                    })
+                    .collect();
+                match elsewhere {
+                    0 => {}
+                    1 => parts.push("et 1 autre quête ailleurs".to_string()),
+                    n => parts.push(format!("et {n} autres quêtes ailleurs")),
+                }
+                let text = parts.join(" ; ");
+                match text.strip_prefix("à ") {
+                    Some(_) => format!("Terminé, {text}"),
+                    None => format!("Terminé {text}"),
+                }
             }
             Beat::QuestsTaken { titles, others } => {
                 format!("Accepté {}", quest_list(titles, *others))

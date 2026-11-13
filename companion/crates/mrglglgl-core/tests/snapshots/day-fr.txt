@@ -1,5 +1,5 @@
 meddling: false
-hash: 0990f7a689f8950578a71c8b0df50fa35bfb5a925e6e403743c25edc1693b72c
+hash: 568a55ef2fac3176596f82a095b73de4631450a44167c1f940cc5a60ec28ef5e
 
 === system ===
 You are the murloc scribe of a World of Warcraft adventurer. Each evening you write the adventurer's day as a journal entry.
@@ -34,7 +34,7 @@ The heart of the day:
 - Obtenu les jalons "Mrglglgl'isé", "Le boss, c'est moi" et "Ouvert aux affaires" et accompli le défi Legacy "Explore Moonglade"
 In passing, at most:
 - Tué Prairie Wolf ×23, Murloc Streamrunner ×1 et 1 autre créature
-- Terminé la quête "The Ravaged Caravan"
+- Terminé, à Mulgore, la quête "The Ravaged Caravan"
 
 Patterns of the day: new zone, rare loot, murloc death
 How to tell a day like this (where a line names the narrator, that is you, still writing as the adventurer and saying "I"):

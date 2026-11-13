@@ -217,6 +217,8 @@ pub struct DayRecord {
     pub bosses: Vec<String>,
     pub accepted: Vec<i64>,
     pub turned_in: Vec<i64>,
+    /// The zone each quest was handed in, when the day kept its events.
+    pub turned_in_zones: BTreeMap<i64, String>,
     /// Skills that rose, professions first.
     pub skills: Vec<SkillLine>,
     pub crafted: Vec<ItemLine>,
@@ -612,7 +614,12 @@ impl DayRecord {
                 EventKind::QuestAccept { quest_id: Some(q) } => r.accepted.push(*q),
                 EventKind::QuestTurnin {
                     quest_id: Some(q), ..
-                } => r.turned_in.push(*q),
+                } => {
+                    r.turned_in.push(*q);
+                    if let Some(zone) = event.zone.as_ref().filter(|z| !z.is_empty()) {
+                        r.turned_in_zones.insert(*q, zone.clone());
+                    }
+                }
                 _ => {}
             }
         }
@@ -683,6 +690,15 @@ impl Pattern {
             Pattern::FinalDeath => "final_death",
         }
     }
+}
+
+/// Quests handed in in one zone: the first titles, and how many more, untitled ones included.
+/// A day kept only as a digest has no zones, and one group without one.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct QuestGroup {
+    pub zone: Option<String>,
+    pub titles: Vec<String>,
+    pub others: i64,
 }
 
 /// One thing worth telling about a day.
@@ -820,10 +836,11 @@ pub enum Beat {
         sold: Vec<String>,
         won: Vec<String>,
     },
-    /// Ordinary quests handed in: the first titles, and how many more, untitled ones included.
+    /// Ordinary quests handed in, by the zone they were handed in (most first), and how many
+    /// more were handed in elsewhere.
     QuestsDone {
-        titles: Vec<String>,
-        others: i64,
+        groups: Vec<QuestGroup>,
+        elsewhere: i64,
     },
     /// Quests taken on and not finished the same day, as [`Beat::QuestsDone`].
     QuestsTaken {
@@ -1243,8 +1260,24 @@ impl Beat {
                 Some(skill) => format!("Gathered {} ({skill})", and_list(&counted(items))),
                 None => format!("Gathered {}", and_list(&counted(items))),
             },
-            Beat::QuestsDone { titles, others } => {
-                format!("Completed {}", quest_list(titles, *others))
+            Beat::QuestsDone { groups, elsewhere } => {
+                let mut parts: Vec<String> = groups
+                    .iter()
+                    .map(|g| match &g.zone {
+                        Some(zone) => format!("in {zone}, {}", quest_list(&g.titles, g.others)),
+                        None => quest_list(&g.titles, g.others),
+                    })
+                    .collect();
+                match elsewhere {
+                    0 => {}
+                    1 => parts.push("and 1 other quest elsewhere".to_string()),
+                    n => parts.push(format!("and {n} other quests elsewhere")),
+                }
+                let text = parts.join("; ");
+                match text.strip_prefix("in ") {
+                    Some(_) => format!("Completed, {text}"),
+                    None => format!("Completed {text}"),
+                }
             }
             Beat::QuestsTaken { titles, others } => {
                 format!("Took on {}", quest_list(titles, *others))
@@ -1689,8 +1722,33 @@ pub fn extract(journal: &Journal, day: &str, awards: &[Award], t: &Thresholds) -
     }
     let ordinary: Vec<i64> = done.iter().copied().filter(|id| !is_big(id)).collect();
     if !ordinary.is_empty() {
-        let (titles, others) = titled(&ordinary);
-        beats.push(Beat::QuestsDone { titles, others });
+        // Grouped by zone, most quests first, then in the order the day reached them.
+        let mut by_zone: Vec<(Option<String>, Vec<i64>)> = Vec::new();
+        for id in &ordinary {
+            let zone = record.turned_in_zones.get(id).cloned();
+            match by_zone.iter_mut().find(|(z, _)| *z == zone) {
+                Some((_, ids)) => ids.push(*id),
+                None => by_zone.push((zone, vec![*id])),
+            }
+        }
+        by_zone.sort_by_key(|(_, ids)| std::cmp::Reverse(ids.len()));
+        let elsewhere: usize = by_zone.iter().skip(LISTED).map(|(_, ids)| ids.len()).sum();
+        let groups = by_zone
+            .into_iter()
+            .take(LISTED)
+            .map(|(zone, ids)| {
+                let (titles, others) = titled(&ids);
+                QuestGroup {
+                    zone,
+                    titles,
+                    others,
+                }
+            })
+            .collect();
+        beats.push(Beat::QuestsDone {
+            groups,
+            elsewhere: elsewhere as i64,
+        });
     }
     if !taken.is_empty() {
         let (titles, others) = titled(&taken);

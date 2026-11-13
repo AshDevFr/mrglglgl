@@ -471,7 +471,7 @@ fn completed_and_new_quests_are_events_of_the_day() {
     let texts = beats::extract(&j, "2026-11-17", &[], &Thresholds::default()).texts();
     assert!(
         texts.contains(
-            &"Completed the quests \"The Ravaged Caravan\" and \"Wildmane Totem\", and 1 other quest"
+            &"Completed, in Mulgore, the quests \"The Ravaged Caravan\" and \"Wildmane Totem\", and 1 other quest"
                 .to_string()
         ),
         "{texts:?}"
@@ -490,7 +490,7 @@ fn a_completed_quest_survives_a_crowded_day() {
     let awards = mrglglgl_core::milestones::compute(&j);
     let texts = beats::extract(&j, "2026-11-08", &awards, &Thresholds::default()).texts();
     assert!(
-        texts.contains(&"Completed the quest \"The Ravaged Caravan\"".to_string()),
+        texts.contains(&"Completed, in Mulgore, the quest \"The Ravaged Caravan\"".to_string()),
         "{texts:?}"
     );
     assert!(
@@ -870,7 +870,10 @@ fn a_busy_day_names_a_few_of_each_list_and_counts_the_rest() {
          and 161 other creatures",
     );
     has("Completed the elite quest \"Errand 7\"");
-    has("Completed the quests \"Errand 1\", \"Errand 2\" and \"Errand 3\", and 8 other quests");
+    has(
+        "Completed, in Mulgore, the quests \"Errand 1\", \"Errand 2\" and \"Errand 3\", and 8 \
+         other quests",
+    );
     has("Travelled through The Barrens, Mulgore, Durotar and 2 other zones");
     has(
         "Visited for the first time: The Barrens, Mulgore, Durotar, Camp 0, Camp 1, Camp 2 \
@@ -894,13 +897,7 @@ fn the_heart_of_a_day_is_what_changed_it_and_the_rest_is_background() {
             .iter()
             .any(|t| t.starts_with("Visited for the first time"))
     );
-    for told in [
-        "Killed",
-        "Completed the quests",
-        "Travelled",
-        "Learned",
-        "Put on",
-    ] {
+    for told in ["Killed", "Completed, in", "Travelled", "Learned", "Put on"] {
         assert!(
             background.iter().any(|t| t.starts_with(told)),
             "{told} in background: {background:?}"
@@ -910,4 +907,45 @@ fn the_heart_of_a_day_is_what_changed_it_and_the_rest_is_background() {
             "{told} not heart"
         );
     }
+}
+
+#[test]
+fn quests_handed_in_are_told_by_the_zone_they_were_handed_in() {
+    let turnin = |q: i64, zone: &str| {
+        let mut e = event(EventKind::QuestTurnin {
+            quest_id: Some(q),
+            xp: Some(100),
+            money: Some(10),
+        });
+        e.zone = Some(zone.into());
+        e
+    };
+    let mut events = Vec::new();
+    for q in 1..=5 {
+        events.push(turnin(q, "The Barrens"));
+    }
+    events.push(turnin(6, "Silverpine Forest"));
+    events.push(turnin(7, "Silverpine Forest"));
+    events.push(turnin(8, "Durotar"));
+    events.push(turnin(9, "Mulgore"));
+    events.push(turnin(10, "Tirisfal Glades"));
+    let day = Day {
+        events: Some(events),
+        ..Day::default()
+    };
+    let mut j = journal(vec![("2026-11-11", day)]);
+    for q in 1..=10 {
+        j.quests.insert(
+            q,
+            Quest {
+                title: Some(format!("Errand {q}")),
+                ..Quest::default()
+            },
+        );
+    }
+    let texts = beats::extract(&j, "2026-11-11", &[], &Thresholds::default()).texts();
+    let told = "Completed, in The Barrens, the quests \"Errand 1\", \"Errand 2\" and \"Errand 3\", \
+                and 2 other quests; in Silverpine Forest, the quests \"Errand 6\" and \"Errand 7\"; \
+                in Durotar, the quest \"Errand 8\"; and 2 other quests elsewhere";
+    assert!(texts.iter().any(|t| t == told), "{texts:?}");
 }

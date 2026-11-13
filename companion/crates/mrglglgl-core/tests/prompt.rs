@@ -212,7 +212,7 @@ fn french_prose_keeps_the_notes_as_recorded() {
     assert_ne!(notes(&en), notes(&fr));
     let fr_notes = notes(&fr);
     assert!(fr_notes.contains("Tué Prairie Wolf ×23"), "{fr_notes}");
-    assert!(fr_notes.contains("Terminé la quête \"The Ravaged Caravan\""));
+    assert!(fr_notes.contains("Terminé, à Mulgore, la quête \"The Ravaged Caravan\""));
     assert!(!fr_notes.contains("Killed "));
     // A narrator without a French profile still writes French, from its English profile.
     let dwarf = day(&j, &awards, "fr", "grumpy_dwarf", false);
@@ -867,5 +867,5 @@ fn a_days_notes_put_its_heart_first_and_the_rest_in_passing() {
     assert!(at("In passing, at most:") < at("Patterns of the day:"));
     // The rare find is the heart; the completed quest is background.
     assert!(at("Looted Carving Knife") < at("In passing, at most:"));
-    assert!(at("In passing, at most:") < at("Completed the quest"));
+    assert!(at("In passing, at most:") < at("Completed, in Mulgore, the quest"));
 }
