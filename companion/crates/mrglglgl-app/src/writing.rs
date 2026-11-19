@@ -89,12 +89,71 @@ pub fn chosen_model(catalogue: &Catalogue, settings: &Settings) -> Option<ModelE
 /// every look at Settings, so it is read once per run.
 static API_KEY: std::sync::Mutex<Option<Option<String>>> = std::sync::Mutex::new(None);
 
+/// The file a build that keeps its data apart holds the endpoint key in, set once at start. macOS
+/// ties a keychain item to the program that made it, and every local rebuild is a different
+/// program to it, so such a build was asked for the login password at each start, whatever
+/// "Always Allow" was given. Those builds already keep their data apart from the installed
+/// app's; a release never sets this and uses the system keychain.
+static KEY_FILE: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+
+/// The key file's name in the data folder.
+pub const KEY_FILE_NAME: &str = "dev-endpoint-key";
+
+/// Keeps the endpoint key in a file in `data_dir` for the rest of the run, instead of the keychain.
+pub fn keep_key_in_file(data_dir: &Path) {
+    let _ = KEY_FILE.set(data_dir.join(KEY_FILE_NAME));
+}
+
+/// The key in the file, or `None` when there is no file or it is empty.
+fn read_key_file(path: &Path) -> std::io::Result<Option<String>> {
+    match std::fs::read_to_string(path) {
+        Ok(text) => Ok(Some(text.trim().to_string()).filter(|k| !k.is_empty())),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(e) => Err(e),
+    }
+}
+
+/// Writes the key to the file, or removes the file for `None`. Written beside and renamed, so a
+/// reader never meets half a key, and readable by the player alone from the moment it exists.
+fn write_key_file(path: &Path, key: Option<&str>) -> std::io::Result<()> {
+    let Some(key) = key else {
+        return match std::fs::remove_file(path) {
+            Err(e) if e.kind() != std::io::ErrorKind::NotFound => Err(e),
+            _ => Ok(()),
+        };
+    };
+    let partial = path.with_extension("partial");
+    let mut options = std::fs::OpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    let mut file = options.open(&partial)?;
+    std::io::Write::write_all(&mut file, key.as_bytes())?;
+    drop(file);
+    std::fs::rename(&partial, path)
+}
+
 pub fn api_key() -> Option<String> {
     let Ok(mut cached) = API_KEY.lock() else {
         return None;
     };
     if let Some(known) = cached.as_ref() {
         return known.clone();
+    }
+    if let Some(path) = KEY_FILE.get() {
+        return match read_key_file(path) {
+            Ok(key) => {
+                *cached = Some(key.clone());
+                key
+            }
+            Err(e) => {
+                tracing::warn!("the endpoint key could not be read from its file: {e}");
+                None
+            }
+        };
     }
     let read = keyring::Entry::new(crate::profile::keychain_service(), KEYCHAIN_ENTRY)
         .and_then(|entry| entry.get_password());
@@ -117,15 +176,19 @@ pub fn api_key() -> Option<String> {
 }
 
 pub fn set_api_key(key: Option<&str>) -> Result<(), String> {
-    let entry = keyring::Entry::new(crate::profile::keychain_service(), KEYCHAIN_ENTRY)
-        .map_err(|e| e.to_string())?;
     let key = key.filter(|k| !k.is_empty());
-    match key {
-        Some(k) => entry.set_password(k).map_err(|e| e.to_string())?,
-        None => match entry.delete_credential() {
-            Ok(()) | Err(keyring::Error::NoEntry) => {}
-            Err(e) => return Err(e.to_string()),
-        },
+    if let Some(path) = KEY_FILE.get() {
+        write_key_file(path, key).map_err(|e| e.to_string())?;
+    } else {
+        let entry = keyring::Entry::new(crate::profile::keychain_service(), KEYCHAIN_ENTRY)
+            .map_err(|e| e.to_string())?;
+        match key {
+            Some(k) => entry.set_password(k).map_err(|e| e.to_string())?,
+            None => match entry.delete_credential() {
+                Ok(()) | Err(keyring::Error::NoEntry) => {}
+                Err(e) => return Err(e.to_string()),
+            },
+        }
     }
     if let Ok(mut cached) = API_KEY.lock() {
         *cached = Some(key.map(str::to_string));
@@ -331,6 +394,39 @@ mod language_tests {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn the_key_file_keeps_reads_and_forgets_a_key() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(super::KEY_FILE_NAME);
+        assert_eq!(super::read_key_file(&path).unwrap(), None);
+        super::write_key_file(&path, Some("a-made-up-key")).unwrap();
+        assert_eq!(
+            super::read_key_file(&path).unwrap().as_deref(),
+            Some("a-made-up-key")
+        );
+        // Nothing half-written is left beside it.
+        let names: Vec<_> = std::fs::read_dir(dir.path())
+            .unwrap()
+            .map(|e| e.unwrap().file_name().into_string().unwrap())
+            .collect();
+        assert_eq!(names, vec![super::KEY_FILE_NAME.to_string()]);
+        super::write_key_file(&path, None).unwrap();
+        assert_eq!(super::read_key_file(&path).unwrap(), None);
+        // Forgetting a key that is not there is not an error.
+        super::write_key_file(&path, None).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn the_key_file_is_readable_by_the_player_alone() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(super::KEY_FILE_NAME);
+        super::write_key_file(&path, Some("a-made-up-key")).unwrap();
+        let mode = std::fs::metadata(&path).unwrap().permissions().mode();
+        assert_eq!(mode & 0o777, 0o600);
+    }
+
     use std::time::Duration;
 
     use mrglglgl_core::beats::Thresholds;

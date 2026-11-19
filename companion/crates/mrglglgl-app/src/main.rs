@@ -64,6 +64,11 @@ fn main() {
         )
         .setup(|app| {
             let data_dir = profile::data_dir(app.handle())?;
+            if profile::SEPARATE {
+                // A rebuilt program is a stranger to the keychain, which then asks for the login
+                // password at every start: such a build keeps its key in its own data folder.
+                writing::keep_key_in_file(&data_dir);
+            }
             if profile::SEPARATE
                 && let Some(window) = app.get_webview_window("main")
             {
