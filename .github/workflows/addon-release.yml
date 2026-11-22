@@ -26,6 +26,31 @@ jobs:
       - name: Lint, test and check the package definition
         working-directory: addon
         run: make check package-check LUA=luajit LUA_DIR=
+      # The packager's own changelog lists every commit since the previous tag of any kind, the
+      # app's included. These notes hold only commits that touch addon/, since the previous addon
+      # release: a stable release counts from the previous stable one, so what first shipped in a
+      # beta is listed again where players get it. An explicit range, because --include-path
+      # drops a tag that sits on a commit outside addon/, and most addon tags do.
+      - name: Find the previous addon release
+        id: range
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          previous=$(git tag -l 'addon-v*' --sort=-v:refname --merged "$TAG^")
+          case "${TAG#addon-v}" in
+            *-*) ;;
+            *) previous=$(grep -vE '^addon-v[0-9.]+-' <<< "$previous" || true) ;;
+          esac
+          previous=$(head -1 <<< "$previous")
+          echo "range=${previous:-$(git rev-list --max-parents=0 "$TAG" | tail -1)}..$TAG" >> "$GITHUB_OUTPUT"
+      # .pkgmeta reads it as the manual changelog. A dot file, so the packager leaves it out of
+      # the zip.
+      - uses: orhun/git-cliff-action@v4
+        with:
+          config: companion/cliff.toml
+          args: --strip header --include-path 'addon/**' --tag ${{ github.ref_name }} ${{ steps.range.outputs.range }}
+        env:
+          OUTPUT: .release-notes.md
       # Runs from the repository root: .pkgmeta there moves addon/ to the package root.
       - uses: BigWigsMods/packager@v2
         env:

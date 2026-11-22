@@ -1,5 +1,10 @@
 package-as: Mrglglgl
 
+# Written by the release workflow with git-cliff: only the addon's own commits.
+manual-changelog:
+  filename: .release-notes.md
+  markup-type: markdown
+
 # The addon lives in addon/ of a monorepo: its contents become the package root.
 move-folders:
   Mrglglgl/addon: Mrglglgl
