@@ -170,19 +170,15 @@ fn installs_a_checked_package_and_changes_nothing_else_in_the_game_folder() {
     assert_eq!(ownership(&g.data, &g.flavor), Ownership::Managed);
 }
 
+/// A flavor the game has never been started in may have no `Interface` folder yet: the installer
+/// creates it, so the addon can be installed before the first game. Something there that is not
+/// a plain folder (a file, a link) is still refused rather than replaced or followed.
 #[test]
-fn creates_the_addons_folder_only_when_the_interface_folder_exists() {
+fn creates_the_interface_folder_when_missing_but_never_replaces_something_else() {
     let g = game();
     fs::remove_dir_all(g.flavor.path.join("Interface")).unwrap();
     let zip = package(TAG);
     let checked = verify(&zip, &sha(&zip), TAG).unwrap();
-    assert_eq!(
-        install(&g.flavor, &checked, &g.data, false, Takeover::Refuse, NOW),
-        Err(InstallError::NoInterface("_forever_".into()))
-    );
-    assert!(!g.flavor.path.join("Interface").exists());
-
-    fs::create_dir(g.flavor.path.join("Interface")).unwrap();
     install(&g.flavor, &checked, &g.data, false, Takeover::Refuse, NOW).unwrap();
     assert!(
         g.flavor
@@ -190,6 +186,23 @@ fn creates_the_addons_folder_only_when_the_interface_folder_exists() {
             .join("Interface/AddOns/Mrglglgl/Mrglglgl.toc")
             .is_file()
     );
+
+    let other = game();
+    let interface = other.flavor.path.join("Interface");
+    fs::remove_dir_all(&interface).unwrap();
+    fs::write(&interface, "not a folder").unwrap();
+    assert_eq!(
+        install(
+            &other.flavor,
+            &checked,
+            &other.data,
+            false,
+            Takeover::Refuse,
+            NOW
+        ),
+        Err(InstallError::NoInterface("_forever_".into()))
+    );
+    assert_eq!(fs::read_to_string(&interface).unwrap(), "not a folder");
 }
 
 #[test]

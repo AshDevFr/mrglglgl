@@ -46,7 +46,7 @@ fn install() -> tempfile::TempDir {
         &root.join("_retail_/WTF/Account/OTHER/Some Realm/Hero/SavedVariables/Mrglglgl.lua"),
         journal,
     );
-    fs::create_dir_all(root.join("_no_wtf_here_/Interface")).unwrap();
+    fs::create_dir_all(root.join("_no_game_here_/Logs")).unwrap();
     fs::create_dir_all(root.join("Data")).unwrap();
     fs::create_dir_all(root.join("Utils")).unwrap();
     dir
@@ -130,6 +130,40 @@ fn accepts_the_game_folder_or_a_flavor_folder_and_nothing_else() {
     assert_eq!(normalize_root(&root.join("_forever_")), Some(root.clone()));
     assert_eq!(normalize_root(&root.join("Data")), None);
     assert_eq!(normalize_root(&dir.path().join("missing")), None);
+}
+
+/// A flavor the game has never been started in has no `WTF` folder yet: the launcher installs
+/// `.flavor.info` and the game files, and `WTF` appears on the first start. It must still be found,
+/// or the player cannot install the addon before playing.
+#[test]
+fn finds_a_flavor_the_game_has_never_been_started_in() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path().join("World of Warcraft");
+    touch(
+        &root.join("_forever_/.flavor.info"),
+        "Product Flavor!STRING:0\nwow_forever\n",
+    );
+    fs::create_dir_all(root.join("Data")).unwrap();
+    fs::create_dir_all(root.join(".battle.net")).unwrap();
+    assert_eq!(normalize_root(&root), Some(root.clone()));
+    assert_eq!(normalize_root(&root.join("_forever_")), Some(root.clone()));
+    let found = flavors(&WowRoot {
+        path: root.clone(),
+        source: RootSource::Override,
+    });
+    assert_eq!(found.len(), 1);
+    assert_eq!(found[0].name, "_forever_");
+
+    let interface_only = tempfile::tempdir().unwrap();
+    fs::create_dir_all(interface_only.path().join("_forever_/Interface")).unwrap();
+    assert_eq!(
+        normalize_root(interface_only.path()),
+        Some(interface_only.path().to_path_buf())
+    );
+
+    let bare = tempfile::tempdir().unwrap();
+    fs::create_dir_all(bare.path().join("_not_a_game_")).unwrap();
+    assert_eq!(normalize_root(bare.path()), None);
 }
 
 #[test]

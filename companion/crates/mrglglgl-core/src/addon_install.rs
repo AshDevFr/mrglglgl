@@ -3,9 +3,10 @@
 //!
 //! The only paths it may create, replace or remove are `<flavor>/Interface/AddOns/Mrglglgl/` and
 //! its own working folders beside it, `<flavor>/Interface/AddOns/Mrglglgl-staging-<id>/`, for a
-//! discovered WoW: Forever flavor; it may create `<flavor>/Interface/AddOns/` when `Interface/`
-//! exists. It never touches `WTF/`, any SavedVariables, `Screenshots/` or another addon's folder,
-//! and refuses while the game runs. Every write goes through [`managed_target`].
+//! discovered WoW: Forever flavor; it may create `<flavor>/Interface/` and
+//! `<flavor>/Interface/AddOns/` when they are missing (a fresh install may have neither, and the
+//! addon should be installable before the first game). It never touches `WTF/`, any
+//! SavedVariables, `Screenshots/` or another addon's folder, and refuses while the game runs. Every write goes through [`managed_target`].
 //!
 //! A package is checked completely before anything is written: its size and SHA-256, every path
 //! inside one `Mrglglgl/` folder with no way out of it, allowed file types only, no links, sizes
@@ -63,7 +64,7 @@ pub enum InstallError {
     GameRunning,
     #[error("{0} is not a WoW: Forever folder")]
     NotForever(String),
-    #[error("{0} has no Interface folder")]
+    #[error("{0} has an Interface that is not a folder")]
     NoInterface(String),
     #[error("the addon folder is a link to a development copy")]
     DevelopmentCopy,
@@ -242,15 +243,17 @@ pub fn verify(bytes: &[u8], sha256: &str, tag: &str) -> Result<Package, InstallE
 }
 
 /// The one folder the installer writes, after checking the flavor is a discovered WoW: Forever
-/// folder with an `Interface` folder, and that the addon there is not a linked development copy.
+/// folder whose `Interface` is a plain folder or missing (installing creates it), and that the
+/// addon there is not a linked development copy. An `Interface` that is a file or a link is
+/// refused: replacing it would destroy something, following it would write outside the flavor.
 pub fn managed_target(flavor: &Flavor) -> Result<PathBuf, InstallError> {
     if !addon_status::is_forever(flavor) {
         return Err(InstallError::NotForever(flavor.name.clone()));
     }
     let interface = flavor.path.join("Interface");
-    let interface_meta = fs::symlink_metadata(&interface)
-        .map_err(|_| InstallError::NoInterface(flavor.name.clone()))?;
-    if !interface_meta.is_dir() {
+    if let Ok(meta) = fs::symlink_metadata(&interface)
+        && !meta.is_dir()
+    {
         return Err(InstallError::NoInterface(flavor.name.clone()));
     }
     let target = addon_status::addon_folder(flavor);

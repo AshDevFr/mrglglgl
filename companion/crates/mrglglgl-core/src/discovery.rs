@@ -69,11 +69,16 @@ fn is_flavor_name(name: &str) -> bool {
     name.len() > 2 && name.starts_with('_') && name.ends_with('_')
 }
 
+/// A `_name_` folder with a sign of the game in it. `WTF` only appears once the game has been
+/// started, so a fresh install is told by the launcher's `.flavor.info` (or an `Interface`
+/// folder) instead; without them the player could not install the addon before first playing.
 fn is_flavor_dir(path: &Path) -> bool {
     path.file_name()
         .and_then(|n| n.to_str())
         .is_some_and(is_flavor_name)
-        && path.join("WTF").is_dir()
+        && (path.join(".flavor.info").is_file()
+            || path.join("WTF").is_dir()
+            || path.join("Interface").is_dir())
 }
 
 /// The game folder for a path the player picked or a source reported: the folder itself when it
@@ -227,8 +232,8 @@ fn name_of(path: &Path) -> String {
         .unwrap_or_default()
 }
 
-/// The flavor folders in a WoW install: every `_name_` folder that holds a `WTF` folder. No
-/// flavor name is assumed.
+/// The flavor folders in a WoW install: every `_name_` folder with a sign of the game in it
+/// (`.flavor.info`, `WTF` or `Interface`). No flavor name is assumed.
 pub fn flavors(root: &WowRoot) -> Vec<Flavor> {
     sorted_dirs(&root.path)
         .into_iter()

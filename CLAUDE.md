@@ -31,9 +31,10 @@ The desktop app lives in `companion/` (Rust workspace + `ui/` React frontend, Ta
   (`companion/crates/mrglglgl-core/src/addon_install.rs`) may create, replace or delete
   `<flavor>/Interface/AddOns/Mrglglgl/` and its own working folders
   `<flavor>/Interface/AddOns/Mrglglgl-staging-<id>/`, where `<flavor>` is a discovered WoW: Forever
-  flavor folder, and may create `<flavor>/Interface/AddOns/` when `<flavor>/Interface/` exists. It
-  writes nowhere else under the game folder (not `WTF/`, no SavedVariables, not `Screenshots/`,
-  not another addon's folder) and never while the game runs. Exports, the website, backups and
+  flavor folder, and may create `<flavor>/Interface/` and `<flavor>/Interface/AddOns/` when they
+  are missing (a fresh install may have neither). It writes nowhere else under the game folder
+  (not `WTF/`, no SavedVariables, not `Screenshots/`, not another addon's folder) and never while
+  the game runs. Exports, the website, backups and
   every other feature keep the full rule
 - Never execute Lua, with one exception: the addon's own tooling may be run from the repository,
   `make -C addon check` (lint and specs), `make -C addon package-check` and `make -C addon fixtures`
